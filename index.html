@@ -618,11 +618,15 @@ body.authing #tabs{display:none}
 /* Die Drehung läuft auf dem ganzen Icon-Element (nicht im SVG), damit sie auch während des Ladens weich bleibt */
 .sp-stage{position:relative;z-index:1;width:112px;height:112px;will-change:transform;transform-origin:48.63% 50%;animation:spRot .85s cubic-bezier(.42,0,.2,1) .05s forwards}
 .sp-stage svg{width:112px;height:112px;display:block;overflow:visible}
+.sp-l{position:absolute;inset:0;will-change:transform,opacity}
 .sp-arc{animation:spArcOut .55s ease 1s forwards}
 .sp-dot{animation:spHide 0s linear .9s forwards}
+.sp-pill{position:absolute;z-index:2;will-change:transform,opacity;overflow:hidden}
+.sp-pill i{position:absolute;inset:0;background:#FF5A36;will-change:opacity}
 .sp-ball{position:absolute;z-index:2;left:calc(50% - 7.85px);top:calc(50% - 28.45px);width:12.7px;height:12.7px;border-radius:50%;background:#FF5A36;opacity:0;will-change:transform;animation:spLaunch .85s cubic-bezier(.22,.72,.2,1) .9s forwards}
 .sp-ball::after{content:"";position:absolute;inset:-9px;border-radius:50%;background:radial-gradient(circle,rgba(255,90,54,.55) 0,rgba(255,90,54,.18) 45%,transparent 70%);opacity:0;animation:spGlow .6s ease 1.2s forwards}
 .sp-ball.landed::after{display:none}
+.sp-ball.morph{z-index:3;animation:none;opacity:1;transform-origin:0 0}
 body.splashing #tabs{opacity:0}
 @keyframes spNight{to{opacity:1}}
 @keyframes spStars{to{opacity:.85}}
@@ -658,7 +662,7 @@ html.ios-standalone body{min-height:100lvh}
 </head>
 <body>
 
-<div id="splash" aria-hidden="true"><script>document.body.classList.add("splashing")</script><div class="sp-stage"><svg viewBox="0 0 512 512"><g class="sp-rot"><path class="sp-arc" d="M320 165A116 116 0 1 0 320 347" fill="none" stroke="#1B1D23" stroke-width="60" stroke-linecap="round"/><circle class="sp-dot" cx="350" cy="256" r="29" fill="#FF5A36"/></g></svg></div><div class="sp-ball"></div></div>
+<div id="splash" aria-hidden="true"><script>document.body.classList.add("splashing")</script><div class="sp-stage"><div class="sp-l sp-arc"><svg viewBox="0 0 512 512"><path d="M320 165A116 116 0 1 0 320 347" fill="none" stroke="#1B1D23" stroke-width="60" stroke-linecap="round"/></svg></div><div class="sp-l sp-dot"><svg viewBox="0 0 512 512"><circle cx="350" cy="256" r="29" fill="#FF5A36"/></svg></div></div><div class="sp-ball"></div></div>
 <div id="app">
   <main id="main"><div class="loading">Cardo lädt …</div></main>
 </div>
@@ -769,28 +773,36 @@ function morphSplash(el){
   const tabsShown = tabs && getComputedStyle(tabs).display !== "none" && tabs.children.length;
   const finish = () => { el.classList.add("out"); document.body.classList.remove("splashing"); setTimeout(() => el.remove(), 400); };
   if (!ball || !tabsShown || !ball.animate || matchMedia("(prefers-reduced-motion: reduce)").matches) { finish(); return; }
-  // Die Kugel fällt aus dem „Weltall“ nach unten und wird zur Tab-Leiste
+  // Die Kugel fällt aus dem „Weltall“ nach unten und wird zur Tab-Leiste.
+  // Nur transform/opacity → läuft auf der Grafikkarte und ruckelt auch nicht, wenn die App gleichzeitig lädt (Android).
   const a = ball.getBoundingClientRect(), b = tabs.getBoundingClientRect(), ts = getComputedStyle(tabs);
   const radius = ts.borderTopLeftRadius || "0px", bg = ts.backgroundColor, d = Math.min(b.height, 64);
-  ball.style.animation = "none"; ball.style.opacity = "1";
-  Object.assign(ball.style, { left: a.left + "px", top: a.top + "px", width: a.width + "px", height: a.height + "px", transform: "none" });
-  const cx = b.left + b.width / 2, cy = b.top + b.height / 2;
+  const cx = b.left + b.width / 2, cy = b.top + b.height / 2, k0 = a.width / d;
+  ball.classList.add("morph");
+  Object.assign(ball.style, { left: a.left + "px", top: a.top + "px", width: d + "px", height: d + "px", transform: `scale(${k0})` });
+  try { ball.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 480, fill: "forwards", pseudoElement: "::after" }); } catch { ball.classList.add("landed"); }
   const fall = ball.animate([
-    { left: a.left + "px", top: a.top + "px", width: a.width + "px", height: a.height + "px", boxShadow: "0 0 14px 4px rgba(255,90,54,.55)" },
-    { left: (cx - d / 2) + "px", top: (cy - d / 2) + "px", width: d + "px", height: d + "px", boxShadow: "0 0 24px 6px rgba(255,90,54,.35)" }
+    { transform: `translate3d(0,0,0) scale(${k0})` },
+    { transform: `translate3d(${cx - d / 2 - a.left}px,${cy - d / 2 - a.top}px,0) scale(1)` }
   ], { duration: 480, easing: "cubic-bezier(.55,0,.85,.35)", fill: "forwards" });
   fall.onfinish = () => {
-    const grow = ball.animate([
-      { left: (cx - d / 2) + "px", top: (cy - d / 2) + "px", width: d + "px", height: d + "px", borderRadius: "50%", backgroundColor: "#FF5A36" },
-      { left: b.left + "px", top: b.top + "px", width: b.width + "px", height: b.height + "px", borderRadius: radius, backgroundColor: bg, boxShadow: "0 0 0 0 rgba(255,90,54,0)" }
-    ], { duration: 380, easing: "cubic-bezier(.3,1.2,.5,1)", fill: "forwards" });
     ball.classList.add("landed");
+    const pill = document.createElement("div"); pill.className = "sp-pill"; pill.innerHTML = "<i></i>";
+    Object.assign(pill.style, { left: b.left + "px", top: b.top + "px", width: b.width + "px", height: b.height + "px", borderRadius: radius, background: bg });
+    el.appendChild(pill);
+    const s0 = .7 * d; // Startgröße passt ganz in die Kugel, damit keine Ecken hervorschauen
+    const grow = pill.animate([
+      { transform: `scale(${s0 / b.width},${s0 / b.height})` },
+      { transform: "scale(1,1)" }
+    ], { duration: 400, easing: "cubic-bezier(.3,1.15,.5,1)", fill: "forwards" });
+    pill.firstChild.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 360, easing: "ease-out", fill: "forwards" });
+    ball.animate([{ opacity: 1, transform: `translate3d(${cx - d / 2 - a.left}px,${cy - d / 2 - a.top}px,0) scale(1)` }, { opacity: 0, transform: `translate3d(${cx - d / 2 - a.left}px,${cy - d / 2 - a.top}px,0) scale(1.15)` }], { duration: 170, easing: "ease-out", fill: "forwards" });
     el.style.background = "transparent"; // weiße Grundfläche weg (liegt unter der dunklen Ebene)
     el.classList.add("reveal-sky");       // Nacht und Sterne blenden aus, die App erscheint
     const m = $("#main"); m.classList.remove("a-fade", "a-push", "a-pop"); void m.offsetWidth; m.classList.add("a-fade"); setTimeout(() => m.classList.remove("a-fade"), 950);
     grow.onfinish = () => {
       document.body.classList.remove("splashing"); tabs.classList.add("tabs-in");
-      ball.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 180, fill: "forwards" });
+      pill.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 180, fill: "forwards" });
       setTimeout(() => el.remove(), 200); setTimeout(() => tabs.classList.remove("tabs-in"), 700);
     };
   };
@@ -2099,7 +2111,7 @@ document.addEventListener("keydown", e => {
 
 if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
 addEventListener("online", () => render()); addEventListener("offline", () => render());
-boot();
+requestAnimationFrame(() => setTimeout(boot, 0)); // erst ein Bild zeichnen, damit die Startanimation schon auf der Grafikkarte läuft
 })();
 </script>
 </body>
