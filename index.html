@@ -255,6 +255,11 @@ body.studying #main{max-width:760px;padding-bottom:24px}
 
 /* Study */
 .study-top{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.remind{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 12px 12px 16px;margin:0 0 18px}
+.remind .rm-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.remind .rm-t b{font-size:16px}.remind .rm-t span{font-size:14px;color:var(--muted)}
+.remind .rm-x{width:34px;height:34px;flex:none;border-radius:10px;background:none;border:0;color:var(--muted);display:grid;place-items:center}.remind .rm-x svg{width:16px;height:16px}
+.bk-row{flex-wrap:wrap;gap:8px}.bk-row .si-t{display:flex;flex-direction:column}.bk-row small{font-size:13.5px;color:var(--muted);font-weight:500}
+.bk-acts{display:flex;gap:6px;margin-left:auto}.bk-acts .btn{padding:7px 12px;font-size:14px}.bk-acts .btn.armed{background:var(--danger,#d33);color:#fff;border-color:transparent}
 .xbtn svg{width:20px;height:20px;display:block;margin:auto}
 .xbtn{width:40px;height:40px;border-radius:12px;background:var(--surface);border:1px solid var(--line);font-size:20px;flex:none}
 .bar{flex:1;height:8px;border-radius:99px;background:var(--line);overflow:hidden}
@@ -784,7 +789,7 @@ const THEMES = [
 ];
 const NEUTRAL = [["light","Hell"],["dark","Dunkel"],["auto","System"]];
 S.set = { look: "auto", layout: "grid", textSize: "m", fxMode: "full", gradeSet: "4", newPerDay: 20 };
-S.seen = {}; S.extraNew = {}; // pro Tag und Hauptordner: heute gelernte Karten (IDs) / Zusatzkontingent
+S.seen = {}; S.extraNew = {}; S.lastExport = 0; // pro Tag und Hauptordner: heute gelernte Karten (IDs) / Zusatzkontingent
 const NEW_OPTS = [5, 10, 15, 20, 30, 50, 0]; // 0 = unbegrenzt
 const newLimit = () => (S.set.newPerDay ?? 20);
 const newLimitLabel = k => k === 0 ? "Unbegrenzt" : String(k);
@@ -831,8 +836,8 @@ applyTheme();
 
 /* ---------- Storage (cloud db, local fallback) ---------- */
 const LS = "kartenfach-data-v1";
-function loadLocal(){ try { const d = JSON.parse(localStorage.getItem(LS) || "null"); if (d) { S.folders = d.folders||{}; S.decks = d.decks||{}; S.days = d.days||{}; S.seen = d.seen||{}; S.extraNew = d.extraNew||{}; S.sections = d.sections||{}; } } catch {} }
-function saveLocal(){ try { localStorage.setItem(LS, JSON.stringify({folders:S.folders, decks:S.decks, days:S.days, seen:S.seen, extraNew:S.extraNew, sections:S.sections})); } catch { toast("Speicher auf diesem Gerät ist voll."); } }
+function loadLocal(){ try { const d = JSON.parse(localStorage.getItem(LS) || "null"); if (d) { S.folders = d.folders||{}; S.decks = d.decks||{}; S.days = d.days||{}; S.seen = d.seen||{}; S.lastExport = d.lastExport||0; S.extraNew = d.extraNew||{}; S.sections = d.sections||{}; } } catch {} }
+function saveLocal(){ try { localStorage.setItem(LS, JSON.stringify({folders:S.folders, decks:S.decks, days:S.days, seen:S.seen, lastExport:S.lastExport||0, extraNew:S.extraNew, sections:S.sections})); } catch { toast("Speicher auf diesem Gerät ist voll."); } }
 const queues = {};
 function enqueue(path, fn){
   const p = (queues[path] || Promise.resolve()).then(fn).catch(e => { console.warn(path, e); toast(errText(e)); });
@@ -884,7 +889,7 @@ function delCard(fid, id){ const d = { ...(S.decks[fid]||{}) }; delete d[id]; S.
 const keepToday = o => { const k = dayKey(), out = {}; if (o && o[k]) out[k] = o[k]; return out; };
 function saveStats(){
   S.seen = keepToday(S.seen); S.extraNew = keepToday(S.extraNew);
-  if (DB) enqueue("stats/main", () => DB.doc("stats/main").set({ days: S.days, seen: S.seen, extraNew: S.extraNew })); else saveLocal();
+  if (DB) enqueue("stats/main", () => DB.doc("stats/main").set({ days: S.days, seen: S.seen, extraNew: S.extraNew, lastExport: S.lastExport || 0 })); else saveLocal();
 }
 function logReview(fid, cid){
   const k = dayKey(); S.days = { ...S.days, [k]: (S.days[k]||0) + 1 };
@@ -938,7 +943,8 @@ function makeStore(sb, uid){
     saveCache(); emit();
   }).subscribe();
   addEventListener("online", () => { flush(); load().catch(() => {}); });
-  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") load().catch(() => {}); });
+  let lastLoad = Date.now(); // beim Zurückwechseln nur neu laden, wenn länger als 5 Minuten her (spart Datenvolumen)
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && Date.now() - lastLoad > 5 * 60000) { lastLoad = Date.now(); load().catch(() => {}); } });
   const api = {
     doc: path => ({ set: d => write(path, JSON.parse(JSON.stringify(d))), delete: () => write(path, null),
       onSnapshot: cb => { subs.push({ path, cb }); cb(docSnap(path)); return () => {}; } }),
@@ -959,7 +965,7 @@ async function bootClaude(){
   DB.collection("sections").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = d.data(); }); S.sections = o; render(); });
   DB.collection("folders").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = d.data(); }); S.folders = o; S.loaded.f = true; render(); });
   DB.collection("cards").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = { ...((d.data()||{}).cards || {}) }; }); S.decks = o; S.loaded.c = true; render(); });
-  DB.doc("stats/main").onSnapshot(d => { const x = d.exists ? (d.data()||{}) : {}; S.days = { ...(x.days || {}) }; S.seen = { ...(x.seen || {}) }; S.extraNew = { ...(x.extraNew || {}) }; S.loaded.s = true; render(); });
+  DB.doc("stats/main").onSnapshot(d => { const x = d.exists ? (d.data()||{}) : {}; S.days = { ...(x.days || {}) }; S.seen = { ...(x.seen || {}) }; S.lastExport = x.lastExport || 0; S.extraNew = { ...(x.extraNew || {}) }; S.loaded.s = true; render(); });
 }
 async function boot(){
   if (!window.supabase && window.claude && window.claude.use) return bootClaude();
@@ -981,7 +987,7 @@ function startApp(){
   DB.collection("sections").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = d.data(); }); S.sections = o; render(); });
   DB.collection("folders").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = d.data(); }); S.folders = o; S.loaded.f = true; render(); });
   DB.collection("cards").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = { ...((d.data()||{}).cards || {}) }; }); S.decks = o; S.loaded.c = true; render(); });
-  DB.doc("stats/main").onSnapshot(d => { const x = d.exists ? (d.data()||{}) : {}; S.days = { ...(x.days || {}) }; S.seen = { ...(x.seen || {}) }; S.extraNew = { ...(x.extraNew || {}) }; S.loaded.s = true; render(); });
+  DB.doc("stats/main").onSnapshot(d => { const x = d.exists ? (d.data()||{}) : {}; S.days = { ...(x.days || {}) }; S.seen = { ...(x.seen || {}) }; S.lastExport = x.lastExport || 0; S.extraNew = { ...(x.extraNew || {}) }; S.loaded.s = true; render(); });
   DB.load().then(() => DB.flush()).catch(e => { console.warn(e); toast(navigator.onLine ? "Laden fehlgeschlagen. Versuch es gleich noch einmal." : "Offline: Du siehst den zuletzt gespeicherten Stand."); })
     .finally(() => { S.mode = "cloud"; render(); });
 }
@@ -1141,7 +1147,7 @@ function draw(){
     clearTimeout(draw.t); draw.t = setTimeout(() => m.classList.remove("a-fade", "a-push", "a-pop"), 950); }
   else if (S.anim === "none") m.classList.remove("a-fade", "a-push", "a-pop");
   S.anim = null;
-  if (S.loaded.f && S.loaded.c) hideSplash();
+  if (S.loaded.f && S.loaded.c) { hideSplash(); scheduleAutoBackup(); }
   S.gen = (S.gen || 0) + 1; schedulePrerender && schedulePrerender();
   saveUi();
 }
@@ -1181,6 +1187,7 @@ function foldersHTML(list){ return S.set.layout === "list" ? `<div class="flist"
 function libHTML(){
   const top = children(null), all = counts(null);
   return `<div class="topbar"><h1>Bibliothek</h1><div class="tb-r"><button class="icon-btn" data-act="libMenu" aria-haspopup="menu" aria-expanded="false" aria-label="Bibliothek-Menü" title="Bibliothek">${IC.dots}</button></div></div>
+  ${remindHTML()}
   ${sectionList().length ? sectionsHTML() : top.length ? `<div class="sec-h"><h2>Ordner</h2><span class="muted">${plural(all.total, 'Karte', 'Karten')}</span></div>` : ''}
   ${sectionList().length ? '' : top.length ? foldersHTML(top) : `<div class="empty"><b>Noch keine Ordner</b>Leg deinen ersten Ordner an oder spiel eine Cardo-Sicherung ein.<div class="actions"><button class="btn primary" data-act="newFolder">Neuer Ordner</button><button class="btn" data-act="dataSheet">Sicherung einspielen</button></div></div>`}`;
 }
@@ -1336,32 +1343,51 @@ function dataSheet(){
     <div class="set-list" style="margin:0"><div class="set-item static"><span class="si-t">Inhalt</span><span class="si-v">${plural(f, "Ordner", "Ordner")} · ${plural(n, "Karte", "Karten")}</span></div></div>
     <button class="learn-btn" style="margin-top:14px" data-act="exportData" id="expBtn"><span class="lb-play" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg></span><span class="lb-t"><b>Daten exportieren</b><span>Datei „cardo-backup.json“</span></span></button>
     <p class="muted" id="expMsg" style="font-size:14.5px;margin:10px 2px 0">Tipp: Speichere die Datei in deinem OneDrive oder in iCloud Drive.</p>
+    <div class="lbl" style="margin:22px 0 8px">Automatische Sicherungen auf diesem Gerät</div>
+    <p class="muted" style="margin:0 0 10px;font-size:14.5px">Cardo legt einmal pro Woche selbst eine Sicherung an und behält die letzten ${BK_KEEP}. Wiederherstellen spielt Ordner und Karten mit ihrem damaligen Lernstand wieder ein.</p>
+    <div class="set-list" style="margin:0" id="bkList"><div class="set-item static"><span class="si-t muted">Wird geladen …</span></div></div>
     <div class="lbl" style="margin:22px 0 8px">Sicherung einspielen</div>
     <label class="btn block" for="impFile" style="justify-content:center">Sicherungsdatei auswählen …</label><input id="impFile" type="file" accept=".json,application/json" hidden>
     <p class="muted" id="impMsg" style="font-size:14.5px;margin:10px 2px 0">Übernimmt Ordner, Karten mit Lernstand, Statistik und Einstellungen aus einer Cardo-Sicherung. Vorhandene Einträge mit gleicher Kennung werden überschrieben.</p>`, root => {
     $("#impFile", root).addEventListener("change", async e => { const f = e.target.files && e.target.files[0]; if (f) await importData(f, $("#impMsg", root)); e.target.value = ""; });
+    bkRender(root);
+    $("#bkList", root).addEventListener("click", async e => {
+      const b = e.target.closest("[data-bk]"); if (!b) return; const x = (await bkList()).find(r => r.id === b.dataset.id); if (!x) return;
+      if (b.dataset.bk === "dl") { downloadBackup(x.data); toast("Sicherung heruntergeladen"); return; }
+      if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = "Wirklich?"; setTimeout(() => { if (b.isConnected) { b.classList.remove("armed"); b.textContent = "Wiederherstellen"; } }, 3500); return; }
+      b.disabled = true; await autoBackup(true); await importObj(x.data, $("#impMsg", root)); bkRender(root);
+    });
   });
 }
 async function importData(file, msg){
-  try {
-    const d = JSON.parse(await file.text());
+  try { await importObj(JSON.parse(await file.text()), msg); }
+  catch (e) { console.warn(e); msg.textContent = "Das ist keine gültige Cardo-Sicherung."; }
+}
+async function applyEntries(entries){
+  if (DB && DB.bulk) return DB.bulk(entries);
+  if (DB) { for (const [p, d] of entries) await DB.doc(p).set(d); return; }
+  entries.forEach(([p, d]) => { const [c, id] = p.split("/");
+    if (c === "folders") S.folders = { ...S.folders, [id]: d }; else if (c === "sections") S.sections = { ...S.sections, [id]: d };
+    else if (c === "cards") S.decks = { ...S.decks, [id]: d.cards }; else if (p === "stats/main") S.days = d.days; else if (p === "settings/main") { S.set = d; applyTheme(); } });
+  saveLocal(); render();
+}
+async function importObj(d, msg){
+  {
     if (!d || d.app !== "Cardo" || !d.folders || !d.decks) throw new Error("format");
     const entries = [];
     Object.entries(d.folders).forEach(([id, f]) => entries.push(["folders/" + id, f]));
     Object.entries(d.sections || {}).forEach(([id, x]) => entries.push(["sections/" + id, x]));
     Object.entries(d.decks).forEach(([fid, cards]) => entries.push(["cards/" + fid, { cards }]));
-    if (d.stats && d.stats.days) entries.push(["stats/main", { days: { ...S.days, ...d.stats.days }, seen: S.seen, extraNew: S.extraNew }]);
+    if (d.stats && d.stats.days) entries.push(["stats/main", { days: { ...S.days, ...d.stats.days }, seen: S.seen, extraNew: S.extraNew, lastExport: S.lastExport || 0 }]);
     if (d.settings) entries.push(["settings/main", normSet(d.settings) || S.set]);
     msg.textContent = "Wird übernommen …";
-    await DB.bulk(entries);
+    await applyEntries(entries);
     const n = Object.values(d.decks).reduce((a, c) => a + Object.keys(c).length, 0);
     msg.textContent = `Fertig: ${plural(Object.keys(d.folders).length, "Ordner", "Ordner")} und ${plural(n, "Karte", "Karten")} übernommen.`;
     toast("Sicherung eingespielt");
-  } catch (e) { console.warn(e); msg.textContent = "Das ist keine gültige Cardo-Sicherung."; }
+  }
 }
-async function exportData(){
-  const btn = $("#expBtn"), msg = $("#expMsg"); if (btn) btn.disabled = true; if (msg) msg.textContent = "Wird vorbereitet …";
-  try {
+async function buildBackup(){
     const folders = JSON.parse(JSON.stringify(S.folders));
     for (const f of Object.values(folders)) {
       if (f.cover && f.cover.startsWith("asset:")) {
@@ -1369,14 +1395,61 @@ async function exportData(){
         catch { f.cover = null; }
       }
     }
-    const data = { app: "Cardo", format: 1, exportedAt: new Date().toISOString(), folders, sections: S.sections, decks: S.decks, stats: { days: S.days }, settings: S.set };
-    const name = "cardo-backup-" + dayKey() + ".json", text = JSON.stringify(data, null, 1);
+    return { app: "Cardo", format: 1, exportedAt: new Date().toISOString(), folders, sections: S.sections, decks: S.decks, stats: { days: S.days }, settings: S.set };
+}
+function downloadBackup(data){
+    const name = "cardo-backup-" + dayKey(Date.parse(data.exportedAt) || Date.now()) + ".json", text = JSON.stringify(data, null, 1);
     const url = URL.createObjectURL(new Blob([text], { type: "application/json" })), a = document.createElement("a");
     a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000);
+    S.lastExport = Date.now(); saveStats(); return name;
+}
+async function exportData(){
+  const btn = $("#expBtn"), msg = $("#expMsg"); if (btn) btn.disabled = true; if (msg) msg.textContent = "Wird vorbereitet …";
+  try {
+    const name = downloadBackup(await buildBackup());
     if (msg) msg.textContent = "Gespeichert als „" + name + "“.";
   } catch (e) {
     if (msg) msg.textContent = e && e.code === "declined" ? "Abgebrochen. Du kannst es jederzeit erneut versuchen." : "Export hat nicht geklappt. Versuch es bitte noch einmal.";
   } finally { if (btn) btn.disabled = false; }
+}
+/* ---------- Automatische Sicherungen auf diesem Gerät (IndexedDB, letzte 4, wöchentlich) ---------- */
+const BK_KEEP = 4, BK_EVERY = 7 * DAY, EXPORT_REMIND = 30 * DAY;
+let bkDb = null;
+function bkOpen(){
+  if (bkDb) return bkDb;
+  bkDb = new Promise((res, rej) => { if (!window.indexedDB) return rej(new Error("no idb")); const r = indexedDB.open("cardo-backups", 1);
+    r.onupgradeneeded = () => r.result.createObjectStore("snaps", { keyPath: "id" }); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+  return bkDb;
+}
+const bkOwner = () => (USER && USER.id) || "lokal";
+async function bkList(){
+  try { const db = await bkOpen(); return await new Promise((res, rej) => { const q = db.transaction("snaps").objectStore("snaps").getAll(); q.onsuccess = () => res(q.result.filter(x => x.owner === bkOwner()).sort((a, b) => b.at - a.at)); q.onerror = () => rej(q.error); }); }
+  catch { return []; }
+}
+async function bkPut(rec){ const db = await bkOpen(); await new Promise((res, rej) => { const t = db.transaction("snaps", "readwrite"); t.objectStore("snaps").put(rec); t.oncomplete = res; t.onerror = () => rej(t.error); }); }
+async function bkDel(id){ const db = await bkOpen(); await new Promise((res, rej) => { const t = db.transaction("snaps", "readwrite"); t.objectStore("snaps").delete(id); t.oncomplete = res; t.onerror = () => rej(t.error); }); }
+async function autoBackup(force){
+  try {
+    const n = cardsIn(null, true).length; if (!n) return;
+    const list = await bkList(); if (!force && list[0] && Date.now() - list[0].at < BK_EVERY) return;
+    const at = Date.now(); await bkPut({ id: bkOwner() + ":" + at, owner: bkOwner(), at, cards: n, folders: Object.keys(S.folders).length, data: await buildBackup() });
+    for (const old of (await bkList()).slice(BK_KEEP)) await bkDel(old.id);
+  } catch (e) { console.warn("auto-backup", e); }
+}
+let bkTimer = 0;
+function scheduleAutoBackup(){ if (bkTimer) return; bkTimer = setTimeout(() => autoBackup(false), 8000); }
+async function bkRender(root){
+  const box = $("#bkList", root); if (!box) return; const list = await bkList();
+  const fmt = t => { const d = new Date(t); return d.toLocaleDateString("de-DE", { day: "numeric", month: "short", year: "numeric" }) + " · " + d.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }); };
+  box.innerHTML = list.length ? list.map(x => `<div class="set-item static bk-row"><span class="si-t">${fmt(x.at)}<small>${plural(x.cards, "Karte", "Karten")} · ${plural(x.folders, "Ordner", "Ordner")}</small></span><span class="bk-acts"><button class="btn" data-bk="dl" data-id="${esc(x.id)}">Laden</button><button class="btn" data-bk="restore" data-id="${esc(x.id)}">Wiederherstellen</button></span></div>`).join("")
+    : '<div class="set-item static"><span class="si-t muted">Noch keine – die erste entsteht automatisch.</span></div>';
+}
+const exportDue = () => cardsIn(null, true).length >= 20 && Date.now() - (S.lastExport || 0) > EXPORT_REMIND;
+function remindHTML(){
+  if (!exportDue()) return ""; let snooze = 0; try { snooze = +localStorage.getItem("cardo-remind-snooze") || 0; } catch {}
+  if (Date.now() < snooze) return "";
+  const d = S.lastExport ? Math.floor((Date.now() - S.lastExport) / DAY) : 0;
+  return `<div class="remind"><span class="rm-t"><b>Zeit für eine Sicherung</b><span>${S.lastExport ? `Letzte Sicherungsdatei vor ${d} Tagen` : "Du hast noch keine Sicherungsdatei heruntergeladen"}</span></span><button class="btn primary" data-act="dataSheet">Sichern</button><button class="rm-x" data-act="remindLater" aria-label="Später erinnern">${IC.close}</button></div>`;
 }
 function lookSheet(){
   openSheet(`${head("Thema")}<p class="muted" style="margin:0 0 16px;font-size:15.5px">Hell, Dunkel und System sind schlicht schwarz-weiß. Ein Farbthema färbt die ganze App ein. System folgt deinem Gerät.</p><div id="lookPick">${lookPickerHTML()}</div>`);
@@ -1780,6 +1853,7 @@ document.addEventListener("click", e => {
   if (a === "setGradeSet") { saveSettings({ gradeSet: b.dataset.v }); const gp = $("#gsPick"); if (gp) gp.innerHTML = gradeSetPickerHTML(); return; }
   if (a === "cardsSheet") { cardsSheet(); return; }
   if (a === "dataSheet") { dataSheet(); return; }
+  if (a === "remindLater") { try { localStorage.setItem("cardo-remind-snooze", String(Date.now() + 7 * DAY)); } catch {} render(); return; }
   if (a === "accountSheet") { accountSheet(); return; }
   if (a === "changePw") { newPasswordSheet(); return; }
   if (a === "authMode") { showAuth(b.dataset.v); return; }
