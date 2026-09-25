@@ -647,6 +647,8 @@ body.splashing #tabs{opacity:0}
 /* iOS 26: in der installierten App ist die bemalbare Fläche zu kurz, wenn html nur 100% hoch ist – mit 100lvh reicht sie bis zum unteren Rand */
 @media (display-mode: standalone){html{height:100lvh;min-height:100lvh}body{min-height:100lvh}}
 html.ios-standalone{height:100lvh;min-height:100lvh}
+html.android,html.android body{overscroll-behavior-y:none}
+html.android .flash,html.android #tabs,html.android button,html.android .tile,html.android .set-item{-webkit-user-select:none;user-select:none}
 html.ios-standalone body{min-height:100lvh}
 /* Tab-Leiste auf dem iPhone tiefer: weniger Abstand zum Home-Balken (nur schmale Bildschirme, Leiste über volle Breite) */
 @media (max-width:699px){html.ios-standalone #tabs{padding-bottom:max(4px,calc(env(safe-area-inset-bottom,0px) - 18px))}}
@@ -722,6 +724,37 @@ fixBottomGap();
 addEventListener("resize", fixBottomGap); addEventListener("orientationchange", () => setTimeout(fixBottomGap, 300));
 addEventListener("pageshow", fixBottomGap); document.addEventListener("focusout", () => setTimeout(fixBottomGap, 250));
 setTimeout(fixBottomGap, 600);
+/* ---------- Android: Zurück-Taste, Installieren (wirkt nur auf Android bzw. wo der Browser Installieren anbietet) ---------- */
+const isAndroid = /Android/i.test(navigator.userAgent);
+document.documentElement.classList.toggle("android", isAndroid);
+const isStandalone = () => navigator.standalone === true || matchMedia("(display-mode: standalone)").matches;
+let installEvt = null;
+addEventListener("beforeinstallprompt", e => { e.preventDefault(); installEvt = e; if (S.view === "settings") render(); });
+addEventListener("appinstalled", () => { installEvt = null; if (S.view === "settings") render(); });
+function androidBack(){
+  if (!$("#menu").hidden) { closeMenu(); return true; }
+  if (!$("#sheet").hidden) { const bb = $("#sheet .sheet-h .xbtn[data-act]"); if (bb) bb.click(); else closeSheet(); return true; }
+  if (!document.body.classList.contains("splashing")) {
+    if (S.view === "study") { endStudy(); return true; }
+    if (S.view === "lib" && S.sel) { S.sel = null; render(); return true; }
+    if (S.view === "lib" && S.fid) { const f = S.folders[S.fid]; go("lib", f && f.parentId && S.folders[f.parentId] ? f.parentId : null, "pop"); return true; }
+    if (S.view === "stats" || S.view === "settings") { go("lib", libTarget(), "fade"); return true; }
+  }
+  return false;
+}
+if (isAndroid) {
+  /* Ein einziger Schutz-Eintrag im Verlauf fängt die Zurück-Taste ab. Chrome zählt Einträge nur, wenn sie nach einer
+     Berührung angelegt werden – deshalb wird er beim nächsten Antippen (wieder) angelegt, nicht sofort. */
+  let guarded = !!(history.state && history.state.cardoGuard), exitAt = 0;
+  const arm = () => { if (!guarded) { history.pushState({ cardoGuard: 1 }, ""); guarded = true; } };
+  document.addEventListener("pointerdown", arm, true); document.addEventListener("keydown", arm, true);
+  addEventListener("popstate", () => {
+    guarded = !!(history.state && history.state.cardoGuard);
+    if (guarded) return;
+    if (androidBack()) { exitAt = 0; return; }
+    if (Date.now() - exitAt > 2500) { exitAt = Date.now(); toast("Nochmal zurück zum Beenden"); }
+  });
+}
 /* ---------- Startbildschirm ausblenden, sobald alles geladen ist (mind. ~1 s sichtbar) ---------- */
 const splashStart = performance.now();
 let splashGone = false;
@@ -1457,6 +1490,9 @@ function lookSheet(){
 function settingsHTML(){
   const cur = lookInfo(S.set.look);
   return `<div class="topbar"><h1>Einstellungen</h1></div>
+  ${installEvt && !isStandalone() ? `<div class="set-list">
+    <button class="set-item" data-act="installApp"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M12 7v7M9 11l3 3 3-3"/></svg></span><span class="si-t">App installieren</span><span class="si-ch" aria-hidden="true">›</span></button>
+  </div>` : ""}
   <div class="set-list">
     <button class="set-item" data-act="lookSheet"><span class="theme-ic sm" style="--tb:${cur.bg};--tf:${cur.fg}">${THEME_IC[S.set.look] || THEME_IC.auto}</span><span class="si-t">Thema</span><span class="si-v">${esc(cur.n)}</span><span class="si-ch" aria-hidden="true">›</span></button>
   </div>
@@ -1835,6 +1871,7 @@ document.addEventListener("click", e => {
   if (!b) { if (e.target.id === "sheet") closeSheet(); return; }
   const a = b.dataset.act, id = b.dataset.id || null;
   if (isMenuBtn) { if (!$("#menu").hidden) { closeMenu(); return; } a === "sectMenu" ? openSectMenu(b, id) : openMenu(b, a === "folderMenu" ? id : null); return; }
+  if (a === "installApp") { const ev = installEvt; if (ev) { ev.prompt(); ev.userChoice.then(r => { if (r && r.outcome === "accepted") { installEvt = null; render(); } }).catch(() => {}); } return; }
   if (a === "newSect") { sectSheet(null); return; }
   if (a === "editSect") { sectSheet(id); return; }
   if (a === "sectUp" || a === "sectDown") { moveSection(id, a === "sectUp" ? -1 : 1); return; }
