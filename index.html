@@ -137,7 +137,7 @@ body.studying #tabs{display:none!important}
 .peek{position:fixed;inset:0;z-index:5;visibility:hidden;will-change:transform;backface-visibility:hidden;contain:layout paint;background:var(--paper);overflow:hidden;pointer-events:none;padding-top:env(safe-area-inset-top,0px)}
 .peek .pg{padding:18px 16px 110px;max-width:1120px;width:100%;margin:0 auto}
 @media (min-width:900px){ .peek .pg{padding:32px 36px 120px} }
-html,body{overflow-x:hidden}
+html,body{overflow-x:clip}
 body.studying #main{max-width:760px;padding-bottom:24px}
 
 /* Tabs */
@@ -426,6 +426,8 @@ body.selecting #main{padding-bottom:170px}
 .flash.sample{min-height:0;cursor:default;box-shadow:0 0 0 1px var(--line)}
 .flash.sample .flash-face{padding:18px 18px}
 .set-list{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;margin-bottom:16px;max-width:720px}
+/* Einstellungen auf iPad/Mac mittig */
+#main .set-list,.peek .set-list,.set-top{margin-left:auto;margin-right:auto;max-width:720px}
 .set-item{display:flex;align-items:center;gap:12px;width:100%;padding:12px 16px;text-align:left;border-top:1px solid var(--line);min-height:58px}
 .set-item:first-child{border-top:0}
 button.set-item:hover{background:color-mix(in oklab,var(--ink) 4%,transparent)}
@@ -497,8 +499,8 @@ button.set-item:hover{background:color-mix(in oklab,var(--ink) 4%,transparent)}
 /* press feedback */
 .tile{transition:transform .22s cubic-bezier(.34,1.45,.55,1)}
 .tile:active{transform:scale(.93);transition-duration:.08s}
-:is(.frow,.card-main,.btn,.icon-btn,.sect-btn,.set-item,.grade,.theme,#tabs button,#menu button,.cta,.learn-btn){transition:transform .22s cubic-bezier(.34,1.45,.55,1),background .15s ease,color .15s ease}
-:is(.frow,.card-main,.btn,.icon-btn,.sect-btn,.set-item,.grade,.theme,#tabs button,#menu button,.cta,.learn-btn):active{transform:scale(.92);transition-duration:.08s}
+:is(.frow,.card-main,.btn,.icon-btn,.sect-btn,.set-item,.grade,.theme,#tabs button,#menu button,.cta,.learn-btn,.exam-btn){transition:transform .22s cubic-bezier(.34,1.45,.55,1),background .15s ease,color .15s ease}
+:is(.frow,.card-main,.btn,.icon-btn,.sect-btn,.set-item,.grade,.theme,#tabs button,#menu button,.cta,.learn-btn,.exam-btn):active{transform:scale(.92);transition-duration:.08s}
 /* tab icon bounce when page changes */
 @keyframes tabPop{0%{transform:scale(.7)}55%{transform:scale(1.22)}100%{transform:scale(1)}}
 #tabs button.pop svg{animation:tabPop .45s cubic-bezier(.34,1.45,.55,1)}
@@ -563,6 +565,26 @@ button.set-item:hover{background:color-mix(in oklab,var(--ink) 4%,transparent)}
 .lb-t{display:flex;flex-direction:column}
 .lb-t b{font:800 21px/1.15 var(--display)}
 .lb-t span{font-size:14.5px;opacity:.85}
+.exam-btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;margin-top:10px;padding:12px 14px;border-radius:14px;--g:var(--muted);background:color-mix(in oklab,var(--g) 16%,var(--surface));color:color-mix(in oklab,var(--g) 82%,var(--ink));border:2px solid color-mix(in oklab,var(--g) 70%,transparent);font-weight:800;font-size:16.5px;box-shadow:0 4px 14px color-mix(in oklab,var(--g) 18%,transparent)}
+.exam-btn.lv0{--g:var(--again)}.exam-btn.lv1{--g:#D9A800}.exam-btn.lv2{--g:var(--good)}
+.exam-btn .ex-pct{font-size:13.5px;font-weight:700;opacity:.8;margin-left:2px}
+.exam-btn:hover{filter:brightness(1.06)}
+.exam-btn svg{width:19px;height:19px;flex:none}
+.exam-tag{flex:none;font-size:12.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:5px 10px;border-radius:99px;background:#7C4DFF;color:#fff}
+.ex-list{box-shadow:none;border:1px solid var(--line);margin:0}
+.ex-row{display:flex;align-items:center;gap:12px;width:100%;padding:11px 14px;border-top:1px solid var(--line);text-align:left;font-size:16.5px;font-weight:600;color:var(--ink)}
+.ex-row:first-child{border-top:0}
+.ex-row .ex-box{width:24px;height:24px;border-radius:7px;border:2px solid color-mix(in oklab,var(--ink) 25%,transparent);display:grid;place-items:center;flex:none;font-size:14px;font-weight:900;color:transparent}
+.ex-row.on .ex-box{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.ex-row .ex-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ex-row .ex-n{color:var(--muted);font-size:14px;font-weight:500;flex:none}
+.ex-sw .si-t{display:flex;flex-direction:column;gap:2px;flex:1}.ex-sw small{font-size:14px;color:var(--muted);font-weight:500;line-height:1.35}
+.learn-btn[disabled]{opacity:.45;box-shadow:none}
+.exam-sum{max-width:560px;margin:0 auto;text-align:left}
+.exam-miss{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;margin-top:18px}
+.exam-miss h2{font-size:14px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:14px 16px 6px}
+.exam-miss div{padding:10px 16px;border-top:1px solid var(--line);font-size:16px}
+.exam-miss div small{display:block;color:var(--muted);font-size:14px;margin-top:2px}
 .learn-done{font-size:15.5px;color:var(--muted);padding:12px 14px;border-radius:14px;background:var(--surface-2)}
 .learn-done span{font-weight:900;margin-right:4px}
 .learn-done .more-new{display:flex;margin-top:10px;font-size:14.5px}
@@ -628,6 +650,10 @@ body.authing #tabs{display:none}
 .sp-ball.landed::after{display:none}
 .sp-ball.morph{z-index:3;animation:none;opacity:1;transform-origin:0 0}
 body.splashing #tabs{opacity:0}
+/* Kurzstart (Startanimation „Einmal am Tag“ ab dem 2. Öffnen oder „Nie“): nur das weiße Icon, das in die App überblendet */
+body.splash-quick #splash::before,body.splash-quick #splash::after,body.splash-quick .sp-ball{display:none}
+body.splash-quick .sp-stage,body.splash-quick .sp-l{animation:none}
+body.splash-quick #splash{transition:opacity .28s ease,visibility .28s}
 @keyframes spNight{to{opacity:1}}
 @keyframes spStars{to{opacity:.85}}
 @keyframes spRot{0%{transform:rotate(0)}100%{transform:rotate(-90deg)}}
@@ -652,6 +678,15 @@ body.splashing #tabs{opacity:0}
 @media (display-mode: standalone){html{height:100lvh;min-height:100lvh}body{min-height:100lvh}}
 html.ios-standalone{height:100lvh;min-height:100lvh}
 html.android,html.android body{overscroll-behavior-y:none}
+/* Nur scrollen, wenn wirklich Inhalt folgt: kein Nachfedern, kein Scrollbalken */
+html,body{overscroll-behavior:none}
+/* Wenn es wirklich etwas zu scrollen gibt: natürliches Auslaufen/Nachfedern am Rand (weicher), aber kein Pull-to-Refresh */
+html.can-scroll,html.can-scroll body{overscroll-behavior-y:contain}
+*{scrollbar-width:none}
+::-webkit-scrollbar{display:none;width:0;height:0}
+/* In der installierten App ist html 100lvh hoch inkl. oberem Abstand (Notch) – body darf deshalb nicht zusätzlich 100lvh hoch sein, sonst lässt sich die Seite um diesen Abstand scrollen */
+@media (display-mode: standalone){body{min-height:calc(100lvh - env(safe-area-inset-top,0px))}}
+html.ios-standalone body{min-height:calc(100lvh - env(safe-area-inset-top,0px))}
 html.android .flash,html.android #tabs,html.android button,html.android .tile,html.android .set-item{-webkit-user-select:none;user-select:none}
 html.ios-standalone body{min-height:100lvh}
 /* Tab-Leiste auf dem iPhone tiefer: weniger Abstand zum Home-Balken (nur schmale Bildschirme, Leiste über volle Breite) */
@@ -662,7 +697,7 @@ html.ios-standalone body{min-height:100lvh}
 </head>
 <body>
 
-<div id="splash" aria-hidden="true"><script>document.body.classList.add("splashing")</script><div class="sp-stage"><div class="sp-l sp-arc"><svg viewBox="0 0 512 512"><path d="M320 165A116 116 0 1 0 320 347" fill="none" stroke="#1B1D23" stroke-width="60" stroke-linecap="round"/></svg></div><div class="sp-l sp-dot"><svg viewBox="0 0 512 512"><circle cx="350" cy="256" r="29" fill="#FF5A36"/></svg></div></div><div class="sp-ball"></div></div>
+<div id="splash" aria-hidden="true"><script>document.body.classList.add("splashing");try{var cs=JSON.parse(localStorage.getItem("kartenfach-settings")||"{}")||{},cm=cs.splash||"daily",cd=new Date(),ck=cd.getFullYear()+"-"+(cd.getMonth()+1)+"-"+cd.getDate();if(cm==="never"||(cm==="daily"&&localStorage.getItem("cardo-splash-day")===ck))document.body.classList.add("splash-quick");else localStorage.setItem("cardo-splash-day",ck)}catch(e){}</script><div class="sp-stage"><div class="sp-l sp-arc"><svg viewBox="0 0 512 512"><path d="M320 165A116 116 0 1 0 320 347" fill="none" stroke="#1B1D23" stroke-width="60" stroke-linecap="round"/></svg></div><div class="sp-l sp-dot"><svg viewBox="0 0 512 512"><circle cx="350" cy="256" r="29" fill="#FF5A36"/></svg></div></div><div class="sp-ball"></div></div>
 <div id="app">
   <main id="main"><div class="loading">Cardo lädt …</div></main>
 </div>
@@ -687,6 +722,7 @@ const dayKey = (t = Date.now()) => { const d = new Date(t); return d.getFullYear
 const plural = (n, one, many) => n + " " + (n === 1 ? one : many);
 const COLORS = ["#FF5A36","#F59E0B","#E2B203","#22A06B","#0E9F9A","#2F80ED","#5B5BD6","#9B51E0","#E0487D","#64748B","#2B2F38","#8B5E3C"];
 const EMOJIS = ["📚","🧠","💼","📊","💶","🧮","⚖️","📈","🏛️","🌍","🇬🇧","🇫🇷","🇪🇸","🇮🇹","🧪","🧬","💻","📐","🩺","🎨","🎵","✏️","🗂️","🚀","⭐","🔥","🍀","🎯","☕","🌙"];
+const IC_EXAM = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2.5"/><path d="M9 4.5V3.5h6v1M9 12.5l2 2 4-4"/></svg>`;
 const IC = {
   lib:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M9 19V5M14 19l-1-14M18.5 19 15 5.5"/></svg>',
   folder:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
@@ -765,9 +801,14 @@ let splashGone = false;
 function hideSplash(){
   if (splashGone) return; splashGone = true;
   const el = document.getElementById("splash"); if (!el) { document.body.classList.remove("splashing"); return; }
-  const wait = Math.max(0, 1850 - (performance.now() - splashStart)); // Drehen + Hochfliegen + Dunkelwerden abwarten
-  setTimeout(() => morphSplash(el), wait);
+  const quick = document.body.classList.contains("splash-quick");
+  const wait = quick ? 0 : Math.max(0, 1850 - (performance.now() - splashStart)); // Drehen + Hochfliegen + Dunkelwerden abwarten
+  splashT = setTimeout(() => quick ? fadeSplash(el) : morphSplash(el), wait);
 }
+let splashT = 0;
+function fadeSplash(el){ el.classList.add("out"); document.body.classList.remove("splashing"); setTimeout(() => el.remove(), 320); }
+// Antippen überspringt die Startanimation
+(() => { const el = document.getElementById("splash"); if (el) el.addEventListener("pointerdown", () => { if (!el.isConnected || el.classList.contains("out")) return; clearTimeout(splashT); splashGone = true; document.body.classList.add("splash-quick"); fadeSplash(el); }); })();
 function morphSplash(el){
   const ball = el.querySelector(".sp-ball"), tabs = $("#tabs");
   const tabsShown = tabs && getComputedStyle(tabs).display !== "none" && tabs.children.length;
@@ -833,17 +874,17 @@ const THEMES = [
   { k:"aubergine", n:"Aubergine", base:"dark",  c:"#A04FD6", ink:"#FFFFFF" }
 ];
 const NEUTRAL = [["light","Hell"],["dark","Dunkel"],["auto","System"]];
-S.set = { look: "auto", layout: "grid", textSize: "m", fxMode: "full", gradeSet: "4", newPerDay: 20 };
+S.set = { look: "auto", layout: "grid", textSize: "m", fxMode: "full", gradeSet: "4", newPerDay: 20, splash: "daily" };
 S.seen = {}; S.extraNew = {}; S.lastExport = 0; // pro Tag und Hauptordner: heute gelernte Karten (IDs) / Zusatzkontingent
 const NEW_OPTS = [5, 10, 15, 20, 30, 50, 0]; // 0 = unbegrenzt
 const newLimit = () => (S.set.newPerDay ?? 20);
 const newLimitLabel = k => k === 0 ? "Unbegrenzt" : String(k);
 function normSet(v){ // accepts old {mode, theme} and new {look, layout}
   if (!v) return null;
-  const layout = v.layout === "list" ? "list" : "grid", textSize = ["s","m","l"].includes(v.textSize) ? v.textSize : "m", fxMode = ["full","color","off"].includes(v.fxMode) ? v.fxMode : (v.gradeFx === false ? "off" : "full"), gradeSet = ["4","3","2"].includes(String(v.gradeSet)) ? String(v.gradeSet) : "4", newPerDay = NEW_OPTS.includes(+v.newPerDay) ? +v.newPerDay : 20;
-  if (v.look) return { look: ["light","dark","auto"].includes(v.look) || THEMES.some(t => t.k === v.look) ? v.look : "auto", layout, textSize, fxMode, gradeSet, newPerDay };
-  if (v.theme && v.theme !== "koralle" && THEMES.some(t => t.k === v.theme)) return { look: v.theme, layout, textSize, fxMode, gradeSet, newPerDay };
-  return v.mode ? { look: v.mode, layout, textSize, fxMode, gradeSet, newPerDay } : null;
+  const layout = v.layout === "list" ? "list" : "grid", textSize = ["s","m","l"].includes(v.textSize) ? v.textSize : "m", fxMode = ["full","color","off"].includes(v.fxMode) ? v.fxMode : (v.gradeFx === false ? "off" : "full"), gradeSet = ["4","3","2"].includes(String(v.gradeSet)) ? String(v.gradeSet) : "4", newPerDay = NEW_OPTS.includes(+v.newPerDay) ? +v.newPerDay : 20, splash = ["daily","always","never"].includes(v.splash) ? v.splash : "daily";
+  if (v.look) return { look: ["light","dark","auto"].includes(v.look) || THEMES.some(t => t.k === v.look) ? v.look : "auto", layout, textSize, fxMode, gradeSet, newPerDay, splash };
+  if (v.theme && v.theme !== "koralle" && THEMES.some(t => t.k === v.theme)) return { look: v.theme, layout, textSize, fxMode, gradeSet, newPerDay, splash };
+  return v.mode ? { look: v.mode, layout, textSize, fxMode, gradeSet, newPerDay, splash } : null;
 }
 try { const c = normSet(JSON.parse(localStorage.getItem("kartenfach-settings") || "null")); if (c) S.set = c; } catch {}
 const darkMQ = matchMedia("(prefers-color-scheme: dark)");
@@ -873,7 +914,7 @@ function applyTheme(){
 function saveSettings(patch){
   S.set = { ...S.set, ...patch }; applyTheme(); render();
   try { localStorage.setItem("kartenfach-settings", JSON.stringify(S.set)); } catch {}
-  if (DB) enqueue("settings/main", () => DB.doc("settings/main").set({ look: S.set.look, layout: S.set.layout, textSize: S.set.textSize, fxMode: S.set.fxMode || "full", gradeSet: S.set.gradeSet || "4", newPerDay: newLimit() }));
+  if (DB) enqueue("settings/main", () => DB.doc("settings/main").set({ look: S.set.look, layout: S.set.layout, textSize: S.set.textSize, fxMode: S.set.fxMode || "full", gradeSet: S.set.gradeSet || "4", newPerDay: newLimit(), splash: S.set.splash || "daily" }));
 }
 darkMQ.addEventListener && darkMQ.addEventListener("change", applyTheme);
 new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
@@ -1138,6 +1179,8 @@ function todayCards(fid){
   return { rev, nw, newLeft: left };
 }
 function counts(fid){ const all = cardsIn(fid, true), t = todayCards(fid); return { total: all.length, due: t.rev.length + t.nw.length, rev: t.rev.length, nw: t.nw.length, newLeft: t.newLeft, own: fid ? Object.keys(S.decks[fid]||{}).length : 0 }; }
+// Wie gut sitzt ein Ordner? Anteil der Karten mit mindestens 7 Tagen Abstand (neue und Lernkarten zählen als „noch nicht sicher“)
+function mastery(fid){ const cs = cardsIn(fid, true), ok = cs.filter(x => (x.c.ivl || 0) >= 7).length, pct = cs.length ? Math.round(ok / cs.length * 100) : 0; return { pct, lv: pct >= 70 ? 2 : pct >= 35 ? 1 : 0 }; }
 function cardState(c){ if (!c.reps) return "new"; if (!c.ivl) return "learn"; return c.ivl >= 21 ? "mature" : "young"; }
 function streak(){ let n = 0, t = Date.now(); if (!S.days[dayKey(t)]) t -= DAY; while (S.days[dayKey(t)]) { n++; t -= DAY; } return n; }
 const coverUrl = f => !f || !f.cover ? "" : f.cover.startsWith("asset:") ? "/_blob/" + f.cover.slice(6) : f.cover;
@@ -1194,7 +1237,7 @@ function draw(){
   S.anim = null;
   if (S.loaded.f && S.loaded.c) { hideSplash(); scheduleAutoBackup(); }
   S.gen = (S.gen || 0) + 1; schedulePrerender && schedulePrerender();
-  saveUi();
+  saveUi(); updScroll();
 }
 function go(view, fid = null, anim = "fade"){ S.anim = anim; if (S.view === "lib") S.libFid = S.fid; S.view = view; S.fid = fid; S.q = ""; S.sel = null; if (fid) pathOf(fid).forEach(f => S.open.add(f.id)); render(); window.scrollTo(0, 0); }
 
@@ -1232,7 +1275,6 @@ function foldersHTML(list){ return S.set.layout === "list" ? `<div class="flist"
 function libHTML(){
   const top = children(null), all = counts(null);
   return `<div class="topbar"><h1>Bibliothek</h1><div class="tb-r"><button class="icon-btn" data-act="libMenu" aria-haspopup="menu" aria-expanded="false" aria-label="Bibliothek-Menü" title="Bibliothek">${IC.dots}</button></div></div>
-  ${remindHTML()}
   ${sectionList().length ? sectionsHTML() : top.length ? `<div class="sec-h"><h2>Ordner</h2><span class="muted">${plural(all.total, 'Karte', 'Karten')}</span></div>` : ''}
   ${sectionList().length ? '' : top.length ? foldersHTML(top) : `<div class="empty"><b>Noch keine Ordner</b>Leg deinen ersten Ordner an oder spiel eine Cardo-Sicherung ein.<div class="actions"><button class="btn primary" data-act="newFolder">Neuer Ordner</button><button class="btn" data-act="dataSheet">Sicherung einspielen</button></div></div>`}`;
 }
@@ -1258,6 +1300,7 @@ function folderHTML(fid){
       <button class="icon-btn" data-act="folderMenu" data-id="${fid}" aria-haspopup="menu" aria-expanded="false" aria-label="${f.parentId ? 'Unterordner' : 'Ordner'}-Menü" title="${f.parentId ? 'Unterordner' : 'Ordner'}">${IC.dots}</button></div>
       ${n.total ? (n.due ? `<button class="learn-btn" data-act="study" data-id="${fid}"><span class="lb-play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.9l10.2-6.5a1 1 0 0 0 0-1.8L9.5 4.6A1 1 0 0 0 8 5.5z"/></svg></span><span class="lb-t"><b>Lernen</b><span>${learnSub(n)}</span></span></button>`
         : (n.newLeft ? `<div class="learn-done"><span aria-hidden="true">✓</span> Heute alles gelernt – dein Tageslimit ist erreicht.<button class="btn more-new" data-act="moreNew" data-id="${fid}">＋ 10 weitere Karten</button></div>` : `<div class="learn-done"><span aria-hidden="true">✓</span> Heute alles gelernt. Neue Karten kommen, sobald sie fällig sind.</div>`)) : ''}
+      ${n.total ? (() => { const m = mastery(fid); return `<button class="exam-btn lv${m.lv}" data-act="examSheet" data-id="${fid}" title="${m.pct} % der Karten sitzen sicher">${IC_EXAM}Prüfen<span class="ex-pct num">· ${m.pct} % sicher</span></button>`; })() : ''}
     </div></section>
   ${subs.length ? `<div class="sec-h"><h2>Unterordner</h2></div>${foldersHTML(subs)}` : ''}
   ${n.own ? `<div class="sec-h"><h2>Karten</h2><span class="muted">${n.own}${deepOnly ? ` hier · ${deepOnly} in Unterordnern` : ''}</span></div>` : ''}
@@ -1496,17 +1539,25 @@ function remindHTML(){
   const d = S.lastExport ? Math.floor((Date.now() - S.lastExport) / DAY) : 0;
   return `<div class="remind"><span class="rm-t"><b>Zeit für eine Sicherung</b><span>${S.lastExport ? `Letzte Sicherungsdatei vor ${d} Tagen` : "Du hast noch keine Sicherungsdatei heruntergeladen"}</span></span><button class="btn primary" data-act="dataSheet">Sichern</button><button class="rm-x" data-act="remindLater" aria-label="Später erinnern">${IC.close}</button></div>`;
 }
+const SPLASH_OPTS = [["daily","Einmal am Tag","Beim ersten Öffnen des Tages die ganze Animation, danach ein kurzer Start."],["always","Immer","Bei jedem Öffnen die ganze Animation."],["never","Nie","Immer nur ein kurzer Übergang vom Icon in die App."]];
+const splashLabel = () => (SPLASH_OPTS.find(o => o[0] === (S.set.splash || "daily")) || SPLASH_OPTS[0])[1];
+function splashPickerHTML(){
+  const cur = S.set.splash || "daily";
+  return `<div class="gs-list" role="radiogroup" aria-label="Startanimation">${SPLASH_OPTS.map(([k, l, d]) => `<button class="gs-opt fx-opt ${cur === k ? 'on' : ''}" data-act="setSplash" data-v="${k}" role="radio" aria-checked="${cur === k}"><span class="fx-t"><b>${l}</b><span>${d}</span></span><span class="gs-ck" aria-hidden="true">${cur === k ? '✓' : ''}</span></button>`).join("")}</div>`;
+}
+function splashSheet(){ openSheet(`${head("Startanimation")}<p class="muted" style="margin:0 0 16px;font-size:15.5px">Die Animation beim Öffnen von Cardo. Antippen überspringt sie jederzeit.</p><div id="spPick">${splashPickerHTML()}</div>`); }
 function lookSheet(){
   openSheet(`${head("Thema")}<p class="muted" style="margin:0 0 16px;font-size:15.5px">Hell, Dunkel und System sind schlicht schwarz-weiß. Ein Farbthema färbt die ganze App ein. System folgt deinem Gerät.</p><div id="lookPick">${lookPickerHTML()}</div>`);
 }
 function settingsHTML(){
   const cur = lookInfo(S.set.look);
-  return `<div class="topbar"><h1>Einstellungen</h1></div>
+  return `<div class="topbar set-top"><h1>Einstellungen</h1></div>
   ${installEvt && !isStandalone() ? `<div class="set-list">
     <button class="set-item" data-act="installApp"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M12 7v7M9 11l3 3 3-3"/></svg></span><span class="si-t">App installieren</span><span class="si-ch" aria-hidden="true">›</span></button>
   </div>` : ""}
   <div class="set-list">
     <button class="set-item" data-act="lookSheet"><span class="theme-ic sm" style="--tb:${cur.bg};--tf:${cur.fg}">${THEME_IC[S.set.look] || THEME_IC.auto}</span><span class="si-t">Thema</span><span class="si-v">${esc(cur.n)}</span><span class="si-ch" aria-hidden="true">›</span></button>
+    <button class="set-item" data-act="splashSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)">${THEME_IC.sparkle}</span><span class="si-t">Startanimation</span><span class="si-v">${splashLabel()}</span><span class="si-ch" aria-hidden="true">›</span></button>
   </div>
   <div class="set-list">
     <button class="set-item" data-act="cardsSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)">${ICONS.learn}</span><span class="si-t">Karten</span><span class="si-v">${({s:"Klein",m:"Mittel",l:"Groß"})[S.set.textSize || "m"]} · ${gradeSet().length} Stufen</span><span class="si-ch" aria-hidden="true">›</span></button>
@@ -1543,16 +1594,17 @@ function curCard(){ const st = S.study; while (st && st.queue.length) { const q 
 function studyHTML(){
   const st = S.study; if (!st) return libHTML();
   const cur = curCard(), left = st.queue.length, pct = st.done + left ? Math.round(st.done / (st.done + left) * 100) : 100;
-  const top = `<div class="study-top"><button class="xbtn" data-act="endStudy" aria-label="Lernen beenden">${IC.close}</button>${cur ? `<button class="xbtn" data-act="studyEdit" aria-label="Karte bearbeiten" title="Karte bearbeiten (E)">${IC.edit}</button>` : ""}${st.hist && st.hist.length ? `<button class="xbtn undo" data-act="undoGrade" aria-label="Letzte Bewertung rückgängig" title="Rückgängig (Z)">${IC.undo}</button>` : ""}<div class="bar"><i style="width:${pct}%"></i></div><div class="study-count num">${left} übrig</div></div>`;
+  const top = `<div class="study-top"><button class="xbtn" data-act="endStudy" aria-label="Lernen beenden">${IC.close}</button>${st.exam ? '<span class="exam-tag">Prüfung</span>' : ''}${cur ? `<button class="xbtn" data-act="studyEdit" aria-label="Karte bearbeiten" title="Karte bearbeiten (E)">${IC.edit}</button>` : ""}${st.hist && st.hist.length ? `<button class="xbtn undo" data-act="undoGrade" aria-label="Letzte Bewertung rückgängig" title="Rückgängig (Z)">${IC.undo}</button>` : ""}<div class="bar"><i style="width:${pct}%"></i></div><div class="study-count num">${left} übrig</div></div>`;
+  if (!cur && st.exam) return top + examDoneHTML(st);
   if (!cur) return top + `<div class="done"><div class="big">🎉</div><h1>Geschafft!</h1><p class="muted">${plural(st.done, 'Karte', 'Karten')} wiederholt · ${plural(streak(), 'Tag', 'Tage')} Serie</p><div class="actions" style="justify-content:center;margin-top:18px">${st.fid && todayCards(st.fid).newLeft ? `<button class="btn" data-act="moreNew" data-id="${st.fid}">＋ 10 weitere Karten</button>` : ''}<button class="btn primary" data-act="endStudy">Zurück</button></div></div>`;
   const f = S.folders[cur.fid], now = Date.now();
-  const opts = gradeSet();
+  const opts = curGrades();
   const fresh = st.shown !== cur.id + ":" + st.done; st.shown = cur.id + ":" + st.done; const jf = st.justFlipped; st.justFlipped = false;
   return top + `<div class="flash ${fresh ? 'card-in' : ''} ${jf ? 'flipped-in' : ''} ${st.flipped ? 'flipped' : ''}" data-act="flip" style="--c:${esc(colorOf(f))}">
     <div class="flash-src">${emo(f) ? esc(emo(f)) + ' ' : ''}${pathOf(cur.fid).map(x => esc(x.name)).join(" › ")}${cur.rev ? '<span class="rev-tag">⇄ Rückseite zuerst</span>' : ''}</div>
     <div class="flash-face">${esc(cur.rev ? cur.c.b : cur.c.f)}</div>
     ${st.flipped ? `<div class="flash-face flash-back">${esc(cur.rev ? cur.c.f : cur.c.b)}</div>` : ''}</div>
-  ${st.flipped ? `<div class="grades" style="grid-template-columns:repeat(${opts.length},1fr)">${opts.map((o, i) => `<button class="grade" style="--g:var(${GRADE_VARS[o.v]})" data-act="grade" data-g="${i}">${o.l}<small>${fmtIvl(schedule(cur.c, o.g, now).due - now)}</small></button>`).join("")}</div>`
+  ${st.flipped ? `<div class="grades" style="grid-template-columns:repeat(${opts.length},1fr)">${opts.map((o, i) => `<button class="grade" style="--g:var(${GRADE_VARS[o.v]})" data-act="grade" data-g="${i}">${o.l}${st.exam ? '' : `<small>${fmtIvl(schedule(cur.c, o.g, now).due - now)}</small>`}</button>`).join("")}</div>`
     : ''}
   <div class="kbd-hint">Leertaste: umdrehen · Zahlen: bewerten · E: bearbeiten · Z: rückgängig</div>`;
 }
@@ -1563,6 +1615,8 @@ const GRADE_SETS = {
   "2": [{ l:"Schwer", g:0, v:1 }, { l:"Gut", g:2, v:2 }]
 };
 const gradeSet = () => GRADE_SETS[S.set.gradeSet] || GRADE_SETS["4"];
+const EXAM_GRADES = [{ l:"Nicht gewusst", g:0, v:0 }, { l:"Gewusst", g:2, v:2 }];
+const curGrades = () => (S.study && S.study.exam ? EXAM_GRADES : gradeSet());
 const GRADE_VARS = ["--again","--hard","--good","--easy"];
 const GRADE_FX = [
   { cls: "g0", icon: "↺", text: "Nochmal", col: "--again" },
@@ -1579,7 +1633,7 @@ function gradeFx(g, label, anchor){
   document.body.appendChild(el); setTimeout(() => el.remove(), 1000);
 }
 function grade(i){
-  const st = S.study, cur = curCard(), opt = gradeSet()[i]; if (!st || !cur || !st.flipped || st.busy || !opt) return;
+  const st = S.study, cur = curCard(), opt = curGrades()[i]; if (!st || !cur || !st.flipped || st.busy || !opt) return;
   const card = document.querySelector(".flash"), reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const m = fxMode();
   if (card && (m === "color" || (m === "full" && reduce))) {
@@ -1598,6 +1652,7 @@ function grade(i){
 }
 function applyGrade(g, cur){
   const st = S.study; if (!st) return;
+  if (st.exam) { examApply(g, cur); return; }
   st.hist = st.hist || []; st.hist.push({ q: st.queue.slice(), done: st.done, fid: cur.fid, card: { ...cur.c }, wasNew: isNewCard(cur.c), k: dayKey() });
   if (st.hist.length > 30) st.hist.shift();
   st.queue.shift();
@@ -1609,11 +1664,83 @@ function applyGrade(g, cur){
 function undoGrade(){
   const st = S.study; if (!st || st.busy || !st.hist || !st.hist.length) return;
   const h = st.hist.pop();
+  if (st.exam) { st.queue = h.q; st.done = h.done; st.first = h.first; st.flipped = false; st.justFlipped = false; if (h.moved) { delete st.moved[h.moved]; putCard(h.fid, h.card); } render(); toast("Bewertung rückgängig gemacht"); return; }
   st.queue = h.q; st.done = h.done; st.flipped = false; st.justFlipped = false;
   if ((S.days[h.k] || 0) > 0) S.days = { ...S.days, [h.k]: S.days[h.k] - 1 };
   if (!h.wasSeen) { const t = topOf(h.fid), day = { ...((S.seen||{})[h.k] || {}) }; if (day[t]) { const ids = { ...day[t] }; delete ids[h.card.id]; day[t] = ids; S.seen = { ...S.seen, [h.k]: day }; } }
   saveStats(); putCard(h.fid, h.card);
   toast("Bewertung rückgängig gemacht");
+}
+/* ---------- Prüfungsmodus: alle (ausgewählten) Karten, ohne Lernplan, Statistik und Tageslimit zu verändern ---------- */
+let EX = null;
+const EX_PREF = (() => { try { return JSON.parse(localStorage.getItem("cardo-exam") || "{}") || {}; } catch { return {}; } })();
+const saveExPref = () => { try { localStorage.setItem("cardo-exam", JSON.stringify({ which: EX.which, order: EX.order, resched: EX.resched })); } catch {} };
+const exKey = (fid, id) => fid + "/" + id;
+function exMatch(c){
+  if (EX.which === "new") return !c.reps;
+  if (EX.which === "hard") return (c.lapses || 0) > 0 || (c.ease || 2.5) < 2.5 || (!!c.reps && !c.ivl);
+  return true;
+}
+function exRows(){
+  const root = EX.fid, rows = [], own = id => Object.values(S.decks[id] || {}).filter(exMatch).length;
+  const depth = id => pathOf(id).length - pathOf(root).length;
+  if (Object.keys(S.decks[root] || {}).length) rows.push({ id: root, name: S.folders[root].name, emoji: emo(S.folders[root]), d: 0, n: own(root), self: true });
+  const walk = p => children(p).forEach(c => { if (cardsIn(c.id, true).length) { rows.push({ id: c.id, name: c.name, emoji: emo(c), d: depth(c.id) - 1, n: own(c.id) }); walk(c.id); } });
+  walk(root); return rows;
+}
+function examPool(){
+  const out = []; const ids = [EX.fid, ...descendants(EX.fid)].filter(id => EX.sel.has(id));
+  ids.forEach(id => Object.values(S.decks[id] || {}).filter(exMatch).sort((a, b) => (a.created || 0) - (b.created || 0)).forEach(c => out.push({ fid: id, c })));
+  if (EX.order === "mix") for (let i = out.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [out[i], out[j]] = [out[j], out[i]]; }
+  return out;
+}
+function examBodyHTML(){
+  const rows = exRows(), pool = examPool();
+  const seg = (act, cur, opts) => `<div class="seg" style="grid-template-columns:repeat(${opts.length},1fr)" role="radiogroup">${opts.map(([k, l]) => `<button class="${cur === k ? 'on' : ''}" data-act="${act}" data-v="${k}" role="radio" aria-checked="${cur === k}">${l}</button>`).join("")}</div>`;
+  return `<div class="field"><span class="lbl">Welche Karten</span>${seg("exWhich", EX.which, [["all", "Alle"], ["hard", "Schwierige"], ["new", "Neue"]])}</div>
+    <div class="field"><span class="lbl">Reihenfolge</span>${seg("exOrder", EX.order, [["mix", "Gemischt"], ["seq", "Der Reihe nach"]])}</div>
+    ${rows.length > 1 ? `<div class="field"><span class="lbl">Unterordner</span><div class="set-list ex-list">${rows.map(r => `<button class="ex-row ${EX.sel.has(r.id) ? 'on' : ''}" data-act="exSel" data-id="${r.id}" ${r.self ? 'data-self="1"' : ''} role="checkbox" aria-checked="${EX.sel.has(r.id)}" style="padding-left:${14 + r.d * 22}px"><span class="ex-box" aria-hidden="true">✓</span><span class="ex-name">${r.emoji ? esc(r.emoji) + ' ' : ''}${esc(r.name)}</span><span class="ex-n num">${r.n}</span></button>`).join("")}</div></div>` : ''}
+    <div class="set-list" style="margin-bottom:18px"><button class="set-item ex-sw" data-act="exResched" role="switch" aria-checked="${EX.resched}"><span class="si-t">Nicht gewusste früher wiederholen<small>Gelernte Karten, die du hier nicht weißt, kommen im normalen Lernplan gleich wieder dran.</small></span><span class="switch ${EX.resched ? 'on' : ''}" aria-hidden="true"><i></i></span></button></div>
+    <button class="learn-btn" data-act="examStart" ${pool.length ? '' : 'disabled'}><span class="lb-play" aria-hidden="true">${IC_EXAM}</span><span class="lb-t"><b>Prüfung starten</b><span>${pool.length ? plural(pool.length, 'Karte', 'Karten') : 'Keine passenden Karten'}</span></span></button>`;
+}
+function examSheet(fid){
+  if (!S.folders[fid]) return;
+  EX = { fid, which: ["all", "hard", "new"].includes(EX_PREF.which) ? EX_PREF.which : "all", order: EX_PREF.order === "seq" ? "seq" : "mix", resched: !!EX_PREF.resched, sel: new Set([fid, ...descendants(fid)]) };
+  openSheet(`${head("Prüfen")}<p class="muted" style="margin:0 0 16px;font-size:15.5px">Geh Karten durch, ohne deinen Lernplan zu verändern. Nicht gewusste Karten kommen am Ende der Runde noch einmal.</p><div id="exBody">${examBodyHTML()}</div>`);
+}
+const exRefresh = () => { const b = $("#exBody"); if (b) b.innerHTML = examBodyHTML(); };
+function exToggle(id, self){
+  const on = !EX.sel.has(id), ids = self ? [id] : [id, ...descendants(id)];
+  ids.forEach(x => on ? EX.sel.add(x) : EX.sel.delete(x));
+  exRefresh();
+}
+function startExam(list, opts){
+  if (!list.length) { toast("Keine Karten zum Prüfen."); return; }
+  const prev = S.study;
+  S.study = { exam: true, fid: opts.fid, resched: !!opts.resched, moved: (prev && prev.exam && prev.moved) || {},
+    queue: list.map(x => ({ fid: x.fid, id: x.c.id, rev: pickSide(x.fid) })), total: list.length, first: {}, done: 0, flipped: false,
+    back: prev ? prev.back : (S.view === "stats" ? "stats" : "lib"), backFid: prev ? prev.backFid : S.fid };
+  S.view = "study"; S.anim = null; closeSheet(); render(); window.scrollTo(0, 0);
+}
+function examApply(g, cur){
+  const st = S.study, k = exKey(cur.fid, cur.id);
+  st.hist = st.hist || []; const h = { q: st.queue.slice(), done: st.done, first: { ...st.first }, fid: cur.fid, card: { ...cur.c } };
+  st.queue.shift();
+  if (!(k in st.first)) st.first[k] = g > 0;
+  if (g === 0) {
+    st.queue.push({ fid: cur.fid, id: cur.id, rev: pickSide(cur.fid) }); // am Ende der Runde noch einmal
+    if (st.resched && cur.c.reps && !st.moved[k]) { st.moved[k] = 1; h.moved = k; putCard(cur.fid, schedule(cur.c, 0)); }
+  }
+  st.hist.push(h); if (st.hist.length > 30) st.hist.shift();
+  st.done++; st.flipped = false; render();
+}
+function examDoneHTML(st){
+  const keys = Object.keys(st.first), n = keys.length, ok = keys.filter(k => st.first[k]).length, pct = n ? Math.round(ok / n * 100) : 0;
+  const miss = keys.filter(k => !st.first[k]).map(k => { const i = k.indexOf("/"), fid = k.slice(0, i), id = k.slice(i + 1), c = S.decks[fid] && S.decks[fid][id]; return c ? { fid, c } : null; }).filter(Boolean);
+  return `<div class="done"><div class="big">${pct >= 90 ? '🏆' : pct >= 60 ? '💪' : '📚'}</div><h1>Prüfung beendet</h1>
+    <p class="muted" style="font-size:17px">${ok} von ${n} beim ersten Versuch gewusst · <b style="color:var(--ink)">${pct} %</b></p>
+    <div class="actions" style="justify-content:center;margin-top:18px">${miss.length ? `<button class="btn" data-act="examRetry">Nicht gewusste erneut prüfen</button>` : ''}<button class="btn primary" data-act="endStudy">Zurück</button></div>
+    ${miss.length ? `<div class="exam-sum"><div class="exam-miss"><h2>Nicht gewusst (${miss.length})</h2>${miss.map(x => `<div>${esc(x.c.f)}<small>${esc(x.c.b)}</small></div>`).join("")}</div></div>` : ''}</div>`;
 }
 function endStudy(){ const st = S.study; S.study = null; go(st ? st.back : "lib", st ? st.backFid : null); }
 
@@ -1658,11 +1785,11 @@ function chartSVG(){
 /* ---------- Sheets ---------- */
 function openSheet(html, mount){
   const el = $("#sheet"); el.innerHTML = `<div class="sheet" role="dialog" aria-modal="true"><div class="grab"></div>${html}</div>`; el.hidden = false;
-  document.body.style.overflow = "hidden"; mount && mount(el.firstChild);
+  document.documentElement.style.overflow = "hidden"; mount && mount(el.firstChild);
   const first = el.querySelector("input:not([type=file]),textarea"); if (first && matchMedia("(hover:hover)").matches) first.focus();
 }
 function closeSheet(){
-  const el = $("#sheet"); if (el.hidden) return; document.body.style.overflow = "";
+  const el = $("#sheet"); if (el.hidden) return; document.documentElement.style.overflow = "";
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) { el.hidden = true; el.innerHTML = ""; return; }
   el.classList.add("closing"); setTimeout(() => { el.classList.remove("closing"); el.hidden = true; el.innerHTML = ""; }, 190);
 }
@@ -1884,6 +2011,13 @@ document.addEventListener("click", e => {
   const a = b.dataset.act, id = b.dataset.id || null;
   if (isMenuBtn) { if (!$("#menu").hidden) { closeMenu(); return; } a === "sectMenu" ? openSectMenu(b, id) : openMenu(b, a === "folderMenu" ? id : null); return; }
   if (a === "installApp") { const ev = installEvt; if (ev) { ev.prompt(); ev.userChoice.then(r => { if (r && r.outcome === "accepted") { installEvt = null; render(); } }).catch(() => {}); } return; }
+  if (a === "examSheet") { examSheet(id); return; }
+  if (a === "exWhich" && EX) { EX.which = b.dataset.v; saveExPref(); exRefresh(); return; }
+  if (a === "exOrder" && EX) { EX.order = b.dataset.v; saveExPref(); exRefresh(); return; }
+  if (a === "exResched" && EX) { EX.resched = !EX.resched; saveExPref(); exRefresh(); return; }
+  if (a === "exSel" && EX) { exToggle(id, !!b.dataset.self); return; }
+  if (a === "examStart" && EX) { const p = examPool(); if (p.length) startExam(p, { fid: EX.fid, resched: EX.resched }); return; }
+  if (a === "examRetry" && S.study && S.study.exam) { const st = S.study; const list = Object.keys(st.first).filter(k => !st.first[k]).map(k => { const i = k.indexOf("/"), fid = k.slice(0, i), c = S.decks[fid] && S.decks[fid][k.slice(i + 1)]; return c ? { fid, c } : null; }).filter(Boolean); for (let i = list.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [list[i], list[j]] = [list[j], list[i]]; } startExam(list, { fid: st.fid, resched: st.resched }); return; }
   if (a === "newSect") { sectSheet(null); return; }
   if (a === "editSect") { sectSheet(id); return; }
   if (a === "sectUp" || a === "sectDown") { moveSection(id, a === "sectUp" ? -1 : 1); return; }
@@ -1891,6 +2025,8 @@ document.addEventListener("click", e => {
   if (a === "sort") { S.sort = b.dataset.v; render(); return; }
   if (a === "setLook") { saveSettings({ look: b.dataset.v }); const lp = $("#lookPick"); if (lp) lp.innerHTML = lookPickerHTML(); return; }
   if (a === "lookSheet") { lookSheet(); return; }
+  if (a === "splashSheet") { splashSheet(); return; }
+  if (a === "setSplash") { saveSettings({ splash: b.dataset.v }); const sp = $("#spPick"); if (sp) sp.innerHTML = splashPickerHTML(); return; }
   if (a === "setTextSize") { saveSettings({ textSize: b.dataset.v }); const tp = $("#textPick"); if (tp) tp.innerHTML = textPickerHTML(); return; }
   if (a === "textSheet") { textSheet(); return; }
   if (a === "fxSheet") { fxSheet(); return; }
@@ -1969,7 +2105,7 @@ document.addEventListener("keydown", e => { if ((e.metaKey || e.ctrlKey) && ["+"
     if (close) {
       sh.style.transition = "transform .22s cubic-bezier(.4,0,1,1)"; sh.style.transform = "translate3d(0,110%,0)";
       host.style.transition = "background-color .22s ease"; host.style.backgroundColor = "rgba(10,12,18,0)";
-      setTimeout(() => { host.hidden = true; host.innerHTML = ""; host.style.cssText = ""; document.body.style.overflow = ""; }, 230);
+      setTimeout(() => { host.hidden = true; host.innerHTML = ""; host.style.cssText = ""; document.documentElement.style.overflow = ""; }, 230);
     } else {
       sh.style.transition = "transform .3s cubic-bezier(.34,1.45,.55,1)"; sh.style.transform = "";
       host.style.transition = "background-color .3s ease"; host.style.backgroundColor = "";
@@ -2103,7 +2239,7 @@ document.addEventListener("keydown", e => {
   if (e.key === "Escape" && !$("#sheet").hidden) { closeSheet(); return; }
   if (S.view !== "study" || !$("#sheet").hidden || /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) return;
   if ((e.key === " " || e.key === "Enter") && S.study && !S.study.flipped) { e.preventDefault(); S.study.flipped = true; S.study.justFlipped = true; render(); }
-  else if (/^[1-4]$/.test(e.key) && S.study && S.study.flipped && +e.key <= gradeSet().length) { e.preventDefault(); grade(+e.key - 1); }
+  else if (/^[1-4]$/.test(e.key) && S.study && S.study.flipped && +e.key <= curGrades().length) { e.preventDefault(); grade(+e.key - 1); }
   else if ((e.key === "e" || e.key === "E") && !e.metaKey && !e.ctrlKey) { const c = curCard(); if (c && !S.study.busy) { e.preventDefault(); cardSheet(c.fid, c.id); } }
   else if ((e.key === "z" || e.key === "Z" || e.key === "Backspace") && !e.altKey) { e.preventDefault(); undoGrade(); }
   else if (e.key === "Escape") endStudy();
@@ -2111,6 +2247,14 @@ document.addEventListener("keydown", e => {
 
 if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
 addEventListener("online", () => render()); addEventListener("offline", () => render());
+// Merken, ob die Seite überhaupt scrollbar ist (dann darf sie am Rand weich nachfedern)
+function updScroll(){ const r = document.documentElement; r.classList.toggle("can-scroll", r.scrollHeight > innerHeight + 2); }
+addEventListener("resize", updScroll);
+if (window.ResizeObserver) new ResizeObserver(updScroll).observe($("#main"));
+try { history.scrollRestoration = "manual"; } catch {} window.scrollTo(0, 0); // Bibliothek öffnet immer oben
+// Nach längerer Pause (App im Hintergrund) die Bibliothek wieder oben zeigen
+let hiddenAt = 0;
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") hiddenAt = Date.now(); else if (hiddenAt && Date.now() - hiddenAt > 60000 && S.view === "lib" && $("#sheet").hidden) window.scrollTo(0, 0); });
 requestAnimationFrame(() => setTimeout(boot, 0)); // erst ein Bild zeichnen, damit die Startanimation schon auf der Grafikkarte läuft
 })();
 </script>
