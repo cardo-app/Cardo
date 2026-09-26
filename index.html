@@ -2173,7 +2173,6 @@ function tabStyle(v, a, dur, ease = EASE){ // a = 0 (inactive) … 1 (active)
   const svg = b.querySelector("svg"), t = dur ? `transform ${dur}ms ${ease}, stroke-width ${dur}ms ${ease}` : "none";
   svg.style.transition = t; b.style.transition = dur ? `color ${dur}ms ${ease}` : "none";
   svg.style.transform = `scale(${(.84 + .16 * a).toFixed(3)})`;
-  if (!dur) return; // während des Ziehens nur skalieren (läuft auf der Grafikkarte); Farbe/Strichstärke erst beim Einrasten
   svg.style.strokeWidth = (1.6 + 1.3 * a).toFixed(2);
   b.style.color = `color-mix(in oklab, var(--accent-text) ${Math.round(a * 100)}%, var(--muted))`;
 }
