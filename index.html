@@ -680,6 +680,8 @@ html.ios-standalone{height:100lvh;min-height:100lvh}
 html.android,html.android body{overscroll-behavior-y:none}
 /* Nur scrollen, wenn wirklich Inhalt folgt: kein Nachfedern, kein Scrollbalken */
 html,body{overscroll-behavior:none}
+/* Beim Seitenwischen: Tab-Leiste ohne Weichzeichner (der müsste sonst in jedem Bild neu berechnet werden) */
+body.swiping #tabs{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--surface)}
 /* Wenn es wirklich etwas zu scrollen gibt: natürliches Auslaufen/Nachfedern am Rand (weicher), aber kein Pull-to-Refresh */
 html.can-scroll,html.can-scroll body{overscroll-behavior-y:contain}
 html.no-scroll{overflow-y:hidden}
@@ -1244,7 +1246,8 @@ function draw(){
   document.body.classList.toggle("selecting", !!S.sel);
   $("#tabs").innerHTML = tabsHTML();
   if (S.lastTab !== S.view && S.view !== "study") { if (S.lastTab) { const tb = document.querySelector(`#tabs [data-v="${S.view}"]`); tb && tb.classList.add("pop"); } S.lastTab = S.view; }
-  $("#main").innerHTML = S.view === "study" ? studyHTML() : S.view === "settings" ? settingsHTML() : S.view === "stats" ? statsHTML() : (S.fid ? folderHTML(S.fid) : libHTML());
+  if (draw.reuse) { const src = draw.reuse; draw.reuse = null; $("#main").replaceChildren(...src.childNodes); } // Seitenwischen: fertig vorgezeichnete Seite übernehmen
+  else $("#main").innerHTML = S.view === "study" ? studyHTML() : S.view === "settings" ? settingsHTML() : S.view === "stats" ? statsHTML() : (S.fid ? folderHTML(S.fid) : libHTML());
   if (keep) { const el = document.getElementById(keep.id); if (el) { el.focus(); try { el.setSelectionRange(keep.s, keep.e); } catch {} } }
   const m = $("#main");
   if (S.anim && S.anim !== "none") { m.classList.remove("a-fade", "a-push", "a-pop"); void m.offsetWidth; m.classList.add("a-" + S.anim);
@@ -2170,7 +2173,9 @@ function tabStyle(v, a, dur){ // a = 0 (inactive) … 1 (active)
   const b = document.querySelector(`#tabs [data-v="${v}"]`); if (!b) return;
   const svg = b.querySelector("svg"), t = dur ? `transform ${dur}ms ${EASE}, stroke-width ${dur}ms ${EASE}` : "none";
   svg.style.transition = t; b.style.transition = dur ? `color ${dur}ms ${EASE}` : "none";
-  svg.style.transform = `scale(${(.84 + .16 * a).toFixed(3)})`; svg.style.strokeWidth = (1.6 + 1.3 * a).toFixed(2);
+  svg.style.transform = `scale(${(.84 + .16 * a).toFixed(3)})`;
+  if (!dur) return; // während des Ziehens nur skalieren (läuft auf der Grafikkarte); Farbe/Strichstärke erst beim Einrasten
+  svg.style.strokeWidth = (1.6 + 1.3 * a).toFixed(2);
   b.style.color = `color-mix(in oklab, var(--accent-text) ${Math.round(a * 100)}%, var(--muted))`;
 }
 function clearTabStyles(){ document.querySelectorAll("#tabs button, #tabs svg").forEach(el => { el.style.transition = ""; el.style.transform = ""; el.style.strokeWidth = ""; el.style.color = ""; }); }
@@ -2197,9 +2202,13 @@ function finish(commit, dir, v = 0){
   const ease = commit ? "cubic-bezier(.25,.8,.3,1)" : "cubic-bezier(.3,1.25,.5,1)";
   animating = true; cancelAnimationFrame(raf2); place(target, dur, ease);
   setTimeout(() => {
-    if (commit) { go(neighbour(dir), neighbour(dir) === "lib" ? libTarget() : null, "none"); draw(); }
-    place(0, 0); hidePeek(); clearTabStyles(); $("#main").style.willChange = ""; animating = false;
-    if (commit) prerender();
+    if (commit) {
+      const fresh = peekGen === S.gen && PK()[dir].firstElementChild.childNodes.length;
+      go(neighbour(dir), neighbour(dir) === "lib" ? libTarget() : null, "none");
+      if (fresh) draw.reuse = PK()[dir].firstElementChild; // die Nachbarseite ist schon gezeichnet – übernehmen statt neu bauen
+      draw(); if (raf) { cancelAnimationFrame(raf); raf = 0; } // nur einmal zeichnen
+    }
+    place(0, 0); hidePeek(); clearTabStyles(); $("#main").style.willChange = ""; document.body.classList.remove("swiping"); animating = false;
   }, dur + 16);
 }
 document.addEventListener("touchstart", e => {
@@ -2207,6 +2216,7 @@ document.addEventListener("touchstart", e => {
   if (e.target.closest("input,textarea,select,.chart-wrap,[data-noswipe]")) return;
   const t = e.touches[0]; if (t.clientX < 18 || t.clientX > innerWidth - 18) return; // leave system edge gestures alone
   if (peekGen !== S.gen) prerender();
+  $("#main").style.willChange = "transform"; // Ebene schon beim Aufsetzen anlegen, damit der Start des Wischens nicht ruckelt
   sw = { x: t.clientX, y: t.clientY, drag: false, off: 0, pts: [[t.clientX, performance.now()]] };
 }, { passive: true });
 document.addEventListener("touchmove", e => {
@@ -2214,7 +2224,7 @@ document.addEventListener("touchmove", e => {
   if (!sw.drag) {
     if (Math.abs(dy) > 8 && Math.abs(dy) > Math.abs(dx) * .8) { sw = null; return; }
     if (Math.abs(dx) < 6) return;
-    sw.drag = true; sw.off = Math.sign(dx) * 6; $("#main").style.willChange = "transform";
+    sw.drag = true; sw.off = Math.sign(dx) * 6; document.body.classList.add("swiping");
   }
   e.preventDefault(); // no vertical scrolling while swiping sideways
   const now = performance.now(); sw.pts.push([t.clientX, now]); while (sw.pts.length > 2 && now - sw.pts[0][1] > 90) sw.pts.shift();
@@ -2223,7 +2233,7 @@ document.addEventListener("touchmove", e => {
   if (!raf2) raf2 = requestAnimationFrame(() => { raf2 = 0; if (sw && pendingX !== null) place(pendingX, 0); });
 }, { passive: false });
 function endSwipe(e){
-  if (!sw) return; const s0 = sw; sw = null; if (!s0.drag) return;
+  if (!sw) return; const s0 = sw; sw = null; if (!s0.drag) { if (!animating) $("#main").style.willChange = ""; return; }
   cancelAnimationFrame(raf2); raf2 = 0;
   const cx = e && e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientX : s0.pts[s0.pts.length - 1][0];
   const x = cx - s0.x - s0.off; if (peekDir || x) place(peekDir ? x : curX, 0);
@@ -2246,7 +2256,7 @@ document.addEventListener("wheel", e => {
   const dir = wAcc > 0 ? "left" : "right"; wAcc = 0; wLock = now + 700;
   if (!neighbour(dir)) return;
   if (reduceMotion.matches) { go(neighbour(dir), neighbour(dir) === "lib" ? libTarget() : null); return; }
-  showPeek(dir); place(0, 0); $("#main").style.willChange = "transform";
+  showPeek(dir); place(0, 0); $("#main").style.willChange = "transform"; document.body.classList.add("swiping");
   requestAnimationFrame(() => finish(true, dir, 1.4));
 }, { passive: true });
 
