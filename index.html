@@ -650,16 +650,21 @@ body.authing #tabs{display:none}
 .sp-ball.landed::after{display:none}
 .sp-ball.morph{z-index:3;animation:none;opacity:1;transform-origin:0 0}
 body.splashing #tabs{opacity:0}
-/* Lavaplanet-Intro */
+body.intro-day #splash::before,body.intro-day #splash::after{display:none} /* erstes Öffnen: kein Nachthimmel, das Intro ist weiß wie das App-Icon */
+/* Intro beim ersten Anmelden: Kugel → Karteikarten-Fächer → Logo */
 #intro{position:fixed;inset:0;z-index:210;overflow:hidden;touch-action:none;animation:inIn .35s ease both}
-#intro .in-sky{position:absolute;inset:0;background:#07090F;
-  background-image:radial-gradient(1.4px 1.4px at 12% 18%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 33% 9%,#fff 50%,transparent 51%),radial-gradient(1.6px 1.6px at 71% 14%,#FFE9C2 50%,transparent 51%),radial-gradient(1px 1px at 86% 31%,#fff 50%,transparent 51%),radial-gradient(1.2px 1.2px at 22% 42%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 58% 27%,#fff 50%,transparent 51%),radial-gradient(1.3px 1.3px at 90% 58%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 8% 66%,#fff 50%,transparent 51%),radial-gradient(1.5px 1.5px at 44% 72%,#FFE9C2 50%,transparent 51%),radial-gradient(1px 1px at 76% 84%,#fff 50%,transparent 51%),radial-gradient(1.1px 1.1px at 17% 90%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 63% 49%,#fff 50%,transparent 51%)}
-#intro canvas{position:absolute;inset:0;width:100%;height:100%}
-#intro .in-mark{position:absolute;background:#fff;opacity:0;box-shadow:0 12px 30px -8px rgba(0,0,0,.5)}
+#intro .in-sky{position:absolute;inset:0;background:#fff}
+#intro .in-card{position:absolute;z-index:1;border-radius:14px;background:#1B1D23;box-shadow:0 14px 28px -12px rgba(27,29,35,.55);padding:16px 16px 0;display:flex;flex-direction:column;gap:9px;opacity:0;will-change:transform,opacity}
+#intro .in-card i{display:block;height:9px;border-radius:5px;background:rgba(255,255,255,.22)}
+#intro .in-card i:first-child{width:62%;height:11px;background:#fff}
+#intro .in-card i:nth-child(2){width:88%}
+#intro .in-card i:nth-child(3){width:54%;background:#FF5A36}
+#intro .in-mark{position:absolute;z-index:6;background:#fff;opacity:0;box-shadow:0 0 0 1px rgba(27,29,35,.06),0 12px 30px -8px rgba(27,29,35,.35);will-change:transform,opacity}
 #intro .in-mark svg{width:100%;height:100%;display:block}
-#intro .in-skip{position:absolute;left:0;right:0;bottom:calc(22px + env(safe-area-inset-bottom,0px));text-align:center;font-size:13px;color:rgba(255,255,255,.45);animation:inIn 1s ease 1.5s both}
-#intro.out .in-sky,#intro.out canvas,#intro.out .in-skip{transition:opacity .6s ease;opacity:0}
-#intro.out .in-mark{transition:opacity .35s ease .35s,box-shadow .6s ease;opacity:0!important;box-shadow:none}
+#intro .in-ball{position:absolute;z-index:7;border-radius:50%;background:#FF5A36;will-change:transform}
+#intro .in-skip{position:absolute;left:0;right:0;bottom:calc(22px + env(safe-area-inset-bottom,0px));text-align:center;font-size:13px;color:rgba(27,29,35,.4);animation:inIn 1s ease 1.2s both}
+#intro.out .in-sky,#intro.out .in-card,#intro.out .in-skip{transition:opacity .5s ease;opacity:0!important}
+#intro.out .in-mark{transition:opacity .3s ease .3s,box-shadow .5s ease;opacity:0!important;box-shadow:none}
 #intro.out-fast{transition:opacity .28s ease;opacity:0}
 @keyframes inIn{from{opacity:0}to{opacity:1}}
 /* Kurzstart (Startanimation „Einmal am Tag“ ab dem 2. Öffnen oder „Nie“): nur das weiße Icon, das in die App überblendet */
@@ -712,7 +717,7 @@ html.ios-standalone body{min-height:100lvh}
 </head>
 <body>
 
-<div id="splash" aria-hidden="true"><script>document.body.classList.add("splashing");try{var cs=JSON.parse(localStorage.getItem("kartenfach-settings")||"{}")||{},cm=cs.splash||"daily",cd=new Date(),ck=cd.getFullYear()+"-"+(cd.getMonth()+1)+"-"+cd.getDate();if(cm==="never"||(cm==="daily"&&localStorage.getItem("cardo-splash-day")===ck))document.body.classList.add("splash-quick");else localStorage.setItem("cardo-splash-day",ck)}catch(e){}</script><div class="sp-stage"><div class="sp-l sp-arc"><svg viewBox="0 0 512 512"><path d="M320 165A116 116 0 1 0 320 347" fill="none" stroke="#1B1D23" stroke-width="60" stroke-linecap="round"/></svg></div><div class="sp-l sp-dot"><svg viewBox="0 0 512 512"><circle cx="350" cy="256" r="29" fill="#FF5A36"/></svg></div></div><div class="sp-ball"></div></div>
+<div id="splash" aria-hidden="true"><script>document.body.classList.add("splashing");try{if(!localStorage.getItem("cardo-intro-seen")&&!localStorage.getItem("sb-rormgkvthvisrctcsjrg-auth-token"))document.body.classList.add("intro-day");var cs=JSON.parse(localStorage.getItem("kartenfach-settings")||"{}")||{},cm=cs.splash||"daily",cd=new Date(),ck=cd.getFullYear()+"-"+(cd.getMonth()+1)+"-"+cd.getDate();if(cm==="never"||(cm==="daily"&&localStorage.getItem("cardo-splash-day")===ck))document.body.classList.add("splash-quick");else localStorage.setItem("cardo-splash-day",ck)}catch(e){}</script><div class="sp-stage"><div class="sp-l sp-arc"><svg viewBox="0 0 512 512"><path d="M320 165A116 116 0 1 0 320 347" fill="none" stroke="#1B1D23" stroke-width="60" stroke-linecap="round"/></svg></div><div class="sp-l sp-dot"><svg viewBox="0 0 512 512"><circle cx="350" cy="256" r="29" fill="#FF5A36"/></svg></div></div><div class="sp-ball"></div></div>
 <div id="app">
   <main id="main"><div class="loading">Cardo lädt …</div></main>
 </div>
@@ -817,7 +822,7 @@ function hideSplash(){
   if (splashGone) return; splashGone = true;
   const el = document.getElementById("splash"); if (!el) { document.body.classList.remove("splashing"); return; }
   let quick = document.body.classList.contains("splash-quick");
-  if (S.mode === "auth" && wantIntro()) { // erstes Anmelden nach der Installation: Lavaplanet-Intro
+  if (S.mode === "auth" && wantIntro()) { // erstes Anmelden nach der Installation: Intro
     let start = splashStart;
     if (quick) { document.body.classList.remove("splash-quick"); start = performance.now(); } // volle Startanimation als Auftakt
     splashT = setTimeout(() => { playIntro({ from: el.querySelector(".sp-ball") }); setTimeout(() => { el.remove(); document.body.classList.remove("splashing"); }, 450); }, Math.max(0, 1850 - (performance.now() - start)));
@@ -828,222 +833,91 @@ function hideSplash(){
 }
 let splashT = 0;
 function fadeSplash(el){ el.classList.add("out"); document.body.classList.remove("splashing"); setTimeout(() => el.remove(), 320); }
-/* ---------- Intro beim ersten Anmelden: der orange Punkt wird zum Lavaplaneten ---------- */
-// Ablauf (~10 s): Kugel wächst zum Lavaplaneten → Anflug → Überflug knapp über der Oberfläche mit Lavaspritzern
-// → zurückziehen, Planet dreht sich immer schneller → schrumpft zum orangen Punkt im Cardo-Logo → Anmeldeseite.
+/* ---------- Intro beim ersten Anmelden: Kugel → Karteikarten-Fächer → Cardo-Logo ---------- */
 const INTRO_KEY = "cardo-intro-seen";
 let introSkip = null;
 function wantIntro(){ try { if (localStorage.getItem(INTRO_KEY)) return false; } catch { return false; } return !matchMedia("(prefers-reduced-motion: reduce)").matches; }
-const INTRO_FS = `precision highp float;
-uniform vec2 uRes, uC; uniform float uS, uF, uA, uT, uFlat, uIg;
-uniform vec3 uP, uFw, uUp, uRt;
-vec3 hash3(vec3 p){ p = vec3(dot(p, vec3(127.1, 311.7, 74.7)), dot(p, vec3(269.5, 183.3, 246.1)), dot(p, vec3(113.5, 271.9, 124.6))); return fract(sin(p) * 43758.5453); }
-// Zellen (Voronoi): x = Abstand zur Zellgrenze, y = Zufallswert der Zelle, z = Abstand zum Zellkern
-vec3 vor(vec3 x){ vec3 n = floor(x), f = fract(x); float d1 = 8., d2 = 8.; vec3 id = vec3(0.);
-  for (int k = -1; k <= 1; k++) for (int j = -1; j <= 1; j++) for (int i = -1; i <= 1; i++) {
-    vec3 g = vec3(float(i), float(j), float(k)); vec3 r = g + hash3(n + g) * .85 - f; float d = dot(r, r);
-    if (d < d1) { d2 = d1; d1 = d; id = n + g; } else if (d < d2) d2 = d; }
-  return vec3(sqrt(d2) - sqrt(d1), fract(sin(dot(id, vec3(7.1, 157.3, 113.7))) * 43758.5), sqrt(d1)); }
-// Comic-Lava: rote Gesteinsplatten mit dunkler Kontur, dazwischen Lavaflüsse (orange, gelber Kern), einzelne Lavaseen
-vec4 toon(vec3 p, float px, float lit){
-  vec3 v = vor(p); float e = v.x, id = v.y;
-  float w = .085, pul = .5 + .5 * sin(uT * 5. + id * 20.);
-  vec3 rock = id < .4 ? vec3(.55, .07, .1) : id < .78 ? vec3(.68, .11, .11) : vec3(.45, .05, .1);
-  rock *= lit; rock += vec3(.18, .02, .02) * smoothstep(.25, .6, v.z) * lit;
-  vec3 lava = vec3(1., .3, .08), core = mix(vec3(1., .78, .2), vec3(1., .9, .45), pul);
-  if (id > .88) { float ring = step(.55, fract(v.z * 5. - uT * 1.4)) * (1. - smoothstep(.55, .75, v.z));
-    float c = 1. - smoothstep(.26 - px, .26 + px, v.z);
-    vec3 lake = mix(lava, vec3(1., .45, .12), ring * .8); lake = mix(lake, core, c); return vec4(lake, 1.); }
-  float riv = 1. - smoothstep(w - px, w + px, e), cr = 1. - smoothstep(w * .42 - px, w * .42 + px, e);
-  float ol = 1. - smoothstep(w + .04 - px, w + .04 + px, e);
-  vec3 col = mix(rock, vec3(.22, .02, .06), ol); col = mix(col, lava, riv); col = mix(col, core, cr);
-  return vec4(col, riv); }
-void main(){
-  // Eine durchgehende Szene: echte Kamera im Raum, Planet = Kugel mit Radius 1 im Ursprung
-  vec2 fr = vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y) / uS;
-  vec2 q = (fr - uC) / uF;
-  vec3 D = normalize(uFw + uRt * q.x - uUp * q.y);
-  float b = dot(uP, D), tc = max(-b, 1e-4), dm = length(uP + D * tc);
-  float pxw = tc / uF * 1.2;                        // Weltgröße eines Bildpunkts in dieser Entfernung
-  float alt = length(uP) - 1.;
-  // gestufter Comic-Glühschein um den Planeten (wird zum Horizont-Glühen beim Überflug)
-  float gw = clamp(.22 / pxw * pxw, 0., 1.) ; gw = clamp(.22 * uF / tc, 6., 60.) * tc / uF;
-  float ga0 = dm > 1. ? exp(-(dm - 1.) / gw) : 0.; float ga = mix(ga0 * ga0 * .5, floor(ga0 * 4.) / 4. * .6, uIg) * (1. - uFlat);
-  vec4 c = vec4(vec3(1., .22, .12) * ga, ga);
-  float disc = b * b - (dot(uP, uP) - 1.);
-  if (disc > 0. && -b > 0. || dm < 1. + pxw) {
-    float t = -b - sqrt(max(disc, 0.)); vec3 X = uP + D * t, n = normalize(X);
-    float ca = cos(uA), sa = sin(uA); vec3 T = vec3(n.x, n.y * ca + n.z * sa, -n.y * sa + n.z * ca);
-    vec3 L = normalize(vec3(-.55, .6, .6)); float dif = dot(n, L); float lit = dif > .5 ? 1. : dif > .1 ? .8 : .62;
-    float fs = max(dot(n, -D), .12);
-    float pw = t / uF * 1.3 / fs;
-    vec4 s = toon(T * 3.4, pw * 3.4, lit);
-    // Nahe an der Oberfläche: große Platten zerfallen in kleinere (feinere Detailebene, stufenlos eingeblendet)
-    float fine = 1. - smoothstep(.12, .3, pw * 30.);
-    if (fine > 0. && s.a < .5) { vec4 s2 = toon(T * 30. + 11.3, pw * 30., lit); s = vec4(mix(s.rgb, s2.rgb, fine), max(s.a, s2.a * fine)); }
-    vec3 col = s.rgb + vec3(1., .3, .15) * step(.93, 1. - fs) * .35 * (1. - s.a);
-    // Verwandlung: Aus der glatten orangen Kugel brechen zuerst glühende Lavaadern hervor, dann kühlt dazwischen die Kruste ab
-    if (uIg < 1.) { vec3 ball = vec3(1., .353, .212) * (.86 + .14 * lit);
-      float kv = smoothstep(0., .45, uIg), kr = smoothstep(.25, 1., uIg);
-      vec3 hot = mix(ball, vec3(1., .82, .35), s.a * kv * (1. - kr) * .9); // Adern glühen kurz hell auf
-      col = mix(hot, col, s.a > .5 ? kv : kr); }
-    // Dunst in der Ferne (nur nah an der Oberfläche spürbar), gestuft
-    float fog = clamp((t - alt) / (alt * 5. + .04) - .15, 0., 1.); fog = floor(fog * 3. + .3) / 3.;
-    col = mix(col, vec3(.8, .17, .12), fog * .7 * (1. - s.a * .6));
-    float ow = 3.5 * pxw * (1. - uFlat) * smoothstep(.3, 1., uIg);
-    col = mix(col, vec3(.2, .02, .06), smoothstep(1. - ow - pxw, 1. - ow, dm)); // dicke dunkle Kontur
-    col = mix(col, vec3(1., .353, .212), uFlat);
-    float a = clamp((1. - dm) / pxw + .5, 0., 1.);
-    c = vec4(col * a + c.rgb * (1. - a), a + c.a * (1. - a)); }
-  gl_FragColor = c;
-}`;
 function playIntro(opts = {}){
-  const W = innerWidth, H = innerHeight, m = Math.min(W, H);
+  // Ablauf (~2,7 s, nur transform/opacity → flüssig auch auf Android):
+  // Die orange Kugel fällt herab und prallt auf → ein Fächer Karteikarten springt auf → die Karten schieben sich zu einem Stapel
+  // zusammen, der zur Logo-Kachel wird, die Kugel hüpft als Punkt hinein, das C zeichnet sich → das Logo gleitet an seinen Platz
+  // auf der Anmeldeseite, der Nachthimmel blendet aus.
+  const W = innerWidth, H = innerHeight, cx = W / 2, cy = H * .47;
+  const CW = Math.round(Math.min(W * .42, 180)), CH = Math.round(CW * .64), TS = Math.round(Math.min(W * .3, 120)), BD = 22;
+  const N = 5, ANG = [-26, -13, 0, 13, 26];
   const ov = document.createElement("div"); ov.id = "intro"; ov.setAttribute("aria-hidden", "true");
-  ov.innerHTML = `<div class="in-sky"></div><div class="in-mark"><svg viewBox="0 0 512 512"><path d="M320 165A116 116 0 1 0 320 347" fill="none" stroke="#1B1D23" stroke-width="60" stroke-linecap="round"/></svg></div><canvas class="in-gl"></canvas><canvas class="in-fx"></canvas><div class="in-skip">Tippen zum Überspringen</div>`;
+  ov.innerHTML = `<div class="in-sky"></div>${ANG.map(() => `<div class="in-card"><i></i><i></i><i></i></div>`).join("")}<div class="in-mark"><svg viewBox="0 0 512 512"><path d="M320 165A116 116 0 1 0 320 347" fill="none" stroke="#1B1D23" stroke-width="60" stroke-linecap="round"/><circle cx="350" cy="256" r="29" fill="#FF5A36" opacity="0"/></svg></div><div class="in-ball"></div><div class="in-skip">Tippen zum Überspringen</div>`;
   document.body.appendChild(ov);
-  const cv = ov.querySelector(".in-gl"), fx = ov.querySelector(".in-fx"), mk = ov.querySelector(".in-mark"), arc = mk.querySelector("path");
-  const sc = Math.min(devicePixelRatio || 1, 2) * .75;
-  cv.width = Math.round(W * sc); cv.height = Math.round(H * sc);
-  const fs = Math.min(devicePixelRatio || 1, 2); fx.width = Math.round(W * fs); fx.height = Math.round(H * fs);
-  const gl = cv.getContext("webgl", { premultipliedAlpha: true, antialias: false }), cx = fx.getContext("2d");
-  let done = false, loopId = 0;
+  const cards = [...ov.querySelectorAll(".in-card")], mk = ov.querySelector(".in-mark"), arc = mk.querySelector("path"), dotEl = mk.querySelector("circle"), ball = ov.querySelector(".in-ball");
+  let done = false; const anims = [], timers = [];
   const end = fast => {
-    if (done) return; done = true; introSkip = null; cancelAnimationFrame(loopId);
+    if (done) return; done = true; introSkip = null; timers.forEach(clearTimeout);
     try { localStorage.setItem(INTRO_KEY, "1"); } catch {}
-    ov.classList.add(fast ? "out-fast" : "out"); setTimeout(() => ov.remove(), fast ? 300 : 700);
+    ov.classList.add(fast ? "out-fast" : "out"); setTimeout(() => { anims.forEach(a => { try { a.cancel(); } catch {} }); ov.remove(); }, fast ? 300 : 650);
     opts.onEnd && opts.onEnd();
   };
   introSkip = () => end(true);
   ov.addEventListener("pointerdown", () => end(true));
-  if (!gl || !cx) { end(true); return; }
-  const sh = (t, s) => { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) console.warn(gl.getShaderInfoLog(o)); return o; };
-  const pr = gl.createProgram();
-  gl.attachShader(pr, sh(gl.VERTEX_SHADER, "attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}"));
-  gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, INTRO_FS)); gl.linkProgram(pr);
-  if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) { console.warn(gl.getProgramInfoLog(pr)); end(true); return; }
-  gl.useProgram(pr);
-  const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
-  const loc = gl.getAttribLocation(pr, "p"); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-  const U = {}; ["uRes","uC","uS","uF","uA","uT","uFlat","uIg","uP","uFw","uUp","uRt"].forEach(k => U[k] = gl.getUniformLocation(pr, k));
-  gl.viewport(0, 0, cv.width, cv.height); gl.uniform2f(U.uRes, cv.width, cv.height); gl.uniform1f(U.uS, sc);
-  const FN = H * .866, FF = H * 2.4; let F = FF; // Brennweite: aus der Ferne eng (kaum Verzerrung), nah an der Oberfläche 60° (Fluggefühl)
-  gl.clearColor(0, 0, 0, 0);
-  let s0 = { x: W / 2, y: H * .12, r: 6.35 };
-  if (opts.from) { const b = opts.from.getBoundingClientRect(); if (b.width) s0 = { x: b.left + b.width / 2, y: b.top + b.height / 2, r: b.width / 2 }; opts.from.style.visibility = "hidden"; }
-  const markRect = () => { const a = document.querySelector(".auth-mark"); if (a && !opts.center) { const r = a.getBoundingClientRect(); if (r.width) return r; } return { left: W / 2 - 42, top: H / 2 - 42, width: 84, height: 84 }; };
-  let mr = markRect();
-  const place = () => Object.assign(mk.style, { left: mr.left + "px", top: mr.top + "px", width: mr.width + "px", height: mr.height + "px", borderRadius: (mr.width * 19 / 84) + "px" });
-  place();
-  // Kamera-Schlüsselpunkte (Zeit, log(Höhe über der Oberfläche)): Start bei der kleinen Kugel → Tiefflug → tiefster Punkt → hinaus bis zum Logo-Punkt
-  const ALT0 = .06, dFin = Math.sqrt(1 + Math.pow(FF / (mr.width * 29 / 512), 2)), d0 = Math.sqrt(1 + Math.pow(FF / s0.r, 2));
-  const KEYS = [[0, Math.log(d0 - 1)], [1.0, Math.log(ALT0 * 1.4)], [1.9, Math.log(ALT0)], [4.6, Math.log(dFin - 1)], [6, Math.log(dFin - 1)]];
-  const spline = (P, x) => { // monotone kubische Hermite-Interpolation (Fritsch–Carlson): glatt, ohne Überschwingen
-    if (x <= P[0][0]) return P[0][1]; if (x >= P[P.length - 1][0]) return P[P.length - 1][1];
-    const n = P.length, dl = [], ms = []; for (let i = 0; i < n - 1; i++) dl.push((P[i + 1][1] - P[i][1]) / (P[i + 1][0] - P[i][0]));
-    ms.push(dl[0]); for (let i = 1; i < n - 1; i++) ms.push(dl[i - 1] * dl[i] <= 0 ? 0 : (dl[i - 1] + dl[i]) / 2); ms.push(dl[n - 2]);
-    for (let i = 0; i < n - 1; i++) { if (dl[i] === 0) { ms[i] = ms[i + 1] = 0; continue; } const a = ms[i] / dl[i], b = ms[i + 1] / dl[i], h = a * a + b * b; if (h > 9) { const tt = 3 / Math.sqrt(h); ms[i] = tt * a * dl[i]; ms[i + 1] = tt * b * dl[i]; } }
-    let i = 0; while (x > P[i + 1][0]) i++; const hh = P[i + 1][0] - P[i][0], u = (x - P[i][0]) / hh, u2 = u * u, u3 = u2 * u;
-    return (2 * u3 - 3 * u2 + 1) * P[i][1] + (u3 - 2 * u2 + u) * hh * ms[i] + (-2 * u3 + 3 * u2) * P[i + 1][1] + (u3 - u2) * hh * ms[i + 1]; };
-  const sm = x => x * x * x * (x * (x * 6 - 15) + 10);
-  // Höchste Sinkgeschwindigkeit (im Log-Maß) und Vorwärtstempo im Tiefflug (Oberflächen-Strömung in Flughöhen pro Sekunde)
-  let VPK = 0, TPK = 0; for (let x = .02; x < 1.9; x += .02) { const v = Math.abs(spline(KEYS, x + .01) - spline(KEYS, x - .01)) / .02; if (v > VPK) { VPK = v; TPK = x; } }
-  const VF = 1.4 / ALT0;
-  const arcLen = arc.getTotalLength ? arc.getTotalLength() : 600; arc.style.strokeDasharray = arcLen; arc.style.strokeDashoffset = arcLen;
-  const ease = { io: t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2, in: t => t * t * t, out: t => 1 - Math.pow(1 - t, 3) };
-  const seg = (t, a, b) => Math.min(1, Math.max(0, (t - a) / (b - a)));
-  const lerp = (a, b, k) => a + (b - a) * k, lerpLog = (a, b, k) => Math.exp(lerp(Math.log(a), Math.log(b), k));
-  const distFor = Rpx => Math.sqrt(1 + (F / Rpx) * (F / Rpx)); // Kameraabstand, bei dem der Planet Rpx groß erscheint
-  const cMid = { x: W / 2, y: H * .45 }, cScr = { x: W / 2, y: H / 2 }, R1 = m * .36, ALT = .06;
-  const PITCH = (90 - (Math.acos(1 / (1 + ALT)) * 180 / Math.PI + Math.atan(.16 * H / FN) * 180 / Math.PI)) * Math.PI / 180; // Horizont bei ~34 % von oben
-  let A = .35, last = performance.now(), t0 = last, cam = null;
-  const drops = [];
-  const rotX = (v, a) => { const c = Math.cos(a), s = Math.sin(a); return [v[0], v[1] * c - v[2] * s, v[1] * s + v[2] * c]; };
-  const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-  const project = X => { const v = [X[0] - cam.P[0], X[1] - cam.P[1], X[2] - cam.P[2]], z = dot(v, cam.Fw); if (z < .005) return null;
-    return { x: cam.C.x + dot(v, cam.Rt) / z * F, y: cam.C.y - dot(v, cam.Up) / z * F, z }; };
-  const hidden = X => { const v = [X[0] - cam.P[0], X[1] - cam.P[1], X[2] - cam.P[2]], L = Math.hypot(v[0], v[1], v[2]), d = [v[0] / L, v[1] / L, v[2] / L];
-    const b = dot(cam.P, d), disc = b * b - (dot(cam.P, cam.P) - 1); if (disc <= 0) return false; const t = -b - Math.sqrt(disc); return t > 0 && t < L - .002; };
-  // Lavatropfen: starten an sichtbaren Stellen der Oberfläche, drehen mit dem Planeten mit, fallen zurück
-  const spawn = () => { const alt = Math.hypot(...cam.P) - 1;
-    for (let tries = 0; tries < 12; tries++) {
-      const u = Math.random() * 2 - 1, ph = Math.random() * Math.PI * 2, s = Math.sqrt(1 - u * u), n = [s * Math.cos(ph), s * Math.sin(ph), u];
-      if (hidden([n[0] * 1.001, n[1] * 1.001, n[2] * 1.001])) continue;
-      const p = project(n); if (!p || p.x < -20 || p.x > W + 20 || p.y < -20 || p.y > H + 20) continue;
-      const hgt = Math.min(.28, Math.max(.012, alt * .45)) * (.6 + Math.random() * .7), g = 2.2, vn = Math.sqrt(2 * g * hgt), k = 5 + Math.random() * 7 | 0;
-      const t1 = Math.abs(n[0]) < .9 ? [0, n[2], -n[1]] : [n[2], 0, -n[0]], tl = Math.hypot(...t1), ta = [t1[0] / tl, t1[1] / tl, t1[2] / tl], tb = [n[1] * ta[2] - n[2] * ta[1], n[2] * ta[0] - n[0] * ta[2], n[0] * ta[1] - n[1] * ta[0]];
-      for (let i = 0; i < k; i++) { const sp = vn * (.5 + Math.random() * .6), a1 = (Math.random() - .5) * vn * .45, b1 = (Math.random() - .5) * vn * .45;
-        drops.push({ X: [n[0], n[1], n[2]], V: [n[0] * sp + ta[0] * a1 + tb[0] * b1, n[1] * sp + ta[1] * a1 + tb[1] * b1, n[2] * sp + ta[2] * a1 + tb[2] * b1], g, r: hgt * (.07 + Math.random() * .06), life: 0 }); }
-      return; } };
-  const drawDrop = (x, y, vx, vy, r) => {
-    const sp = Math.hypot(vx, vy) || 1, ux = vx / sp, uy = vy / sp, nx = -uy, ny = ux, tl = r * (1.5 + Math.min(2.2, sp / 220)), an = Math.atan2(ny, nx);
-    cx.beginPath(); cx.moveTo(x - ux * tl, y - uy * tl); cx.lineTo(x + nx * r, y + ny * r); cx.arc(x, y, r, an, an + Math.PI, true); cx.closePath();
-    cx.fillStyle = "#FF4A1C"; cx.fill(); cx.lineWidth = Math.max(1, r * .28); cx.strokeStyle = "#3A0610"; cx.stroke();
-    cx.fillStyle = "#FFD35A"; cx.beginPath(); cx.arc(x + ux * r * .15 - nx * r * .35, y + uy * r * .15 - ny * r * .35, r * .38, 0, 6.283); cx.fill();
-  };
-  function frame(now){
-    if (done) return;
-    const dt = Math.min(.05, (now - last) / 1000); last = now; const t = (now - t0) / 1000;
-    // Kamera: Abstand d vom Planetenmittelpunkt, Neigung th (0 = Blick auf den Planeten, PITCH = Blick nach vorn zum Horizont), Bildmitte C, Drehtempo w
-    // Weiche Kamerafahrt: alle Bewegungen überlappen und nutzen eine sanfte Kurve (ohne Ruck an den Übergängen)
-    let d, th = 0, C = cMid, w = .35, flat = 0, markA = 0, arcK = 0, roll = 0;
-    // Eine einzige Kamerafahrt: Abstand zur Oberfläche folgt einer glatten Kurve (monotone kubische Interpolation im Log-Maß)
-    // – runter in den Tiefflug und ohne Anhalten wieder hinaus, bis der Planet der Punkt im Logo ist.
-    const dot = { x: mr.left + mr.width * 350 / 512, y: mr.top + mr.height * 256 / 512 }, dr = mr.width * 29 / 512;
-    const L = spline(KEYS, t); d = 1 + Math.exp(L);
-    // Nähe zur Oberfläche 0 (weit weg) … 1 (Tiefflug): steuert Blickwinkel und Neigung – so gibt es keine frontale Phase und keine Verzerrung aus der Ferne
-    const near = sm(seg(-L, -Math.log(4), -Math.log(ALT0 * 1.4)));
-    F = FN + (FF - FN) * (1 - near);
-    // Immer Horizont im Bild: die Kamera wird so geneigt, dass der obere Planetenrand fest auf der Horizontlinie liegt.
-    // Aus der Ferne ist der Planet dann eine Scheibe unter dem Horizont, beim Sinkflug wächst sie zur gekrümmten Oberfläche –
-    // man fliegt über den Planeten statt frontal auf ihn zu. Nur am Anfang (Kugel) und Ende (Logo-Punkt) zählt die Mitte des Planeten.
-    const HY = H * .34, al = Math.asin(Math.min(1, 1 / d));
-    const thLimb = al + Math.atan((HY - cScr.y) / F);
-    const ks = sm(seg(t, 0, .55)), ke = sm(seg(t, 3.3, 4.6));
-    const thStart = Math.atan((s0.y - cScr.y) / F), thEnd = Math.atan((dot.y - cScr.y) / F);
-    th = thLimb + (thStart - thLimb) * (1 - ks); th = th + (thEnd - th) * ke;
-    C = { x: lerp(s0.x, cScr.x, ks) + (dot.x - cScr.x) * ke, y: cScr.y };
-    w = lerp(1.0, 1.4, sm(seg(t, 0, .8)));
-    // Gleichbleibendes Tempo: Je mehr der Sinkflug abbremst, desto schneller strömt die Oberfläche vorbei –
-    // die Anfluggeschwindigkeit geht nahtlos in die Vorwärtsbewegung über, statt langsamer zu werden.
-    if (t > TPK && t < 1.9) { const vd = Math.abs(spline(KEYS, t + .01) - spline(KEYS, t - .01)) / .02; w = Math.max(w, (d - 1) * VF * (1 - vd / VPK)); }
-    w = lerp(w, 26, Math.pow(seg(t, 2.0, 3.9), 3));
-    const fly = sm(seg(t, .7, 1.2)) * (1 - sm(seg(t, 1.9, 2.5)));
-    roll = Math.sin((t - .8) * 1.6) * .05 * fly;
-    const ig = sm(seg(t, .04, .62)); // Kugel → Lavaplanet
-    flat = ease.io(seg(t, 4.0, 4.6)); markA = ease.out(seg(t, 4.1, 4.6)); arcK = ease.io(seg(t, 4.2, 4.9));
-    if (t > 5.2) { end(false); return; }
-    const dA = w * dt; A += dA;
-    // Kamera liegt auf der z-Achse; beim Überflug neigt sie sich nach vorn (Richtung +y = Fahrtrichtung)
-    const P = [0, 0, d], Fw = [0, Math.sin(th), -Math.cos(th)], Up0 = [0, Math.cos(th), Math.sin(th)], Rt0 = [1, 0, 0];
-    const cr = Math.cos(roll), sr = Math.sin(roll), Up = [Up0[0] * cr + Rt0[0] * sr, Up0[1] * cr + Rt0[1] * sr, Up0[2] * cr + Rt0[2] * sr], Rt = [Rt0[0] * cr - Up0[0] * sr, Rt0[1] * cr - Up0[1] * sr, Rt0[2] * cr - Up0[2] * sr];
-    cam = { P, Fw, Up, Rt, C };
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.uniform2f(U.uC, C.x, C.y); gl.uniform1f(U.uF, F); gl.uniform1f(U.uA, A); gl.uniform1f(U.uT, t); gl.uniform1f(U.uFlat, flat); gl.uniform1f(U.uIg, ig);
-    gl.uniform3f(U.uP, ...P); gl.uniform3f(U.uFw, ...Fw); gl.uniform3f(U.uUp, ...Up); gl.uniform3f(U.uRt, ...Rt);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    mk.style.opacity = markA; mk.style.transform = `scale(${(.7 + .3 * markA).toFixed(3)})`; arc.style.strokeDashoffset = arcLen * (1 - arcK);
-    // Lavatropfen
-    const rate = t > .1 && t < .6 ? 6 : t > .6 && t < 2.2 ? 12 : 0;
-    if (rate && Math.random() < dt * rate) spawn();
-    cx.setTransform(fs, 0, 0, fs, 0, 0); cx.clearRect(0, 0, W, H);
-    // Zündung: eine Comic-Druckwelle löst sich von der Kugel, wenn sie zum Lavaplaneten wird
-    if (t > .06 && t < .5) { const pc = project([0, 0, 0]); if (pc) { const k = (t - .06) / .44, rp = F / Math.sqrt(Math.max(d * d - 1, 1e-4));
-      const rr = rp * (1.08 + 1.6 * (1 - Math.pow(1 - k, 2.2))) + 6 * k;
-      cx.globalAlpha = Math.pow(1 - k, .7); cx.lineWidth = Math.max(1.5, rp * .16 * (1 - k) + 2);
-      cx.strokeStyle = "#FF6A2A"; cx.beginPath(); cx.arc(pc.x, pc.y, rr, 0, 6.283); cx.stroke();
-      cx.lineWidth *= .45; cx.strokeStyle = "#FFD35A"; cx.beginPath(); cx.arc(pc.x, pc.y, rr, 0, 6.283); cx.stroke(); cx.globalAlpha = 1; } }
-    for (let i = drops.length - 1; i >= 0; i--) { const p = drops[i]; p.life += dt;
-      p.X = rotX(p.X, dA); p.V = rotX(p.V, dA); // dreht mit dem Planeten mit
-      const r = Math.hypot(...p.X); p.V = p.V.map((v, j) => v - p.X[j] / r * p.g * dt); p.X = p.X.map((x, j) => x + p.V[j] * dt);
-      if (Math.hypot(...p.X) < 1 || p.life > 3) { drops.splice(i, 1); continue; }
-      if (flat > 0 || hidden(p.X)) continue;
-      const a = project(p.X), b = project(p.X.map((x, j) => x + p.V[j] * .02)); if (!a || !b) continue;
-      const sr = p.r / a.z * F; if (sr < .7 || a.x < -30 || a.x > W + 30 || a.y < -30 || a.y > H + 30) continue;
-      drawDrop(a.x, a.y, (b.x - a.x) / .02, (b.y - a.y) / .02, Math.min(sr, 24)); }
-    loopId = requestAnimationFrame(frame);
+  if (!ov.animate) { end(true); return; }
+  const A = (el, kf, o) => { const a = el.animate(kf, Object.assign({ fill: "both" }, o)); anims.push(a); return a; };
+  const place = (el, w, h) => Object.assign(el.style, { left: cx - w / 2 + "px", top: cy - h / 2 + "px", width: w + "px", height: h + "px" });
+  cards.forEach(c => place(c, CW, CH)); place(mk, TS, TS); mk.style.borderRadius = TS * 19 / 84 + "px"; place(ball, BD, BD);
+  // Start: genau dort, wo die Kugel der Startanimation gerade schwebt
+  let s0 = { x: cx, y: H * .12, d: 10 };
+  if (opts.from) { const b = opts.from.getBoundingClientRect(); if (b.width) s0 = { x: b.left + b.width / 2, y: b.top + b.height / 2, d: b.width }; opts.from.style.visibility = "hidden"; }
+  const k0 = s0.d / BD, T = (x, y, sx = 1, sy = sx) => `translate3d(${x}px,${y}px,0) scale(${sx},${sy})`;
+  // 1) Kugel fällt (beschleunigt, leicht gestreckt), prallt auf (gestaucht), federt kurz hoch
+  const FALL = 520;
+  A(ball, [
+    { transform: T(s0.x - cx, s0.y - cy, k0), easing: "cubic-bezier(.45,0,.85,.4)" },
+    { offset: .9, transform: T(0, -BD * .3, .92, 1.18) },
+    { transform: T(0, 0, 1, 1) }
+  ], { duration: FALL });
+  A(ball, [
+    { transform: T(0, BD * .18, 1.35, .68), easing: "cubic-bezier(.2,.7,.3,1)" },
+    { offset: .45, transform: T(0, -CH * .95, .94, 1.08), easing: "cubic-bezier(.55,0,.6,1)" },
+    { offset: .8, transform: T(0, -CH * .78, 1, 1) },
+    { transform: T(0, -CH * .82, 1, 1) }
+  ], { delay: FALL, duration: 700, fill: "forwards" });
+  // 2) Karteikarten springen als Fächer auf (drehen um einen Punkt unterhalb, wie Karten in der Hand)
+  const PV = CH * 1.6; // Drehpunkt unterhalb der Kartenmitte (Fächer wie Karten in der Hand)
+  const fan = (a, s = 1) => { const r = a * Math.PI / 180; return `translate3d(${(PV * Math.sin(r)).toFixed(1)}px,${(PV * (1 - Math.cos(r))).toFixed(1)}px,0) rotate(${a}deg) scale(${s})`; };
+  cards.forEach((c, i) => {
+    c.style.zIndex = i === 2 ? 3 : i === 1 || i === 3 ? 2 : 1;
+    A(c, [
+      { opacity: 0, transform: fan(0, .2), easing: "cubic-bezier(.2,.9,.3,1.2)" },
+      { offset: .25, opacity: 1 },
+      { opacity: 1, transform: fan(ANG[i]) }
+    ], { delay: FALL - 30 + Math.abs(i - 2) * 35, duration: 560 });
+    // 3) …und schieben sich zum Stapel zusammen, der auf Kachelgröße schrumpft
+    A(c, [
+      { opacity: 1, transform: fan(ANG[i]), easing: "cubic-bezier(.6,0,.3,1)" },
+      { offset: .8, opacity: 1 },
+      { opacity: 0, transform: `translate3d(0,${(i - 2) * 1.5}px,0) rotate(0deg) scale(${TS / CW}, ${TS / CH})` }
+    ], { delay: 1180, duration: 460, fill: "forwards" });
+  });
+  // 4) Aus dem Stapel wird die Logo-Kachel
+  A(mk, [
+    { opacity: 0, transform: "scale(.9)", easing: "cubic-bezier(.2,.9,.3,1.3)" },
+    { opacity: 1, transform: "scale(1)" }
+  ], { delay: 1480, duration: 360 });
+  // 5) Die Kugel hüpft in die Kachel und wird zum Punkt, das C zeichnet sich
+  const dx = TS * (350 / 512 - .5), dy = TS * (256 / 512 - .5), kd = TS * 58 / 512 / BD;
+  A(ball, [
+    { transform: T(0, -CH * .82, 1, 1), easing: "cubic-bezier(.3,0,.4,1)" },
+    { offset: .55, transform: T(dx * .6, -CH * 1.05, 1, 1), easing: "cubic-bezier(.6,0,.8,.6)" },
+    { transform: T(dx, dy, kd, kd) }
+  ], { delay: 1520, duration: 520, fill: "forwards" });
+  const len = arc.getTotalLength ? arc.getTotalLength() : 600; arc.style.strokeDasharray = len;
+  A(arc, [{ strokeDashoffset: len, opacity: 0, easing: "cubic-bezier(.45,0,.2,1)" }, { offset: .06, opacity: 1 }, { strokeDashoffset: 0, opacity: 1 }], { delay: 1640, duration: 520 });
+  timers.push(setTimeout(() => { dotEl.setAttribute("opacity", "1"); ball.style.visibility = "hidden"; }, 2045));
+  // 6) Logo gleitet an seinen Platz auf der Anmeldeseite (bzw. bleibt in der Mitte)
+  const a = !opts.center && document.querySelector(".auth-mark"), r = a && a.getBoundingClientRect();
+  if (r && r.width) {
+    const tx = r.left + r.width / 2 - cx, ty = r.top + r.height / 2 - cy, ks = r.width / TS;
+    A(mk, [{ transform: "translate3d(0,0,0) scale(1)", easing: "cubic-bezier(.55,0,.25,1)" }, { transform: `translate3d(${tx}px,${ty}px,0) scale(${ks})` }], { delay: 2120, duration: 560, fill: "forwards", composite: "replace" });
   }
-  requestAnimationFrame(n => { last = t0 = n; loopId = requestAnimationFrame(frame); });
+  timers.push(setTimeout(() => end(false), 2600));
 }
 
 // Antippen überspringt die Startanimation
@@ -1800,7 +1674,7 @@ function splashPickerHTML(){
   const cur = S.set.splash || "daily";
   return `<div class="gs-list" role="radiogroup" aria-label="Startanimation">${SPLASH_OPTS.map(([k, l, d]) => `<button class="gs-opt fx-opt ${cur === k ? 'on' : ''}" data-act="setSplash" data-v="${k}" role="radio" aria-checked="${cur === k}"><span class="fx-t"><b>${l}</b><span>${d}</span></span><span class="gs-ck" aria-hidden="true">${cur === k ? '✓' : ''}</span></button>`).join("")}</div>`;
 }
-function splashSheet(){ openSheet(`${head("Startanimation")}<p class="muted" style="margin:0 0 16px;font-size:15.5px">Die Animation beim Öffnen von Cardo. Antippen überspringt sie jederzeit.</p><div id="spPick">${splashPickerHTML()}</div><button class="btn block" style="margin-top:14px;justify-content:center" data-act="playIntro">Lavaplanet-Intro ansehen</button>`); }
+function splashSheet(){ openSheet(`${head("Startanimation")}<p class="muted" style="margin:0 0 16px;font-size:15.5px">Die Animation beim Öffnen von Cardo. Antippen überspringt sie jederzeit.</p><div id="spPick">${splashPickerHTML()}</div><button class="btn block" style="margin-top:14px;justify-content:center" data-act="playIntro">Intro ansehen</button>`); }
 function lookSheet(){
   openSheet(`${head("Thema")}<p class="muted" style="margin:0 0 16px;font-size:15.5px">Hell, Dunkel und System sind schlicht schwarz-weiß. Ein Farbthema färbt die ganze App ein. System folgt deinem Gerät.</p><div id="lookPick">${lookPickerHTML()}</div>`);
 }
