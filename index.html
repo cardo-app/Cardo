@@ -641,7 +641,7 @@ body.authing #tabs{display:none}
 .sp-stage{position:relative;z-index:1;width:112px;height:112px;will-change:transform;transform-origin:48.63% 50%;animation:spRot .85s cubic-bezier(.42,0,.2,1) .05s forwards}
 .sp-stage svg{width:112px;height:112px;display:block;overflow:visible}
 .sp-l{position:absolute;inset:0;will-change:transform,opacity}
-.sp-arc{animation:spArcOut .55s ease 1s forwards}
+.sp-arc{transform-origin:48.63% 50%;animation:spArcOut .55s ease 1s forwards}
 .sp-dot{animation:spHide 0s linear .9s forwards}
 .sp-pill{position:absolute;z-index:2;will-change:transform,opacity;overflow:hidden}
 .sp-pill i{position:absolute;inset:0;background:#FF5A36;will-change:opacity}
@@ -674,7 +674,7 @@ body.splash-quick #splash{transition:opacity .28s ease,visibility .28s}
 @keyframes spNight{to{opacity:1}}
 @keyframes spStars{to{opacity:.85}}
 @keyframes spRot{0%{transform:rotate(0)}100%{transform:rotate(-90deg)}}
-@keyframes spArcOut{to{opacity:0;transform:translateY(14px) scale(.9)}}
+@keyframes spArcOut{to{opacity:0;transform:scale(.88)}} /* verblasst an Ort und Stelle (um die Kreismitte des C) */
 @keyframes spHide{to{opacity:0}}
 @keyframes spGlow{to{opacity:1}}
 @keyframes spLaunch{0%{opacity:1;transform:translate3d(0,0,0) scale(1)}100%{opacity:1;transform:translate3d(0,calc(28.45px - 38vh),0) scale(.8)}}
