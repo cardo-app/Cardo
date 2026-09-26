@@ -1061,9 +1061,24 @@ async function boot(){
     if (ev === "PASSWORD_RECOVERY") setTimeout(newPasswordSheet, 300);
     if (ev === "SIGNED_OUT") location.reload();
   });
+  // Offline-Start: Wer auf diesem Gerät schon angemeldet war, kommt sofort in die App (mit der lokalen Kopie).
+  // Die Anmeldung wird im Hintergrund erneuert – ohne Internet würde das sonst bis zu 30 s hängen und dann die Login-Seite zeigen.
+  const cu = cachedUser();
+  if (cu) {
+    USER = cu; startApp();
+    SB.auth.getSession().then(({ data }) => { if (data && data.session) USER = data.session.user; }).catch(() => {});
+    return;
+  }
   const { data } = await SB.auth.getSession();
   if (!data.session) { showAuth(); return; }
   USER = data.session.user; startApp();
+}
+function cachedUser(){
+  try {
+    const t = JSON.parse(localStorage.getItem("sb-" + SB_URL.split("//")[1].split(".")[0] + "-auth-token") || "null");
+    const u = t && (t.user || (t.currentSession && t.currentSession.user));
+    return u && u.id && localStorage.getItem("cardo-cache-" + u.id) ? u : null;
+  } catch { return null; }
 }
 function startApp(){
   document.body.classList.remove("authing");
