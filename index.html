@@ -2169,10 +2169,10 @@ function showPeek(dir){
   if (!to) { peekDir = null; return false; }
   pk[dir].style.visibility = "visible"; peekDir = dir; return true;
 }
-function tabStyle(v, a, dur){ // a = 0 (inactive) … 1 (active)
+function tabStyle(v, a, dur, ease = EASE){ // a = 0 (inactive) … 1 (active)
   const b = document.querySelector(`#tabs [data-v="${v}"]`); if (!b) return;
-  const svg = b.querySelector("svg"), t = dur ? `transform ${dur}ms ${EASE}, stroke-width ${dur}ms ${EASE}` : "none";
-  svg.style.transition = t; b.style.transition = dur ? `color ${dur}ms ${EASE}` : "none";
+  const svg = b.querySelector("svg"), t = dur ? `transform ${dur}ms ${ease}, stroke-width ${dur}ms ${ease}` : "none";
+  svg.style.transition = t; b.style.transition = dur ? `color ${dur}ms ${ease}` : "none";
   svg.style.transform = `scale(${(.84 + .16 * a).toFixed(3)})`;
   if (!dur) return; // während des Ziehens nur skalieren (läuft auf der Grafikkarte); Farbe/Strichstärke erst beim Einrasten
   svg.style.strokeWidth = (1.6 + 1.3 * a).toFixed(2);
@@ -2186,7 +2186,7 @@ function place(x, dur, ease = EASE){
   if (peekDir) {
     const pk = PK()[peekDir]; pk.style.transition = t;
     pk.style.transform = `translate3d(${x + (peekDir === "left" ? W : -W)}px,0,0)`;
-    const p = Math.min(1, Math.abs(x) / W); tabStyle(S.view, 1 - p, dur); tabStyle(neighbour(peekDir), p, dur);
+    const p = Math.min(1, Math.abs(x) / W); tabStyle(S.view, 1 - p, dur, ease); tabStyle(neighbour(peekDir), p, dur, ease);
   }
 }
 function hidePeek(){
@@ -2196,10 +2196,12 @@ function hidePeek(){
 }
 function finish(commit, dir, v = 0){
   const W = innerWidth, target = commit ? (dir === "left" ? -W : W) : 0, dist = Math.abs(target - curX);
-  // Speed of the finger carries over: fast flicks finish quickly, slow drags glide out calmly
-  const speed = Math.max(Math.abs(v), .9); // px per ms
-  const dur = Math.round(Math.max(170, Math.min(commit ? 360 : 300, dist / speed * 1.6)));
-  const ease = commit ? "cubic-bezier(.25,.8,.3,1)" : "cubic-bezier(.3,1.25,.5,1)";
+  // Sanftes Auslaufen: Die Kurve startet genau mit der Fingergeschwindigkeit (kein Knick beim Loslassen)
+  // und bremst dann weich ab. Langsames Ziehen gleitet ruhig aus, schnelles Wischen endet zügig.
+  const ease = "cubic-bezier(.22,1,.36,1)", slope = 1 / .22;
+  const toward = Math.sign(target - curX) === Math.sign(v) && Math.abs(v) > .05;
+  let dur = toward ? slope * dist / Math.abs(v) : (commit ? 480 : 400);
+  dur = Math.round(Math.max(commit ? 300 : 260, Math.min(commit ? 540 : 440, dur)));
   animating = true; cancelAnimationFrame(raf2); place(target, dur, ease);
   setTimeout(() => {
     if (commit) {
