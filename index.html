@@ -2174,9 +2174,10 @@ function tabStyle(v, a, dur, ease = EASE){ // a = 0 (inactive) … 1 (active)
   svg.style.transition = t; b.style.transition = dur ? `color ${dur}ms ${ease}` : "none";
   svg.style.transform = `scale(${(.84 + .16 * a).toFixed(3)})`;
   svg.style.strokeWidth = (1.6 + 1.3 * a).toFixed(2);
+  const lb = b.querySelector("span"); if (lb) lb.style.fontWeight = a >= .5 ? "800" : "600"; // Schriftzug wechselt zeitgleich mit dem Icon (ab halber Strecke)
   b.style.color = `color-mix(in oklab, var(--accent-text) ${Math.round(a * 100)}%, var(--muted))`;
 }
-function clearTabStyles(){ document.querySelectorAll("#tabs button, #tabs svg").forEach(el => { el.style.transition = ""; el.style.transform = ""; el.style.strokeWidth = ""; el.style.color = ""; }); }
+function clearTabStyles(){ document.querySelectorAll("#tabs button, #tabs svg, #tabs span").forEach(el => { el.style.transition = ""; el.style.transform = ""; el.style.strokeWidth = ""; el.style.color = ""; el.style.fontWeight = ""; }); }
 let curX = 0;
 function place(x, dur, ease = EASE){
   const m = $("#main"), W = innerWidth, t = dur ? `transform ${dur}ms ${ease}` : "none"; curX = x;
