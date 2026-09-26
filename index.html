@@ -649,6 +649,18 @@ body.authing #tabs{display:none}
 .sp-ball.landed::after{display:none}
 .sp-ball.morph{z-index:3;animation:none;opacity:1;transform-origin:0 0}
 body.splashing #tabs{opacity:0}
+/* Lavaplanet-Intro */
+#intro{position:fixed;inset:0;z-index:210;overflow:hidden;touch-action:none;animation:inIn .35s ease both}
+#intro .in-sky{position:absolute;inset:0;background:#07090F;
+  background-image:radial-gradient(1.4px 1.4px at 12% 18%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 33% 9%,#fff 50%,transparent 51%),radial-gradient(1.6px 1.6px at 71% 14%,#FFE9C2 50%,transparent 51%),radial-gradient(1px 1px at 86% 31%,#fff 50%,transparent 51%),radial-gradient(1.2px 1.2px at 22% 42%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 58% 27%,#fff 50%,transparent 51%),radial-gradient(1.3px 1.3px at 90% 58%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 8% 66%,#fff 50%,transparent 51%),radial-gradient(1.5px 1.5px at 44% 72%,#FFE9C2 50%,transparent 51%),radial-gradient(1px 1px at 76% 84%,#fff 50%,transparent 51%),radial-gradient(1.1px 1.1px at 17% 90%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 63% 49%,#fff 50%,transparent 51%)}
+#intro canvas{position:absolute;inset:0;width:100%;height:100%}
+#intro .in-mark{position:absolute;background:#fff;opacity:0;box-shadow:0 12px 30px -8px rgba(0,0,0,.5)}
+#intro .in-mark svg{width:100%;height:100%;display:block}
+#intro .in-skip{position:absolute;left:0;right:0;bottom:calc(22px + env(safe-area-inset-bottom,0px));text-align:center;font-size:13px;color:rgba(255,255,255,.45);animation:inIn 1s ease 1.5s both}
+#intro.out .in-sky,#intro.out canvas,#intro.out .in-skip{transition:opacity .6s ease;opacity:0}
+#intro.out .in-mark{transition:opacity .35s ease .35s,box-shadow .6s ease;opacity:0!important;box-shadow:none}
+#intro.out-fast{transition:opacity .28s ease;opacity:0}
+@keyframes inIn{from{opacity:0}to{opacity:1}}
 /* Kurzstart (Startanimation „Einmal am Tag“ ab dem 2. Öffnen oder „Nie“): nur das weiße Icon, das in die App überblendet */
 body.splash-quick #splash::before,body.splash-quick #splash::after,body.splash-quick .sp-ball{display:none}
 body.splash-quick .sp-stage,body.splash-quick .sp-l{animation:none}
@@ -803,14 +815,145 @@ let splashGone = false;
 function hideSplash(){
   if (splashGone) return; splashGone = true;
   const el = document.getElementById("splash"); if (!el) { document.body.classList.remove("splashing"); return; }
-  const quick = document.body.classList.contains("splash-quick");
+  let quick = document.body.classList.contains("splash-quick");
+  if (S.mode === "auth" && wantIntro()) { // erstes Anmelden nach der Installation: Lavaplanet-Intro
+    let start = splashStart;
+    if (quick) { document.body.classList.remove("splash-quick"); start = performance.now(); } // volle Startanimation als Auftakt
+    splashT = setTimeout(() => { playIntro({ from: el.querySelector(".sp-ball") }); setTimeout(() => { el.remove(); document.body.classList.remove("splashing"); }, 450); }, Math.max(0, 1850 - (performance.now() - start)));
+    return;
+  }
   const wait = quick ? 0 : Math.max(0, 1850 - (performance.now() - splashStart)); // Drehen + Hochfliegen + Dunkelwerden abwarten
   splashT = setTimeout(() => quick ? fadeSplash(el) : morphSplash(el), wait);
 }
 let splashT = 0;
 function fadeSplash(el){ el.classList.add("out"); document.body.classList.remove("splashing"); setTimeout(() => el.remove(), 320); }
+/* ---------- Intro beim ersten Anmelden: der orange Punkt wird zum Lavaplaneten ---------- */
+// Ablauf (~10 s): Kugel wächst zum Lavaplaneten → Anflug → Überflug knapp über der Oberfläche mit Lavaspritzern
+// → zurückziehen, Planet dreht sich immer schneller → schrumpft zum orangen Punkt im Cardo-Logo → Anmeldeseite.
+const INTRO_KEY = "cardo-intro-seen";
+let introSkip = null;
+function wantIntro(){ try { if (localStorage.getItem(INTRO_KEY)) return false; } catch { return false; } return !matchMedia("(prefers-reduced-motion: reduce)").matches; }
+const INTRO_FS = `precision highp float;
+uniform vec2 uRes; uniform vec2 uC; uniform float uR, uA, uB, uT, uFlat, uRoll, uS, uDet;
+float hash(vec3 p){ p = fract(p * .3183099 + .1); p *= 17.; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
+float noise(vec3 x){ vec3 i = floor(x), f = fract(x); f = f * f * (3. - 2. * f);
+  return mix(mix(mix(hash(i), hash(i + vec3(1,0,0)), f.x), mix(hash(i + vec3(0,1,0)), hash(i + vec3(1,1,0)), f.x), f.y),
+             mix(mix(hash(i + vec3(0,0,1)), hash(i + vec3(1,0,1)), f.x), mix(hash(i + vec3(0,1,1)), hash(i + vec3(1,1,1)), f.x), f.y), f.z); }
+float fbm(vec3 p){ float v = 0., a = .5; for (int i = 0; i < 7; i++) { v += a * noise(p); p = p * 2.03 + vec3(1.7, 9.2, 3.1); a *= .5; } return v; }
+void main(){
+  vec2 fr = vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y) / uS;
+  vec2 d = fr - uC; float cr = cos(uRoll), sr = sin(uRoll); d = vec2(cr * d.x - sr * d.y, sr * d.x + cr * d.y);
+  vec2 p = d / uR; p.y = -p.y; float dist = length(p);
+  float gw = clamp(uR * .18, 5., 110.);
+  float glowA = dist > 1. ? exp(-(dist - 1.) * uR / gw) * .85 * (1. - uFlat) : 0.;
+  vec3 glowC = mix(vec3(1., .32, .06), vec3(1., .6, .2), glowA);
+  if (dist >= 1. + 1. / uR) { gl_FragColor = vec4(glowC * glowA, glowA); return; }
+  float z = sqrt(max(0., 1. - dist * dist)); vec3 n = vec3(p, z);
+  float ca = cos(uA), sa = sin(uA); vec3 t1 = vec3(n.x, n.y * ca + n.z * sa, -n.y * sa + n.z * ca);
+  float cb = cos(uB), sb = sin(uB); vec3 T = vec3(t1.x * cb - t1.z * sb, t1.y, t1.x * sb + t1.z * cb);
+  vec3 q = T * 2.4;
+  float f = fbm(q + vec3(0., uT * .04, 0.));
+  float f2 = fbm(q * 1.8 + 7.3 - uT * .03);
+  if (uDet > 0.) { float dd = fbm(q * 42. + 3.1); f += (dd - .5) * .16 * uDet; f2 += (fbm(q * 23. - 5.) - .5) * .2 * uDet; } // feine Details beim Überflug
+  float crack = 1. - smoothstep(0., .03 + .03 * f2, abs(f - .5));
+  float pool = smoothstep(.6, .7, f2);
+  float heat = clamp(max(crack, pool), 0., 1.);
+  float flick = .82 + .18 * sin(uT * 4. + f * 30.);
+  vec3 lava = mix(vec3(.72, .1, .02), vec3(1., .5, .1), heat); lava = mix(lava, vec3(1., .88, .5), heat * heat * .55);
+  vec3 crust = mix(vec3(.06, .03, .025), vec3(.2, .09, .06), f2);
+  vec3 L = normalize(vec3(-.5, .6, .7)); float dif = clamp(dot(n, L), 0., 1.) * .75 + .25;
+  vec3 col = crust * dif + lava * heat * flick * 1.25;
+  col *= .55 + .45 * z; col += vec3(1., .35, .08) * pow(1. - z, 3.) * .7;
+  col = mix(col, vec3(1., .353, .212), uFlat);
+  float edge = clamp((1. - dist) * uR + .5, 0., 1.);
+  float a = edge + glowA * (1. - edge);
+  gl_FragColor = vec4(col * edge + glowC * glowA * (1. - edge), a);
+}`;
+function playIntro(opts = {}){
+  const W = innerWidth, H = innerHeight, m = Math.min(W, H);
+  const ov = document.createElement("div"); ov.id = "intro"; ov.setAttribute("aria-hidden", "true");
+  ov.innerHTML = `<div class="in-sky"></div><div class="in-mark"><svg viewBox="0 0 512 512"><path d="M320 165A116 116 0 1 0 320 347" fill="none" stroke="#1B1D23" stroke-width="60" stroke-linecap="round"/></svg></div><canvas class="in-gl"></canvas><canvas class="in-fx"></canvas><div class="in-skip">Tippen zum Überspringen</div>`;
+  document.body.appendChild(ov);
+  const cv = ov.querySelector(".in-gl"), fx = ov.querySelector(".in-fx"), mk = ov.querySelector(".in-mark"), arc = mk.querySelector("path");
+  const sc = Math.min(devicePixelRatio || 1, 2) * .6; // Lava darf weich sein – spart Rechenleistung
+  cv.width = Math.round(W * sc); cv.height = Math.round(H * sc);
+  const fs = Math.min(devicePixelRatio || 1, 2); fx.width = Math.round(W * fs); fx.height = Math.round(H * fs);
+  const gl = cv.getContext("webgl", { premultipliedAlpha: true, antialias: false }), cx = fx.getContext("2d");
+  let done = false;
+  const end = fast => {
+    if (done) return; done = true; introSkip = null; cancelAnimationFrame(loopId);
+    try { localStorage.setItem(INTRO_KEY, "1"); } catch {}
+    ov.classList.add(fast ? "out-fast" : "out"); setTimeout(() => ov.remove(), fast ? 300 : 700);
+    opts.onEnd && opts.onEnd();
+  };
+  introSkip = () => end(true);
+  ov.addEventListener("pointerdown", () => end(true));
+  if (!gl || !cx) { end(true); return; }
+  const sh = (t, s) => { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); return o; };
+  const pr = gl.createProgram();
+  gl.attachShader(pr, sh(gl.VERTEX_SHADER, "attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}"));
+  gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, INTRO_FS)); gl.linkProgram(pr);
+  if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) { console.warn(gl.getProgramInfoLog(pr)); end(true); return; }
+  gl.useProgram(pr);
+  const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(pr, "p"); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  const U = {}; ["uRes","uC","uR","uA","uB","uT","uFlat","uRoll","uS","uDet"].forEach(k => U[k] = gl.getUniformLocation(pr, k));
+  gl.viewport(0, 0, cv.width, cv.height); gl.uniform2f(U.uRes, cv.width, cv.height); gl.uniform1f(U.uS, sc);
+  gl.clearColor(0, 0, 0, 0);
+  // Start: dort, wo die Kugel des Startbildschirms gerade ist (sonst oben mittig)
+  let s0 = { x: W / 2, y: H * .12, r: 6.35 };
+  if (opts.from) { const b = opts.from.getBoundingClientRect(); if (b.width) s0 = { x: b.left + b.width / 2, y: b.top + b.height / 2, r: b.width / 2 }; opts.from.style.visibility = "hidden"; }
+  // Ziel: der orange Punkt im Logo der Anmeldeseite (sonst Logo in der Bildmitte)
+  const markRect = () => { const a = document.querySelector(".auth-mark"); if (a && !opts.center) { const r = a.getBoundingClientRect(); if (r.width) return r; } return { left: W / 2 - 42, top: H / 2 - 42, width: 84, height: 84 }; };
+  let mr = markRect();
+  const place = () => Object.assign(mk.style, { left: mr.left + "px", top: mr.top + "px", width: mr.width + "px", height: mr.height + "px", borderRadius: (mr.width * 19 / 84) + "px" });
+  place();
+  const arcLen = arc.getTotalLength ? arc.getTotalLength() : 600; arc.style.strokeDasharray = arcLen; arc.style.strokeDashoffset = arcLen;
+  const ease = { io: t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2, in: t => t * t * t, out: t => 1 - Math.pow(1 - t, 3) };
+  const seg = (t, a, b) => Math.min(1, Math.max(0, (t - a) / (b - a)));
+  const lerp = (a, b, k) => a + (b - a) * k;
+  const cMid = { x: W / 2, y: H * .45 }, R1 = m * .36, RF = H * 7, HOR = H * .36;
+  const parts = []; let A = .35, B = 0, spin = .6, flow = 0, last = performance.now(), t0 = last, loopId = 0;
+  const spawnFountain = (x, y, s) => { const k = 8 + Math.random() * 12 | 0; for (let i = 0; i < k; i++) parts.push({ x: x + (Math.random() - .5) * 10 * s, y, vx: (Math.random() - .5) * 160 * s, vy: -(260 + Math.random() * 520) * s - 60, g: 900 * s + 200, life: 0, max: 1 + Math.random() * 1.1, r: (1.4 + Math.random() * 3.4) * (.5 + s), s }); };
+  const spawnRim = (c, R) => { const an = Math.random() * Math.PI * 2, k = 3 + Math.random() * 5 | 0, sp = Math.max(40, R * .5);
+    for (let i = 0; i < k; i++) { const a2 = an + (Math.random() - .5) * .25, v = sp * (.6 + Math.random() * .8); parts.push({ x: c.x + Math.cos(an) * R, y: c.y + Math.sin(an) * R, vx: Math.cos(a2) * v, vy: Math.sin(a2) * v, g: 0, pull: { x: c.x, y: c.y, k: sp * 2.2 }, life: 0, max: .6 + Math.random() * .5, r: 1 + Math.random() * 2.2, s: 0 }); } };
+  function frame(now){
+    if (done) return;
+    const dt = Math.min(.05, (now - last) / 1000); last = now; const t = (now - t0) / 1000;
+    let c, R, flat = 0, roll = 0, horizon = -1, markA = 0, arcK = 0;
+    if (t < 1.4) { const k = ease.io(seg(t, 0, 1.4)); c = { x: lerp(s0.x, cMid.x, k), y: lerp(s0.y, cMid.y, k) }; R = lerp(s0.r, R1, k); spin = .6; }
+    else if (t < 2.2) { c = cMid; R = R1; spin = .6; }
+    else if (t < 3.7) { const k = ease.in(seg(t, 2.2, 3.7)); R = lerp(R1, RF, k); const topY = lerp(cMid.y - R1, HOR, ease.io(seg(t, 2.2, 3.7))); c = { x: W / 2, y: topY + R }; horizon = topY; }
+    else if (t < 6.8) { R = RF; horizon = HOR + Math.sin(t * 1.3) * H * .012; c = { x: W / 2, y: horizon + R }; roll = Math.sin((t - 3.7) * 1.1) * .045; }
+    else if (t < 8.3) { const k = ease.io(seg(t, 6.8, 8.3)); const kr = 1 - Math.pow(1 - seg(t, 6.8, 8.3), 4); R = Math.exp(lerp(Math.log(RF), Math.log(m * .3), kr)); const topY = lerp(HOR, cMid.y - m * .3, k); c = { x: W / 2, y: topY + R }; if (R > H) horizon = topY; roll = Math.sin((t - 3.7) * 1.1) * .045 * (1 - k); spin = lerp(.6, 26, ease.in(seg(t, 7.2, 8.3))); }
+    else if (t < 9.7) { if (t < 8.35) mr = markRect(), place(); const k = ease.io(seg(t, 8.3, 9.4)); const dot = { x: mr.left + mr.width * 350 / 512, y: mr.top + mr.height * 256 / 512 }, dr = mr.width * 29 / 512;
+      c = { x: lerp(cMid.x, dot.x, k), y: lerp(cMid.y, dot.y, k) }; R = Math.exp(lerp(Math.log(m * .3), Math.log(dr), k)); flat = ease.io(seg(t, 8.9, 9.5)); spin = 26; markA = ease.out(seg(t, 9.0, 9.45)); arcK = ease.io(seg(t, 9.05, 9.65)); }
+    else { const dot = { x: mr.left + mr.width * 350 / 512, y: mr.top + mr.height * 256 / 512 }; c = dot; R = mr.width * 29 / 512; flat = 1; markA = 1; arcK = ease.io(seg(t, 9.05, 9.65)); if (t > 10) { end(false); return; } }
+    // Überflug: die Oberfläche strömt unter einem hindurch (Drehung um die Querachse)
+    const fly = t > 2.6 && t < 8.3 ? Math.min(1, seg(t, 2.6, 3.9)) * (1 - seg(t, 7.3, 8.3)) : 0;
+    A += dt * (.05 + fly * (.34 * H / Math.max(R, 1) * 6)); B += dt * spin;
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.uniform2f(U.uC, c.x, c.y); gl.uniform1f(U.uR, R); gl.uniform1f(U.uA, A); gl.uniform1f(U.uB, B); gl.uniform1f(U.uT, t);
+    gl.uniform1f(U.uFlat, flat); gl.uniform1f(U.uRoll, roll); gl.uniform1f(U.uDet, Math.min(1, Math.max(0, (R / H - 2) / 3))); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    mk.style.opacity = markA; mk.style.transform = `scale(${(.7 + .3 * markA).toFixed(3)})`; arc.style.strokeDashoffset = arcLen * (1 - arcK);
+    // Lavaspritzer
+    if (t < 2.6 && Math.random() < dt * 9) spawnRim(c, R);
+    if (horizon > 0 && t > 3.2 && t < 7.6 && Math.random() < dt * 7) { const y = lerp(horizon + 16, H * .98, Math.pow(Math.random(), .7)); spawnFountain(Math.random() * W, y, (y - horizon) / (H - horizon)); }
+    cx.setTransform(fs, 0, 0, fs, 0, 0); cx.clearRect(0, 0, W, H); cx.globalCompositeOperation = "lighter";
+    const surf = horizon > 0 ? 170 : 0;
+    for (let i = parts.length - 1; i >= 0; i--) { const p = parts[i]; p.life += dt; if (p.life > p.max) { parts.splice(i, 1); continue; }
+      if (p.pull) { const dx = p.pull.x - p.x, dy = p.pull.y - p.y, dl = Math.hypot(dx, dy) || 1; p.vx += dx / dl * p.pull.k * dt; p.vy += dy / dl * p.pull.k * dt; }
+      p.vy += p.g * dt; p.x += p.vx * dt; p.y += p.vy * dt + surf * p.s * dt;
+      const k = p.life / p.max, al = (1 - k) * (1 - k), hot = 1 - k;
+      cx.fillStyle = `rgba(255,${(90 + 120 * hot) | 0},${(20 + 60 * hot * hot) | 0},${(al * .35).toFixed(3)})`; cx.beginPath(); cx.arc(p.x, p.y, p.r * 2.6, 0, 6.283); cx.fill();
+      cx.fillStyle = `rgba(255,${(150 + 100 * hot) | 0},${(60 + 140 * hot * hot) | 0},${al.toFixed(3)})`; cx.beginPath(); cx.arc(p.x, p.y, p.r, 0, 6.283); cx.fill(); }
+    loopId = requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(n => { last = t0 = n; loopId = requestAnimationFrame(frame); });
+}
+
 // Antippen überspringt die Startanimation
-(() => { const el = document.getElementById("splash"); if (el) el.addEventListener("pointerdown", () => { if (!el.isConnected || el.classList.contains("out")) return; clearTimeout(splashT); splashGone = true; document.body.classList.add("splash-quick"); fadeSplash(el); }); })();
+(() => { const el = document.getElementById("splash"); if (el) el.addEventListener("pointerdown", () => { if (!el.isConnected || el.classList.contains("out")) return; clearTimeout(splashT); splashGone = true; if (S.mode === "auth") try { localStorage.setItem(INTRO_KEY, "1"); } catch {} document.body.classList.add("splash-quick"); fadeSplash(el); }); })();
 function morphSplash(el){
   const ball = el.querySelector(".sp-ball"), tabs = $("#tabs");
   const tabsShown = tabs && getComputedStyle(tabs).display !== "none" && tabs.children.length;
@@ -1563,7 +1706,7 @@ function splashPickerHTML(){
   const cur = S.set.splash || "daily";
   return `<div class="gs-list" role="radiogroup" aria-label="Startanimation">${SPLASH_OPTS.map(([k, l, d]) => `<button class="gs-opt fx-opt ${cur === k ? 'on' : ''}" data-act="setSplash" data-v="${k}" role="radio" aria-checked="${cur === k}"><span class="fx-t"><b>${l}</b><span>${d}</span></span><span class="gs-ck" aria-hidden="true">${cur === k ? '✓' : ''}</span></button>`).join("")}</div>`;
 }
-function splashSheet(){ openSheet(`${head("Startanimation")}<p class="muted" style="margin:0 0 16px;font-size:15.5px">Die Animation beim Öffnen von Cardo. Antippen überspringt sie jederzeit.</p><div id="spPick">${splashPickerHTML()}</div>`); }
+function splashSheet(){ openSheet(`${head("Startanimation")}<p class="muted" style="margin:0 0 16px;font-size:15.5px">Die Animation beim Öffnen von Cardo. Antippen überspringt sie jederzeit.</p><div id="spPick">${splashPickerHTML()}</div><button class="btn block" style="margin-top:14px;justify-content:center" data-act="playIntro">Lavaplanet-Intro ansehen</button>`); }
 function lookSheet(){
   openSheet(`${head("Thema")}<p class="muted" style="margin:0 0 16px;font-size:15.5px">Hell, Dunkel und System sind schlicht schwarz-weiß. Ein Farbthema färbt die ganze App ein. System folgt deinem Gerät.</p><div id="lookPick">${lookPickerHTML()}</div>`);
 }
@@ -2044,6 +2187,7 @@ document.addEventListener("click", e => {
   if (a === "setLook") { saveSettings({ look: b.dataset.v }); const lp = $("#lookPick"); if (lp) lp.innerHTML = lookPickerHTML(); return; }
   if (a === "lookSheet") { lookSheet(); return; }
   if (a === "splashSheet") { splashSheet(); return; }
+  if (a === "playIntro") { closeSheet(); setTimeout(() => playIntro({ center: true }), 250); return; }
   if (a === "setSplash") { saveSettings({ splash: b.dataset.v }); const sp = $("#spPick"); if (sp) sp.innerHTML = splashPickerHTML(); return; }
   if (a === "setTextSize") { saveSettings({ textSize: b.dataset.v }); const tp = $("#textPick"); if (tp) tp.innerHTML = textPickerHTML(); return; }
   if (a === "textSheet") { textSheet(); return; }
