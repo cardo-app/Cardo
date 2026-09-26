@@ -682,6 +682,7 @@ html.android,html.android body{overscroll-behavior-y:none}
 html,body{overscroll-behavior:none}
 /* Wenn es wirklich etwas zu scrollen gibt: natürliches Auslaufen/Nachfedern am Rand (weicher), aber kein Pull-to-Refresh */
 html.can-scroll,html.can-scroll body{overscroll-behavior-y:contain}
+html.no-scroll{overflow-y:hidden}
 *{scrollbar-width:none}
 ::-webkit-scrollbar{display:none;width:0;height:0}
 /* In der installierten App ist html 100lvh hoch inkl. oberem Abstand (Notch) – body darf deshalb nicht zusätzlich 100lvh hoch sein, sonst lässt sich die Seite um diesen Abstand scrollen */
@@ -2263,7 +2264,13 @@ document.addEventListener("keydown", e => {
 if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
 addEventListener("online", () => render()); addEventListener("offline", () => render());
 // Merken, ob die Seite überhaupt scrollbar ist (dann darf sie am Rand weich nachfedern)
-function updScroll(){ const r = document.documentElement; r.classList.toggle("can-scroll", r.scrollHeight > innerHeight + 2); }
+function updScroll(){
+  // Maßgeblich ist, wo der Inhalt wirklich endet – nicht die Dokumenthöhe (die ist in der installierten iOS-App wegen 100lvh größer als der Bildschirm)
+  const r = document.documentElement, m = $("#main"); if (!m) return;
+  const need = m.getBoundingClientRect().bottom + scrollY > innerHeight + 2;
+  r.classList.toggle("can-scroll", need); r.classList.toggle("no-scroll", !need);
+  if (!need && scrollY) window.scrollTo(0, 0);
+}
 addEventListener("resize", updScroll);
 if (window.ResizeObserver) new ResizeObserver(updScroll).observe($("#main"));
 try { history.scrollRestoration = "manual"; } catch {} window.scrollTo(0, 0); // Bibliothek öffnet immer oben
