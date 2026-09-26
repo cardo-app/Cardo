@@ -503,7 +503,6 @@ button.set-item:hover{background:color-mix(in oklab,var(--ink) 4%,transparent)}
 :is(.frow,.card-main,.btn,.icon-btn,.sect-btn,.set-item,.grade,.theme,#tabs button,#menu button,.cta,.learn-btn,.exam-btn):active{transform:scale(.92);transition-duration:.08s}
 /* tab icon bounce when page changes */
 @keyframes tabPop{0%{transform:scale(.7)}55%{transform:scale(1.22)}100%{transform:scale(1)}}
-#tabs button.pop svg{animation:tabPop .45s cubic-bezier(.34,1.45,.55,1)}
 /* menu, sheet, toast */
 @keyframes menuIn{from{opacity:0;transform:translateY(-14px) scale(.8)}to{opacity:1;transform:none}}
 #menu:not([hidden]){animation:menuIn .3s cubic-bezier(.34,1.45,.55,1);transform-origin:top right}
@@ -1245,7 +1244,7 @@ function draw(){
   if (S.sel && (S.view !== "lib" || !S.fid)) S.sel = null;
   document.body.classList.toggle("selecting", !!S.sel);
   $("#tabs").innerHTML = tabsHTML();
-  if (S.lastTab !== S.view && S.view !== "study") { if (S.lastTab) { const tb = document.querySelector(`#tabs [data-v="${S.view}"]`); tb && tb.classList.add("pop"); } S.lastTab = S.view; }
+  if (S.lastTab !== S.view && S.view !== "study") { S.lastTab = S.view; } // kein Hüpfen der Tab-Icons beim Seitenwechsel
   if (draw.reuse) { const src = draw.reuse; draw.reuse = null; $("#main").replaceChildren(...src.childNodes); } // Seitenwischen: fertig vorgezeichnete Seite übernehmen
   else $("#main").innerHTML = S.view === "study" ? studyHTML() : S.view === "settings" ? settingsHTML() : S.view === "stats" ? statsHTML() : (S.fid ? folderHTML(S.fid) : libHTML());
   if (keep) { const el = document.getElementById(keep.id); if (el) { el.focus(); try { el.setSelectionRange(keep.s, keep.e); } catch {} } }
