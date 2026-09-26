@@ -590,6 +590,7 @@ button.set-item:hover{background:color-mix(in oklab,var(--ink) 4%,transparent)}
 /* Login */
 body.authing #tabs{display:none}
 .auth{max-width:420px;margin:0 auto;padding-top:6vh}
+@media (max-width:700px){body.authing #main{padding-bottom:0}.auth{padding-top:max(3vh,calc(100svh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 18px - 614px))}.auth-msg:empty{display:none}}
 .auth-logo{text-align:center;margin-bottom:24px}
 .auth-mark{width:84px;height:84px;margin:0 auto 16px;border-radius:19px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.08),0 12px 30px -8px rgba(0,0,0,.3),inset 0 0 0 1px rgba(0,0,0,.05);overflow:hidden}
 .auth-mark svg{width:100%;height:100%;display:block}
@@ -834,7 +835,7 @@ const INTRO_KEY = "cardo-intro-seen";
 let introSkip = null;
 function wantIntro(){ try { if (localStorage.getItem(INTRO_KEY)) return false; } catch { return false; } return !matchMedia("(prefers-reduced-motion: reduce)").matches; }
 const INTRO_FS = `precision highp float;
-uniform vec2 uRes, uC; uniform float uS, uF, uA, uT, uFlat;
+uniform vec2 uRes, uC; uniform float uS, uF, uA, uT, uFlat, uIg;
 uniform vec3 uP, uFw, uUp, uRt;
 vec3 hash3(vec3 p){ p = vec3(dot(p, vec3(127.1, 311.7, 74.7)), dot(p, vec3(269.5, 183.3, 246.1)), dot(p, vec3(113.5, 271.9, 124.6))); return fract(sin(p) * 43758.5453); }
 // Zellen (Voronoi): x = Abstand zur Zellgrenze, y = Zufallswert der Zelle, z = Abstand zum Zellkern
@@ -867,7 +868,7 @@ void main(){
   float alt = length(uP) - 1.;
   // gestufter Comic-Glühschein um den Planeten (wird zum Horizont-Glühen beim Überflug)
   float gw = clamp(.22 / pxw * pxw, 0., 1.) ; gw = clamp(.22 * uF / tc, 6., 60.) * tc / uF;
-  float ga = dm > 1. ? exp(-(dm - 1.) / gw) : 0.; ga = floor(ga * 4.) / 4. * .6 * (1. - uFlat);
+  float ga0 = dm > 1. ? exp(-(dm - 1.) / gw) : 0.; float ga = mix(ga0 * ga0 * .5, floor(ga0 * 4.) / 4. * .6, uIg) * (1. - uFlat);
   vec4 c = vec4(vec3(1., .22, .12) * ga, ga);
   float disc = b * b - (dot(uP, uP) - 1.);
   if (disc > 0. && -b > 0. || dm < 1. + pxw) {
@@ -881,10 +882,15 @@ void main(){
     float fine = 1. - smoothstep(.12, .3, pw * 30.);
     if (fine > 0. && s.a < .5) { vec4 s2 = toon(T * 30. + 11.3, pw * 30., lit); s = vec4(mix(s.rgb, s2.rgb, fine), max(s.a, s2.a * fine)); }
     vec3 col = s.rgb + vec3(1., .3, .15) * step(.93, 1. - fs) * .35 * (1. - s.a);
+    // Verwandlung: Aus der glatten orangen Kugel brechen zuerst glühende Lavaadern hervor, dann kühlt dazwischen die Kruste ab
+    if (uIg < 1.) { vec3 ball = vec3(1., .353, .212) * (.86 + .14 * lit);
+      float kv = smoothstep(0., .45, uIg), kr = smoothstep(.25, 1., uIg);
+      vec3 hot = mix(ball, vec3(1., .82, .35), s.a * kv * (1. - kr) * .9); // Adern glühen kurz hell auf
+      col = mix(hot, col, s.a > .5 ? kv : kr); }
     // Dunst in der Ferne (nur nah an der Oberfläche spürbar), gestuft
     float fog = clamp((t - alt) / (alt * 5. + .04) - .15, 0., 1.); fog = floor(fog * 3. + .3) / 3.;
     col = mix(col, vec3(.8, .17, .12), fog * .7 * (1. - s.a * .6));
-    float ow = 3.5 * pxw * (1. - uFlat);
+    float ow = 3.5 * pxw * (1. - uFlat) * smoothstep(.3, 1., uIg);
     col = mix(col, vec3(.2, .02, .06), smoothstep(1. - ow - pxw, 1. - ow, dm)); // dicke dunkle Kontur
     col = mix(col, vec3(1., .353, .212), uFlat);
     float a = clamp((1. - dm) / pxw + .5, 0., 1.);
@@ -919,7 +925,7 @@ function playIntro(opts = {}){
   gl.useProgram(pr);
   const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
   const loc = gl.getAttribLocation(pr, "p"); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-  const U = {}; ["uRes","uC","uS","uF","uA","uT","uFlat","uP","uFw","uUp","uRt"].forEach(k => U[k] = gl.getUniformLocation(pr, k));
+  const U = {}; ["uRes","uC","uS","uF","uA","uT","uFlat","uIg","uP","uFw","uUp","uRt"].forEach(k => U[k] = gl.getUniformLocation(pr, k));
   gl.viewport(0, 0, cv.width, cv.height); gl.uniform2f(U.uRes, cv.width, cv.height); gl.uniform1f(U.uS, sc);
   const FN = H * .866, FF = H * 2.4; let F = FF; // Brennweite: aus der Ferne eng (kaum Verzerrung), nah an der Oberfläche 60° (Fluggefühl)
   gl.clearColor(0, 0, 0, 0);
@@ -1004,6 +1010,7 @@ function playIntro(opts = {}){
     w = lerp(w, 26, Math.pow(seg(t, 2.0, 3.9), 3));
     const fly = sm(seg(t, .7, 1.2)) * (1 - sm(seg(t, 1.9, 2.5)));
     roll = Math.sin((t - .8) * 1.6) * .05 * fly;
+    const ig = sm(seg(t, .04, .62)); // Kugel → Lavaplanet
     flat = ease.io(seg(t, 4.0, 4.6)); markA = ease.out(seg(t, 4.1, 4.6)); arcK = ease.io(seg(t, 4.2, 4.9));
     if (t > 5.2) { end(false); return; }
     const dA = w * dt; A += dA;
@@ -1012,7 +1019,7 @@ function playIntro(opts = {}){
     const cr = Math.cos(roll), sr = Math.sin(roll), Up = [Up0[0] * cr + Rt0[0] * sr, Up0[1] * cr + Rt0[1] * sr, Up0[2] * cr + Rt0[2] * sr], Rt = [Rt0[0] * cr - Up0[0] * sr, Rt0[1] * cr - Up0[1] * sr, Rt0[2] * cr - Up0[2] * sr];
     cam = { P, Fw, Up, Rt, C };
     gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.uniform2f(U.uC, C.x, C.y); gl.uniform1f(U.uF, F); gl.uniform1f(U.uA, A); gl.uniform1f(U.uT, t); gl.uniform1f(U.uFlat, flat);
+    gl.uniform2f(U.uC, C.x, C.y); gl.uniform1f(U.uF, F); gl.uniform1f(U.uA, A); gl.uniform1f(U.uT, t); gl.uniform1f(U.uFlat, flat); gl.uniform1f(U.uIg, ig);
     gl.uniform3f(U.uP, ...P); gl.uniform3f(U.uFw, ...Fw); gl.uniform3f(U.uUp, ...Up); gl.uniform3f(U.uRt, ...Rt);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     mk.style.opacity = markA; mk.style.transform = `scale(${(.7 + .3 * markA).toFixed(3)})`; arc.style.strokeDashoffset = arcLen * (1 - arcK);
@@ -1020,6 +1027,12 @@ function playIntro(opts = {}){
     const rate = t > .1 && t < .6 ? 6 : t > .6 && t < 2.2 ? 12 : 0;
     if (rate && Math.random() < dt * rate) spawn();
     cx.setTransform(fs, 0, 0, fs, 0, 0); cx.clearRect(0, 0, W, H);
+    // Zündung: eine Comic-Druckwelle löst sich von der Kugel, wenn sie zum Lavaplaneten wird
+    if (t > .06 && t < .5) { const pc = project([0, 0, 0]); if (pc) { const k = (t - .06) / .44, rp = F / Math.sqrt(Math.max(d * d - 1, 1e-4));
+      const rr = rp * (1.08 + 1.6 * (1 - Math.pow(1 - k, 2.2))) + 6 * k;
+      cx.globalAlpha = Math.pow(1 - k, .7); cx.lineWidth = Math.max(1.5, rp * .16 * (1 - k) + 2);
+      cx.strokeStyle = "#FF6A2A"; cx.beginPath(); cx.arc(pc.x, pc.y, rr, 0, 6.283); cx.stroke();
+      cx.lineWidth *= .45; cx.strokeStyle = "#FFD35A"; cx.beginPath(); cx.arc(pc.x, pc.y, rr, 0, 6.283); cx.stroke(); cx.globalAlpha = 1; } }
     for (let i = drops.length - 1; i >= 0; i--) { const p = drops[i]; p.life += dt;
       p.X = rotX(p.X, dA); p.V = rotX(p.V, dA); // dreht mit dem Planeten mit
       const r = Math.hypot(...p.X); p.V = p.V.map((v, j) => v - p.X[j] / r * p.g * dt); p.X = p.X.map((x, j) => x + p.V[j] * dt);
