@@ -336,6 +336,16 @@ g.b:hover .barm{filter:brightness(1.12)}
 .sheet-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;min-height:40px}
 .sheet-h h2{font-size:23px;font-weight:800}
 .field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.dl-pre{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.dl-chip{padding:11px 0;border-radius:12px;background:var(--surface-2);border:2px solid transparent;font-weight:700;font-size:15.5px}
+.dl-chip.on{border-color:var(--ink)}
+.dl-step{display:flex;gap:8px;align-items:center}
+.dl-step .in{text-align:center;font-size:18px;font-weight:700}
+.dl-pm{flex:none;width:46px;height:46px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);font-size:22px;font-weight:700}
+.dl-plan{display:flex;flex-direction:column;gap:6px;padding:16px;border-radius:16px;background:var(--surface-2);margin:0 0 16px}
+.dl-plan span{font-size:14.5px;color:var(--muted)}
+.dl-big{font-size:44px;font-weight:800;line-height:1}
+.exam-cd{font:inherit;color:inherit;background:none;border:0;padding:0;text-decoration:underline;text-decoration-color:color-mix(in oklab,currentColor 40%,transparent);cursor:pointer}
 .pw-forgot{display:block;margin:14px auto 0;padding:6px 10px;background:none;border:0;font:inherit;font-size:13.5px;color:var(--muted);opacity:.8;cursor:pointer}
 .pw-forgot:disabled{opacity:.4}
 .field>label,.lbl{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
@@ -1111,9 +1121,9 @@ function saveStats(){
   S.seen = keepToday(S.seen); S.extraNew = keepToday(S.extraNew);
   if (DB) enqueue("stats/main", () => DB.doc("stats/main").set({ days: S.days, seen: S.seen, extraNew: S.extraNew, lastExport: S.lastExport || 0 })); else saveLocal();
 }
-function logReview(fid, cid){
+function logReview(fid, cid, wasNew){
   const k = dayKey(); S.days = { ...S.days, [k]: (S.days[k]||0) + 1 };
-  const t = topOf(fid), day = { ...((S.seen||{})[k] || {}) }; if (!(day[t] || {})[cid]) { day[t] = { ...(day[t] || {}), [cid]: 1 }; S.seen = { ...S.seen, [k]: day }; }
+  const t = quotaKey(fid), day = { ...((S.seen||{})[k] || {}) }; if (!(day[t] || {})[cid]) { day[t] = { ...(day[t] || {}), [cid]: wasNew ? 2 : 1 }; S.seen = { ...S.seen, [k]: day }; }
   saveStats();
 }
 
@@ -1358,19 +1368,49 @@ const isDue = (c, now = Date.now()) => (c.due || 0) <= now;
 /* ---------- Tageslimit: Karten pro Tag (pro Hauptordner) ---------- */
 const isNewCard = c => !c.reps;
 function topOf(fid){ let f = S.folders[fid], g = 0; while (f && f.parentId && S.folders[f.parentId] && g++ < 40) f = S.folders[f.parentId]; return f ? f.id : fid; }
+/* Lernmenge pro Tag gilt pro Ordner: der nächste Ordner nach oben mit eigener Einstellung (f.daily) bildet eine Gruppe,
+   sonst der Hauptordner mit dem Standardwert. f.daily = { mode: "fixed", n } (n = 0: unbegrenzt) oder { mode: "exam", date: "JJJJ-MM-TT" }. */
+function quotaKey(fid){ let f = S.folders[fid], g = 0; while (f && g++ < 40) { if (f.daily && (f.daily.mode === "fixed" || f.daily.mode === "exam")) return f.id; if (!f.parentId || !S.folders[f.parentId]) break; f = S.folders[f.parentId]; } return topOf(fid); }
+const dailyOwn = key => { const f = S.folders[key]; return f && f.daily && (f.daily.mode === "fixed" || f.daily.mode === "exam") ? f.daily : null; };
+const dailyOf = key => dailyOwn(key) || { mode: "fixed", n: newLimit(), inherited: true };
 const seenIds = top => { const d = ((S.seen||{})[dayKey()] || {})[top]; return d && typeof d === "object" ? d : {}; };
-const seenToday = (fid, cid) => !!seenIds(topOf(fid))[cid];
-function newQuota(top){ if (newLimit() === 0) return Infinity; const extra = ((S.extraNew||{})[dayKey()] || {})[top] || 0; return Math.max(0, newLimit() + extra - Object.keys(seenIds(top)).length); }
-function addExtraNew(fid, n){ const k = dayKey(), t = topOf(fid), day = { ...((S.extraNew||{})[k] || {}) }; day[t] = (day[t] || 0) + n; S.extraNew = { ...S.extraNew, [k]: day }; saveStats(); }
+const seenToday = (fid, cid) => !!seenIds(quotaKey(fid))[cid];
+const dayStart = (t = Date.now()) => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
+const parseDay = s => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ""); return m ? new Date(+m[1], +m[2] - 1, +m[3]).getTime() : NaN; };
+const daysUntil = s => Math.round((parseDay(s) - dayStart()) / DAY); // 0 = heute, 1 = morgen …
+const fmtDay = s => new Date(parseDay(s)).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "long" });
+// Prüfungsplan: alle neuen Karten bis kurz vor der Prüfung einmal lernen, die letzten Tage bleiben für Wiederholungen frei.
+function examPlan(key, date){
+  const dl = daysUntil(date); if (!(dl > 0)) return { over: true, days: dl };
+  const nwNow = cardsIn(key, true).filter(x => isNewCard(x.c)).length;
+  const nwToday = Object.values(seenIds(key)).filter(v => v === 2).length; // heute schon neu gelernt → Tageswert bleibt über den Tag stabil
+  const buffer = dl >= 14 ? 3 : dl >= 6 ? 2 : dl >= 3 ? 1 : 0, learnDays = Math.max(1, dl - buffer);
+  const perDay = Math.ceil((nwNow + nwToday) / learnDays);
+  return { days: dl, buffer, learnDays, newTotal: nwNow + nwToday, perDay, newLeftToday: Math.max(0, perDay - nwToday) };
+}
+function newQuota(key){
+  const dy = dailyOf(key), extra = ((S.extraNew||{})[dayKey()] || {})[key] || 0;
+  if (dy.mode === "exam") { const pl = examPlan(key, dy.date); if (pl.over) return Infinity; return pl.newLeftToday + extra; }
+  if (!dy.n) return Infinity;
+  return Math.max(0, dy.n + extra - Object.keys(seenIds(key)).length);
+}
+function addExtraNew(fid, n){ const k = dayKey(), t = quotaKey(fid), day = { ...((S.extraNew||{})[k] || {}) }; day[t] = (day[t] || 0) + n; S.extraNew = { ...S.extraNew, [k]: day }; saveStats(); }
+// Im Prüfungsplan: nichts wird auf nach der Prüfung verschoben – spätestens am Tag davor ist jede Karte noch einmal dran.
+function capForExam(fid, c){
+  const dy = dailyOf(quotaKey(fid)); if (dy.mode !== "exam") return c;
+  const eve = parseDay(dy.date) - DAY; if (!(eve > Date.now()) || (c.due || 0) <= eve) return c;
+  return { ...c, due: eve };
+}
 // Heute lernbare Karten je Hauptordner: Karten, die heute schon dran waren und wieder fällig sind, zählen nicht erneut;
 // sonst zuerst fällige Wiederholungen (älteste Fälligkeit zuerst), dann neue Karten (älteste zuerst) – bis das Tageslimit erreicht ist.
 function todayCards(fid){
   const now = Date.now(), all = cardsIn(fid || null, true), byTop = {};
-  all.forEach(x => { const n = isNewCard(x.c); if (n || isDue(x.c, now)) { const t = topOf(x.fid); (byTop[t] = byTop[t] || { again: [], rev: [], nw: [] }); (n ? byTop[t].nw : seenIds(t)[x.c.id] ? byTop[t].again : byTop[t].rev).push(x); } });
+  all.forEach(x => { const n = isNewCard(x.c); if (n || isDue(x.c, now)) { const t = quotaKey(x.fid); (byTop[t] = byTop[t] || { again: [], rev: [], nw: [] }); (n ? byTop[t].nw : seenIds(t)[x.c.id] ? byTop[t].again : byTop[t].rev).push(x); } });
   const rev = [], nw = []; let left = 0;
   Object.entries(byTop).forEach(([t, g]) => {
     g.rev.sort((a, b) => (a.c.due||0) - (b.c.due||0)); g.nw.sort((a, b) => (a.c.created||0) - (b.c.created||0));
     let q = newQuota(t); rev.push(...g.again);
+    if (dailyOf(t).mode === "exam") { rev.push(...g.rev); g.rev.length = 0; } // Prüfungsplan: fällige Wiederholungen immer, nur neue Karten sind begrenzt
     const r = g.rev.slice(0, q); q -= r.length; rev.push(...r);
     const w = g.nw.slice(0, q); nw.push(...w);
     left += g.rev.length - r.length + g.nw.length - w.length;
@@ -1496,7 +1536,7 @@ function folderHTML(fid){
   const n = counts(fid), subs = children(fid), deepOnly = n.total - n.own;
   return `${crumbsHTML(fid)}
   <section class="banner ${coverUrl(f) ? 'has-cover' : ''}">${artHTML(f)}
-    <div class="banner-body"><div class="banner-row"><div><h1>${esc(f.name)}</h1><div class="muted banner-meta">${plural(n.total, 'Karte', 'Karten')} · ${n.due} fällig${subs.length ? ' · ' + plural(subs.length, 'Unterordner', 'Unterordner') : ''}${sideOf(fid) !== 'front' ? ` · ${sideOf(fid) === 'both' ? '⇄ beidseitig' : '↺ Rückseite zuerst'}` : ''}</div></div>
+    <div class="banner-body"><div class="banner-row"><div><h1>${esc(f.name)}</h1><div class="muted banner-meta">${plural(n.total, 'Karte', 'Karten')} · ${n.due} fällig${subs.length ? ' · ' + plural(subs.length, 'Unterordner', 'Unterordner') : ''}${sideOf(fid) !== 'front' ? ` · ${sideOf(fid) === 'both' ? '⇄ beidseitig' : '↺ Rückseite zuerst'}` : ''}${(() => { const k = quotaKey(fid), dy = dailyOf(k); if (dy.mode !== 'exam') return ''; const dl = daysUntil(dy.date); return dl > 0 ? ` · <button class="exam-cd" data-act="dailySheet" data-id="${fid}">🎯 Prüfung in ${plural(dl, 'Tag', 'Tagen')}</button>` : dl === 0 ? ' · 🎯 Prüfung heute – viel Erfolg!' : ''; })()}</div></div>
       <button class="icon-btn" data-act="folderMenu" data-id="${fid}" aria-haspopup="menu" aria-expanded="false" aria-label="${f.parentId ? 'Unterordner' : 'Ordner'}-Menü" title="${f.parentId ? 'Unterordner' : 'Ordner'}">${IC.dots}</button></div>
       ${n.total ? (n.due ? `<button class="learn-btn" data-act="study" data-id="${fid}"><span class="lb-play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.9l10.2-6.5a1 1 0 0 0 0-1.8L9.5 4.6A1 1 0 0 0 8 5.5z"/></svg></span><span class="lb-t"><b>Lernen</b><span>${learnSub(n)}</span></span></button>`
         : (n.newLeft ? `<div class="learn-done"><span aria-hidden="true">✓</span> Heute alles gelernt – dein Tageslimit ist erreicht.<button class="btn more-new" data-act="moreNew" data-id="${fid}">＋ 10 weitere Karten</button></div>` : `<div class="learn-done"><span aria-hidden="true">✓</span> Heute alles gelernt. Neue Karten kommen, sobald sie fällig sind.</div>`)) : ''}
@@ -1599,7 +1639,7 @@ function cardsSheet(){
   openSheet(`${head("Karten")}<div class="set-list" style="margin:0">
     <button class="set-item" data-act="textSheet"><span class="si-t">Textgröße</span><span class="si-v">${({s:"Klein",m:"Mittel",l:"Groß"})[S.set.textSize || "m"]}</span><span class="si-ch" aria-hidden="true">›</span></button>
     <button class="set-item" data-act="fxSheet"><span class="si-t">Kartenbewertung</span><span class="si-v">${gradeSet().length} Stufen</span><span class="si-ch" aria-hidden="true">›</span></button>
-    <button class="set-item" data-act="newLimitSheet"><span class="si-t">Karten pro Tag</span><span class="si-v">${newLimitLabel(newLimit())}</span><span class="si-ch" aria-hidden="true">›</span></button>
+    <div class="set-item static"><span class="si-t">Karten pro Tag<small style="display:block;font-size:13.5px;color:var(--muted);font-weight:500;margin-top:2px">Stellst du jetzt in jedem Ordner selbst ein: Ordner öffnen › ⋯ › Lernmenge pro Tag – mit eigener Anzahl oder Prüfungsplan.</small></span></div>
   </div>`);
 }
 function fxSheet(){
@@ -1607,6 +1647,56 @@ function fxSheet(){
     <button class="set-item" data-act="gradeSetSheet"><span class="si-t">Bewertungsstufen</span><span class="si-v">${gradeSet().map(o => o.l).join(" · ")}</span><span class="si-ch" aria-hidden="true">›</span></button>
     <button class="set-item" data-act="animSheet"><span class="si-t">Animationen</span><span class="si-v">${fxName()}</span><span class="si-ch" aria-hidden="true">›</span></button>
   </div>`);
+}
+/* Lernmenge pro Tag für einen Ordner: feste Anzahl (Voreinstellung oder eigene Zahl) oder Prüfungsplan mit Datum */
+function dailyLabel(fid){
+  const key = quotaKey(fid), dy = dailyOf(key);
+  if (dy.mode === "exam") { const pl = examPlan(key, dy.date); return pl.over ? "Prüfung vorbei" : `Prüfung ${new Date(parseDay(dy.date)).toLocaleDateString("de-DE", { day: "numeric", month: "short" })}`; }
+  return dy.n ? `${dy.n} pro Tag` : "Unbegrenzt";
+}
+function dailySheet(fid){
+  const f = S.folders[fid]; if (!f) return;
+  const own = dailyOwn(fid), ownerKey = quotaKey(fid), inh = !own && ownerKey !== fid ? S.folders[ownerKey] : null;
+  let mode = own ? own.mode : "fixed", n = own && own.mode === "fixed" ? own.n : (dailyOf(ownerKey).n ?? newLimit()), date = own && own.mode === "exam" ? own.date : "";
+  const PRE = [5, 10, 15, 20, 30, 50];
+  const tomorrow = dayKey(Date.now() + DAY);
+  const body = () => `${head("Lernmenge pro Tag")}<p class="muted" style="margin:-4px 0 14px;font-size:14.5px">Für <b>${esc(f.name)}</b>${children(fid).length ? " und seine Unterordner" : ""}.${inh ? ` Im Moment gilt die Einstellung von „${esc(inh.name)}“.` : ""}</p>
+    <div class="seg" style="grid-template-columns:1fr 1fr;margin-bottom:16px" role="radiogroup"><button class="${mode === 'fixed' ? 'on' : ''}" data-dm="fixed" role="radio" aria-checked="${mode === 'fixed'}">Feste Anzahl</button><button class="${mode === 'exam' ? 'on' : ''}" data-dm="exam" role="radio" aria-checked="${mode === 'exam'}">Bis zur Prüfung</button></div>
+    ${mode === "fixed" ? `
+      <div class="dl-pre">${PRE.map(k => `<button class="dl-chip ${n === k ? 'on' : ''}" data-dn="${k}">${k}</button>`).join("")}<button class="dl-chip ${n === 0 ? 'on' : ''}" data-dn="0">∞</button></div>
+      <div class="field" style="margin-top:14px"><label for="dlN">Eigene Anzahl pro Tag</label>
+        <div class="dl-step"><button class="dl-pm" data-step="-1" aria-label="weniger">−</button><input class="in num" id="dlN" type="number" inputmode="numeric" min="1" max="999" value="${n || ""}" placeholder="unbegrenzt"><button class="dl-pm" data-step="1" aria-label="mehr">＋</button></div></div>
+      <p class="muted" style="font-size:14px;margin:0 0 16px">Wiederholungen und neue Karten zusammen. Zuerst kommen fällige Wiederholungen, dann neue Karten.</p>`
+    : `
+      <div class="field"><label for="dlD">Datum der Prüfung</label><input class="in" id="dlD" type="date" min="${tomorrow}" value="${date}"></div>
+      <div id="dlPlan">${planHTML()}</div>`}
+    <button class="btn primary block" id="dlSave">Speichern</button>
+    ${own && ownerKey === fid && (f.parentId || own) ? `<button class="pw-forgot" id="dlReset" type="button">${f.parentId ? "Einstellung des übergeordneten Ordners verwenden" : "Auf Standard zurücksetzen"}</button>` : ""}`;
+  const planHTML = () => {
+    if (!date) return `<p class="muted" style="font-size:14.5px;margin:0 0 16px">Gib das Datum ein – Cardo rechnet aus, wie viele neue Karten du jeden Tag lernen musst, um bis zur Prüfung alles einmal gelernt und oft genug wiederholt zu haben.</p>`;
+    const pl = examPlan(fid, date);
+    if (pl.over) return `<p class="muted" style="font-size:14.5px;margin:0 0 16px">Das Datum liegt nicht in der Zukunft.</p>`;
+    if (!pl.newTotal) return `<div class="dl-plan"><b>Alle Karten sind schon gelernt.</b><span>Bis zur Prüfung (${fmtDay(date)}) wiederholst du nur noch, was fällig ist – spätestens am Tag davor kommt jede Karte noch einmal dran.</span></div>`;
+    const endDay = dayKey(dayStart() + (pl.learnDays - 1) * DAY);
+    return `<div class="dl-plan"><div class="dl-big num">${pl.perDay}</div><b>neue Karten pro Tag</b>
+      <span>${plural(pl.newTotal, "neue Karte", "neue Karten")} · noch ${plural(pl.days, "Tag", "Tage")} bis ${fmtDay(date)}</span>
+      <span>Alle neuen Karten sind bis ${pl.learnDays === 1 ? "heute" : fmtDay(endDay)} dran${pl.buffer ? `, die letzten ${plural(pl.buffer, "Tag", "Tage")} sind nur zum Wiederholen` : ""}. Fällige Wiederholungen kommen jeden Tag dazu (grob geschätzt bis zu ~${Math.min(pl.newTotal, pl.perDay * 3)} pro Tag) – und spätestens am Tag vor der Prüfung ist jede Karte noch einmal dran.</span></div>`;
+  };
+  const mount = root => {
+    root.querySelectorAll("[data-dm]").forEach(b => b.addEventListener("click", () => { mode = b.dataset.dm; rerender(root); }));
+    root.querySelectorAll("[data-dn]").forEach(b => b.addEventListener("click", () => { n = +b.dataset.dn; rerender(root); }));
+    root.querySelectorAll("[data-step]").forEach(b => b.addEventListener("click", () => { n = Math.max(1, Math.min(999, (n || 0) + +b.dataset.step * ((n || 0) >= 50 ? 5 : 1))); const i = $("#dlN", root); i.value = n; root.querySelectorAll("[data-dn]").forEach(c => c.classList.toggle("on", +c.dataset.dn === n)); }));
+    const ni = $("#dlN", root); if (ni) ni.addEventListener("input", () => { const v = parseInt(ni.value, 10); n = v > 0 ? Math.min(999, v) : 0; root.querySelectorAll("[data-dn]").forEach(c => c.classList.toggle("on", +c.dataset.dn === n)); });
+    const di = $("#dlD", root); if (di) di.addEventListener("input", () => { date = di.value; $("#dlPlan", root).innerHTML = planHTML(); });
+    $("#dlSave", root).addEventListener("click", () => {
+      if (mode === "exam") { if (!date || !(daysUntil(date) > 0)) { toast("Wähle ein Datum in der Zukunft."); return; } putFolder({ ...S.folders[fid], daily: { mode: "exam", date } }); toast("Prüfungsplan gespeichert"); }
+      else { putFolder({ ...S.folders[fid], daily: { mode: "fixed", n: n || 0 } }); toast(n ? `${n} Karten pro Tag` : "Kein Tageslimit"); }
+      closeSheet(); render();
+    });
+    const rs = $("#dlReset", root); if (rs) rs.addEventListener("click", () => { const y = { ...S.folders[fid] }; delete y.daily; putFolder(y); toast("Zurückgesetzt"); closeSheet(); render(); });
+  };
+  const rerender = root => { root.innerHTML = `<div class="grab"></div>` + body(); mount(root); };
+  openSheet(body(), mount);
 }
 function newLimitPickerHTML(){
   const cur = newLimit();
@@ -1878,10 +1968,10 @@ function applyGrade(g, cur){
   st.hist = st.hist || []; st.hist.push({ q: st.queue.slice(), done: st.done, fid: cur.fid, card: { ...cur.c }, wasNew: isNewCard(cur.c), k: dayKey() });
   if (st.hist.length > 30) st.hist.shift();
   st.queue.shift();
-  const n = schedule(cur.c, g);
+  const n = capForExam(cur.fid, schedule(cur.c, g));
   if (n.due - Date.now() < 20 * MIN) st.queue.splice(Math.min(st.queue.length, 3), 0, { fid: cur.fid, id: cur.id, rev: pickSide(cur.fid) });
   st.done++; st.flipped = false;
-  const wasSeen = seenToday(cur.fid, cur.id); putCard(cur.fid, n); logReview(cur.fid, cur.id); st.hist[st.hist.length - 1].wasSeen = wasSeen;
+  const wasSeen = seenToday(cur.fid, cur.id); putCard(cur.fid, n); logReview(cur.fid, cur.id, isNewCard(cur.c)); st.hist[st.hist.length - 1].wasSeen = wasSeen;
 }
 function undoGrade(){
   const st = S.study; if (!st || st.busy || !st.hist || !st.hist.length) return;
@@ -1889,7 +1979,7 @@ function undoGrade(){
   if (st.exam) { st.queue = h.q; st.done = h.done; st.first = h.first; st.flipped = false; st.justFlipped = false; if (h.moved) { delete st.moved[h.moved]; putCard(h.fid, h.card); } render(); toast("Bewertung rückgängig gemacht"); return; }
   st.queue = h.q; st.done = h.done; st.flipped = false; st.justFlipped = false;
   if ((S.days[h.k] || 0) > 0) S.days = { ...S.days, [h.k]: S.days[h.k] - 1 };
-  if (!h.wasSeen) { const t = topOf(h.fid), day = { ...((S.seen||{})[h.k] || {}) }; if (day[t]) { const ids = { ...day[t] }; delete ids[h.card.id]; day[t] = ids; S.seen = { ...S.seen, [h.k]: day }; } }
+  if (!h.wasSeen) { const t = quotaKey(h.fid), day = { ...((S.seen||{})[h.k] || {}) }; if (day[t]) { const ids = { ...day[t] }; delete ids[h.card.id]; day[t] = ids; S.seen = { ...S.seen, [h.k]: day }; } }
   saveStats(); putCard(h.fid, h.card);
   toast("Bewertung rückgängig gemacht");
 }
@@ -2174,6 +2264,7 @@ function openMenu(btn, fid){
     <button data-act="newFolder"${d} role="menuitem">＋ Neuer Unterordner</button>
     <button data-act="import"${d} role="menuitem">⇣ Karten importieren</button>
     <button data-act="editFolder"${d} role="menuitem">✎ Ordner gestalten</button>` + (n.total ? `
+    <button data-act="dailySheet"${d} role="menuitem">◷ Lernmenge pro Tag<span class="sub" style="color:var(--muted)">${dailyLabel(fid)}</span></button>
 <hr><div class="mh">Lernrichtung</div>${SIDES.map(([k, l]) => `<button data-act="setSide"${d} data-v="${k}" role="menuitemradio" aria-checked="${sideOf(fid) === k}">${l}${sideOf(fid) === k ? '<span class="ck">✓</span>' : ''}</button>`).join("")}` : '') + (n.own ? `
     <button data-act="pickStart"${d} role="menuitem">☑ Karten auswählen und löschen</button>` : '')
     : `<button data-act="newFolder" role="menuitem">＋ Neuer Ordner</button>
@@ -2283,6 +2374,7 @@ document.addEventListener("click", e => {
   else if (a === "toggle") { S.open.has(id) ? S.open.delete(id) : S.open.add(id); render(); }
   else if (a === "newFolder") { folderSheet(null, id, b.dataset.sect || null); }
   else if (a === "editFolder") { e.stopPropagation(); folderSheet(id); }
+  else if (a === "dailySheet") { e.stopPropagation(); dailySheet(id); }
   else if (a === "newCard") { cardSheet(id || S.fid || children(null)[0]?.id); }
   else if (a === "editCard") { cardSheet(b.dataset.f, id); }
   else if (a === "import") { importSheet(id || S.fid || children(null)[0]?.id); }
