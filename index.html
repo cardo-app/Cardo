@@ -342,6 +342,10 @@ g.b:hover .barm{filter:brightness(1.12)}
 .dl-step{display:flex;gap:8px;align-items:center}
 .dl-step .in{text-align:center;font-size:18px;font-weight:700}
 .dl-pm{flex:none;width:46px;height:46px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);font-size:22px;font-weight:700}
+.dl-bufrow{grid-template-columns:repeat(6,1fr) 1.9fr}
+.dl-bin{flex:1;position:relative}
+.dl-bin .in{text-align:center;font-size:18px;font-weight:700;padding-right:44px;padding-left:44px}
+.dl-bin span{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-weight:650;font-size:14.5px;pointer-events:none}
 .dl-date{position:relative;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:var(--surface-2);border:1.5px solid var(--line);min-height:62px}
 .dl-date:focus-within{border-color:var(--ink)}
 .dl-cal{flex:none;width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:var(--accent);color:var(--accent-ink)}
@@ -1680,7 +1684,9 @@ function dailySheet(fid){
   const f = S.folders[fid]; if (!f) return;
   const own = dailyOwn(fid), ownerKey = quotaKey(fid), inh = !own && ownerKey !== fid ? S.folders[ownerKey] : null;
   let mode = own ? own.mode : "fixed", n = own && own.mode === "fixed" ? own.n : (dailyOf(ownerKey).n ?? newLimit()), date = own && own.mode === "exam" ? own.date : "", buf = own && own.mode === "exam" && own.buffer != null ? own.buffer : null;
-  const BUFS = [null, 0, 1, 2, 3, 5, 7];
+  const BUFS = [null, 0, 1, 2, 3, 5];
+  let bufCustom = buf != null && !BUFS.includes(buf);
+  const maxBuf = () => date && daysUntil(date) > 0 ? daysUntil(date) - 1 : 99;
   const PRE = [5, 10, 15, 20, 30, 50];
   const tomorrow = dayKey(Date.now() + DAY);
   const body = () => `${head("Lernmenge pro Tag")}<p class="muted" style="margin:-4px 0 14px;font-size:14.5px">Für <b>${esc(f.name)}</b>${children(fid).length ? " und seine Unterordner" : ""}.${inh ? ` Im Moment gilt die Einstellung von „${esc(inh.name)}“.` : ""}</p>
@@ -1696,15 +1702,17 @@ function dailySheet(fid){
         <input id="dlD" type="date" min="${tomorrow}" value="${date}" aria-label="Datum der Prüfung"></div></div>
       <div class="dl-quick">${[[7, "1 Woche"], [14, "2 Wochen"], [28, "4 Wochen"], [56, "8 Wochen"]].map(([d, l]) => `<button class="dl-qc" data-qd="${d}">in ${l}</button>`).join("")}</div>
       <div class="field" style="margin:16px 0 6px"><label>Puffer vor der Prüfung</label></div>
-      <div class="dl-pre" id="dlBuf">${bufChips()}</div>
-      <p class="muted" style="font-size:13.5px;margin:8px 0 16px">An den Puffertagen kommen keine neuen Karten mehr – nur Wiederholen. „Auto“ wählt je nach Zeit bis zur Prüfung 0–3 Tage.</p>
+      <div id="dlBuf">${bufChips()}</div>
+      <p class="muted" style="font-size:13.5px;margin:8px 0 16px">An den Puffertagen kommen keine neuen Karten mehr – nur Wiederholen. „Auto“ wählt je nach Zeit bis zur Prüfung 0–3 Tage, bei „Eigene“ legst du die Zahl selbst fest.</p>
       <div id="dlPlan">${planHTML()}</div>`}
     <button class="btn primary block" id="dlSave">Speichern</button>
     ${own && ownerKey === fid && (f.parentId || own) ? `<button class="pw-forgot" id="dlReset" type="button">${f.parentId ? "Einstellung des übergeordneten Ordners verwenden" : "Auf Standard zurücksetzen"}</button>` : ""}`;
   const calIcon = () => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>`;
   const dateText = () => { if (!date) return `<b>Datum wählen</b><small>Tippen, um den Kalender zu öffnen</small>`; const d = new Date(parseDay(date)), dl = daysUntil(date);
     return `<b>${d.toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}</b><small>${d.getFullYear()} · ${dl > 1 ? `in ${dl} Tagen` : dl === 1 ? "morgen" : dl === 0 ? "heute" : "liegt in der Vergangenheit"}</small>`; };
-  const bufChips = () => BUFS.map(k => `<button class="dl-chip ${buf === k ? 'on' : ''}" data-db="${k == null ? 'auto' : k}">${k == null ? 'Auto' : k}</button>`).join("");
+  const bufChips = () => `<div class="dl-pre dl-bufrow">${BUFS.map(k => `<button class="dl-chip ${!bufCustom && buf === k ? 'on' : ''}" data-db="${k == null ? 'auto' : k}">${k == null ? 'Auto' : k}</button>`).join("")}<button class="dl-chip ${bufCustom ? 'on' : ''}" data-db="custom">Eigene</button></div>`
+    + (bufCustom ? `<div class="dl-step" style="margin-top:10px"><button class="dl-pm" data-bstep="-1" aria-label="ein Puffertag weniger">−</button><div class="dl-bin"><input class="in num" id="dlB" type="number" inputmode="numeric" min="0" max="${maxBuf()}" value="${buf ?? 0}" aria-label="Puffertage"><span>${buf === 1 ? "Tag" : "Tage"}</span></div><button class="dl-pm" data-bstep="1" aria-label="ein Puffertag mehr">＋</button></div>
+      <p class="muted" style="font-size:13px;margin:6px 0 0;text-align:center">${date && daysUntil(date) > 0 ? `Höchstens ${plural(maxBuf(), "Tag", "Tage")} – die Prüfung ist in ${plural(daysUntil(date), "Tag", "Tagen")}.` : "Wähle zuerst das Datum – dann siehst du, wie viele Puffertage möglich sind."}</p>` : "");
   const planHTML = () => {
     if (!date) return `<p class="muted" style="font-size:14.5px;margin:0 0 16px">Gib das Datum ein – Cardo rechnet aus, wie viele neue Karten du jeden Tag lernen musst, um bis zur Prüfung alles einmal gelernt und oft genug wiederholt zu haben.</p>`;
     const pl = examPlan(fid, date, buf);
@@ -1722,10 +1730,22 @@ function dailySheet(fid){
     const ni = $("#dlN", root); if (ni) ni.addEventListener("input", () => { const v = parseInt(ni.value, 10); n = v > 0 ? Math.min(999, v) : 0; root.querySelectorAll("[data-dn]").forEach(c => c.classList.toggle("on", +c.dataset.dn === n)); });
     const upd = () => { const dt = $("#dlDt", root); if (dt) { dt.innerHTML = dateText(); dt.parentElement.classList.toggle("empty", !date); } const pl = $("#dlPlan", root); if (pl) pl.innerHTML = planHTML(); };
     const di = $("#dlD", root);
-    if (di) { const ch = () => { if (di.value) { date = di.value < tomorrow ? tomorrow : di.value; upd(); } }; di.addEventListener("input", ch); di.addEventListener("change", ch);
+    if (di) { const ch = () => { if (di.value) { date = di.value < tomorrow ? tomorrow : di.value; if (bufCustom) { clampBuf(); drawBuf(); } upd(); } }; di.addEventListener("input", ch); di.addEventListener("change", ch);
       di.addEventListener("click", () => { try { di.showPicker && di.showPicker(); } catch (e) {} }); }
-    root.querySelectorAll("[data-qd]").forEach(b => b.addEventListener("click", () => { date = dayKey(dayStart() + (+b.dataset.qd) * DAY + DAY / 2); if (di) di.value = date; upd(); }));
-    const bb = $("#dlBuf", root); if (bb) bb.addEventListener("click", e => { const c = e.target.closest("[data-db]"); if (!c) return; buf = c.dataset.db === "auto" ? null : +c.dataset.db; bb.innerHTML = bufChips(); upd(); });
+    root.querySelectorAll("[data-qd]").forEach(b => b.addEventListener("click", () => { date = dayKey(dayStart() + (+b.dataset.qd) * DAY + DAY / 2); if (di) di.value = date; if (bufCustom) { clampBuf(); drawBuf(); } upd(); }));
+    const bb = $("#dlBuf", root);
+    const clampBuf = () => { if (buf != null) buf = Math.max(0, Math.min(maxBuf(), buf)); };
+    const drawBuf = () => { if (!bb) return; bb.innerHTML = bufChips(); const bi = $("#dlB", bb);
+      if (bi) bi.addEventListener("input", () => { const v = parseInt(bi.value, 10); if (isNaN(v)) return; buf = v; clampBuf(); if (buf !== v) bi.value = buf; bi.nextElementSibling.textContent = buf === 1 ? "Tag" : "Tage"; upd(); }); };
+    if (bb) bb.addEventListener("click", e => {
+      const st = e.target.closest("[data-bstep]");
+      if (st) { buf = (buf ?? 0) + +st.dataset.bstep; clampBuf(); drawBuf(); upd(); return; }
+      const c = e.target.closest("[data-db]"); if (!c) return;
+      if (c.dataset.db === "custom") { if (!bufCustom) { bufCustom = true; if (buf == null) buf = date && daysUntil(date) > 0 ? autoBuffer(daysUntil(date)) : 3; clampBuf(); } }
+      else { bufCustom = false; buf = c.dataset.db === "auto" ? null : +c.dataset.db; }
+      drawBuf(); upd();
+    });
+    drawBuf();
     $("#dlSave", root).addEventListener("click", () => {
       if (mode === "exam") { if (!date || !(daysUntil(date) > 0)) { toast("Wähle ein Datum in der Zukunft."); return; } putFolder({ ...S.folders[fid], daily: buf == null ? { mode: "exam", date } : { mode: "exam", date, buffer: buf } }); toast("Prüfungsplan gespeichert"); }
       else { putFolder({ ...S.folders[fid], daily: { mode: "fixed", n: n || 0 } }); toast(n ? `${n} Karten pro Tag` : "Kein Tageslimit"); }
