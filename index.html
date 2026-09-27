@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#FFFFFF">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default"><!-- Inhalt liegt unter der Statusleiste: kein Umlayouten beim Start (sonst blitzt unten Schwarz) -->
 <meta name="apple-mobile-web-app-title" content="Cardo">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -780,7 +780,8 @@ function fixBottomGap(){
   let g = 0;
   const standalone = navigator.standalone === true || matchMedia("(display-mode: standalone)").matches;
   const typing = /INPUT|TEXTAREA|SELECT/.test((document.activeElement || {}).tagName || "");
-  if (isIOS && standalone && !typing) {
+  const underBar = parseFloat(getComputedStyle(document.documentElement).paddingTop) > 0; // nur wenn die App hinter die Statusleiste reicht
+  if (isIOS && standalone && !typing && underBar) {
     const probe = document.createElement("div");
     probe.style.cssText = "position:fixed;top:0;bottom:0;left:0;width:0;visibility:hidden;pointer-events:none";
     document.body.appendChild(probe);
