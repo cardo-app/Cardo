@@ -405,6 +405,12 @@ body.selecting #main{padding-bottom:170px}
 .ctx-btn.fold.subf{border-style:dashed}
 .icon-btn{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;flex:none;color:var(--muted);background:transparent;transition:background .15s ease,color .15s ease}
 .icon-btn svg{width:20px;height:20px}
+.banner-acts{display:flex;align-items:center;gap:6px;flex:none!important;min-width:auto!important}
+.lset-btn{--c:var(--accent);height:32px;padding:0 12px 0 9px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;background:color-mix(in oklab,var(--c) 16%,var(--surface));color:color-mix(in oklab,var(--c) 62%,var(--ink));font-weight:750;font-size:13.5px;white-space:nowrap;border:1.5px solid color-mix(in oklab,var(--c) 55%,transparent);transition:background .15s ease,transform .15s ease}
+.lset-btn svg{width:16px;height:16px;flex:none}
+.lset-btn:hover{background:color-mix(in oklab,var(--c) 24%,var(--surface))}
+.lset-btn[aria-expanded="true"]{background:color-mix(in oklab,var(--c) 30%,var(--surface))}
+.lset-btn:active{transform:scale(.96)}
 .icon-btn:hover{background:color-mix(in oklab,var(--ink) 7%,transparent);color:var(--ink)}
 .icon-btn[aria-expanded="true"]{background:color-mix(in oklab,var(--ink) 11%,transparent);color:var(--ink)}
 @media (prefers-reduced-motion:reduce){.icon-btn{transition:none}}
@@ -768,6 +774,7 @@ const plural = (n, one, many) => n + " " + (n === 1 ? one : many);
 const COLORS = ["#FF5A36","#F59E0B","#E2B203","#22A06B","#0E9F9A","#2F80ED","#5B5BD6","#9B51E0","#E0487D","#64748B","#2B2F38","#8B5E3C"];
 const EMOJIS = ["📚","🧠","💼","📊","💶","🧮","⚖️","📈","🏛️","🌍","🇬🇧","🇫🇷","🇪🇸","🇮🇹","🧪","🧬","💻","📐","🩺","🎨","🎵","✏️","🗂️","🚀","⭐","🔥","🍀","🎯","☕","🌙"];
 const IC_EXAM = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2.5"/><path d="M9 4.5V3.5h6v1M9 12.5l2 2 4-4"/></svg>`;
+const IC_LEARN = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>`;
 const IC = {
   lib:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M9 19V5M14 19l-1-14M18.5 19 15 5.5"/></svg>',
   folder:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
@@ -1536,8 +1543,9 @@ function folderHTML(fid){
   const n = counts(fid), subs = children(fid), deepOnly = n.total - n.own;
   return `${crumbsHTML(fid)}
   <section class="banner ${coverUrl(f) ? 'has-cover' : ''}">${artHTML(f)}
-    <div class="banner-body"><div class="banner-row"><div><h1>${esc(f.name)}</h1><div class="muted banner-meta">${plural(n.total, 'Karte', 'Karten')} · ${n.due} fällig${subs.length ? ' · ' + plural(subs.length, 'Unterordner', 'Unterordner') : ''}${sideOf(fid) !== 'front' ? ` · ${sideOf(fid) === 'both' ? '⇄ beidseitig' : '↺ Rückseite zuerst'}` : ''}${(() => { const k = quotaKey(fid), dy = dailyOf(k); if (dy.mode !== 'exam') return ''; const dl = daysUntil(dy.date); return dl > 0 ? ` · <button class="exam-cd" data-act="dailySheet" data-id="${fid}">🎯 Prüfung in ${plural(dl, 'Tag', 'Tagen')}</button>` : dl === 0 ? ' · 🎯 Prüfung heute – viel Erfolg!' : ''; })()}</div></div>
-      <button class="icon-btn" data-act="folderMenu" data-id="${fid}" aria-haspopup="menu" aria-expanded="false" aria-label="${f.parentId ? 'Unterordner' : 'Ordner'}-Menü" title="${f.parentId ? 'Unterordner' : 'Ordner'}">${IC.dots}</button></div>
+    <div class="banner-body"><div class="banner-row"><div><h1>${esc(f.name)}</h1><div class="muted banner-meta">${plural(n.total, 'Karte', 'Karten')} · ${n.due} fällig${subs.length ? ' · ' + plural(subs.length, 'Unterordner', 'Unterordner') : ''}${sideOf(fid) !== 'front' ? ` · ${sideOf(fid) === 'both' ? '⇄ beidseitig' : '↺ Rückseite zuerst'}` : ''}</div></div>
+      <div class="banner-acts"><button class="lset-btn" style="--c:${esc(colorOf(f))}" data-act="learnMenu" data-id="${fid}" aria-haspopup="menu" aria-expanded="false" aria-label="Lerneinstellungen: ${esc(dailyLabel(fid))}" title="Lerneinstellungen">${IC_LEARN}<span>${esc(learnShort(fid))}</span></button>
+      <button class="icon-btn" data-act="folderMenu" data-id="${fid}" aria-haspopup="menu" aria-expanded="false" aria-label="${f.parentId ? 'Unterordner' : 'Ordner'}-Menü" title="${f.parentId ? 'Unterordner' : 'Ordner'}">${IC.dots}</button></div></div>
       ${n.total ? (n.due ? `<button class="learn-btn" data-act="study" data-id="${fid}"><span class="lb-play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.9l10.2-6.5a1 1 0 0 0 0-1.8L9.5 4.6A1 1 0 0 0 8 5.5z"/></svg></span><span class="lb-t"><b>Lernen</b><span>${learnSub(n)}</span></span></button>`
         : (n.newLeft ? `<div class="learn-done"><span aria-hidden="true">✓</span> Heute alles gelernt – dein Tageslimit ist erreicht.<button class="btn more-new" data-act="moreNew" data-id="${fid}">＋ 10 weitere Karten</button></div>` : `<div class="learn-done"><span aria-hidden="true">✓</span> Heute alles gelernt. Neue Karten kommen, sobald sie fällig sind.</div>`)) : ''}
       ${n.total ? (() => { const m = mastery(fid); return `<button class="exam-btn lv${m.lv}" data-act="examSheet" data-id="${fid}" title="${m.pct} % der Karten sitzen sicher">${IC_EXAM}Prüfen<span class="ex-pct num">· ${m.pct} % sicher</span></button>`; })() : ''}
@@ -1639,7 +1647,6 @@ function cardsSheet(){
   openSheet(`${head("Karten")}<div class="set-list" style="margin:0">
     <button class="set-item" data-act="textSheet"><span class="si-t">Textgröße</span><span class="si-v">${({s:"Klein",m:"Mittel",l:"Groß"})[S.set.textSize || "m"]}</span><span class="si-ch" aria-hidden="true">›</span></button>
     <button class="set-item" data-act="fxSheet"><span class="si-t">Kartenbewertung</span><span class="si-v">${gradeSet().length} Stufen</span><span class="si-ch" aria-hidden="true">›</span></button>
-    <div class="set-item static"><span class="si-t">Karten pro Tag<small style="display:block;font-size:13.5px;color:var(--muted);font-weight:500;margin-top:2px">Stellst du jetzt in jedem Ordner selbst ein: Ordner öffnen › ⋯ › Lernmenge pro Tag – mit eigener Anzahl oder Prüfungsplan.</small></span></div>
   </div>`);
 }
 function fxSheet(){
@@ -2263,15 +2270,28 @@ function openMenu(btn, fid){
     <button data-act="newCard"${d} role="menuitem">＋ Neue Karte</button>
     <button data-act="newFolder"${d} role="menuitem">＋ Neuer Unterordner</button>
     <button data-act="import"${d} role="menuitem">⇣ Karten importieren</button>
-    <button data-act="editFolder"${d} role="menuitem">✎ Ordner gestalten</button>` + (n.total ? `
-    <button data-act="dailySheet"${d} role="menuitem">◷ Lernmenge pro Tag<span class="sub" style="color:var(--muted)">${dailyLabel(fid)}</span></button>
-<hr><div class="mh">Lernrichtung</div>${SIDES.map(([k, l]) => `<button data-act="setSide"${d} data-v="${k}" role="menuitemradio" aria-checked="${sideOf(fid) === k}">${l}${sideOf(fid) === k ? '<span class="ck">✓</span>' : ''}</button>`).join("")}` : '') + (n.own ? `
+    <button data-act="editFolder"${d} role="menuitem">✎ Ordner gestalten</button>` + (n.own ? `
     <button data-act="pickStart"${d} role="menuitem">☑ Karten auswählen und löschen</button>` : '')
     : `<button data-act="newFolder" role="menuitem">＋ Neuer Ordner</button>
     <button data-act="newSect" role="menuitem">＋ Neuer Bereich (Überschrift)</button>
     <button data-act="import" role="menuitem">⇣ Karten importieren</button>`) + (sortBlock ? `<hr><div class="mh">${fid ? 'Unterordner sortieren nach' : 'Sortieren nach'}</div>
     ${sorts.map(([k, l]) => `<button data-act="sort" data-v="${k}" role="menuitemradio" aria-checked="${S.sort === k}">${l}${S.sort === k ? '<span class="ck">✓</span>' : ''}</button>`).join("")}` : '')
     + (!fid ? `<hr><div class="mh">Ansicht</div>${[["grid","▦ Kacheln"],["list","☰ Liste"]].map(([k, l]) => `<button data-act="setLayout" data-v="${k}" role="menuitemradio" aria-checked="${S.set.layout === k}">${l}${S.set.layout === k ? '<span class="ck">✓</span>' : ''}</button>`).join("")}` : '');
+  m.hidden = false; btn.setAttribute("aria-expanded", "true");
+  const r = btn.getBoundingClientRect(), w = m.offsetWidth;
+  m.style.top = (r.bottom + 6) + "px"; m.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.right - w)) + "px";
+}
+function learnShort(fid){
+  const dy = dailyOf(quotaKey(fid));
+  if (dy.mode === "exam") { const dl = daysUntil(dy.date); return dl > 1 ? `Prüfung in ${dl} T.` : dl === 1 ? "Prüfung morgen" : dl === 0 ? "Prüfung heute" : "Prüfung vorbei"; }
+  return dy.n ? `${dy.n} / Tag` : "∞ / Tag";
+}
+function openLearnMenu(btn, fid){
+  const m = $("#menu"), fo = S.folders[fid]; if (!fo) return;
+  const d = ` data-id="${fid}"`, side = sideOf(fid);
+  m.innerHTML = `<div class="mt">${IC_LEARN.replace('<svg', '<svg width="16" height="16"')}<span>Lernen</span><b>${esc(fo.name)}</b></div><hr>
+    <button data-act="dailySheet"${d} role="menuitem">◷ Lernmenge pro Tag<span class="sub" style="color:var(--muted)">${dailyLabel(fid)}</span></button>
+    <hr><div class="mh">Lernrichtung</div>${SIDES.map(([k, l]) => `<button data-act="setSide"${d} data-v="${k}" role="menuitemradio" aria-checked="${side === k}">${l}${side === k ? '<span class="ck">✓</span>' : ''}</button>`).join("")}`;
   m.hidden = false; btn.setAttribute("aria-expanded", "true");
   const r = btn.getBoundingClientRect(), w = m.offsetWidth;
   m.style.top = (r.bottom + 6) + "px"; m.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.right - w)) + "px";
@@ -2302,7 +2322,7 @@ function sectSheet(id){
     const del = $("#sdel", root); if (del) del.addEventListener("click", () => armDelete(del, () => { removeSection(id); closeSheet(); toast("Bereich gelöscht"); }));
   });
 }
-function closeMenu(){ const m = $("#menu"); if (m.hidden) return; m.hidden = true; document.querySelectorAll('[data-act="libMenu"],[data-act="folderMenu"],[data-act="sectMenu"],[data-act="cardSortMenu"]').forEach(b => b.setAttribute("aria-expanded", "false")); }
+function closeMenu(){ const m = $("#menu"); if (m.hidden) return; m.hidden = true; document.querySelectorAll('[data-act="libMenu"],[data-act="folderMenu"],[data-act="sectMenu"],[data-act="cardSortMenu"],[data-act="learnMenu"]').forEach(b => b.setAttribute("aria-expanded", "false")); }
 window.addEventListener("scroll", closeMenu, { passive: true });
 window.addEventListener("resize", closeMenu);
 
@@ -2318,11 +2338,11 @@ document.addEventListener("click", e => {
     S.study.flipped = true; S.study.justFlipped = true; render(); return;
   }
   const b = e.target.closest("[data-act]");
-  const isMenuBtn = b && ["libMenu", "folderMenu", "sectMenu", "cardSortMenu"].includes(b.dataset.act);
+  const isMenuBtn = b && ["libMenu", "folderMenu", "sectMenu", "cardSortMenu", "learnMenu"].includes(b.dataset.act);
   if (!isMenuBtn) closeMenu();
   if (!b) { if (e.target.id === "sheet") closeSheet(); return; }
   const a = b.dataset.act, id = b.dataset.id || null;
-  if (isMenuBtn) { if (!$("#menu").hidden) { closeMenu(); return; } a === "sectMenu" ? openSectMenu(b, id) : a === "cardSortMenu" ? openCardSortMenu(b, id) : openMenu(b, a === "folderMenu" ? id : null); return; }
+  if (isMenuBtn) { if (!$("#menu").hidden) { closeMenu(); return; } a === "sectMenu" ? openSectMenu(b, id) : a === "cardSortMenu" ? openCardSortMenu(b, id) : a === "learnMenu" ? openLearnMenu(b, id) : openMenu(b, a === "folderMenu" ? id : null); return; }
   if (a === "installApp") { const ev = installEvt; if (ev) { ev.prompt(); ev.userChoice.then(r => { if (r && r.outcome === "accepted") { installEvt = null; render(); } }).catch(() => {}); } return; }
   if (a === "examSheet") { examSheet(id); return; }
   if (a === "exWhich" && EX) { EX.which = b.dataset.v; saveExPref(); exRefresh(); return; }
