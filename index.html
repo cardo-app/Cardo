@@ -335,6 +335,8 @@ g.b:hover .barm{filter:brightness(1.12)}
 .sheet-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;min-height:40px}
 .sheet-h h2{font-size:23px;font-weight:800}
 .field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.pw-forgot{display:block;margin:14px auto 0;padding:6px 10px;background:none;border:0;font:inherit;font-size:13.5px;color:var(--muted);opacity:.8;cursor:pointer}
+.pw-forgot:disabled{opacity:.4}
 .field>label,.lbl{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .in{width:100%;padding:11px 13px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2)}
 textarea.in{min-height:92px;resize:vertical;line-height:1.4}
@@ -1276,6 +1278,56 @@ function newPasswordSheet(){
     });
   });
 }
+/* Passwort ändern (angemeldet): altes Passwort bestätigen – oder „Passwort vergessen?“ → Code per E-Mail */
+function changePasswordSheet(){
+  const email = USER && USER.email || "";
+  const pwField = (id, label, ac) => `<div class="field"><label for="${id}">${label}</label><input class="in" id="${id}" type="password" autocomplete="${ac}" minlength="6"></div>`;
+  const step1 = () => `${head("Passwort ändern")}${pwField("opw", "Aktuelles Passwort", "current-password")}${pwField("npw", "Neues Passwort", "new-password")}
+    <button class="btn primary block" id="pwGo">Speichern</button><p class="muted" id="pwMsg" style="font-size:14.5px;min-height:1em;margin:10px 2px 0"></p>
+    <button class="pw-forgot" id="pwForgot" type="button">Passwort vergessen?</button>`;
+  const step2 = () => `${head("Passwort ändern")}<p class="muted" style="margin:0 0 16px;font-size:15px">Wir haben einen Code an <b>${esc(email)}</b> geschickt. Gib ihn hier ein und wähle ein neues Passwort.</p>
+    <div class="field"><label for="pwCode">Code aus der E-Mail</label><input class="in" id="pwCode" inputmode="numeric" autocomplete="one-time-code" maxlength="10" style="letter-spacing:.3em;font-weight:700"></div>
+    ${pwField("npw2", "Neues Passwort", "new-password")}
+    <button class="btn primary block" id="pwGo2">Speichern</button><p class="muted" id="pwMsg2" style="font-size:14.5px;min-height:1em;margin:10px 2px 0"></p>
+    <button class="pw-forgot" id="pwResend" type="button">Code erneut senden</button>`;
+  const done = (msgEl) => { msgEl.textContent = "Gespeichert."; setTimeout(closeSheet, 900); };
+  const sendCode = async msgEl => { const r = await SB.auth.reauthenticate(); if (r.error) throw r.error; if (msgEl) msgEl.textContent = "Neuer Code ist unterwegs."; }; // Supabase schickt einen Bestätigungscode an die E-Mail
+  const bind2 = root => {
+    $("#pwGo2", root).addEventListener("click", async e => {
+      const msg = $("#pwMsg2", root), code = $("#pwCode", root).value.replace(/\s+/g, ""), npw = $("#npw2", root).value;
+      if (!code) { msg.textContent = "Gib den Code aus der E-Mail ein."; return; }
+      if (npw.length < 6) { msg.textContent = "Das neue Passwort muss mindestens 6 Zeichen haben."; return; }
+      e.currentTarget.disabled = true; msg.textContent = "Einen Moment …";
+      try {
+        const r = await SB.auth.updateUser({ password: npw, nonce: code }); if (r.error) throw r.error; done(msg);
+      } catch (err) { msg.textContent = /expired|invalid|nonce|token|reauth/i.test(String(err && err.message)) ? "Der Code stimmt nicht oder ist abgelaufen." : authErr(err); }
+      e.currentTarget && (e.currentTarget.disabled = false);
+    });
+    $("#pwResend", root).addEventListener("click", async () => { const msg = $("#pwMsg2", root); try { await sendCode(msg); } catch (err) { msg.textContent = authErr(err); } });
+  };
+  openSheet(step1(), root => {
+    if (!SB) { $("#pwMsg", root).textContent = "In der Vorschau gibt es kein Konto."; }
+    $("#pwGo", root).addEventListener("click", async e => {
+      const btn = e.currentTarget, msg = $("#pwMsg", root), opw = $("#opw", root).value, npw = $("#npw", root).value;
+      if (!SB) return;
+      if (!opw) { msg.textContent = "Gib dein aktuelles Passwort ein."; return; }
+      if (npw.length < 6) { msg.textContent = "Das neue Passwort muss mindestens 6 Zeichen haben."; return; }
+      btn.disabled = true; msg.textContent = "Einen Moment …";
+      try {
+        const c = await SB.auth.signInWithPassword({ email, password: opw });
+        if (c.error) { msg.textContent = /Invalid login/i.test(c.error.message) ? "Das aktuelle Passwort stimmt nicht." : authErr(c.error); btn.disabled = false; return; }
+        const r = await SB.auth.updateUser({ password: npw }); if (r.error) throw r.error; done(msg);
+      } catch (err) { msg.textContent = authErr(err); }
+      btn.disabled = false;
+    });
+    $("#pwForgot", root).addEventListener("click", async e => {
+      const msg = $("#pwMsg", root); if (!SB) return;
+      e.currentTarget.disabled = true; msg.textContent = "Code wird gesendet …";
+      try { await sendCode(); const sh = root; sh.innerHTML = `<div class="grab"></div>` + step2(); bind2(sh); setTimeout(() => { const c = $("#pwCode", sh); c && c.focus(); }, 60); }
+      catch (err) { msg.textContent = authErr(err); e.currentTarget.disabled = false; }
+    });
+  });
+}
 function accountSheet(){
   openSheet(`${head("Konto")}<div class="set-list" style="margin:0"><div class="set-item static"><span class="si-t">Angemeldet als</span><span class="si-v">${esc(USER && USER.email || "")}</span></div></div>
     <button class="btn block" style="margin-top:14px" data-act="changePw">Passwort ändern</button>
@@ -2188,7 +2240,7 @@ document.addEventListener("click", e => {
   if (a === "dataSheet") { dataSheet(); return; }
   if (a === "remindLater") { try { localStorage.setItem("cardo-remind-snooze", String(Date.now() + 7 * DAY)); } catch {} render(); return; }
   if (a === "accountSheet") { accountSheet(); return; }
-  if (a === "changePw") { newPasswordSheet(); return; }
+  if (a === "changePw") { changePasswordSheet(); return; }
   if (a === "authMode") { showAuth(b.dataset.v); return; }
   if (a === "exportData") { exportData(); return; }
   if (a === "gradeSetSheet") { gradeSetSheet(); return; }
