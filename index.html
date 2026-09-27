@@ -183,6 +183,7 @@ body.studying #main{max-width:760px;padding-bottom:24px}
 .sec-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:6px 0 12px}
 .sec-h h2{font-size:21px;font-weight:800}
 .sec-h .muted{font-size:14.5px}
+.csort-btn{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--muted);padding:6px 10px;border-radius:999px;background:var(--surface-2);white-space:nowrap}
 
 /* Folder tiles */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:14px;margin-bottom:28px}
@@ -1495,20 +1496,20 @@ function folderHTML(fid){
   const n = counts(fid), subs = children(fid), deepOnly = n.total - n.own;
   return `${crumbsHTML(fid)}
   <section class="banner ${coverUrl(f) ? 'has-cover' : ''}">${artHTML(f)}
-    <div class="banner-body"><div class="banner-row"><div><h1>${esc(f.name)}</h1><div class="muted banner-meta">${plural(n.total, 'Karte', 'Karten')} · ${n.due} fällig${subs.length ? ' · ' + plural(subs.length, 'Unterordner', 'Unterordner') : ''}</div></div>
+    <div class="banner-body"><div class="banner-row"><div><h1>${esc(f.name)}</h1><div class="muted banner-meta">${plural(n.total, 'Karte', 'Karten')} · ${n.due} fällig${subs.length ? ' · ' + plural(subs.length, 'Unterordner', 'Unterordner') : ''}${sideOf(fid) !== 'front' ? ` · ${sideOf(fid) === 'both' ? '⇄ beidseitig' : '↺ Rückseite zuerst'}` : ''}</div></div>
       <button class="icon-btn" data-act="folderMenu" data-id="${fid}" aria-haspopup="menu" aria-expanded="false" aria-label="${f.parentId ? 'Unterordner' : 'Ordner'}-Menü" title="${f.parentId ? 'Unterordner' : 'Ordner'}">${IC.dots}</button></div>
       ${n.total ? (n.due ? `<button class="learn-btn" data-act="study" data-id="${fid}"><span class="lb-play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.9l10.2-6.5a1 1 0 0 0 0-1.8L9.5 4.6A1 1 0 0 0 8 5.5z"/></svg></span><span class="lb-t"><b>Lernen</b><span>${learnSub(n)}</span></span></button>`
         : (n.newLeft ? `<div class="learn-done"><span aria-hidden="true">✓</span> Heute alles gelernt – dein Tageslimit ist erreicht.<button class="btn more-new" data-act="moreNew" data-id="${fid}">＋ 10 weitere Karten</button></div>` : `<div class="learn-done"><span aria-hidden="true">✓</span> Heute alles gelernt. Neue Karten kommen, sobald sie fällig sind.</div>`)) : ''}
       ${n.total ? (() => { const m = mastery(fid); return `<button class="exam-btn lv${m.lv}" data-act="examSheet" data-id="${fid}" title="${m.pct} % der Karten sitzen sicher">${IC_EXAM}Prüfen<span class="ex-pct num">· ${m.pct} % sicher</span></button>`; })() : ''}
     </div></section>
   ${subs.length ? `<div class="sec-h"><h2>Unterordner</h2></div>${foldersHTML(subs)}` : ''}
-  ${n.own ? `<div class="sec-h"><h2>Karten</h2><span class="muted">${n.own}${deepOnly ? ` hier · ${deepOnly} in Unterordnern` : ''}</span></div>` : ''}
+  ${n.own ? `<div class="sec-h"><h2>Karten <span class="muted num" style="font-weight:600;font-size:15px">${n.own}${deepOnly ? ` hier · ${deepOnly} in Unterordnern` : ''}</span></h2>${n.own > 1 ? `<button class="csort-btn" data-act="cardSortMenu" data-id="${fid}" aria-haspopup="menu" aria-expanded="false"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M3.5 16.5 7 20l3.5-3.5M17 20V4m-3.5 3.5L17 4l3.5 3.5"/></svg>${CSORTS.find(o => o[0] === csortOf(fid))[1]}</button>` : ''}</div>` : ''}
   ${n.own ? `<input class="search" id="q" type="search" placeholder="Karten durchsuchen" value="${esc(S.q)}" autocomplete="off">` : ''}
   <div id="cardlist">${cardListHTML(fid)}</div>${S.sel ? selbarHTML() : ''}`;
 }
 function cardListHTML(fid){
   const now = Date.now(), q = S.q.trim().toLowerCase();
-  let list = Object.values(S.decks[fid] || {}).sort((a,b) => (b.created||0) - (a.created||0));
+  let list = Object.values(S.decks[fid] || {}).sort(cardSorter(fid));
   if (!list.length) return "";
   if (q) list = list.filter(c => (c.f + " " + c.b).toLowerCase().includes(q));
   if (!list.length) return `<div class="empty">Keine Karte passt zu „${esc(S.q)}“.</div>`;
@@ -1771,13 +1772,35 @@ function settingsHTML(){
 }
 
 /* ---------- Study ---------- */
-function bothSided(fid){ const p = pathOf(fid); for (let i = p.length - 1; i >= 0; i--) if (typeof p[i].both === "boolean") return p[i].both; return false; }
-const pickSide = fid => bothSided(fid) && Math.random() < .5;
-function toggleBoth(fid){
-  const on = !bothSided(fid), f = S.folders[fid]; if (!f) return;
-  putFolder({ ...f, both: on });
-  descendants(fid).forEach(id => { const x = S.folders[id]; if (x && typeof x.both === "boolean") { const y = { ...x }; delete y.both; putFolder(y); } });
-  toast(on ? "Beidseitig lernen ist an" : "Beidseitig lernen ist aus");
+/* Lernrichtung pro Ordner (gilt auch für Unterordner, solange diese nichts Eigenes eingestellt haben):
+   front = Vorderseite zuerst · both = beidseitig (zufällig gemischt) · back = Rückseite zuerst. Altes Feld „both“ wird mitgelesen. */
+const SIDES = [["front", "Vorderseite zuerst", "Vorne → hinten"], ["both", "Beidseitig (gemischt)", "Zufällig mal so, mal so"], ["back", "Rückseite zuerst", "Hinten → vorne"]];
+function sideOf(fid){ const p = pathOf(fid); for (let i = p.length - 1; i >= 0; i--) { const x = p[i]; if (SIDES.some(o => o[0] === x.side)) return x.side; if (typeof x.both === "boolean") return x.both ? "both" : "front"; } return "front"; }
+const bothSided = fid => sideOf(fid) === "both";
+const pickSide = fid => { const sd = sideOf(fid); return sd === "back" || (sd === "both" && Math.random() < .5); };
+function setSide(fid, side){
+  const f = S.folders[fid]; if (!f || !SIDES.some(o => o[0] === side)) return;
+  const y = { ...f, side }; delete y.both; putFolder(y);
+  descendants(fid).forEach(id => { const x = S.folders[id]; if (x && (x.side || typeof x.both === "boolean")) { const z = { ...x }; delete z.side; delete z.both; putFolder(z); } });
+  toast("Lernrichtung: " + SIDES.find(o => o[0] === side)[1]); render();
+}
+/* Kartenreihenfolge pro Ordner (nur Anzeige in der Liste und „Der Reihe nach“ beim Prüfen) */
+const CSORTS = [["added", "Wie hinzugefügt"], ["new", "Neueste zuerst"], ["az", "Alphabetisch (A–Z)"], ["za", "Alphabetisch (Z–A)"]];
+const csortOf = fid => { const f = S.folders[fid]; return f && CSORTS.some(o => o[0] === f.csort) ? f.csort : "added"; };
+const abc = (x, y) => String(x || "").localeCompare(String(y || ""), "de", { numeric: true, sensitivity: "base" });
+function cardSorter(fid){
+  const k = csortOf(fid), t = c => c.created || 0;
+  if (k === "new") return (a, b) => t(b) - t(a);
+  if (k === "az") return (a, b) => abc(a.f, b.f) || abc(a.b, b.b) || t(a) - t(b);
+  if (k === "za") return (a, b) => abc(b.f, a.f) || abc(b.b, a.b) || t(a) - t(b);
+  return (a, b) => t(a) - t(b);
+}
+function openCardSortMenu(btn, fid){
+  const m = $("#menu"), cur = csortOf(fid);
+  m.innerHTML = `<div class="mh">Karten sortieren</div>` + CSORTS.map(([k, l]) => `<button data-act="setCsort" data-id="${fid}" data-v="${k}" role="menuitemradio" aria-checked="${cur === k}">${l}${cur === k ? '<span class="ck">✓</span>' : ''}</button>`).join("");
+  m.hidden = false; btn.setAttribute("aria-expanded", "true");
+  const r = btn.getBoundingClientRect(), w = m.offsetWidth;
+  m.style.top = (r.bottom + 6) + "px"; m.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.right - w)) + "px";
 }
 function startStudy(fid){
   const t = todayCards(fid);
@@ -1889,7 +1912,7 @@ function exRows(){
 }
 function examPool(){
   const out = []; const ids = [EX.fid, ...descendants(EX.fid)].filter(id => EX.sel.has(id));
-  ids.forEach(id => Object.values(S.decks[id] || {}).filter(exMatch).sort((a, b) => (a.created || 0) - (b.created || 0)).forEach(c => out.push({ fid: id, c })));
+  ids.forEach(id => Object.values(S.decks[id] || {}).filter(exMatch).sort(cardSorter(id)).forEach(c => out.push({ fid: id, c })));
   if (EX.order === "mix") for (let i = out.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [out[i], out[j]] = [out[j], out[i]]; }
   return out;
 }
@@ -2151,7 +2174,7 @@ function openMenu(btn, fid){
     <button data-act="newFolder"${d} role="menuitem">＋ Neuer Unterordner</button>
     <button data-act="import"${d} role="menuitem">⇣ Karten importieren</button>
     <button data-act="editFolder"${d} role="menuitem">✎ Ordner gestalten</button>` + (n.total ? `
-    <button data-act="toggleBoth"${d} role="menuitemcheckbox" aria-checked="${both}">⇄ Beidseitig lernen${both ? '<span class="ck">✓</span>' : '<span class="sub" style="color:var(--muted)">aus</span>'}</button>` : '') + (n.own ? `
+<hr><div class="mh">Lernrichtung</div>${SIDES.map(([k, l]) => `<button data-act="setSide"${d} data-v="${k}" role="menuitemradio" aria-checked="${sideOf(fid) === k}">${l}${sideOf(fid) === k ? '<span class="ck">✓</span>' : ''}</button>`).join("")}` : '') + (n.own ? `
     <button data-act="pickStart"${d} role="menuitem">☑ Karten auswählen und löschen</button>` : '')
     : `<button data-act="newFolder" role="menuitem">＋ Neuer Ordner</button>
     <button data-act="newSect" role="menuitem">＋ Neuer Bereich (Überschrift)</button>
@@ -2188,7 +2211,7 @@ function sectSheet(id){
     const del = $("#sdel", root); if (del) del.addEventListener("click", () => armDelete(del, () => { removeSection(id); closeSheet(); toast("Bereich gelöscht"); }));
   });
 }
-function closeMenu(){ const m = $("#menu"); if (m.hidden) return; m.hidden = true; document.querySelectorAll('[data-act="libMenu"],[data-act="folderMenu"],[data-act="sectMenu"]').forEach(b => b.setAttribute("aria-expanded", "false")); }
+function closeMenu(){ const m = $("#menu"); if (m.hidden) return; m.hidden = true; document.querySelectorAll('[data-act="libMenu"],[data-act="folderMenu"],[data-act="sectMenu"],[data-act="cardSortMenu"]').forEach(b => b.setAttribute("aria-expanded", "false")); }
 window.addEventListener("scroll", closeMenu, { passive: true });
 window.addEventListener("resize", closeMenu);
 
@@ -2204,11 +2227,11 @@ document.addEventListener("click", e => {
     S.study.flipped = true; S.study.justFlipped = true; render(); return;
   }
   const b = e.target.closest("[data-act]");
-  const isMenuBtn = b && ["libMenu", "folderMenu", "sectMenu"].includes(b.dataset.act);
+  const isMenuBtn = b && ["libMenu", "folderMenu", "sectMenu", "cardSortMenu"].includes(b.dataset.act);
   if (!isMenuBtn) closeMenu();
   if (!b) { if (e.target.id === "sheet") closeSheet(); return; }
   const a = b.dataset.act, id = b.dataset.id || null;
-  if (isMenuBtn) { if (!$("#menu").hidden) { closeMenu(); return; } a === "sectMenu" ? openSectMenu(b, id) : openMenu(b, a === "folderMenu" ? id : null); return; }
+  if (isMenuBtn) { if (!$("#menu").hidden) { closeMenu(); return; } a === "sectMenu" ? openSectMenu(b, id) : a === "cardSortMenu" ? openCardSortMenu(b, id) : openMenu(b, a === "folderMenu" ? id : null); return; }
   if (a === "installApp") { const ev = installEvt; if (ev) { ev.prompt(); ev.userChoice.then(r => { if (r && r.outcome === "accepted") { installEvt = null; render(); } }).catch(() => {}); } return; }
   if (a === "examSheet") { examSheet(id); return; }
   if (a === "exWhich" && EX) { EX.which = b.dataset.v; saveExPref(); exRefresh(); return; }
@@ -2248,7 +2271,8 @@ document.addEventListener("click", e => {
   if (a === "demoGrade") { demoGrade(+b.dataset.g); return; }
   if (a === "setFxMode") { saveSettings({ fxMode: b.dataset.v }); const ap = $("#anPick"); if (ap) ap.innerHTML = animPickerHTML(); return; }
   if (a === "setLayout") { saveSettings({ layout: b.dataset.v }); return; }
-  if (a === "toggleBoth") { toggleBoth(id); return; }
+  if (a === "setSide") { setSide(id, b.dataset.v); return; }
+  if (a === "setCsort") { const f = S.folders[id]; if (f) { putFolder({ ...f, csort: b.dataset.v }); render(); } return; }
   if (a === "pickStart") { S.sel = new Set(); render(); return; }
   if (a === "pick") { S.sel && (S.sel.has(id) ? S.sel.delete(id) : S.sel.add(id)); render(); return; }
   if (a === "pickAll") { const vis = visibleIds(), all = vis.every(x => S.sel.has(x)); vis.forEach(x => all ? S.sel.delete(x) : S.sel.add(x)); render(); return; }
