@@ -693,7 +693,9 @@ body.splash-quick #splash{transition:opacity .28s ease,visibility .28s}
 .selbar{bottom:calc(84px + env(safe-area-inset-bottom,0px) - var(--vgap,0px))}
 @media (min-width:700px){.selbar{bottom:calc(96px + env(safe-area-inset-bottom,0px) - var(--vgap,0px))}}
 #toast{bottom:calc(92px + env(safe-area-inset-bottom,0px) - var(--vgap,0px))}
-#splash,.peek,#sheet{bottom:calc(0px - var(--vgap,0px))}
+#splash,#intro,.peek,#sheet{bottom:calc(0px - var(--vgap,0px))}
+/* Während des Intros bleibt der Rand hinter allem weiß (sonst blitzt unten im Dunkelmodus ein dunkler Streifen auf) */
+html:has(> body > #intro){background-color:#fff!important}
 /* iOS 26: in der installierten App ist die bemalbare Fläche zu kurz, wenn html nur 100% hoch ist – mit 100lvh reicht sie bis zum unteren Rand */
 @media (display-mode: standalone){html{height:100lvh;min-height:100lvh}body{min-height:100lvh}}
 html.ios-standalone{height:100lvh;min-height:100lvh}
