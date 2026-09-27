@@ -342,6 +342,20 @@ g.b:hover .barm{filter:brightness(1.12)}
 .dl-step{display:flex;gap:8px;align-items:center}
 .dl-step .in{text-align:center;font-size:18px;font-weight:700}
 .dl-pm{flex:none;width:46px;height:46px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);font-size:22px;font-weight:700}
+.dl-date{position:relative;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:var(--surface-2);border:1.5px solid var(--line);min-height:62px}
+.dl-date:focus-within{border-color:var(--ink)}
+.dl-cal{flex:none;width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:var(--accent);color:var(--accent-ink)}
+.dl-cal svg{width:20px;height:20px}
+.dl-dt{flex:1;min-width:0;text-align:left;display:flex;flex-direction:column;gap:1px}
+.dl-dt b{font-size:17px;font-weight:750;line-height:1.2}
+.dl-dt small{font-size:13.5px;color:var(--muted);font-weight:600}
+.dl-date.empty .dl-dt b{color:var(--muted)}
+.dl-ch{flex:none;font-size:22px;color:var(--muted);line-height:1}
+.dl-date input{position:absolute;inset:0;width:100%;height:100%;opacity:0;margin:0;padding:0;border:0;-webkit-appearance:none;appearance:none;cursor:pointer;font-size:16px;z-index:1}
+.dl-date input::-webkit-calendar-picker-indicator{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.dl-quick{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -2px;padding:0 2px}
+.dl-quick::-webkit-scrollbar{display:none}
+.dl-qc{flex:none;padding:8px 12px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);font-weight:650;font-size:13.5px;white-space:nowrap}
 .dl-plan{display:flex;flex-direction:column;gap:6px;padding:16px;border-radius:16px;background:var(--surface-2);margin:0 0 16px}
 .dl-plan span{font-size:14.5px;color:var(--muted)}
 .dl-big{font-size:44px;font-weight:800;line-height:1}
@@ -1387,17 +1401,18 @@ const parseDay = s => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ""); ret
 const daysUntil = s => Math.round((parseDay(s) - dayStart()) / DAY); // 0 = heute, 1 = morgen …
 const fmtDay = s => new Date(parseDay(s)).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "long" });
 // Prüfungsplan: alle neuen Karten bis kurz vor der Prüfung einmal lernen, die letzten Tage bleiben für Wiederholungen frei.
-function examPlan(key, date){
+const autoBuffer = dl => dl >= 14 ? 3 : dl >= 6 ? 2 : dl >= 3 ? 1 : 0;
+function examPlan(key, date, buf){
   const dl = daysUntil(date); if (!(dl > 0)) return { over: true, days: dl };
   const nwNow = cardsIn(key, true).filter(x => isNewCard(x.c)).length;
   const nwToday = Object.values(seenIds(key)).filter(v => v === 2).length; // heute schon neu gelernt → Tageswert bleibt über den Tag stabil
-  const buffer = dl >= 14 ? 3 : dl >= 6 ? 2 : dl >= 3 ? 1 : 0, learnDays = Math.max(1, dl - buffer);
+  const want = buf == null ? autoBuffer(dl) : Math.max(0, +buf || 0), buffer = Math.min(want, dl - 1), learnDays = Math.max(1, dl - buffer);
   const perDay = Math.ceil((nwNow + nwToday) / learnDays);
-  return { days: dl, buffer, learnDays, newTotal: nwNow + nwToday, perDay, newLeftToday: Math.max(0, perDay - nwToday) };
+  return { days: dl, buffer, want, clipped: buffer < want, auto: buf == null, learnDays, newTotal: nwNow + nwToday, perDay, newLeftToday: Math.max(0, perDay - nwToday) };
 }
 function newQuota(key){
   const dy = dailyOf(key), extra = ((S.extraNew||{})[dayKey()] || {})[key] || 0;
-  if (dy.mode === "exam") { const pl = examPlan(key, dy.date); if (pl.over) return Infinity; return pl.newLeftToday + extra; }
+  if (dy.mode === "exam") { const pl = examPlan(key, dy.date, dy.buffer); if (pl.over) return Infinity; return pl.newLeftToday + extra; }
   if (!dy.n) return Infinity;
   return Math.max(0, dy.n + extra - Object.keys(seenIds(key)).length);
 }
@@ -1664,7 +1679,8 @@ function dailyLabel(fid){
 function dailySheet(fid){
   const f = S.folders[fid]; if (!f) return;
   const own = dailyOwn(fid), ownerKey = quotaKey(fid), inh = !own && ownerKey !== fid ? S.folders[ownerKey] : null;
-  let mode = own ? own.mode : "fixed", n = own && own.mode === "fixed" ? own.n : (dailyOf(ownerKey).n ?? newLimit()), date = own && own.mode === "exam" ? own.date : "";
+  let mode = own ? own.mode : "fixed", n = own && own.mode === "fixed" ? own.n : (dailyOf(ownerKey).n ?? newLimit()), date = own && own.mode === "exam" ? own.date : "", buf = own && own.mode === "exam" && own.buffer != null ? own.buffer : null;
+  const BUFS = [null, 0, 1, 2, 3, 5, 7];
   const PRE = [5, 10, 15, 20, 30, 50];
   const tomorrow = dayKey(Date.now() + DAY);
   const body = () => `${head("Lernmenge pro Tag")}<p class="muted" style="margin:-4px 0 14px;font-size:14.5px">Für <b>${esc(f.name)}</b>${children(fid).length ? " und seine Unterordner" : ""}.${inh ? ` Im Moment gilt die Einstellung von „${esc(inh.name)}“.` : ""}</p>
@@ -1675,28 +1691,43 @@ function dailySheet(fid){
         <div class="dl-step"><button class="dl-pm" data-step="-1" aria-label="weniger">−</button><input class="in num" id="dlN" type="number" inputmode="numeric" min="1" max="999" value="${n || ""}" placeholder="unbegrenzt"><button class="dl-pm" data-step="1" aria-label="mehr">＋</button></div></div>
       <p class="muted" style="font-size:14px;margin:0 0 16px">Wiederholungen und neue Karten zusammen. Zuerst kommen fällige Wiederholungen, dann neue Karten.</p>`
     : `
-      <div class="field"><label for="dlD">Datum der Prüfung</label><input class="in" id="dlD" type="date" min="${tomorrow}" value="${date}"></div>
+      <div class="field" style="margin-bottom:10px"><label for="dlD">Datum der Prüfung</label>
+        <div class="dl-date ${date ? '' : 'empty'}"><span class="dl-cal" aria-hidden="true">${calIcon()}</span><span class="dl-dt" id="dlDt">${dateText()}</span><span class="dl-ch" aria-hidden="true">›</span>
+        <input id="dlD" type="date" min="${tomorrow}" value="${date}" aria-label="Datum der Prüfung"></div></div>
+      <div class="dl-quick">${[[7, "1 Woche"], [14, "2 Wochen"], [28, "4 Wochen"], [56, "8 Wochen"]].map(([d, l]) => `<button class="dl-qc" data-qd="${d}">in ${l}</button>`).join("")}</div>
+      <div class="field" style="margin:16px 0 6px"><label>Puffer vor der Prüfung</label></div>
+      <div class="dl-pre" id="dlBuf">${bufChips()}</div>
+      <p class="muted" style="font-size:13.5px;margin:8px 0 16px">An den Puffertagen kommen keine neuen Karten mehr – nur Wiederholen. „Auto“ wählt je nach Zeit bis zur Prüfung 0–3 Tage.</p>
       <div id="dlPlan">${planHTML()}</div>`}
     <button class="btn primary block" id="dlSave">Speichern</button>
     ${own && ownerKey === fid && (f.parentId || own) ? `<button class="pw-forgot" id="dlReset" type="button">${f.parentId ? "Einstellung des übergeordneten Ordners verwenden" : "Auf Standard zurücksetzen"}</button>` : ""}`;
+  const calIcon = () => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>`;
+  const dateText = () => { if (!date) return `<b>Datum wählen</b><small>Tippen, um den Kalender zu öffnen</small>`; const d = new Date(parseDay(date)), dl = daysUntil(date);
+    return `<b>${d.toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}</b><small>${d.getFullYear()} · ${dl > 1 ? `in ${dl} Tagen` : dl === 1 ? "morgen" : dl === 0 ? "heute" : "liegt in der Vergangenheit"}</small>`; };
+  const bufChips = () => BUFS.map(k => `<button class="dl-chip ${buf === k ? 'on' : ''}" data-db="${k == null ? 'auto' : k}">${k == null ? 'Auto' : k}</button>`).join("");
   const planHTML = () => {
     if (!date) return `<p class="muted" style="font-size:14.5px;margin:0 0 16px">Gib das Datum ein – Cardo rechnet aus, wie viele neue Karten du jeden Tag lernen musst, um bis zur Prüfung alles einmal gelernt und oft genug wiederholt zu haben.</p>`;
-    const pl = examPlan(fid, date);
+    const pl = examPlan(fid, date, buf);
     if (pl.over) return `<p class="muted" style="font-size:14.5px;margin:0 0 16px">Das Datum liegt nicht in der Zukunft.</p>`;
     if (!pl.newTotal) return `<div class="dl-plan"><b>Alle Karten sind schon gelernt.</b><span>Bis zur Prüfung (${fmtDay(date)}) wiederholst du nur noch, was fällig ist – spätestens am Tag davor kommt jede Karte noch einmal dran.</span></div>`;
     const endDay = dayKey(dayStart() + (pl.learnDays - 1) * DAY);
     return `<div class="dl-plan"><div class="dl-big num">${pl.perDay}</div><b>neue Karten pro Tag</b>
       <span>${plural(pl.newTotal, "neue Karte", "neue Karten")} · noch ${plural(pl.days, "Tag", "Tage")} bis ${fmtDay(date)}</span>
-      <span>Alle neuen Karten sind bis ${pl.learnDays === 1 ? "heute" : fmtDay(endDay)} dran${pl.buffer ? `, die letzten ${plural(pl.buffer, "Tag", "Tage")} sind nur zum Wiederholen` : ""}. Fällige Wiederholungen kommen jeden Tag dazu (grob geschätzt bis zu ~${Math.min(pl.newTotal, pl.perDay * 3)} pro Tag) – und spätestens am Tag vor der Prüfung ist jede Karte noch einmal dran.</span></div>`;
+      <span>Alle neuen Karten sind bis ${pl.learnDays === 1 ? "heute" : fmtDay(endDay)} dran${pl.buffer ? `, danach ${plural(pl.buffer, "Puffertag", "Puffertage")} nur zum Wiederholen` : ", ohne Puffertage"}${pl.auto ? " (automatisch)" : ""}.${pl.clipped ? ` Für ${plural(pl.want, "Puffertag", "Puffertage")} ist zu wenig Zeit – es bleibt mindestens ein Lerntag.` : ""} Fällige Wiederholungen kommen jeden Tag dazu (grob geschätzt bis zu ~${Math.min(pl.newTotal, pl.perDay * 3)} pro Tag) – und spätestens am Tag vor der Prüfung ist jede Karte noch einmal dran.</span></div>`;
   };
   const mount = root => {
     root.querySelectorAll("[data-dm]").forEach(b => b.addEventListener("click", () => { mode = b.dataset.dm; rerender(root); }));
     root.querySelectorAll("[data-dn]").forEach(b => b.addEventListener("click", () => { n = +b.dataset.dn; rerender(root); }));
     root.querySelectorAll("[data-step]").forEach(b => b.addEventListener("click", () => { n = Math.max(1, Math.min(999, (n || 0) + +b.dataset.step * ((n || 0) >= 50 ? 5 : 1))); const i = $("#dlN", root); i.value = n; root.querySelectorAll("[data-dn]").forEach(c => c.classList.toggle("on", +c.dataset.dn === n)); }));
     const ni = $("#dlN", root); if (ni) ni.addEventListener("input", () => { const v = parseInt(ni.value, 10); n = v > 0 ? Math.min(999, v) : 0; root.querySelectorAll("[data-dn]").forEach(c => c.classList.toggle("on", +c.dataset.dn === n)); });
-    const di = $("#dlD", root); if (di) di.addEventListener("input", () => { date = di.value; $("#dlPlan", root).innerHTML = planHTML(); });
+    const upd = () => { const dt = $("#dlDt", root); if (dt) { dt.innerHTML = dateText(); dt.parentElement.classList.toggle("empty", !date); } const pl = $("#dlPlan", root); if (pl) pl.innerHTML = planHTML(); };
+    const di = $("#dlD", root);
+    if (di) { const ch = () => { if (di.value) { date = di.value < tomorrow ? tomorrow : di.value; upd(); } }; di.addEventListener("input", ch); di.addEventListener("change", ch);
+      di.addEventListener("click", () => { try { di.showPicker && di.showPicker(); } catch (e) {} }); }
+    root.querySelectorAll("[data-qd]").forEach(b => b.addEventListener("click", () => { date = dayKey(dayStart() + (+b.dataset.qd) * DAY + DAY / 2); if (di) di.value = date; upd(); }));
+    const bb = $("#dlBuf", root); if (bb) bb.addEventListener("click", e => { const c = e.target.closest("[data-db]"); if (!c) return; buf = c.dataset.db === "auto" ? null : +c.dataset.db; bb.innerHTML = bufChips(); upd(); });
     $("#dlSave", root).addEventListener("click", () => {
-      if (mode === "exam") { if (!date || !(daysUntil(date) > 0)) { toast("Wähle ein Datum in der Zukunft."); return; } putFolder({ ...S.folders[fid], daily: { mode: "exam", date } }); toast("Prüfungsplan gespeichert"); }
+      if (mode === "exam") { if (!date || !(daysUntil(date) > 0)) { toast("Wähle ein Datum in der Zukunft."); return; } putFolder({ ...S.folders[fid], daily: buf == null ? { mode: "exam", date } : { mode: "exam", date, buffer: buf } }); toast("Prüfungsplan gespeichert"); }
       else { putFolder({ ...S.folders[fid], daily: { mode: "fixed", n: n || 0 } }); toast(n ? `${n} Karten pro Tag` : "Kein Tageslimit"); }
       closeSheet(); render();
     });
