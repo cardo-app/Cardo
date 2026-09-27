@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Cardo</title>
 <meta name="description" content="Cardo – Karteikarten lernen mit Spaced Repetition">
-<meta name="theme-color" content="#F5F6F8">
+<meta name="theme-color" content="#FFFFFF">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -19,9 +19,12 @@
 <link rel="apple-touch-startup-image" href="icons/splash/ipad-1210x834.png" media="(device-width: 834px) and (device-height: 1210px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'"><!-- lädt im Hintergrund: blockiert das erste Bild beim Start nicht -->
 <style>
-html{padding-top:env(safe-area-inset-top,0px)}
+/* Start: alles sofort weiß wie das Startbild von iOS (auch hinter der Statusleiste) – kein schwarzer Rand, kein Zucken */
+html{padding-top:env(safe-area-inset-top,0px);background:#fff}
+html:has(> body.splashing:not(.intro-day):not(.splash-quick)){animation:htmlNight .9s cubic-bezier(.45,0,.55,1) .95s forwards} /* wird dunkel, wenn der Startbildschirm Nacht wird */
+@keyframes htmlNight{to{background-color:#07090F}}
 /* Kein Zoomen: Doppeltipp-Zoom aus */
 html,body{touch-action:pan-x pan-y;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 input,textarea,select{font-size:max(16px,1em)}
@@ -1021,9 +1024,13 @@ function applyTheme(){
   b.classList.toggle("hearts", !!(t && t.hearts));
   ["tp","ts","ts2","tl","ti"].forEach(k => { if (t && t.flat) b.style.setProperty("--" + k, "3%"); else b.style.removeProperty("--" + k); });
   const r = document.documentElement.style, paper = getComputedStyle(b).getPropertyValue("--paper").trim();
-  r.backgroundColor = paper; r.colorScheme = dark ? "dark" : "light";
-  const tc = document.querySelector('meta[name="theme-color"]'); if (tc) { const c = getComputedStyle(b).backgroundColor; tc.setAttribute("content", c && c !== "rgba(0, 0, 0, 0)" ? c : (dark ? "#0F1115" : "#F5F6F8")); }
+  // Solange der Startbildschirm läuft, bleibt alles weiß wie das iOS-Startbild (sonst blitzt oben z. B. im Dunkelmodus Schwarz auf)
+  const booting = document.body.classList.contains("splashing");
+  r.backgroundColor = booting ? "" : paper; // "" → CSS-Startfarbe (weiß bzw. Nacht wie der Startbildschirm) r.colorScheme = dark ? "dark" : "light";
+  const tc = document.querySelector('meta[name="theme-color"]'); if (tc) { const c = getComputedStyle(b).backgroundColor; tc.setAttribute("content", booting ? "#FFFFFF" : c && c !== "rgba(0, 0, 0, 0)" ? c : (dark ? "#0F1115" : "#F5F6F8")); }
 }
+// Nach dem Startbildschirm die echte Hintergrundfarbe übernehmen
+new MutationObserver(() => { if (!document.body.classList.contains("splashing") && !document.documentElement.style.backgroundColor) applyTheme(); }).observe(document.body, { attributes: true, attributeFilter: ["class"] });
 function saveSettings(patch){
   S.set = { ...S.set, ...patch }; applyTheme(); render();
   try { localStorage.setItem("kartenfach-settings", JSON.stringify(S.set)); } catch {}
