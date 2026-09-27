@@ -630,7 +630,9 @@ body.authing #tabs{display:none}
 .sheet .seg button{font-size:16px}
 /* ---------- Startbildschirm (App-Icon mit Animation) ---------- */
 /* Start: weißer Bildschirm mit „C“ (= iOS-Startbild) → C+Punkt drehen 90° gegen den Uhrzeigersinn → Punkt fliegt hoch ins „Weltall“, Bildschirm wird dunkel → Punkt fällt in die Tab-Leiste und wird zu ihr */
-#splash{position:fixed;inset:0;z-index:200;display:grid;place-items:center;background:#fff;overflow:hidden;transition:opacity .35s ease,visibility .35s}
+#splash{position:fixed;inset:0;z-index:200;display:grid;place-items:center;background:#fff;overflow:hidden;transition:opacity .35s ease,visibility .35s;box-shadow:0 260px 0 #fff} /* Schatten = weiße Verlängerung nach unten, falls iOS den Bildschirm anfangs zu kurz misst */
+body:not(.intro-day):not(.splash-quick) #splash{animation:splashNightEdge .9s cubic-bezier(.45,0,.55,1) .95s forwards}
+@keyframes splashNightEdge{to{box-shadow:0 260px 0 #07090F}}
 #splash.out{opacity:0;visibility:hidden;pointer-events:none}
 /* Nacht-Ebene und Sterne nur über opacity animiert (läuft ruckelfrei auf der Grafikkarte) */
 #splash::before{content:"";position:absolute;inset:0;background:#07090F;opacity:0;will-change:opacity;animation:spNight .9s cubic-bezier(.45,0,.55,1) .95s forwards}
@@ -653,9 +655,13 @@ body.authing #tabs{display:none}
 .sp-ball.landed::after{display:none}
 .sp-ball.morph{z-index:3;animation:none;opacity:1;transform-origin:0 0}
 body.splashing #tabs{opacity:0}
+/* Fester, deckender Streifen hinter der Statusleiste: iOS übernimmt dessen Farbe oben (statt eines grauen Verlaufs) */
+#edgeTop{position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);z-index:45;background:var(--paper);pointer-events:none}
+body.splashing #edgeTop,html:has(> body > #intro) #edgeTop{z-index:215;background:#fff}
+body.splashing:not(.intro-day):not(.splash-quick) #edgeTop{animation:htmlNight .9s cubic-bezier(.45,0,.55,1) .95s forwards}
 body.intro-day #splash::before,body.intro-day #splash::after{display:none} /* erstes Öffnen: kein Nachthimmel, das Intro ist weiß wie das App-Icon */
 /* Intro beim ersten Anmelden: Kugel → Karteikarten-Fächer → Logo */
-#intro{position:fixed;inset:0;z-index:210;overflow:hidden;touch-action:none;animation:inIn .35s ease both}
+#intro{position:fixed;inset:0;z-index:210;overflow:hidden;touch-action:none;animation:inIn .35s ease both;background:#fff;box-shadow:0 260px 0 #fff}
 #intro .in-sky{position:absolute;inset:0;background:#fff}
 #intro .in-card{position:absolute;z-index:1;border-radius:14px;background:#1B1D23;box-shadow:0 14px 28px -12px rgba(27,29,35,.55);padding:16px 16px 0;display:flex;flex-direction:column;gap:9px;opacity:0;will-change:transform,opacity}
 #intro .in-card i{display:block;height:9px;border-radius:5px;background:rgba(255,255,255,.22)}
@@ -722,7 +728,7 @@ html.ios-standalone body{min-height:100lvh}
 </head>
 <body>
 
-<div id="splash" aria-hidden="true"><script>document.body.classList.add("splashing");try{if(!localStorage.getItem("cardo-intro-seen")&&!localStorage.getItem("sb-rormgkvthvisrctcsjrg-auth-token"))document.body.classList.add("intro-day");var cs=JSON.parse(localStorage.getItem("kartenfach-settings")||"{}")||{},cm=cs.splash||"daily",cd=new Date(),ck=cd.getFullYear()+"-"+(cd.getMonth()+1)+"-"+cd.getDate();if(cm==="never"||(cm==="daily"&&localStorage.getItem("cardo-splash-day")===ck))document.body.classList.add("splash-quick");else localStorage.setItem("cardo-splash-day",ck)}catch(e){}</script><div class="sp-stage"><div class="sp-l sp-arc"><svg viewBox="0 0 512 512"><path d="M320 165A116 116 0 1 0 320 347" fill="none" stroke="#1B1D23" stroke-width="60" stroke-linecap="round"/></svg></div><div class="sp-l sp-dot"><svg viewBox="0 0 512 512"><circle cx="350" cy="256" r="29" fill="#FF5A36"/></svg></div></div><div class="sp-ball"></div></div>
+<div id="edgeTop" aria-hidden="true"></div><div id="splash" aria-hidden="true"><script>document.body.classList.add("splashing");try{if(!localStorage.getItem("cardo-intro-seen")&&!localStorage.getItem("sb-rormgkvthvisrctcsjrg-auth-token"))document.body.classList.add("intro-day");var cs=JSON.parse(localStorage.getItem("kartenfach-settings")||"{}")||{},cm=cs.splash||"daily",cd=new Date(),ck=cd.getFullYear()+"-"+(cd.getMonth()+1)+"-"+cd.getDate();if(cm==="never"||(cm==="daily"&&localStorage.getItem("cardo-splash-day")===ck))document.body.classList.add("splash-quick");else localStorage.setItem("cardo-splash-day",ck)}catch(e){}</script><div class="sp-stage"><div class="sp-l sp-arc"><svg viewBox="0 0 512 512"><path d="M320 165A116 116 0 1 0 320 347" fill="none" stroke="#1B1D23" stroke-width="60" stroke-linecap="round"/></svg></div><div class="sp-l sp-dot"><svg viewBox="0 0 512 512"><circle cx="350" cy="256" r="29" fill="#FF5A36"/></svg></div></div><div class="sp-ball"></div></div>
 <div id="app">
   <main id="main"><div class="loading">Cardo lädt …</div></main>
 </div>
