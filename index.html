@@ -269,7 +269,7 @@ body.studying #main{max-width:760px;padding-bottom:24px}
 .bar{flex:1;height:8px;border-radius:99px;background:var(--line);overflow:hidden}
 .bar i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .25s ease}
 .study-count{font-size:14.5px;font-weight:700;color:var(--muted);min-width:64px;text-align:right}
-.flash{background:var(--surface);border-radius:26px;box-shadow:var(--shadow);min-height:min(56vh,480px);display:flex;flex-direction:column;overflow:hidden;cursor:pointer;border-top:8px solid var(--c,var(--accent))}
+.flash{background:var(--surface);border-radius:26px;box-shadow:var(--shadow);min-height:min(56vh,480px);display:flex;flex-direction:column;overflow:hidden;cursor:pointer;border-top:8px solid color-mix(in oklab,var(--ink) 9%,var(--surface))}
 .rev-tag{margin-left:auto;color:var(--accent-text);background:var(--accent-soft);border-radius:99px;padding:2px 8px;white-space:nowrap}
 .flash-src{font-size:13px;font-weight:700;color:var(--muted);padding:14px 20px 0;display:flex;gap:6px;align-items:center}
 .flash-face{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;padding:22px 24px;font-size:var(--fs-card);font-weight:600;line-height:1.35;white-space:pre-wrap;overflow-wrap:anywhere}
@@ -1637,7 +1637,7 @@ function textPickerHTML(){
   const cur = S.set.textSize || "m";
   return `<div class="seg" role="radiogroup" aria-label="Textgröße">${TS.map(([k, l, px]) => `<button class="${cur === k ? 'on' : ''}" data-act="setTextSize" data-v="${k}" role="radio" aria-checked="${cur === k}"><span style="font-size:${px}px;font-weight:800;line-height:1">A</span>${l}</button>`).join("")}</div>
     <div class="lbl" style="margin:18px 0 8px">Beispielkarte</div>
-    <div class="flash sample flipped" style="--c:var(--accent)">
+    <div class="flash sample flipped">
       <div class="flash-src">Musterkarte</div>
       <div class="flash-face">Vorderseite</div>
       <div class="flash-face flash-back">Rückseite</div>
@@ -1658,7 +1658,7 @@ const fxName = () => (FX_MODES.find(m => m[0] === fxMode()) || FX_MODES[0])[1];
 function animPickerHTML(){
   const m = fxMode();
   return `<div class="lbl" style="margin:0 0 8px">Vorschau</div>
-    <div class="demo-stage"><div class="flash sample demo-card flipped" id="demoCard" style="--c:var(--accent)"><div class="flash-src">Musterkarte</div><div class="flash-face">Vorderseite</div><div class="flash-face flash-back">Rückseite</div></div></div>
+    <div class="demo-stage"><div class="flash sample demo-card flipped" id="demoCard"><div class="flash-src">Musterkarte</div><div class="flash-face">Vorderseite</div><div class="flash-face flash-back">Rückseite</div></div></div>
     <div class="demo-grades" style="grid-template-columns:repeat(${gradeSet().length},1fr)">${gradeSet().map((o, i) => `<button class="grade" style="--g:var(${GRADE_VARS[o.v]})" data-act="demoGrade" data-g="${i}">${o.l}</button>`).join("")}</div>
     <p class="muted" style="font-size:14.5px;margin:8px 2px 18px;text-align:center">Tippe auf eine Bewertung, um zu sehen, wie die Karte reagiert.</p>
     <div class="gs-list" role="radiogroup" aria-label="Effekt">${FX_MODES.map(([k, l, d]) => `<button class="gs-opt fx-opt ${m === k ? 'on' : ''}" data-act="setFxMode" data-v="${k}" role="radio" aria-checked="${m === k}"><span class="fx-t"><b>${l}</b><span>${d}</span></span><span class="gs-ck" aria-hidden="true">${m === k ? '✓' : ''}</span></button>`).join("")}</div>`;
@@ -1980,7 +1980,7 @@ function studyHTML(){
   const f = S.folders[cur.fid], now = Date.now();
   const opts = curGrades();
   const fresh = st.shown !== cur.id + ":" + st.done; st.shown = cur.id + ":" + st.done; const jf = st.justFlipped; st.justFlipped = false;
-  return top + `<div class="flash ${fresh ? 'card-in' : ''} ${jf ? 'flipped-in' : ''} ${st.flipped ? 'flipped' : ''}" data-act="flip" style="--c:${esc(colorOf(f))}">
+  return top + `<div class="flash ${fresh ? 'card-in' : ''} ${jf ? 'flipped-in' : ''} ${st.flipped ? 'flipped' : ''}" data-act="flip">
     <div class="flash-src">${emo(f) ? esc(emo(f)) + ' ' : ''}${pathOf(cur.fid).map(x => esc(x.name)).join(" › ")}${cur.rev ? '<span class="rev-tag">⇄ Rückseite zuerst</span>' : ''}</div>
     <div class="flash-face">${esc(cur.rev ? cur.c.b : cur.c.f)}</div>
     ${st.flipped ? `<div class="flash-face flash-back">${esc(cur.rev ? cur.c.f : cur.c.b)}</div>` : ''}</div>
