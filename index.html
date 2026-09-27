@@ -141,7 +141,7 @@ html,body{overflow-x:clip}
 body.studying #main{max-width:760px;padding-bottom:24px}
 
 /* Tabs */
-#tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;transition:none;display:flex;justify-content:space-around;background:color-mix(in oklab,var(--surface) 88%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px))}
+#tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;transition:none;display:flex;justify-content:space-around;background:var(--surface);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px))}
 #tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;font-weight:600;color:var(--muted);padding:6px 0;position:relative}
 #tabs button.on{color:var(--accent-text)}
 #tabs svg{width:24px;height:24px;stroke-width:1.6;transform:scale(.84);transition:stroke-width .15s ease,transform .15s ease}
@@ -698,7 +698,7 @@ html.android,html.android body{overscroll-behavior-y:none}
 /* Nur scrollen, wenn wirklich Inhalt folgt: kein Nachfedern, kein Scrollbalken */
 html,body{overscroll-behavior:none}
 /* Beim Seitenwischen: Tab-Leiste ohne Weichzeichner (der müsste sonst in jedem Bild neu berechnet werden) */
-body.swiping #tabs{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--surface)}
+/* Tab-Leiste immer deckend (kein Weichzeichner): kein Aufblitzen nach dem Wischen, weniger Rechenarbeit */
 /* Wenn es wirklich etwas zu scrollen gibt: natürliches Auslaufen/Nachfedern am Rand (weicher), aber kein Pull-to-Refresh */
 html.can-scroll,html.can-scroll body{overscroll-behavior-y:contain}
 html.no-scroll{overflow-y:hidden}
