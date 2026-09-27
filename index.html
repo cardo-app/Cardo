@@ -341,7 +341,8 @@ g.b:hover .barm{filter:brightness(1.12)}
 .dl-chip.on{border-color:var(--ink)}
 .dl-step{display:flex;gap:8px;align-items:center}
 .dl-step .in{text-align:center;font-size:18px;font-weight:700}
-.dl-pm{flex:none;width:46px;height:46px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);font-size:22px;font-weight:700}
+.dl-pm{flex:none;width:46px;height:46px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);font-size:22px;font-weight:700;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:none;transition:transform .12s ease,background .12s ease}
+.dl-pm.held{transform:scale(.92);background:color-mix(in oklab,var(--ink) 12%,var(--surface-2))}
 .dl-bufrow{grid-template-columns:repeat(6,1fr) 1.9fr}
 .dl-bin{flex:1;position:relative}
 .dl-bin .in{text-align:center;font-size:18px;font-weight:700;padding-right:44px;padding-left:44px}
@@ -1680,6 +1681,16 @@ function dailyLabel(fid){
   if (dy.mode === "exam") { const pl = examPlan(key, dy.date); return pl.over ? "Prüfung vorbei" : `Prüfung ${new Date(parseDay(dy.date)).toLocaleDateString("de-DE", { day: "numeric", month: "short" })}`; }
   return dy.n ? `${dy.n} pro Tag` : "Unbegrenzt";
 }
+/* Gedrückt halten = schnell weiterzählen: erst ein Schritt, nach kurzer Pause wiederholt und immer schneller. */
+function holdRepeat(el, step){
+  let t = null, n = 0;
+  const stop = () => { clearTimeout(t); t = null; el.classList.remove("held"); };
+  const tick = () => { n++; if (step() === false) return stop(); t = setTimeout(tick, n < 6 ? 140 : n < 16 ? 80 : 40); };
+  el.addEventListener("pointerdown", e => { if (e.button > 0) return; e.preventDefault(); stop(); n = 0; el.classList.add("held"); if (step() === false) return stop(); t = setTimeout(tick, 380); });
+  ["pointerup", "pointerleave", "pointercancel", "blur"].forEach(ev => el.addEventListener(ev, stop));
+  el.addEventListener("contextmenu", e => e.preventDefault());
+  el.addEventListener("click", e => { if (e.detail === 0) step(); }); // Tastatur (Enter/Leertaste)
+}
 function dailySheet(fid){
   const f = S.folders[fid]; if (!f) return;
   const own = dailyOwn(fid), ownerKey = quotaKey(fid), inh = !own && ownerKey !== fid ? S.folders[ownerKey] : null;
@@ -1726,7 +1737,7 @@ function dailySheet(fid){
   const mount = root => {
     root.querySelectorAll("[data-dm]").forEach(b => b.addEventListener("click", () => { mode = b.dataset.dm; rerender(root); }));
     root.querySelectorAll("[data-dn]").forEach(b => b.addEventListener("click", () => { n = +b.dataset.dn; rerender(root); }));
-    root.querySelectorAll("[data-step]").forEach(b => b.addEventListener("click", () => { n = Math.max(1, Math.min(999, (n || 0) + +b.dataset.step * ((n || 0) >= 50 ? 5 : 1))); const i = $("#dlN", root); i.value = n; root.querySelectorAll("[data-dn]").forEach(c => c.classList.toggle("on", +c.dataset.dn === n)); }));
+    root.querySelectorAll("[data-step]").forEach(b => holdRepeat(b, () => { const d = +b.dataset.step, old = n || 0; n = Math.max(1, Math.min(999, old + d * (old + (d < 0 ? -1 : 0) >= 50 ? 5 : 1))); const i = $("#dlN", root); i.value = n; root.querySelectorAll("[data-dn]").forEach(c => c.classList.toggle("on", +c.dataset.dn === n)); if (n === old) return false; }));
     const ni = $("#dlN", root); if (ni) ni.addEventListener("input", () => { const v = parseInt(ni.value, 10); n = v > 0 ? Math.min(999, v) : 0; root.querySelectorAll("[data-dn]").forEach(c => c.classList.toggle("on", +c.dataset.dn === n)); });
     const upd = () => { const dt = $("#dlDt", root); if (dt) { dt.innerHTML = dateText(); dt.parentElement.classList.toggle("empty", !date); } const pl = $("#dlPlan", root); if (pl) pl.innerHTML = planHTML(); };
     const di = $("#dlD", root);
@@ -1736,10 +1747,9 @@ function dailySheet(fid){
     const bb = $("#dlBuf", root);
     const clampBuf = () => { if (buf != null) buf = Math.max(0, Math.min(maxBuf(), buf)); };
     const drawBuf = () => { if (!bb) return; bb.innerHTML = bufChips(); const bi = $("#dlB", bb);
-      if (bi) bi.addEventListener("input", () => { const v = parseInt(bi.value, 10); if (isNaN(v)) return; buf = v; clampBuf(); if (buf !== v) bi.value = buf; bi.nextElementSibling.textContent = buf === 1 ? "Tag" : "Tage"; upd(); }); };
+      if (bi) bi.addEventListener("input", () => { const v = parseInt(bi.value, 10); if (isNaN(v)) return; buf = v; clampBuf(); if (buf !== v) bi.value = buf; bi.nextElementSibling.textContent = buf === 1 ? "Tag" : "Tage"; upd(); });
+      bb.querySelectorAll("[data-bstep]").forEach(b => holdRepeat(b, () => { const old = buf ?? 0; buf = old + +b.dataset.bstep; clampBuf(); if (bi) { bi.value = buf; bi.nextElementSibling.textContent = buf === 1 ? "Tag" : "Tage"; } upd(); if (buf === old) return false; })); };
     if (bb) bb.addEventListener("click", e => {
-      const st = e.target.closest("[data-bstep]");
-      if (st) { buf = (buf ?? 0) + +st.dataset.bstep; clampBuf(); drawBuf(); upd(); return; }
       const c = e.target.closest("[data-db]"); if (!c) return;
       if (c.dataset.db === "custom") { if (!bufCustom) { bufCustom = true; if (buf == null) buf = date && daysUntil(date) > 0 ? autoBuffer(daysUntil(date)) : 3; clampBuf(); } }
       else { bufCustom = false; buf = c.dataset.db === "auto" ? null : +c.dataset.db; }
