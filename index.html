@@ -384,6 +384,10 @@ textarea.in{min-height:92px;resize:vertical;line-height:1.4}
 .row2{display:flex;gap:8px;flex-wrap:wrap}
 .sheet-foot{display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;margin-top:6px}
 .sheet-foot .r{display:flex;gap:8px;margin-left:auto}
+.new-card-foot{align-items:center;flex-wrap:nowrap}
+.new-card-foot .btn.primary{margin-left:auto;padding-left:22px;padding-right:22px}
+.btn-quiet{background:none;border:0;padding:10px 4px;font:inherit;font-size:14.5px;font-weight:650;color:var(--muted);cursor:pointer;white-space:nowrap}
+.btn-quiet:hover{color:var(--ink)}
 .pv{font-size:14.5px;background:var(--surface-2);border-radius:12px;padding:10px 12px;border:1px solid var(--line)}
 .pv div{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:4px 0;border-top:1px solid var(--line)}
 .pv div:first-of-type{border-top:0}
@@ -2246,7 +2250,8 @@ function cardSheet(fid, id){
     <div class="field"><label for="cb">Rückseite</label><textarea class="in" id="cb" placeholder="Antwort">${esc(ex ? ex.b : "")}</textarea></div>
     <div class="field"><label for="cfo">Ordner</label><select class="in" id="cfo">${folderOptions(fid)}</select></div>
     ${ex ? `<div class="muted" style="font-size:14.5px;margin-bottom:14px">${ex.reps ? `${plural(ex.reps, 'Wiederholung', 'Wiederholungen')} · nächste ${isDue(ex) ? 'jetzt' : 'in ' + fmtIvl(ex.due - Date.now()).replace('< ','')}` : 'Noch nicht gelernt'}</div>` : ''}
-    <div class="sheet-foot">${ex ? `<button class="btn danger" id="cdel">Löschen</button>` : ''}<div class="r">${ex ? `<button class="btn" data-act="close">Abbrechen</button>` : `<button class="btn" id="cnext">Speichern & weiter</button>`}<button class="btn primary" id="csave">Speichern</button></div></div>`,
+    ${ex ? `<div class="sheet-foot"><button class="btn danger" id="cdel">Löschen</button><div class="r"><button class="btn" data-act="close">Abbrechen</button><button class="btn primary" id="csave">Speichern</button></div></div>`
+      : `<div class="sheet-foot new-card-foot"><button class="btn-quiet" id="csave">Speichern &amp; schließen</button><button class="btn primary" id="cnext">Nächste Karte →</button></div>`}`,
   root => {
     const save = () => {
       const f = $("#cf", root).value.trim(), b = $("#cb", root).value.trim(), to = $("#cfo", root).value;
@@ -2255,7 +2260,9 @@ function cardSheet(fid, id){
       else putCard(to, { id: uid(), f, b, due: Date.now(), ivl: 0, ease: 2.5, reps: 0, lapses: 0, created: Date.now() });
       return true;
     };
-    $("#csave", root).addEventListener("click", () => { if (save()) { closeSheet(); toast(ex ? "Gespeichert" : "Karte angelegt"); } });
+    $("#csave", root).addEventListener("click", () => {
+      if (!ex && !$("#cf", root).value.trim() && !$("#cb", root).value.trim()) { closeSheet(); return; } // leere neue Karte: einfach schließen
+      if (save()) { closeSheet(); toast(ex ? "Gespeichert" : "Karte angelegt"); } });
     const nx = $("#cnext", root); if (nx) nx.addEventListener("click", () => { if (save()) { $("#cf", root).value = ""; $("#cb", root).value = ""; $("#cf", root).focus(); toast("Karte angelegt"); } });
     const del = $("#cdel", root); if (del) del.addEventListener("click", () => armDelete(del, () => { delCard(fid, ex.id); closeSheet(); toast("Karte gelöscht"); }));
   });
