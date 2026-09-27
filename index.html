@@ -657,7 +657,7 @@ body:not(.intro-day):not(.splash-quick) #splash{animation:splashNightEdge .9s cu
 body.splashing #tabs{opacity:0}
 /* Fester, deckender Streifen hinter der Statusleiste: iOS übernimmt dessen Farbe oben (statt eines grauen Verlaufs) */
 #edgeTop{position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);z-index:45;background:var(--paper);pointer-events:none}
-body.splashing #edgeTop,html:has(> body > #intro) #edgeTop{z-index:215;background:#fff}
+body.splashing #edgeTop,html:has(> body > #intro:not(.out):not(.out-fast)) #edgeTop{z-index:215;background:#fff}
 body.splashing:not(.intro-day):not(.splash-quick) #edgeTop{animation:htmlNight .9s cubic-bezier(.45,0,.55,1) .95s forwards}
 body.intro-day #splash::before,body.intro-day #splash::after{display:none} /* erstes Öffnen: kein Nachthimmel, das Intro ist weiß wie das App-Icon */
 /* Intro beim ersten Anmelden: Kugel → Karteikarten-Fächer → Logo */
@@ -672,7 +672,8 @@ body.intro-day #splash::before,body.intro-day #splash::after{display:none} /* er
 #intro .in-mark svg{width:100%;height:100%;display:block}
 #intro .in-ball{position:absolute;z-index:7;border-radius:50%;background:#FF5A36;will-change:transform}
 #intro .in-skip{position:absolute;left:0;right:0;bottom:calc(22px + env(safe-area-inset-bottom,0px));text-align:center;font-size:13px;color:rgba(27,29,35,.4);animation:inIn 1s ease 1.2s both}
-#intro.out .in-sky,#intro.out .in-card,#intro.out .in-skip{transition:opacity .5s ease;opacity:0!important}
+#intro.out{transition:background-color .55s ease,box-shadow .55s ease;background-color:transparent;box-shadow:0 260px 0 transparent}
+#intro.out .in-sky,#intro.out .in-card,#intro.out .in-skip{transition:opacity .55s ease;opacity:0!important}
 #intro.out .in-mark{transition:opacity .3s ease .3s,box-shadow .5s ease;opacity:0!important;box-shadow:none}
 #intro.out-fast{transition:opacity .28s ease;opacity:0}
 @keyframes inIn{from{opacity:0}to{opacity:1}}
@@ -701,7 +702,7 @@ body.splash-quick #splash{transition:opacity .28s ease,visibility .28s}
 #toast{bottom:calc(92px + env(safe-area-inset-bottom,0px) - var(--vgap,0px))}
 #splash,#intro,.peek,#sheet{bottom:calc(0px - var(--vgap,0px))}
 /* Während des Intros bleibt der Rand hinter allem weiß (sonst blitzt unten im Dunkelmodus ein dunkler Streifen auf) */
-html:has(> body > #intro){background-color:#fff!important}
+html:has(> body > #intro:not(.out):not(.out-fast)){background-color:#fff!important}
 /* iOS 26: in der installierten App ist die bemalbare Fläche zu kurz, wenn html nur 100% hoch ist – mit 100lvh reicht sie bis zum unteren Rand */
 @media (display-mode: standalone){html{height:100lvh;min-height:100lvh}body{min-height:100lvh}}
 html.ios-standalone{height:100lvh;min-height:100lvh}
@@ -865,6 +866,8 @@ function playIntro(opts = {}){
     if (done) return; done = true; introSkip = null; timers.forEach(clearTimeout);
     try { localStorage.setItem(INTRO_KEY, "1"); } catch {}
     ov.classList.add(fast ? "out-fast" : "out"); setTimeout(() => { anims.forEach(a => { try { a.cancel(); } catch {} }); ov.remove(); }, fast ? 300 : 650);
+    // Übergang in die Anmeldung: Titel, Untertitel, Tabs und Formular gleiten nacheinander von unten ein, während das Intro ausblendet
+    if (!opts.center) document.querySelectorAll(".auth-logo h1,.auth-logo p,.auth-seg,.auth-form").forEach((e, i) => { try { e.animate([{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "none" }], { duration: 560, delay: (fast ? 0 : 80) + i * 80, easing: "cubic-bezier(.2,.8,.2,1)", fill: "backwards" }); } catch {} });
     opts.onEnd && opts.onEnd();
   };
   introSkip = () => end(true);
