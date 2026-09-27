@@ -321,7 +321,49 @@ g.b:hover .barm{filter:brightness(1.12)}
 .mrow:first-of-type{border-top:0}
 .mrow .nm{display:flex;gap:7px;align-items:center;min-width:0}
 .mrow .nm span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
-.stack{display:flex;gap:2px;height:12px}
+.stack{display:flex;gap:2px;height:14px}
+.sg-new{background:color-mix(in oklab,var(--ink) 14%,var(--surface))}
+.sg-learn{background:var(--hard)}
+.sg-firm{background:var(--easy)}
+.legend i.sg-new,.legend i.sg-learn,.legend i.sg-firm{display:inline-block}
+button.mrow{width:100%;text-align:left;font:inherit;color:inherit;background:none;border:0;border-top:1px solid var(--line);cursor:pointer;border-radius:0}
+button.mrow:first-of-type{border-top:0}
+button.mrow:hover .nm span:last-child{text-decoration:underline;text-decoration-color:var(--line)}
+.mrow .n .ch{margin-left:6px;color:var(--muted);font-size:17px}
+.chart-wrap.fit svg{min-width:0;max-width:620px;margin:0 auto}
+.today-band{fill:color-mix(in oklab,var(--ink) 6%,transparent)}
+.barm.past{fill:color-mix(in oklab,var(--accent) 36%,var(--surface))}
+.barm.fut{fill:none;stroke:var(--muted);stroke-width:1.4;stroke-dasharray:3 2.5}
+.axis.now{fill:var(--ink);font-weight:800}
+.axis.vlab{fill:var(--ink);font-weight:800;font-size:13px}
+.legend i.lg-past{background:color-mix(in oklab,var(--accent) 36%,var(--surface))}
+.legend i.lg-today{background:var(--ink)}
+.legend i.lg-fut{background:none;border:1.4px dashed var(--muted);box-sizing:border-box}
+.legend i.lg-actual{background:var(--easy);height:3px;width:16px;vertical-align:3px}
+.legend i.lg-guide{background:none;border-top:2px dashed var(--muted);height:0;width:16px;vertical-align:3px;border-radius:0}
+.guide{stroke:var(--muted);stroke-width:2;stroke-dasharray:6 5}
+.nowl{stroke:color-mix(in oklab,var(--ink) 25%,transparent);stroke-width:1}
+.actual{fill:none;stroke:var(--easy);stroke-width:3;stroke-linejoin:round;stroke-linecap:round}
+.actual-area{fill:color-mix(in oklab,var(--easy) 14%,transparent)}
+.actual-dot{fill:var(--easy);stroke:var(--surface);stroke-width:2.5}
+.actual-dot.bad{fill:var(--again)}
+.hit{fill:transparent}
+.ex-status{display:flex;gap:10px;align-items:flex-start;padding:11px 12px;border-radius:12px;font-size:14px;line-height:1.35;background:var(--surface-2)}
+.ex-status b{display:block;font-size:15px}
+.ex-status.warn{background:color-mix(in oklab,var(--again) 13%,var(--surface));color:var(--ink);border:1.5px solid color-mix(in oklab,var(--again) 55%,transparent)}
+.ex-status.warn b{color:var(--again)}
+.ex-status.ok{background:color-mix(in oklab,var(--good) 12%,var(--surface))}
+.ex-status.ok b{color:var(--good)}
+.ex-ic{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:15px;color:#fff;background:var(--good)}
+.ex-status.warn .ex-ic{background:var(--again)}
+.panel.sub{box-shadow:none;border:1px solid var(--line);margin:14px 0 0}
+.panel.sub h3{margin-top:0}
+.fs-h{display:flex;align-items:center;gap:9px}
+.fs-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.fs-tiles .stat span{display:flex;align-items:center;gap:6px}
+.fs-tiles .stat span i{width:10px;height:10px;border-radius:3px;flex:none}
+.fs-hint{display:flex;align-items:center;gap:12px;justify-content:space-between;font-size:14px;color:var(--muted);padding:12px 14px}
+.fs-hint .btn{flex:none}
 .stack i{display:block;height:100%;border-radius:4px;min-width:0}
 .mrow .n{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums;font-size:14.5px}
 
@@ -1045,7 +1087,7 @@ const THEMES = [
 ];
 const NEUTRAL = [["light","Hell"],["dark","Dunkel"],["auto","System"]];
 S.set = { look: "auto", layout: "grid", textSize: "m", fxMode: "full", gradeSet: "4", newPerDay: 20, splash: "daily" };
-S.seen = {}; S.extraNew = {}; S.lastExport = 0; // pro Tag und Hauptordner: heute gelernte Karten (IDs) / Zusatzkontingent
+S.seen = {}; S.extraNew = {}; S.lastExport = 0; S.fdays = {}; S.prog = {}; // pro Tag und Hauptordner: heute gelernte Karten (IDs) / Zusatzkontingent
 const NEW_OPTS = [5, 10, 15, 20, 30, 50, 0]; // 0 = unbegrenzt
 const newLimit = () => (S.set.newPerDay ?? 20);
 const newLimitLabel = k => k === 0 ? "Unbegrenzt" : String(k);
@@ -1096,8 +1138,8 @@ applyTheme();
 
 /* ---------- Storage (cloud db, local fallback) ---------- */
 const LS = "kartenfach-data-v1";
-function loadLocal(){ try { const d = JSON.parse(localStorage.getItem(LS) || "null"); if (d) { S.folders = d.folders||{}; S.decks = d.decks||{}; S.days = d.days||{}; S.seen = d.seen||{}; S.lastExport = d.lastExport||0; S.extraNew = d.extraNew||{}; S.sections = d.sections||{}; } } catch {} }
-function saveLocal(){ try { localStorage.setItem(LS, JSON.stringify({folders:S.folders, decks:S.decks, days:S.days, seen:S.seen, lastExport:S.lastExport||0, extraNew:S.extraNew, sections:S.sections})); } catch { toast("Speicher auf diesem Gerät ist voll."); } }
+function loadLocal(){ try { const d = JSON.parse(localStorage.getItem(LS) || "null"); if (d) { S.folders = d.folders||{}; S.decks = d.decks||{}; S.days = d.days||{}; S.seen = d.seen||{}; S.lastExport = d.lastExport||0; S.extraNew = d.extraNew||{}; S.sections = d.sections||{}; S.fdays = d.fdays||{}; S.prog = d.prog||{}; } } catch {} }
+function saveLocal(){ try { localStorage.setItem(LS, JSON.stringify({folders:S.folders, decks:S.decks, days:S.days, seen:S.seen, lastExport:S.lastExport||0, extraNew:S.extraNew, sections:S.sections, fdays:S.fdays||{}, prog:S.prog||{}})); } catch { toast("Speicher auf diesem Gerät ist voll."); } }
 const queues = {};
 function enqueue(path, fn){
   const p = (queues[path] || Promise.resolve()).then(fn).catch(e => { console.warn(path, e); toast(errText(e)); });
@@ -1146,14 +1188,17 @@ function writeDeck(fid){
 }
 function putCard(fid, c){ S.decks[fid] = { ...(S.decks[fid]||{}), [c.id]: c }; render(); writeDeck(fid); }
 function delCard(fid, id){ const d = { ...(S.decks[fid]||{}) }; delete d[id]; S.decks[fid] = d; render(); writeDeck(fid); }
+const keepDays = (o, n) => { const min = dayKey(Date.now() - n * DAY), out = {}; for (const k in (o || {})) if (k >= min) out[k] = o[k]; return out; };
 const keepToday = o => { const k = dayKey(), out = {}; if (o && o[k]) out[k] = o[k]; return out; };
 function saveStats(){
-  S.seen = keepToday(S.seen); S.extraNew = keepToday(S.extraNew);
-  if (DB) enqueue("stats/main", () => DB.doc("stats/main").set({ days: S.days, seen: S.seen, extraNew: S.extraNew, lastExport: S.lastExport || 0 })); else saveLocal();
+  S.seen = keepToday(S.seen); S.extraNew = keepToday(S.extraNew); S.fdays = keepDays(S.fdays, 120);
+  if (DB) enqueue("stats/main", () => DB.doc("stats/main").set({ days: S.days, seen: S.seen, extraNew: S.extraNew, lastExport: S.lastExport || 0, fdays: S.fdays || {}, prog: S.prog || {} })); else saveLocal();
 }
 function logReview(fid, cid, wasNew){
   const k = dayKey(); S.days = { ...S.days, [k]: (S.days[k]||0) + 1 };
   const t = quotaKey(fid), day = { ...((S.seen||{})[k] || {}) }; if (!(day[t] || {})[cid]) { day[t] = { ...(day[t] || {}), [cid]: wasNew ? 2 : 1 }; S.seen = { ...S.seen, [k]: day }; }
+  const fd = { ...((S.fdays||{})[k] || {}) }; fd[fid] = (fd[fid] || 0) + 1; S.fdays = { ...S.fdays, [k]: fd };
+  snapProg(t);
   saveStats();
 }
 
@@ -1225,7 +1270,7 @@ async function bootClaude(){
   DB.collection("sections").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = d.data(); }); S.sections = o; render(); });
   DB.collection("folders").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = d.data(); }); S.folders = o; S.loaded.f = true; render(); });
   DB.collection("cards").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = { ...((d.data()||{}).cards || {}) }; }); S.decks = o; S.loaded.c = true; render(); });
-  DB.doc("stats/main").onSnapshot(d => { const x = d.exists ? (d.data()||{}) : {}; S.days = { ...(x.days || {}) }; S.seen = { ...(x.seen || {}) }; S.lastExport = x.lastExport || 0; S.extraNew = { ...(x.extraNew || {}) }; S.loaded.s = true; render(); });
+  DB.doc("stats/main").onSnapshot(d => { const x = d.exists ? (d.data()||{}) : {}; S.days = { ...(x.days || {}) }; S.seen = { ...(x.seen || {}) }; S.lastExport = x.lastExport || 0; S.extraNew = { ...(x.extraNew || {}) }; S.fdays = { ...(x.fdays || {}) }; S.prog = { ...(x.prog || {}) }; S.loaded.s = true; render(); });
 }
 async function boot(){
   if (!window.supabase && window.claude && window.claude.use) return bootClaude();
@@ -1262,7 +1307,7 @@ function startApp(){
   DB.collection("sections").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = d.data(); }); S.sections = o; render(); });
   DB.collection("folders").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = d.data(); }); S.folders = o; S.loaded.f = true; render(); });
   DB.collection("cards").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = { ...((d.data()||{}).cards || {}) }; }); S.decks = o; S.loaded.c = true; render(); });
-  DB.doc("stats/main").onSnapshot(d => { const x = d.exists ? (d.data()||{}) : {}; S.days = { ...(x.days || {}) }; S.seen = { ...(x.seen || {}) }; S.lastExport = x.lastExport || 0; S.extraNew = { ...(x.extraNew || {}) }; S.loaded.s = true; render(); });
+  DB.doc("stats/main").onSnapshot(d => { const x = d.exists ? (d.data()||{}) : {}; S.days = { ...(x.days || {}) }; S.seen = { ...(x.seen || {}) }; S.lastExport = x.lastExport || 0; S.extraNew = { ...(x.extraNew || {}) }; S.fdays = { ...(x.fdays || {}) }; S.prog = { ...(x.prog || {}) }; S.loaded.s = true; render(); });
   DB.load().then(() => DB.flush()).catch(e => { console.warn(e); toast(navigator.onLine ? "Laden fehlgeschlagen. Versuch es gleich noch einmal." : "Offline: Du siehst den zuletzt gespeicherten Stand."); })
     .finally(() => { S.mode = "cloud"; render(); });
 }
@@ -1431,6 +1476,30 @@ function capForExam(fid, c){
   const dy = dailyOf(quotaKey(fid)); if (dy.mode !== "exam") return c;
   const eve = parseDay(dy.date) - DAY; if (!(eve > Date.now()) || (c.due || 0) <= eve) return c;
   return { ...c, due: eve };
+}
+/* Lernstand für die Statistik: Neu · Lernend · Gefestigt.
+   Gefestigt = Abstand ≥ 21 Tage – oder, wenn für den Ordner eine Prüfung eingetragen ist: Die Karte sitzt so sicher
+   (Abstand ≥ 3 Tage), dass sie ohne Prüfungs-Begrenzung erst am oder nach dem Prüfungstag wieder dran wäre. */
+function examDateOf(fid){ const dy = dailyOf(quotaKey(fid)); return dy.mode === "exam" && daysUntil(dy.date) >= 0 ? parseDay(dy.date) : 0; }
+function isFirm(c, examT){
+  const ivl = c.ivl || 0; if (!c.reps || !ivl) return false; if (ivl >= 21) return true;
+  if (!examT || ivl < 3) return false;
+  const last = c.last || ((c.due || 0) - ivl * DAY); return last + ivl * DAY >= examT - DAY / 2;
+}
+const STAGES = [["new", "Neu"], ["learn", "Lernend"], ["firm", "Gefestigt"]];
+function stageOf(c, examT){ return !c.reps ? "new" : isFirm(c, examT) ? "firm" : "learn"; }
+function stageCounts(fid){
+  const out = { new: 0, learn: 0, firm: 0, total: 0 };
+  cardsIn(fid || null, true).forEach(x => { out[stageOf(x.c, examDateOf(x.fid))]++; out.total++; });
+  return out;
+}
+const firmPct = fid => { const n = stageCounts(fid); return n.total ? Math.round(n.firm / n.total * 1000) / 10 : 0; };
+// Tagesstand „% gefestigt“ für Ordner mit Prüfungsplan festhalten (für den Verlauf im Prüfungs-Diagramm).
+function snapProg(key){
+  const dy = dailyOwn(key); if (!dy || dy.mode !== "exam") return;
+  const k = dayKey(), cur = ((S.prog || {})[key] || {});
+  const v = firmPct(key); if (cur[k] === v) return;
+  S.prog = { ...(S.prog || {}), [key]: { ...cur, [k]: v } };
 }
 // Heute lernbare Karten je Hauptordner: Karten, die heute schon dran waren und wieder fällig sind, zählen nicht erneut;
 // sonst zuerst fällige Wiederholungen (älteste Fälligkeit zuerst), dann neue Karten (älteste zuerst) – bis das Tageslimit erreicht ist.
@@ -1761,7 +1830,9 @@ function dailySheet(fid){
     });
     drawBuf();
     $("#dlSave", root).addEventListener("click", () => {
-      if (mode === "exam") { if (!date || !(daysUntil(date) > 0)) { toast("Wähle ein Datum in der Zukunft."); return; } putFolder({ ...S.folders[fid], daily: buf == null ? { mode: "exam", date } : { mode: "exam", date, buffer: buf } }); toast("Prüfungsplan gespeichert"); }
+      if (mode === "exam") { if (!date || !(daysUntil(date) > 0)) { toast("Wähle ein Datum in der Zukunft."); return; } const prev = dailyOwn(fid), keep = prev && prev.mode === "exam" && prev.date === date && prev.start;
+        const d0 = { mode: "exam", date, start: keep ? prev.start : dayKey(), startPct: keep ? (prev.startPct || 0) : firmPct(fid) }; if (buf != null) d0.buffer = buf;
+        putFolder({ ...S.folders[fid], daily: d0 }); snapProg(fid); saveStats(); toast("Prüfungsplan gespeichert"); }
       else { putFolder({ ...S.folders[fid], daily: { mode: "fixed", n: n || 0 } }); toast(n ? `${n} Karten pro Tag` : "Kein Tageslimit"); }
       closeSheet(); render();
     });
@@ -1828,7 +1899,7 @@ async function importObj(d, msg){
     Object.entries(d.folders).forEach(([id, f]) => entries.push(["folders/" + id, f]));
     Object.entries(d.sections || {}).forEach(([id, x]) => entries.push(["sections/" + id, x]));
     Object.entries(d.decks).forEach(([fid, cards]) => entries.push(["cards/" + fid, { cards }]));
-    if (d.stats && d.stats.days) entries.push(["stats/main", { days: { ...S.days, ...d.stats.days }, seen: S.seen, extraNew: S.extraNew, lastExport: S.lastExport || 0 }]);
+    if (d.stats && d.stats.days) entries.push(["stats/main", { days: { ...S.days, ...d.stats.days }, seen: S.seen, extraNew: S.extraNew, lastExport: S.lastExport || 0, fdays: { ...(S.fdays || {}), ...(d.stats.fdays || {}) }, prog: { ...(S.prog || {}), ...(d.stats.prog || {}) } }]);
     if (d.settings) entries.push(["settings/main", normSet(d.settings) || S.set]);
     msg.textContent = "Wird übernommen …";
     await applyEntries(entries);
@@ -2051,8 +2122,9 @@ function undoGrade(){
   if (st.exam) { st.queue = h.q; st.done = h.done; st.first = h.first; st.flipped = false; st.justFlipped = false; if (h.moved) { delete st.moved[h.moved]; putCard(h.fid, h.card); } render(); toast("Bewertung rückgängig gemacht"); return; }
   st.queue = h.q; st.done = h.done; st.flipped = false; st.justFlipped = false;
   if ((S.days[h.k] || 0) > 0) S.days = { ...S.days, [h.k]: S.days[h.k] - 1 };
+  { const fd = { ...((S.fdays||{})[h.k] || {}) }; if (fd[h.fid] > 0) { fd[h.fid]--; S.fdays = { ...S.fdays, [h.k]: fd }; } }
   if (!h.wasSeen) { const t = quotaKey(h.fid), day = { ...((S.seen||{})[h.k] || {}) }; if (day[t]) { const ids = { ...day[t] }; delete ids[h.card.id]; day[t] = ids; S.seen = { ...S.seen, [h.k]: day }; } }
-  saveStats(); putCard(h.fid, h.card);
+  putCard(h.fid, h.card); snapProg(quotaKey(h.fid)); saveStats();
   toast("Bewertung rückgängig gemacht");
 }
 /* ---------- Prüfungsmodus: alle (ausgewählten) Karten, ohne Lernplan, Statistik und Tageslimit zu verändern ---------- */
@@ -2129,41 +2201,112 @@ function examDoneHTML(st){
 function endStudy(){ const st = S.study; S.study = null; go(st ? st.back : "lib", st ? st.backFid : null); }
 
 /* ---------- Stats ---------- */
+function stackHTML(n){
+  return `<div class="stack">${n.total ? STAGES.map(([k, l]) => n[k] ? `<i class="sg-${k}" style="flex:${n[k]}" data-tip="${l}: ${n[k]}"></i>` : '').join("") : '<i style="flex:1;background:var(--line)"></i>'}</div>`;
+}
+const stageLegend = () => `<div class="legend">${STAGES.map(([k, l]) => `<span><i class="sg-${k}"></i>${l}</span>`).join("")}</div>`;
 function statsHTML(){
-  const cards = cardsIn(null, true).map(x => x.c), mature = cards.filter(c => cardState(c) === "mature").length;
-  const total30 = Array.from({length:30}, (_, i) => S.days[dayKey(Date.now() - i * DAY)] || 0).reduce((a,b) => a+b, 0);
+  const all = stageCounts(null);
   const top = children(null);
-  const seg = ["new","learn","young","mature"], segL = ["Neu","Lernend","Jung","Gefestigt"];
   return `<div class="topbar"><h1>Statistik</h1></div>
   <div class="tiles4">
     <div class="stat"><b>${streak()}</b><span>Tage Serie</span></div>
     <div class="stat"><b>${S.days[dayKey()] || 0}</b><span>Heute wiederholt</span></div>
-    <div class="stat"><b>${cards.length}</b><span>Karten gesamt</span></div>
-    <div class="stat"><b>${mature}</b><span>Gefestigt (≥ 21 Tage)</span></div></div>
-  <div class="panel"><h3>Wiederholungen pro Tag</h3><div class="muted" style="font-size:14.5px;margin-bottom:8px">Letzte 30 Tage · ${total30} insgesamt</div><div class="chart-wrap">${chartSVG()}</div></div>
+    <div class="stat"><b>${all.total}</b><span>Karten gesamt</span></div>
+    <div class="stat"><b>${all.firm}</b><span>Gefestigt</span></div></div>
+  <div class="panel"><h3>Wiederholungen pro Tag</h3><div class="muted" style="font-size:14.5px;margin-bottom:4px">Gesehene Karten · letzte 14 Tage und Vorschau</div>${dayChartHTML(null)}</div>
   <div class="panel"><h3>Fortschritt pro Ordner</h3>
-    <div class="legend">${segL.map((l, i) => `<span><i style="background:var(--seq${i+1})"></i>${l}</span>`).join("")}</div>
-    ${top.length ? top.map(f => {
-      const cs = cardsIn(f.id, true).map(x => x.c), n = cs.length, by = seg.map(s => cs.filter(c => cardState(c) === s).length);
-      return `<div class="mrow"><div class="nm">${dotHTML(f)}<span>${esc(f.name)}</span></div><div class="stack">${n ? by.map((v, i) => v ? `<i style="flex:${v};background:var(--seq${i+1})" data-tip="${segL[i]}: ${v}"></i>` : '').join("") : '<i style="flex:1;background:var(--line)"></i>'}</div><div class="n">${n}</div></div>`;
+    ${stageLegend()}
+    ${top.length ? top.map(f => { const n = stageCounts(f.id);
+      return `<button class="mrow" data-act="folderStats" data-id="${f.id}"><div class="nm">${dotHTML(f)}<span>${esc(f.name)}</span></div>${stackHTML(n)}<div class="n">${n.total}<span class="ch" aria-hidden="true">›</span></div></button>`;
     }).join("") : '<div class="muted">Noch keine Ordner.</div>'}
   </div>`;
 }
-function chartSVG(){
-  const W = 640, H = 200, L = 30, R = 8, T = 10, B = 26, n = 30;
-  const data = Array.from({length:n}, (_, i) => { const t = Date.now() - (n - 1 - i) * DAY; return { t, v: S.days[dayKey(t)] || 0 }; });
-  const max = Math.max(4, ...data.map(d => d.v)), step = Math.ceil(max / 4), top = step * 4;
-  const y = v => T + (H - T - B) * (1 - v / top), bw = (W - L - R) / n;
-  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Wiederholungen pro Tag, letzte 30 Tage">`;
-  for (let i = 0; i <= 4; i++) { const v = step * i; s += `<line class="gridl" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text class="axis" x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text>`; }
+/* Balken „gesehene Karten pro Tag“: heute in der Mitte (kräftig), vergangene Tage links (blasser),
+   rechts die Vorschau, wie viele Karten an den nächsten Tagen fällig werden (nur Umriss). */
+function dayChartHTML(fid){
+  const side = fid ? 7 : 14, n = side * 2 + 1, W = 480, H = 190, L = 30, R = 6, T = 12, B = 28;
+  const ids = fid ? new Set([fid, ...descendants(fid)]) : null;
+  const seenOn = k => fid ? Object.entries((S.fdays || {})[k] || {}).reduce((a, [f, v]) => a + (ids.has(f) ? v : 0), 0) : (S.days[k] || 0);
+  const cards = cardsIn(fid || null, true).map(x => x.c).filter(c => c.reps), t0 = dayStart();
+  const dueOn = o => { const a = t0 + o * DAY, b = a + DAY; return cards.filter(c => (c.due || 0) >= a && (c.due || 0) < b).length; };
+  const data = Array.from({ length: n }, (_, i) => { const o = i - side, t = t0 + o * DAY + DAY / 2; return { o, t, v: o <= 0 ? seenOn(dayKey(t)) : dueOn(o) }; });
+  const past = data.filter(d => d.o <= 0).reduce((a, d) => a + d.v, 0);
+  const max = Math.max(4, ...data.map(d => d.v)), step = Math.ceil(max / 4), topV = step * 4;
+  const y = v => T + (H - T - B) * (1 - v / topV), bw = (W - L - R) / n, base = H - B;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Gesehene Karten pro Tag, heute in der Mitte">`;
+  const xi = L + side * bw;
+  svg += `<rect class="today-band" x="${xi}" y="${T - 6}" width="${bw}" height="${H - T - B + 6}" rx="6"/>`;
+  for (let i = 0; i <= 4; i++) { const v = step * i; svg += `<line class="gridl" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text class="axis" x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text>`; }
   data.forEach((d, i) => {
-    const x = L + i * bw, h = (H - T - B) - (y(d.v) - T), dt = new Date(d.t), label = dt.toLocaleDateString("de-DE", { weekday:"short", day:"numeric", month:"short" });
-    const r = Math.min(4, h / 2), bx = x + 1, w = bw - 2, by = y(d.v), base = H - B;
+    const x = L + i * bw, bx = x + 1.5, w = bw - 3, by = y(d.v), h = base - by, r = Math.min(4, h / 2, w / 2);
     const path = d.v ? `M${bx},${base}V${by + r}Q${bx},${by} ${bx + r},${by}H${bx + w - r}Q${bx + w},${by} ${bx + w},${by + r}V${base}Z` : "";
-    s += `<g class="b" data-tip="${esc(label)}: ${d.v} Wiederholungen"><rect class="hit" x="${x}" y="${T}" width="${bw}" height="${H - T - B}"/>${path ? `<path class="barm ${i === n - 1 ? 'today' : ''}" d="${path}"/>` : ''}</g>`;
-    if (i % 7 === 2 || i === n - 1) s += `<text class="axis" x="${x + bw / 2}" y="${H - 8}" text-anchor="middle">${i === n - 1 ? "Heute" : dt.getDate() + "." + (dt.getMonth() + 1) + "."}</text>`;
+    const lab = new Date(d.t).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" });
+    const tipTxt = d.o < 0 ? `${lab}: ${plural(d.v, "Karte", "Karten")} gesehen` : d.o === 0 ? `Heute: ${plural(d.v, "Karte", "Karten")} gesehen` : `${lab}: ${plural(d.v, "Karte", "Karten")} fällig (Vorschau)`;
+    const cls = d.o < 0 ? "past" : d.o === 0 ? "today" : "fut";
+    svg += `<g class="b" data-tip="${esc(tipTxt)}"><rect class="hit" x="${x}" y="${T}" width="${bw}" height="${H - T - B}"/>${path ? `<path class="barm ${cls}" d="${path}"/>` : ''}</g>`;
+    if (d.o === 0 && d.v) svg += `<text class="axis vlab" x="${x + bw / 2}" y="${by - 5}" text-anchor="middle">${d.v}</text>`;
+    const lbl = d.o === 0 ? "Heute" : d.o % 7 === 0 ? (d.o < 0 ? `vor ${-d.o} T.` : `in ${d.o} T.`) : "";
+    if (lbl) svg += `<text class="axis ${d.o === 0 ? 'now' : ''}" x="${d.o === -side ? x + 1 : d.o === side ? x + bw - 1 : x + bw / 2}" y="${H - 9}" text-anchor="${d.o === -side ? 'start' : d.o === side ? 'end' : 'middle'}">${lbl}</text>`;
   });
-  return s + `<line class="gridl" x1="${L}" x2="${W - R}" y1="${H - B}" y2="${H - B}" style="stroke:var(--muted)"/></svg>`;
+  svg += `<line class="gridl" x1="${L}" x2="${W - R}" y1="${base}" y2="${base}" style="stroke:var(--muted)"/></svg>`;
+  return `<div class="legend" style="margin:6px 0 8px"><span><i class="lg-past"></i>Gesehen</span><span><i class="lg-today"></i>Heute</span><span><i class="lg-fut"></i>Fällig (Vorschau)</span></div>
+    <div class="chart-wrap fit">${svg}</div><div class="muted" style="font-size:13px;margin-top:6px">${plural(past, "Karte", "Karten")} gesehen in den letzten ${side + 1} Tagen (inkl. heute)</div>`;
+}
+/* Prüfungs-Diagramm: Anteil gefestigter Karten (durchgezogen) gegen die Leitlinie bis 100 % am Prüfungstag (gestrichelt). */
+function examChartHTML(key){
+  const dy = dailyOwn(key); if (!dy || dy.mode !== "exam") return "";
+  const examT = parseDay(dy.date), today = dayStart();
+  snapProg(key);
+  const prog = (S.prog || {})[key] || {}, keys = Object.keys(prog).sort();
+  let startT = dy.start ? parseDay(dy.start) : keys.length ? parseDay(keys[0]) : today;
+  if (startT > today) startT = today;
+  const startPct = dy.start ? (dy.startPct || 0) : (keys.length ? prog[keys[0]] : firmPct(key));
+  const span = Math.max(1, Math.round((examT - startT) / DAY));
+  const guide = t => Math.min(100, startPct + (100 - startPct) * Math.max(0, (t - startT) / DAY) / span);
+  // tatsächlicher Verlauf: ein Wert je Tag, Tage ohne Lernen übernehmen den letzten Stand
+  const pts = []; let last = startPct;
+  for (let t = startT; t <= Math.min(today, examT); t += DAY) { const k = dayKey(t + DAY / 2); if (prog[k] != null) last = prog[k]; pts.push({ t, v: last }); }
+  const nowV = firmPct(key); if (pts.length) pts[pts.length - 1].v = nowV;
+  const gNow = guide(Math.min(today, examT)), gap = Math.round(gNow - nowV), dl = daysUntil(dy.date);
+  const behind = dl >= 0 && gap >= 3;
+  const W = 480, H = 210, L = 48, R = 14, T = 14, B = 30;
+  const x = t => L + (W - L - R) * ((t - startT) / DAY) / span, y = v => T + (H - T - B) * (1 - v / 100);
+  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Anteil gefestigter Karten bis zur Prüfung">`;
+  [0, 25, 50, 75, 100].forEach(v => { svg += `<line class="gridl" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text class="axis" x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${v} %</text>`; });
+  svg += `<line class="guide" x1="${x(startT)}" y1="${y(startPct)}" x2="${x(examT)}" y2="${y(100)}"/>`;
+  if (today <= examT) svg += `<line class="nowl" x1="${x(today)}" x2="${x(today)}" y1="${T}" y2="${H - B}"/>`;
+  if (pts.length) {
+    const d = pts.map((p, i) => `${i ? "L" : "M"}${x(p.t).toFixed(1)},${y(p.v).toFixed(1)}`).join("");
+    svg += `<path class="actual-area" d="${d}L${x(pts[pts.length - 1].t).toFixed(1)},${y(0)}L${x(pts[0].t).toFixed(1)},${y(0)}Z"/><path class="actual" d="${d}"/>`;
+    const p = pts[pts.length - 1];
+    svg += `<circle class="actual-dot ${behind ? 'bad' : ''}" cx="${x(p.t)}" cy="${y(p.v)}" r="5.5"/>`;
+  }
+  // unsichtbare Flächen je Tag für die Tooltips
+  for (let i = 0; i <= span; i++) { const t = startT + i * DAY, p = pts[i]; const lab = new Date(t + DAY / 2).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" });
+    svg += `<rect class="hit" x="${x(t) - (W - L - R) / span / 2}" y="${T}" width="${(W - L - R) / span}" height="${H - T - B}" data-tip="${esc(lab)}: Plan ${Math.round(guide(t))} %${p ? ` · du ${Math.round(p.v)} %` : ''}"/>`; }
+  const fmtS = t => new Date(t + DAY / 2).toLocaleDateString("de-DE", { day: "numeric", month: "numeric" });
+  svg += `<text class="axis" x="${x(startT)}" y="${H - 9}" text-anchor="start">${today === startT ? "Heute" : fmtS(startT)}</text>`;
+  if (today > startT && today < examT && x(today) - x(startT) > 44 && x(examT) - x(today) > 60) svg += `<text class="axis now" x="${x(today)}" y="${H - 9}" text-anchor="middle">Heute</text>`;
+  svg += `<text class="axis now" x="${x(examT)}" y="${H - 9}" text-anchor="end">🎯 ${fmtS(examT)}</text></svg>`;
+  const status = dl < 0 ? `<div class="ex-status">Die Prüfung ist vorbei – ${Math.round(nowV)} % gefestigt.</div>`
+    : behind ? `<div class="ex-status warn" role="alert"><span class="ex-ic" aria-hidden="true">⚠</span><span><b>Du liegst hinter dem Plan</b>${Math.round(nowV)} % gefestigt – laut Plan wären heute ${Math.round(gNow)} % dran. Lern heute alle fälligen Karten, um aufzuholen.</span></div>`
+    : `<div class="ex-status ok"><span class="ex-ic" aria-hidden="true">✓</span><span><b>Du liegst im Plan</b>${Math.round(nowV)} % gefestigt${gap <= -3 ? ` – ${-gap} Punkte vor dem Plan` : ''}. ${dl === 0 ? 'Viel Erfolg heute!' : `Noch ${plural(dl, 'Tag', 'Tage')} bis zur Prüfung.`}</span></div>`;
+  return `<div class="panel sub"><h3>Weg zur Prüfung</h3>${status}
+    <div class="legend" style="margin:10px 0 6px"><span><i class="lg-actual"></i>Gefestigt</span><span><i class="lg-guide"></i>Plan bis 100 %</span></div>
+    <div class="chart-wrap fit">${svg}</div>
+    <p class="muted" style="font-size:13px;margin:8px 0 0">Gefestigt heißt: Die Karte sitzt so sicher, dass sie erst zur Prüfung wieder dran wäre. Ziel: alle Karten gefestigt am Prüfungstag.</p></div>`;
+}
+function folderStatsSheet(fid){
+  const f = S.folders[fid]; if (!f) return;
+  const n = stageCounts(fid), key = quotaKey(fid), dy = dailyOf(key), subs = children(fid);
+  const exam = dy.mode === "exam" && daysUntil(dy.date) >= -3;
+  openSheet(`<div class="sheet-h"><h2 class="fs-h">${dotHTML(f)}<span>${esc(f.name)}</span></h2></div>
+    <div class="fs-tiles">${STAGES.map(([k, l]) => `<div class="stat"><b>${n[k]}</b><span><i class="sg-${k}"></i>${l}</span></div>`).join("")}</div>
+    ${stackHTML(n)}
+    ${exam ? examChartHTML(key) : `<div class="panel sub fs-hint"><span>Trag ein Prüfungsdatum ein, dann siehst du hier, ob du im Plan liegst.</span><button class="btn" data-act="dailySheet" data-id="${fid}">Prüfung festlegen</button></div>`}
+    <div class="panel sub"><h3>Wiederholungen pro Tag</h3>${dayChartHTML(fid)}</div>
+    ${subs.length ? `<div class="panel sub"><h3>Unterordner</h3>${subs.map(c => `<button class="mrow" data-act="folderStats" data-id="${c.id}"><div class="nm">${dotHTML(c)}<span>${esc(c.name)}</span></div>${stackHTML(stageCounts(c.id))}<div class="n">${stageCounts(c.id).total}<span class="ch" aria-hidden="true">›</span></div></button>`).join("")}</div>` : ''}`);
 }
 
 /* ---------- Sheets ---------- */
@@ -2463,6 +2606,7 @@ document.addEventListener("click", e => {
   else if (a === "newFolder") { folderSheet(null, id, b.dataset.sect || null); }
   else if (a === "editFolder") { e.stopPropagation(); folderSheet(id); }
   else if (a === "dailySheet") { e.stopPropagation(); dailySheet(id); }
+  else if (a === "folderStats") { e.stopPropagation(); folderStatsSheet(id); }
   else if (a === "newCard") { cardSheet(id || S.fid || children(null)[0]?.id); }
   else if (a === "editCard") { cardSheet(b.dataset.f, id); }
   else if (a === "import") { importSheet(id || S.fid || children(null)[0]?.id); }
