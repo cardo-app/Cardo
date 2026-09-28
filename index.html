@@ -805,11 +805,30 @@ body.authing #tabs{display:none}
 #menu .mh{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;padding:8px 12px 4px}
 #menu .mcount{font-size:14.5px;color:var(--muted);padding:0 12px 6px}
 #menu hr{border:0;border-top:1px solid var(--line);margin:6px 4px}
-#menu .mcard{padding:8px 12px 6px;max-width:260px}
-#menu .mcard b{display:block;font-size:15.5px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#menu .mcard span{display:block;font-size:13.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#menu button.mdel{color:var(--again)}
-#menu button.mdel.armed{background:var(--again);color:#fff}
+#cmenu{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:24px 20px calc(24px + env(safe-area-inset-bottom,0px));background:rgba(10,12,18,.46);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);animation:fadeIn .2s ease;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#cmenu.closing{animation:fadeOut .18s ease forwards}
+.cm-box{width:min(340px,100%);display:flex;flex-direction:column;gap:12px;animation:cmIn .38s cubic-bezier(.34,1.4,.55,1)}
+#cmenu.closing .cm-box{animation:cmOut .18s ease-in forwards}
+@keyframes cmIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
+@keyframes cmOut{to{opacity:0;transform:scale(.94)}}
+.cm-card{background:var(--surface);border-radius:20px;padding:18px 20px;box-shadow:var(--shadow);border-top:6px solid color-mix(in oklab,var(--ink) 9%,var(--surface))}
+.cm-card .cm-f{font-weight:750;font-size:18px;line-height:1.3;color:var(--ink);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.cm-card .cm-b{margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:15.5px;line-height:1.35;color:var(--muted);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.cm-list{background:var(--surface);border-radius:20px;box-shadow:var(--shadow);overflow:hidden}
+.cm-list button{display:flex;align-items:center;gap:14px;width:100%;padding:13px 18px;font-size:17px;font-weight:650;color:var(--ink);text-align:left;background:transparent;transition:background .12s ease}
+.cm-list button + button{border-top:1px solid var(--line)}
+.cm-list button:active,.cm-list button:hover{background:color-mix(in oklab,var(--ink) 6%,transparent)}
+.cm-ic{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;flex:none;background:color-mix(in oklab,var(--accent) 14%,var(--surface));color:color-mix(in oklab,var(--accent) 75%,var(--ink))}
+.cm-ic svg{width:20px;height:20px}
+.cm-list .cm-del{color:var(--again)}
+.cm-list .cm-del .cm-ic{background:color-mix(in oklab,var(--again) 14%,var(--surface));color:var(--again)}
+.cm-list .cm-del.armed{background:var(--again);color:#fff}
+.cm-list .cm-del.armed .cm-ic{background:rgba(255,255,255,.2);color:#fff}
+.sheet:has(#cf) textarea.in{min-height:clamp(120px,23vh,270px);font-size:18px;line-height:1.45;padding:14px 15px;border-radius:14px}
+.sheet:has(#cf){max-width:640px}
+.sheet:has(#cf) .sheet-foot{flex-wrap:nowrap;gap:6px}
+.sheet:has(#cf) .sheet-foot .r{gap:6px}
+.sheet:has(#cf) .sheet-foot .btn{padding-left:12px;padding-right:12px;white-space:nowrap;min-width:0}
 .card-row{-webkit-touch-callout:none;transition:background .18s ease}
 .card-row.cm-press{background:color-mix(in oklab,var(--ink) 7%,transparent)}
 .card-row.cm-press .card-main{transform:scale(.98);transition:transform .35s ease}
@@ -1006,6 +1025,7 @@ let installEvt = null;
 addEventListener("beforeinstallprompt", e => { e.preventDefault(); installEvt = e; if (S.view === "settings") render(); });
 addEventListener("appinstalled", () => { installEvt = null; if (S.view === "settings") render(); });
 function androidBack(){
+  if ($("#cmenu:not(.closing)")) { cmClose(); return true; }
   if (!$("#menu").hidden) { closeMenu(); return true; }
   if (!$("#sheet").hidden) { const bb = $("#sheet .sheet-h .xbtn[data-act]"); if (bb) bb.click(); else closeSheet(); return true; }
   if (!document.body.classList.contains("splashing")) {
@@ -2715,7 +2735,7 @@ function cardSheet(fid, id){
     <div class="field"><label for="cb">Rückseite</label><textarea class="in" id="cb" placeholder="Antwort">${esc(ex ? ex.b : "")}</textarea></div>
     <div class="field"><label for="cfo">Ordner</label><select class="in" id="cfo">${folderOptions(fid)}</select></div>
     ${ex ? `<div class="muted" style="font-size:14.5px;margin-bottom:14px">${ex.reps ? `${plural(ex.reps, 'Wiederholung', 'Wiederholungen')} · nächste ${isDue(ex) ? 'jetzt' : 'in ' + fmtIvl(ex.due - Date.now()).replace('< ','')}` : 'Noch nicht gelernt'}</div>` : ''}
-    ${ex ? `<div class="sheet-foot"><div class="l"><button class="btn danger" id="cdel">Löschen</button><button class="btn" id="ccopy">Kopieren …</button></div><div class="r"><button class="btn" data-act="close">Abbrechen</button><button class="btn primary" id="csave">Speichern</button></div></div>`
+    ${ex ? `<div class="sheet-foot"><button class="btn danger" id="cdel">Löschen</button><div class="r"><button class="btn" data-act="close">Abbrechen</button><button class="btn primary" id="csave">Speichern</button></div></div>`
       : `<div class="sheet-foot new-card-foot"><button class="btn-quiet" id="csave">Speichern &amp; schließen</button><button class="btn primary" id="cnext">Nächste Karte →</button></div>`}`,
   root => {
     const save = () => {
@@ -2937,7 +2957,6 @@ document.addEventListener("click", e => {
   }
   const b = e.target.closest("[data-act]");
   const isMenuBtn = b && ["libMenu", "folderMenu", "sectMenu", "cardSortMenu", "learnMenu"].includes(b.dataset.act);
-  if (b && b.dataset.act === "cardDel") { const f = b.dataset.f, cid = b.dataset.id; armDelete(b, () => { closeMenu(); delCard(f, cid); toast("Karte gelöscht"); }); return; }
   if (!isMenuBtn) closeMenu();
   if (!b) { if (e.target.id === "sheet") closeSheet(); return; }
   const a = b.dataset.act, id = b.dataset.id || null;
@@ -3300,21 +3319,45 @@ const CM = { t: 0, row: null, x: 0, y: 0, until: 0 };
 function cmRow(target){ const r = target && target.closest && target.closest("#main .card-row"); return r && !r.classList.contains("picking") && S.view === "lib" && S.fid ? r : null; }
 function cmDown(target, x, y){ cmCancel(); const r = cmRow(target); if (!r) return; CM.row = r; CM.x = x; CM.y = y; r.classList.add("cm-press"); CM.t = setTimeout(() => cmOpen(x, y), 480); }
 function cmCancel(){ clearTimeout(CM.t); CM.t = 0; if (CM.row) CM.row.classList.remove("cm-press"); CM.row = null; }
-function cmOpen(x, y){
+const CM_IC = {
+  move:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H9l2 2h7.5A2.5 2.5 0 0 1 21 9.5v7a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 16.5z"/><path d="M9 13h6.5M13 10.5l2.5 2.5-2.5 2.5"/></svg>',
+  copy:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="8.5" width="12" height="12" rx="2.5"/><path d="M15.5 8.5V6A2.5 2.5 0 0 0 13 3.5H6A2.5 2.5 0 0 0 3.5 6v7A2.5 2.5 0 0 0 6 15.5h2.5"/></svg>',
+  del:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5h16M9.5 6.5V4.5h5v2M6.5 6.5l.9 12.2A2 2 0 0 0 9.4 20.5h5.2a2 2 0 0 0 2-1.8l.9-12.2"/><path d="M10 10.5v6M14 10.5v6"/></svg>',
+  edit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17z" /><path d="M13.5 8.5l3 3"/></svg>'
+};
+function cmOpen(x, y, viaPress = true){
   const r = CM.row; cmCancel(); if (!r || !document.body.contains(r)) return;
   const bt = r.querySelector("[data-act=editCard]"); if (!bt) return;
   const fid = bt.dataset.f, id = bt.dataset.id, c = (S.decks[fid] || {})[id]; if (!c) return;
   CM.until = Date.now() + 700; try { navigator.vibrate && navigator.vibrate(8); } catch {}
   try { const sel = getSelection(); sel && sel.removeAllRanges(); } catch {}
-  const m = $("#menu"), d = ` data-f="${fid}" data-id="${id}"`;
-  m.innerHTML = `<div class="mcard"><b>${esc(c.f)}</b><span>${esc(c.b)}</span></div><hr>
-    <button data-act="cardCopy"${d} role="menuitem">⧉ Kopieren nach …</button>
-    <button data-act="cardMove"${d} role="menuitem">↪ Verschieben nach …</button>
-    <button data-act="cardEdit"${d} role="menuitem">✎ Bearbeiten</button><hr>
-    <button class="mdel" data-act="cardDel"${d} role="menuitem">🗑 Löschen</button>`;
-  m.hidden = false; const w = m.offsetWidth, h = m.offsetHeight;
-  m.style.left = Math.max(8, Math.min(innerWidth - w - 8, x - w / 2)) + "px";
-  m.style.top = (y + 14 + h < innerHeight - 90 ? y + 14 : Math.max(8, y - h - 14)) + "px";
+  closeMenu(); cmClose(true);
+  const el = document.createElement("div"); el.id = "cmenu";
+  const opt = (k, l, cls = "") => `<button type="button" data-cm="${k}" class="${cls}"><span class="cm-ic">${CM_IC[k]}</span><span>${l}</span></button>`;
+  el.innerHTML = `<div class="cm-box" role="dialog" aria-modal="true" aria-label="Karte"><div class="cm-card"><div class="cm-f">${esc(c.f)}</div><div class="cm-b">${esc(c.b)}</div></div>
+    <div class="cm-list" role="menu">${opt("move", "Verschieben")}${opt("copy", "Kopieren")}${opt("del", "Löschen", "cm-del")}${opt("edit", "Bearbeiten")}</div></div>`;
+  document.body.appendChild(el); document.documentElement.style.overflow = "hidden";
+  // Beim Loslassen des Fingers kann ein Klick genau auf einer Option landen → erst nach dem Loslassen scharf schalten
+  CM.armed = !viaPress; if (viaPress) { const arm = () => { setTimeout(() => { CM.armed = true; }, 60); removeEventListener("touchend", arm); removeEventListener("mouseup", arm); }; addEventListener("touchend", arm); addEventListener("mouseup", arm); }
+  el.addEventListener("click", e => {
+    e.stopPropagation(); if (!CM.armed) return;
+    const b = e.target.closest("[data-cm]"); if (!b) { if (!e.target.closest(".cm-box")) cmClose(); return; }
+    const k = b.dataset.cm;
+    if (k === "del") {
+      if (b.classList.contains("armed")) { cmClose(); delCard(fid, id); toast("Karte gelöscht"); return; }
+      b.classList.add("armed"); b.lastElementChild.textContent = "Wirklich löschen?";
+      setTimeout(() => { if (b.isConnected) { b.classList.remove("armed"); b.lastElementChild.textContent = "Löschen"; } }, 3500); return; }
+    cmClose();
+    if (k === "edit") { cardSheet(fid, id); return; }
+    const mv = k === "move";
+    pickFolderSheet({ title: mv ? "Karte verschieben" : "Karte kopieren", note: mv ? "Lernstand bleibt erhalten." : "Die Kopie startet als neue Karte. Das Original bleibt, wo es ist.", current: mv ? fid : null,
+      onPick: t => { const n = mv ? moveCards(fid, [id], t.fid) : copyCards(fid, [id], t.fid); if (n) toast(`${mv ? 'Verschoben' : 'Kopiert'} nach „${S.folders[t.fid].name}“`); } });
+  });
+}
+function cmClose(now){
+  const el = $("#cmenu:not(.closing)"); if (!el) return; document.documentElement.style.overflow = $("#sheet").hidden ? "" : "hidden";
+  if (now || reduceMotion.matches) { el.remove(); return; }
+  el.classList.add("closing"); setTimeout(() => el.remove(), 180);
 }
 document.addEventListener("touchstart", e => { if (e.touches.length !== 1) { cmCancel(); return; } const t = e.touches[0]; cmDown(e.target, t.clientX, t.clientY); }, { passive: true });
 document.addEventListener("touchmove", e => { if (!CM.row) return; const t = e.touches[0]; if (Math.hypot(t.clientX - CM.x, t.clientY - CM.y) > 9) cmCancel(); }, { passive: true });
@@ -3344,6 +3387,7 @@ document.addEventListener("wheel", e => {
 }, { passive: true });
 
 document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && $("#cmenu:not(.closing)")) { cmClose(); return; }
   if (e.key === "Escape" && $("#czoom")) { closeChartZoom(); return; }
   if ((e.key === "Enter" || e.key === " ") && document.activeElement && document.activeElement.matches(".zoomable")) { e.preventDefault(); chartZoom(document.activeElement.dataset.id || null); return; }
   if (e.key === "Escape" && !$("#menu").hidden) { closeMenu(); return; }
