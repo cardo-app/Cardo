@@ -332,6 +332,7 @@ button.mrow:hover .nm span:last-child{text-decoration:underline;text-decoration-
 .mrow .n .ch{margin-left:6px;color:var(--muted);font-size:17px}
 .chart-wrap.fit{overflow:hidden}
 .chart-wrap.fit svg{min-width:0;max-width:620px;margin:0 auto}
+.zoomable,.zoomable *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .zoomable{cursor:zoom-in;border-radius:12px;-webkit-tap-highlight-color:transparent;transition:background .15s ease}
 .zoomable:active{background:color-mix(in oklab,var(--ink) 5%,transparent)}
 .zoomable:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
@@ -2268,7 +2269,7 @@ function dayChartHTML(fid){
     const lab = new Date(d.t).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" });
     const tipTxt = d.o < 0 ? `${lab}: ${plural(d.v, "Karte", "Karten")} gesehen` : d.o === 0 ? `Heute: ${plural(d.v, "Karte", "Karten")} gesehen` : `${lab}: ${plural(d.v, "Karte", "Karten")} fällig (Vorschau)`;
     const cls = d.o < 0 ? "past" : d.o === 0 ? "today" : "fut";
-    svg += `<g class="b" data-tip="${esc(tipTxt)}"><rect class="hit" x="${x}" y="${T}" width="${bw}" height="${H - T - B}"/>${path ? `<path class="barm ${cls}" d="${path}"/>` : ''}</g>`;
+    if (path) svg += `<path class="barm ${cls}" d="${path}"><title>${esc(tipTxt)}</title></path>`;
     if (d.o === 0 && d.v) svg += `<text class="axis vlab" x="${x + bw / 2}" y="${by - 5}" text-anchor="middle">${d.v}</text>`;
     const lbl = d.o === 0 ? "Heute" : d.o % 7 === 0 ? (d.o < 0 ? `vor ${-d.o} T.` : `in ${d.o} T.`) : "";
     if (lbl) svg += `<text class="axis ${d.o === 0 ? 'now' : ''}" x="${d.o === -side ? x + 1 : d.o === side ? x + bw - 1 : x + bw / 2}" y="${H - 9}" text-anchor="${d.o === -side ? 'start' : d.o === side ? 'end' : 'middle'}">${lbl}</text>`;
@@ -2838,7 +2839,7 @@ document.addEventListener("touchstart", e => {
   sw = null; if (e.touches.length !== 1) return;
   if (animating) settleSwipe();
   if (animating || !canSwipe()) return;
-  if (e.target.closest("input,textarea,select,#czoom,[data-noswipe]")) return;
+  if (e.target.closest("input,textarea,select,#czoom,.zoomable,[data-noswipe]")) return;
   const t = e.touches[0]; if (t.clientX < 18 || t.clientX > innerWidth - 18) return; // leave system edge gestures alone
   if (peekGen !== S.gen) prerender();
   $("#main").style.willChange = "transform"; // Ebene schon beim Aufsetzen anlegen, damit der Start des Wischens nicht ruckelt
@@ -2875,7 +2876,7 @@ document.addEventListener("touchcancel", () => { if (sw && sw.drag) { sw.pts = s
 let wAcc = 0, wLock = 0, wT = 0;
 document.addEventListener("wheel", e => {
   if (!canSwipe() || e.ctrlKey) return;
-  if (Math.abs(e.deltaX) <= Math.abs(e.deltaY) || e.target.closest("#czoom")) return;
+  if (Math.abs(e.deltaX) <= Math.abs(e.deltaY) || e.target.closest("#czoom,.zoomable")) return;
   const now = Date.now(); if (now < wLock) return;
   if (now - wT > 250) wAcc = 0; wT = now; wAcc += e.deltaX;
   if (Math.abs(wAcc) < 90) return;
