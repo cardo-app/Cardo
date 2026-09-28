@@ -997,6 +997,18 @@ const ICONS = {
 
 /* ---------- iOS-Lücke unten ausgleichen (installierte App) ---------- */
 const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+// Kurzes haptisches Feedback (langes Drücken). Android: Vibration. iPhone (iOS 18+): Safari kennt keine Vibration –
+// aber das Umschalten eines unsichtbaren iOS-Schalters (<input type=checkbox switch>) löst den System-Tick aus.
+function haptic(){
+  try { if (!isIOS && navigator.vibrate) { navigator.vibrate(12); return; } } catch {}
+  if (!isIOS) return;
+  try {
+    const l = document.createElement("label"), i = document.createElement("input");
+    l.setAttribute("aria-hidden", "true"); l.style.display = "none"; i.type = "checkbox"; i.setAttribute("switch", ""); l.appendChild(i);
+    const stop = e => e.stopPropagation(); l.addEventListener("click", stop); i.addEventListener("click", stop);
+    document.head.appendChild(l); l.click(); l.remove();
+  } catch {}
+}
 function fixBottomGap(){
   document.documentElement.classList.toggle("ios-standalone", isIOS && (navigator.standalone === true || matchMedia("(display-mode: standalone)").matches));
   let g = 0;
@@ -3227,7 +3239,7 @@ function rdStart(){
   st.ghost = g; st.box = box; st.r0 = r; st.x0 = RD.x; st.y0 = RD.y; st.before = [...box.children].map(rdId).join(",");
   st.home = box.closest(".sect"); st.cur = st.home; st.drop = null; // Bereiche: Ordner lässt sich in einen anderen Bereich ziehen
   box.classList.add("rd-box"); it.classList.add("rd-src"); document.body.classList.add("reordering");
-  RD.on = true; try { navigator.vibrate && navigator.vibrate(8); } catch {}
+  RD.on = true; haptic();
   requestAnimationFrame(() => g.classList.add("lift"));
   const loop = () => { if (!RD.on) return; rdAuto(); rdFrame(); RD.raf = requestAnimationFrame(loop); }; RD.raf = requestAnimationFrame(loop);
 }
@@ -3329,7 +3341,7 @@ function cmOpen(x, y, viaPress = true){
   const r = CM.row; cmCancel(); if (!r || !document.body.contains(r)) return;
   const bt = r.querySelector("[data-act=editCard]"); if (!bt) return;
   const fid = bt.dataset.f, id = bt.dataset.id, c = (S.decks[fid] || {})[id]; if (!c) return;
-  CM.until = Date.now() + 700; try { navigator.vibrate && navigator.vibrate(8); } catch {}
+  CM.until = Date.now() + 700; haptic();
   try { const sel = getSelection(); sel && sel.removeAllRanges(); } catch {}
   closeMenu(); cmClose(true);
   const el = document.createElement("div"); el.id = "cmenu";
