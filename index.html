@@ -123,6 +123,10 @@ body{
 [hidden]{display:none!important}
 html,body{height:100%}
 body{background:var(--paper);color:var(--ink);font:16.5px/1.45 var(--body);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+/* Langes Drücken markiert/kopiert nichts – außer in Eingabefeldern und beim Text der Karten */
+html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea,select,[contenteditable="true"]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+.flash-face,.flash-face *,.card-row .cf,.card-row .cb,.exam-miss div,.exam-miss small{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
 button,input,textarea,select{font:inherit;color:inherit}
 button{cursor:pointer;background:none;border:0;padding:0}
 button:disabled{cursor:default;opacity:.45}
@@ -470,6 +474,44 @@ textarea.in{min-height:92px;resize:vertical;line-height:1.4}
 .sheet-foot{display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;margin-top:6px}
 .sheet-foot .r{display:flex;gap:8px;margin-left:auto}
 .new-card-foot{align-items:center;flex-wrap:nowrap}
+.sh-deck{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:var(--surface-2);margin-bottom:14px}
+.sh-deck .dot{width:40px;height:40px;border-radius:11px;font-size:20px}
+.sh-deck b{display:block;font-size:16.5px}.sh-deck span{font-size:13.5px;color:var(--muted)}
+.sh-link .in{font-size:14.5px;font-weight:600;-webkit-user-select:all;user-select:all}
+.sh-acts{display:flex;gap:8px;margin:10px 0 14px}.sh-acts .btn{flex:1;justify-content:center}
+.sh-qr{display:flex;flex-direction:column;align-items:center;gap:6px;margin:4px 0 12px}
+.sh-qr svg{width:168px;height:168px;border-radius:12px;box-shadow:0 0 0 1px var(--line)}
+.sh-qr span{font-size:12.5px;color:var(--muted);font-weight:600}
+.sh-note{font-size:13.5px;margin:0 0 10px;line-height:1.45}
+#deckview{position:fixed;inset:0;z-index:300;display:flex;align-items:flex-end;justify-content:center;background:rgba(10,12,18,0);transition:background .2s ease}
+#deckview.in{background:rgba(10,12,18,.5)}
+@media (min-width:700px){#deckview{align-items:center}}
+.dv-panel{position:relative;width:min(100%,560px);max-height:92vh;max-height:92dvh;overflow:auto;background:var(--paper);border-radius:24px 24px 0 0;padding:0 0 calc(env(safe-area-inset-bottom,0px) + 16px);transform:translateY(40px);opacity:0;transition:transform .28s cubic-bezier(.2,.9,.3,1),opacity .2s ease}
+@media (min-width:700px){.dv-panel{border-radius:24px}}
+#deckview.in .dv-panel{transform:none;opacity:1}
+.dv-x{position:absolute;top:12px;right:12px;z-index:2;background:color-mix(in oklab,var(--surface) 85%,transparent);backdrop-filter:blur(8px)}
+.dv-body{padding:0 18px}
+.dv-body .loading{padding:60px 0;text-align:center}
+.dv-hero{margin:0 -18px;height:150px;position:relative;background-color:var(--c);background-image:radial-gradient(circle at 85% 0%,color-mix(in oklab,var(--c) 45%,white) 0,transparent 60%),radial-gradient(circle at 0% 100%,color-mix(in oklab,var(--c) 70%,black) 0,transparent 60%);background-size:cover;background-position:center}
+.dv-emo{position:absolute;left:18px;bottom:12px;font-size:46px;line-height:1}
+.dv-kicker{margin-top:16px;font-size:12.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.dv-name{font-size:clamp(26px,7vw,34px);font-weight:800;line-height:1.1;margin:4px 0 4px}
+.dv-meta{font-size:15px}
+.dv-info{font-size:14.5px;margin:12px 0 4px;padding:11px 13px;border-radius:12px;background:var(--surface-2)}
+.dv-h{margin:18px 0 8px;font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.dv-subs>div{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.dv-subs>div:first-child{border-top:0}
+.dv-subs .dot{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;font-size:15px;flex:none}
+.dv-subs b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dv-cards{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+.dv-cards>div{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px 14px;border-top:1px solid var(--line);font-size:14.5px}
+.dv-cards>div:first-child{border-top:0}
+.dv-cards span{color:var(--muted)}
+.dv-cards b,.dv-cards span{overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;font-weight:600}
+.dv-cards .dv-more{display:block;text-align:center;font-weight:650}
+.dv-foot{position:sticky;bottom:-16px;margin:18px -18px 0;padding:14px 18px 16px;background:linear-gradient(to top,var(--paper) 70%,transparent);display:flex;flex-direction:column;gap:4px}
+.dv-foot .btn{justify-content:center}
+.dv-empty{text-align:center;padding:60px 10px 30px}.dv-empty .big{font-size:44px}.dv-empty h2{margin:8px 0}.dv-empty .btn{margin-top:16px}
 .new-card-foot .btn.primary{margin-left:auto;padding-left:22px;padding-right:22px}
 .btn-quiet{background:none;border:0;padding:10px 4px;font:inherit;font-size:14.5px;font-weight:650;color:var(--muted);cursor:pointer;white-space:nowrap}
 .btn-quiet:hover{color:var(--ink)}
@@ -1319,6 +1361,7 @@ async function boot(){
   if (!window.supabase && window.claude && window.claude.use) return bootClaude();
   if (!window.supabase) { $("#main").innerHTML = '<div class="loading">Cardo braucht beim ersten Start eine Internetverbindung.</div>'; hideSplash(); return; }
   SB = window.supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
+  if (SHARED_IN) openSharedDeck(SHARED_IN);
   SB.auth.onAuthStateChange((ev, session) => {
     if (ev === "PASSWORD_RECOVERY") setTimeout(newPasswordSheet, 300);
     if (ev === "SIGNED_OUT") location.reload();
@@ -1352,8 +1395,147 @@ function startApp(){
   DB.collection("cards").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = { ...((d.data()||{}).cards || {}) }; }); S.decks = o; S.loaded.c = true; render(); });
   DB.doc("stats/main").onSnapshot(d => { const x = d.exists ? (d.data()||{}) : {}; S.days = { ...(x.days || {}) }; S.seen = { ...(x.seen || {}) }; S.lastExport = x.lastExport || 0; S.extraNew = { ...(x.extraNew || {}) }; S.fdays = { ...(x.fdays || {}) }; S.prog = { ...(x.prog || {}) }; S.loaded.s = true; render(); });
   DB.load().then(() => DB.flush()).catch(e => { console.warn(e); toast(navigator.onLine ? "Laden fehlgeschlagen. Versuch es gleich noch einmal." : "Offline: Du siehst den zuletzt gespeicherten Stand."); })
-    .finally(() => { S.mode = "cloud"; render(); });
+    .finally(() => { S.mode = "cloud"; render(); runPendingDeck(); });
 }
+
+/* ---------- Kartendecks teilen (Stufe 1: Kopie per Link) ----------
+   Der Besitzer lädt einen Schnappschuss (Ordner + Unterordner + Kartentext, ohne Lernstand) in die Tabelle shared_decks.
+   Wer den Link öffnet, sieht – auch ohne Konto – eine Vorschau und kann sich eine eigene, frei änderbare Kopie holen. */
+const SHARE_BASE = "https://cardo-app.github.io/Cardo/";
+const SHARED_IN = (() => { try { const q = new URLSearchParams(location.search), id = q.get("deck");
+  if (id && /^[A-Za-z0-9]{10,24}$/.test(id)) { q.delete("deck"); history.replaceState(null, "", location.pathname + (q.toString() ? "?" + q : "") + location.hash); return id; } } catch {} return null; })();
+const shareLink = id => SHARE_BASE + "?deck=" + id;
+function newShareId(){ const a = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789", b = crypto.getRandomValues(new Uint8Array(12)); return [...b].map(x => a[x % a.length]).join(""); }
+const safeColor = c => /^#[0-9a-f]{3,8}$/i.test(String(c || "")) ? c : "#FF5A36";
+const safeCover = c => typeof c === "string" && c.length < 400000 && (/^data:image\/(png|jpe?g|webp|gif);base64,/i.test(c) || /^https:\/\//i.test(c)) ? c : "";
+function deckSnapshot(fid){
+  const folders = [], cards = [], idx = {};
+  const walk = (id, parent) => { const f = S.folders[id]; if (!f) return; const k = folders.length; idx[id] = k;
+    const o = { k, p: parent, n: f.name, e: f.emoji ?? "", c: safeColor(f.color) }; const cv = safeCover(f.cover); if (cv) o.cv = cv; if (f.side) o.sd = f.side; if (f.csort) o.cs = f.csort;
+    folders.push(o);
+    Object.values(S.decks[id] || {}).sort((a, b) => (a.created || 0) - (b.created || 0)).forEach(c => cards.push([k, c.f, c.b]));
+    children(id).forEach(ch => walk(ch.id, k)); };
+  walk(fid, -1);
+  return { v: 1, folders, cards };
+}
+const canShare = () => !!(SB && USER && S.mode !== "local");
+function shareSheet(fid){
+  const f = S.folders[fid]; if (!f) return;
+  if (!canShare()) { toast("Teilen geht nur in der Cardo-App mit Konto."); return; }
+  const sh = f.share && f.share.id ? f.share : null, n = counts(fid).total;
+  openSheet(`${head("Ordner teilen")}
+    <div class="sh-deck">${dotHTML(f)}<div><b>${esc(f.name)}</b><span>${plural(n, "Karte", "Karten")}${children(fid).length ? " · " + plural(descendants(fid).length, "Unterordner", "Unterordner") : ""}</span></div></div>
+    ${sh ? `
+      <div class="sh-link"><input class="in" id="shUrl" readonly value="${esc(shareLink(sh.id))}" aria-label="Link zum Teilen"></div>
+      <div class="sh-acts"><button class="btn" id="shCopy">Link kopieren</button>${navigator.share ? `<button class="btn primary" id="shShare">Teilen …</button>` : ''}</div>
+      <div class="sh-qr" id="shQr" aria-label="QR-Code zum Link"></div>
+      <p class="muted sh-note">Stand vom ${new Date(sh.at || Date.now()).toLocaleDateString("de-DE", { day: "numeric", month: "long" })} · ${plural(sh.n || 0, "Karte", "Karten")}. Wer den Link öffnet, sieht das Deck – auch ohne Konto – und kann sich eine eigene Kopie holen. Dein Lernstand wird nicht geteilt.</p>
+      <button class="btn block" id="shUpd" style="justify-content:center">Link auf aktuellen Stand bringen</button>
+      <p class="muted sh-note" style="margin-top:6px">Gilt für alle, die den Link ab jetzt öffnen. Wer schon eine Kopie hat, behält seine.</p>
+      <button class="pw-forgot" id="shStop" type="button" style="color:var(--again)">Teilen beenden</button>`
+    : `
+      <p class="muted sh-note" style="margin-top:4px">Cardo erstellt einen Link zu einer Kopie dieses Ordners mit allen Unterordnern und Karten. Wer ihn öffnet, sieht das Deck – auch ohne Konto – und kann es in seine eigene Bibliothek übernehmen und dort frei bearbeiten.</p>
+      <p class="muted sh-note">Dein Lernstand und deine Statistik bleiben privat.</p>
+      <button class="btn primary block" id="shMake" style="justify-content:center;margin-top:8px">Link erstellen</button>`}`,
+  root => {
+    const busy = (b, t) => { b.disabled = true; b.dataset.t = b.textContent; b.textContent = t; };
+    const upload = async id => {
+      const snap = deckSnapshot(fid), data = JSON.stringify(snap);
+      if (data.length > 3500000) { toast("Dieser Ordner ist zu groß zum Teilen."); return null; }
+      const r = await SB.from("shared_decks").upsert({ id, name: S.folders[fid].name.slice(0, 200), data: snap, card_count: snap.cards.length, updated_at: new Date().toISOString() });
+      if (r.error) throw r.error;
+      const share = { id, at: Date.now(), n: snap.cards.length }; putFolder({ ...S.folders[fid], share }); return share;
+    };
+    const fail = (e, b) => { console.warn("share", e); if (b) { b.disabled = false; b.textContent = b.dataset.t; }
+      const m = String((e && (e.code || e.message)) || ""); toast(!navigator.onLine ? "Zum Teilen brauchst du Internet." : /42P01|PGRST20|shared_decks/.test(m) ? "Teilen ist noch nicht eingerichtet." : "Teilen hat nicht geklappt. Versuch es gleich noch einmal."); };
+    const mk = $("#shMake", root); if (mk) mk.addEventListener("click", async () => { busy(mk, "Link wird erstellt …"); try { if (await upload(newShareId())) shareSheet(fid); else { mk.disabled = false; mk.textContent = mk.dataset.t; } } catch (e) { fail(e, mk); } });
+    if (!sh) return;
+    const url = shareLink(sh.id);
+    $("#shCopy", root).addEventListener("click", async () => { try { await navigator.clipboard.writeText(url); toast("Link kopiert"); } catch { const i = $("#shUrl", root); i.select(); try { document.execCommand("copy"); toast("Link kopiert"); } catch { toast("Kopieren nicht möglich"); } } });
+    const ss = $("#shShare", root); if (ss) ss.addEventListener("click", () => navigator.share({ title: "Cardo: " + f.name, text: `Lern mit mir „${f.name}“ in Cardo`, url }).catch(() => {}));
+    $("#shUrl", root).addEventListener("focus", e => e.target.select());
+    const up = $("#shUpd", root); up.addEventListener("click", async () => { busy(up, "Wird aktualisiert …"); try { await upload(sh.id); toast("Link zeigt jetzt den aktuellen Stand"); shareSheet(fid); } catch (e) { fail(e, up); } });
+    const stop = $("#shStop", root); stop.addEventListener("click", () => armDelete(stop, async () => {
+      try { const r = await SB.from("shared_decks").delete().eq("id", sh.id); if (r.error) throw r.error; const g = { ...S.folders[fid] }; delete g.share; putFolder(g); closeSheet(); toast("Link ist nicht mehr gültig"); } catch (e) { fail(e); } }));
+    qrInto($("#shQr", root), url);
+  });
+}
+// QR-Code: Bibliothek erst beim ersten Bedarf laden; ohne Netz einfach weglassen
+let qrLib = null;
+function qrInto(box, text){
+  if (!box) return;
+  const draw = () => { try { const q = window.qrcode(0, "M"); q.addData(text); q.make(); const n = q.getModuleCount(), m = 2; let d = "";
+      for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) d += `M${c + m},${r + m}h1v1h-1z`;
+      box.innerHTML = `<svg viewBox="0 0 ${n + m * 2} ${n + m * 2}" shape-rendering="crispEdges" role="img" aria-label="QR-Code"><rect width="100%" height="100%" fill="#fff"/><path d="${d}" fill="#111"/></svg><span>Zum Scannen mit der Kamera</span>`; }
+    catch (e) { box.remove(); } };
+  if (window.qrcode) return draw();
+  qrLib = qrLib || new Promise((ok, no) => { const sc = document.createElement("script"); sc.src = "https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  qrLib.then(() => box.isConnected && draw(), () => { qrLib = null; box.remove(); });
+}
+/* ---- Empfänger: Vorschau (auch ohne Konto) und Übernehmen ---- */
+async function fetchSharedDeck(id){
+  const r = await SB.rpc("get_shared_deck", { deck_id: id });
+  if (r.error) throw r.error; return r.data || null;
+}
+function closeDeckView(){ const el = $("#deckview"); if (!el) return; el.classList.remove("in"); setTimeout(() => el.remove(), 200); document.documentElement.style.overflow = ""; }
+async function openSharedDeck(id){
+  let el = $("#deckview"); if (el) el.remove();
+  el = document.createElement("div"); el.id = "deckview"; el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true");
+  el.innerHTML = `<div class="dv-panel"><button class="xbtn dv-x" data-dv="close" aria-label="Schließen">${IC.close}</button><div class="dv-body"><div class="loading">Geteiltes Deck wird geladen …</div></div></div>`;
+  document.body.appendChild(el); document.documentElement.style.overflow = "hidden"; requestAnimationFrame(() => el.classList.add("in"));
+  el.addEventListener("click", e => { const b = e.target.closest("[data-dv]"); if (!b) return;
+    if (b.dataset.dv === "close") { try { localStorage.removeItem("cardo-pending-deck"); } catch {} closeDeckView(); }
+    else if (b.dataset.dv === "add") addSharedDeck(id, b);
+    else if (b.dataset.dv === "login" || b.dataset.dv === "signup") { try { localStorage.setItem("cardo-pending-deck", id); } catch {} closeDeckView(); showAuth(b.dataset.dv === "signup" ? "up" : "in"); toast("Nach dem Anmelden wird das Deck hinzugefügt."); } });
+  const body = $(".dv-body", el);
+  let d = null; try { d = await fetchSharedDeck(id); } catch (e) { console.warn(e); }
+  if (!d || !d.data || !Array.isArray(d.data.folders) || !d.data.folders.length) {
+    body.innerHTML = `<div class="dv-empty"><div class="big">🔗</div><h2>Link nicht gefunden</h2><p class="muted">${navigator.onLine ? "Dieses Deck wird nicht mehr geteilt oder der Link ist unvollständig." : "Du bist offline. Öffne den Link noch einmal, sobald du Internet hast."}</p><button class="btn primary" data-dv="close">Schließen</button></div>`; hideSplash(); return;
+  }
+  const snap = d.data, root = snap.folders[0], subs = snap.folders.filter(x => x.p === 0), cards = snap.cards || [];
+  const perF = k => cards.filter(c => c[0] === k).length;
+  const cv = safeCover(root.cv);
+  const logged = !!USER;
+  body.innerHTML = `<div class="dv-hero ${cv ? 'has-cover' : ''}" style="--c:${esc(safeColor(root.c))};${cv ? `background-image:linear-gradient(to top,rgba(0,0,0,.3),transparent 60%),url('${esc(cv)}')` : ''}">${root.e ? `<span class="dv-emo">${esc(root.e)}</span>` : ''}</div>
+    <div class="dv-kicker">Geteiltes Kartendeck</div><h1 class="dv-name">${esc(root.n)}</h1>
+    <div class="muted dv-meta">${plural(cards.length, "Karte", "Karten")}${snap.folders.length > 1 ? " · " + plural(snap.folders.length - 1, "Unterordner", "Unterordner") : ""}</div>
+    <p class="dv-info">Du bekommst eine eigene Kopie: Du kannst sie frei bearbeiten und lernst mit deinem eigenen Fortschritt.</p>
+    ${subs.length ? `<div class="dv-h">Unterordner</div><div class="dv-subs">${subs.map(x => `<div><span class="dot" style="background-color:${esc(safeColor(x.c))}">${esc(x.e || "")}</span><b>${esc(x.n)}</b><span class="muted">${perF(x.k) + snap.folders.filter(y => y.p === x.k).reduce((a, y) => a + perF(y.k), 0)}</span></div>`).join("")}</div>` : ''}
+    ${cards.length ? `<div class="dv-h">Beispielkarten</div><div class="dv-cards">${cards.slice(0, 8).map(c => `<div><b>${esc(c[1])}</b><span>${esc(c[2])}</span></div>`).join("")}${cards.length > 8 ? `<div class="dv-more muted">+ ${plural(cards.length - 8, "weitere Karte", "weitere Karten")}</div>` : ''}</div>` : '<p class="muted">Dieses Deck enthält noch keine Karten.</p>'}
+    <div class="dv-foot">${logged ? `<button class="btn primary block" data-dv="add">Zu meiner Bibliothek hinzufügen</button>`
+      : `<button class="btn primary block" data-dv="login">Anmelden und hinzufügen</button><button class="pw-forgot" data-dv="signup" type="button">Noch kein Konto? Kostenlos registrieren</button>`}</div>`;
+  hideSplash();
+}
+async function importSharedDeck(d){
+  const snap = d.data, map = {}, entries = [], now = Date.now();
+  const tops = children(null), taken = new Set(tops.map(f => f.name));
+  let name = snap.folders[0].n, i = 2; while (taken.has(name)) name = `${snap.folders[0].n} (${i++})`;
+  const kidsOrder = {};
+  snap.folders.forEach((x, n) => {
+    const id = uid() + n.toString(36); map[x.k] = id;
+    const parentId = x.p >= 0 ? map[x.p] : null;
+    const order = x.p >= 0 ? (kidsOrder[x.p] = (kidsOrder[x.p] ?? -1) + 1) : tops.reduce((m, f) => Math.max(m, f.order || 0), -1) + 1;
+    const f = { id, name: x.p >= 0 ? String(x.n || "Ordner") : name, emoji: String(x.e ?? ""), color: safeColor(x.c), parentId, order, created: now + n, from: d.id };
+    const cv = safeCover(x.cv); if (cv) f.cover = cv; if (["front","both","back"].includes(x.sd)) f.side = x.sd; if (typeof x.cs === "string") f.csort = x.cs;
+    entries.push(["folders/" + id, f]);
+  });
+  const deckOf = {}; (snap.cards || []).forEach((c, n) => { const fid = map[c[0]]; if (!fid) return; const id = uid() + "c" + n.toString(36);
+    (deckOf[fid] = deckOf[fid] || {})[id] = { id, f: String(c[1] || ""), b: String(c[2] || ""), due: now, ivl: 0, ease: 2.5, reps: 0, lapses: 0, created: now + n }; });
+  Object.entries(deckOf).forEach(([fid, cards]) => entries.push(["cards/" + fid, { cards }]));
+  await applyEntries(entries);
+  return map[snap.folders[0].k];
+}
+async function addSharedDeck(id, btn){
+  if (btn) { btn.disabled = true; btn.textContent = "Wird hinzugefügt …"; }
+  try {
+    const d = await fetchSharedDeck(id); if (!d) throw new Error("not found");
+    const until = Date.now() + 15000; while (!(S.loaded.f && S.loaded.c) && Date.now() < until) await new Promise(r => setTimeout(r, 150));
+    const root = await importSharedDeck(d);
+    try { localStorage.removeItem("cardo-pending-deck"); } catch {}
+    closeDeckView(); go("lib", root); toast(`„${d.name}“ ist jetzt in deiner Bibliothek`);
+  } catch (e) { console.warn(e); if (btn) { btn.disabled = false; btn.textContent = "Zu meiner Bibliothek hinzufügen"; } toast("Hinzufügen hat nicht geklappt. Versuch es noch einmal."); }
+}
+function runPendingDeck(){ let id = null; try { id = localStorage.getItem("cardo-pending-deck"); } catch {} if (id && !$("#deckview")) addSharedDeck(id); }
 
 /* ---------- Login ---------- */
 function authErr(e){
@@ -2587,7 +2769,8 @@ function openMenu(btn, fid){
     <button data-act="newCard"${d} role="menuitem">＋ Neue Karte</button>
     <button data-act="newFolder"${d} role="menuitem">＋ Neuer Unterordner</button>
     <button data-act="import"${d} role="menuitem">⇣ Karten importieren</button>
-    <button data-act="editFolder"${d} role="menuitem">✎ Ordner gestalten</button>` + (n.own ? `
+    <button data-act="editFolder"${d} role="menuitem">✎ Ordner gestalten</button>
+    <button data-act="shareSheet"${d} role="menuitem">⇪ Teilen${fo.share ? '<span class="sub" style="color:var(--muted)">Link aktiv</span>' : ''}</button>` + (n.own ? `
     <button data-act="pickStart"${d} role="menuitem">☑ Karten auswählen und löschen</button>` : '')
     : `<button data-act="newFolder" role="menuitem">＋ Neuer Ordner</button>
     <button data-act="newSect" role="menuitem">＋ Neuer Bereich (Überschrift)</button>
@@ -2701,6 +2884,7 @@ document.addEventListener("click", e => {
   if (a === "setLayout") { saveSettings({ layout: b.dataset.v }); return; }
   if (a === "setSide") { setSide(id, b.dataset.v); return; }
   if (a === "chartZoom") { chartZoom(b.dataset.id || null); return; }
+  if (a === "shareSheet") { closeMenu(); shareSheet(id); return; }
   if (a === "setCsort") { const f = S.folders[id]; if (f) { putFolder({ ...f, csort: b.dataset.v }); render(); } return; }
   if (a === "pickStart") { S.sel = new Set(); render(); return; }
   if (a === "pick") { S.sel && (S.sel.has(id) ? S.sel.delete(id) : S.sel.add(id)); render(); return; }
