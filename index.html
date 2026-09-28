@@ -126,7 +126,7 @@ body{background:var(--paper);color:var(--ink);font:16.5px/1.45 var(--body);-webk
 /* Langes Drücken markiert/kopiert nichts – außer in Eingabefeldern und beim Text der Karten */
 html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 input,textarea,select,[contenteditable="true"]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
-.flash-face,.flash-face *,.card-row .cf,.card-row .cb,.exam-miss div,.exam-miss small{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+.flash-face,.flash-face *,.exam-miss div,.exam-miss small{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
 button,input,textarea,select{font:inherit;color:inherit}
 button{cursor:pointer;background:none;border:0;padding:0}
 button:disabled{cursor:default;opacity:.45}
@@ -805,6 +805,14 @@ body.authing #tabs{display:none}
 #menu .mh{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;padding:8px 12px 4px}
 #menu .mcount{font-size:14.5px;color:var(--muted);padding:0 12px 6px}
 #menu hr{border:0;border-top:1px solid var(--line);margin:6px 4px}
+#menu .mcard{padding:8px 12px 6px;max-width:260px}
+#menu .mcard b{display:block;font-size:15.5px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#menu .mcard span{display:block;font-size:13.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#menu button.mdel{color:var(--again)}
+#menu button.mdel.armed{background:var(--again);color:#fff}
+.card-row{-webkit-touch-callout:none;transition:background .18s ease}
+.card-row.cm-press{background:color-mix(in oklab,var(--ink) 7%,transparent)}
+.card-row.cm-press .card-main{transform:scale(.98);transition:transform .35s ease}
 /* Einstellungen: größere Schrift */
 .set-list .set-item{min-height:64px}
 .set-list .si-t{font-size:18px}
@@ -2929,6 +2937,7 @@ document.addEventListener("click", e => {
   }
   const b = e.target.closest("[data-act]");
   const isMenuBtn = b && ["libMenu", "folderMenu", "sectMenu", "cardSortMenu", "learnMenu"].includes(b.dataset.act);
+  if (b && b.dataset.act === "cardDel") { const f = b.dataset.f, cid = b.dataset.id; armDelete(b, () => { closeMenu(); delCard(f, cid); toast("Karte gelöscht"); }); return; }
   if (!isMenuBtn) closeMenu();
   if (!b) { if (e.target.id === "sheet") closeSheet(); return; }
   const a = b.dataset.act, id = b.dataset.id || null;
@@ -2981,6 +2990,10 @@ document.addEventListener("click", e => {
     pickFolderSheet({ title: `${plural(ids.length, 'Karte', 'Karten')} ${mv ? 'verschieben' : 'kopieren'}`, note: mv ? "Lernstand bleibt erhalten." : "Die Kopien starten als neue Karten.", current: mv ? from : null,
       onPick: t => { const n = mv ? moveCards(from, ids, t.fid) : copyCards(from, ids, t.fid); if (!n) return; S.sel = null; render(); toast(`${plural(n, 'Karte', 'Karten')} ${mv ? 'verschoben' : 'kopiert'} nach „${S.folders[t.fid].name}“`); } }); return; }
   if (a === "moveFolder") { moveFolderSheet(id); return; }
+  if (a === "cardCopy" || a === "cardMove") { const from = b.dataset.f, c = (S.decks[from] || {})[id]; if (!c) return; const mv = a === "cardMove";
+    pickFolderSheet({ title: mv ? "Karte verschieben" : "Karte kopieren", note: mv ? "Lernstand bleibt erhalten." : "Die Kopie startet als neue Karte. Das Original bleibt, wo es ist.", current: mv ? from : null,
+      onPick: t => { const n = mv ? moveCards(from, [id], t.fid) : copyCards(from, [id], t.fid); if (n) toast(`${mv ? 'Verschoben' : 'Kopiert'} nach „${S.folders[t.fid].name}“`); } }); return; }
+  if (a === "cardEdit") { cardSheet(b.dataset.f, id); return; }
   if (a === "pick") { S.sel && (S.sel.has(id) ? S.sel.delete(id) : S.sel.add(id)); render(); return; }
   if (a === "pickAll") { const vis = visibleIds(), all = vis.every(x => S.sel.has(x)); vis.forEach(x => all ? S.sel.delete(x) : S.sel.add(x)); render(); return; }
   if (a === "pickCancel") { S.sel = null; render(); return; }
@@ -3281,6 +3294,38 @@ document.addEventListener("mousemove", e => { if (RD.st) { if (RD.on) e.preventD
 document.addEventListener("mouseup", rdUp);
 document.addEventListener("contextmenu", e => { if (rdItem(e.target)) e.preventDefault(); });
 document.addEventListener("click", e => { if (Date.now() - RD.swallow < 500) { e.preventDefault(); e.stopPropagation(); RD.swallow = 0; } }, true);
+
+/* ---------- Karte lange drücken → Menü (Kopieren, Verschieben, Bearbeiten, Löschen) ---------- */
+const CM = { t: 0, row: null, x: 0, y: 0, until: 0 };
+function cmRow(target){ const r = target && target.closest && target.closest("#main .card-row"); return r && !r.classList.contains("picking") && S.view === "lib" && S.fid ? r : null; }
+function cmDown(target, x, y){ cmCancel(); const r = cmRow(target); if (!r) return; CM.row = r; CM.x = x; CM.y = y; r.classList.add("cm-press"); CM.t = setTimeout(() => cmOpen(x, y), 480); }
+function cmCancel(){ clearTimeout(CM.t); CM.t = 0; if (CM.row) CM.row.classList.remove("cm-press"); CM.row = null; }
+function cmOpen(x, y){
+  const r = CM.row; cmCancel(); if (!r || !document.body.contains(r)) return;
+  const bt = r.querySelector("[data-act=editCard]"); if (!bt) return;
+  const fid = bt.dataset.f, id = bt.dataset.id, c = (S.decks[fid] || {})[id]; if (!c) return;
+  CM.until = Date.now() + 700; try { navigator.vibrate && navigator.vibrate(8); } catch {}
+  try { const sel = getSelection(); sel && sel.removeAllRanges(); } catch {}
+  const m = $("#menu"), d = ` data-f="${fid}" data-id="${id}"`;
+  m.innerHTML = `<div class="mcard"><b>${esc(c.f)}</b><span>${esc(c.b)}</span></div><hr>
+    <button data-act="cardCopy"${d} role="menuitem">⧉ Kopieren nach …</button>
+    <button data-act="cardMove"${d} role="menuitem">↪ Verschieben nach …</button>
+    <button data-act="cardEdit"${d} role="menuitem">✎ Bearbeiten</button><hr>
+    <button class="mdel" data-act="cardDel"${d} role="menuitem">🗑 Löschen</button>`;
+  m.hidden = false; const w = m.offsetWidth, h = m.offsetHeight;
+  m.style.left = Math.max(8, Math.min(innerWidth - w - 8, x - w / 2)) + "px";
+  m.style.top = (y + 14 + h < innerHeight - 90 ? y + 14 : Math.max(8, y - h - 14)) + "px";
+}
+document.addEventListener("touchstart", e => { if (e.touches.length !== 1) { cmCancel(); return; } const t = e.touches[0]; cmDown(e.target, t.clientX, t.clientY); }, { passive: true });
+document.addEventListener("touchmove", e => { if (!CM.row) return; const t = e.touches[0]; if (Math.hypot(t.clientX - CM.x, t.clientY - CM.y) > 9) cmCancel(); }, { passive: true });
+document.addEventListener("touchend", cmCancel, { passive: true });
+document.addEventListener("touchcancel", cmCancel, { passive: true });
+document.addEventListener("mousedown", e => { if (e.button === 0 && !e.sourceCapabilities?.firesTouchEvents) cmDown(e.target, e.clientX, e.clientY); });
+document.addEventListener("mousemove", e => { if (CM.row && Math.hypot(e.clientX - CM.x, e.clientY - CM.y) > 9) cmCancel(); });
+document.addEventListener("mouseup", cmCancel);
+document.addEventListener("contextmenu", e => { const r = cmRow(e.target); if (!r) return; e.preventDefault(); if (CM.until > Date.now()) return; CM.row = r; cmOpen(e.clientX, e.clientY); });
+document.addEventListener("click", e => { if (Date.now() < CM.until && e.target.closest && e.target.closest(".card-row")) { e.preventDefault(); e.stopPropagation(); CM.until = 0; } }, true);
+document.addEventListener("selectstart", e => { if (cmRow(e.target)) e.preventDefault(); });
 
 // Two-finger swipe on a Mac trackpad
 let wAcc = 0, wLock = 0, wT = 0;
