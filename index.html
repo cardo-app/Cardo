@@ -175,10 +175,15 @@ body.studying #main{max-width:760px;padding-bottom:24px}
 @media (max-width:599px){.topbar .pill-sync{display:none}}
 .topbar h1{font-size:33px;font-weight:800}
 .crumbs{display:flex;flex-wrap:wrap;gap:4px;align-items:center;font-size:14.5px;color:var(--muted);margin-bottom:10px}
-/* Ordnerpfad bleibt beim Scrollen oben sichtbar */
-#main > .crumbs{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--tc));z-index:20;margin:-8px -16px 2px;padding:8px 16px;background:var(--paper);transition:box-shadow .2s ease}
-@media (min-width:900px){ #main > .crumbs{margin:-8px -36px 2px;padding:8px 36px} }
-#main > .crumbs.stuck{box-shadow:0 1px 0 var(--line),0 8px 16px -12px rgba(0,0,0,.35)}
+/* Ordnerpfad: fest oben am Bildschirm (eigene Leiste #crumbbar außerhalb des scrollenden Inhalts) – bewegt sich weder beim Scrollen noch beim Nachfedern.
+   Im Inhalt bleibt ein unsichtbarer Platzhalter gleicher Höhe. */
+#main > .crumbs{visibility:hidden;margin:-18px -16px 2px;padding:18px 16px 8px}
+@media (min-width:900px){ #main > .crumbs{margin:-32px -36px 2px;padding:32px 36px 8px} }
+#crumbbar{position:fixed;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + var(--tc));z-index:20;background:var(--paper);transition:box-shadow .2s ease;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#crumbbar[hidden]{display:none}
+#crumbbar .crumbs{max-width:1120px;margin:0 auto;padding:18px 16px 8px}
+@media (min-width:900px){ #crumbbar .crumbs{padding:32px 36px 8px} }
+#crumbbar.stuck{box-shadow:0 1px 0 var(--line),0 8px 16px -12px rgba(0,0,0,.35)}
 .crumbs button{color:var(--muted);font-weight:600;padding:2px 4px;border-radius:6px}
 .crumbs button:hover{color:var(--ink);background:var(--surface)}
 .pill-sync{font-size:13px;font-weight:600;color:var(--muted);display:inline-flex;gap:6px;align-items:center;background:var(--surface);border:1px solid var(--line);padding:5px 10px;border-radius:99px;white-space:nowrap}
@@ -3156,6 +3161,7 @@ let curX = 0;
 function place(x, dur, ease = EASE){
   const m = $("#main"), W = innerWidth, t = dur ? `transform ${dur}ms ${ease}` : "none"; curX = x;
   m.style.transition = t; m.style.transform = x ? `translate3d(${x}px,0,0)` : "";
+  const cbar = $("#crumbbar"); if (cbar) { cbar.style.transition = t; cbar.style.transform = m.style.transform; } // Pfadleiste wandert nur beim seitlichen Seitenwechsel mit
   if (peekDir) {
     const pk = PK()[peekDir]; pk.style.transition = t;
     pk.style.transform = `translate3d(${x + (peekDir === "left" ? W : -W)}px,0,0)`;
@@ -3436,8 +3442,15 @@ function updScroll(){
   if (!need && scrollY) window.scrollTo(0, 0);
 }
 addEventListener("resize", updScroll);
-// Schatten unter dem Ordnerpfad, sobald er oben „klebt“
-function updCrumbs(){ const c = document.querySelector("#main > .crumbs"); if (c) c.classList.toggle("stuck", scrollY > 6); }
+// Ordnerpfad in die feste Leiste spiegeln; Schatten, sobald Inhalt darunter durchläuft
+function updCrumbs(){
+  let bar = $("#crumbbar"); if (!bar) { bar = document.createElement("div"); bar.id = "crumbbar"; bar.hidden = true; document.body.appendChild(bar); }
+  const src = document.querySelector("#main > .crumbs");
+  if (!src || S.view !== "lib") { if (!bar.hidden) bar.hidden = true; return; }
+  const h = src.outerHTML; if (bar._h !== h) { bar.innerHTML = h; bar._h = h; }
+  if (bar.hidden) { bar.style.transition = "none"; bar.style.transform = $("#main").style.transform || ""; bar.hidden = false; }
+  bar.classList.toggle("stuck", scrollY > 6);
+}
 addEventListener("scroll", updCrumbs, { passive: true });
 if (window.MutationObserver) new MutationObserver(updCrumbs).observe($("#main"), { childList: true });
 if (window.ResizeObserver) new ResizeObserver(updScroll).observe($("#main"));
