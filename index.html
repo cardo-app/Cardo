@@ -33,6 +33,7 @@ body{margin:0}
   color-scheme:light;
   --b-paper:#F5F6F8; --b-surface:#FFFFFF; --b-surface-2:#F9FAFB; --b-ink:#15171C; --b-ink-2:#3A3F4B; --b-muted:#6B7080; --b-line:#E3E5EB; --tp:0%; --ts:0%; --ts2:0%; --tl:0%; --tm:0%; --ti:0%;
   --again:#D93A3F; --hard:#C27A12; --good:#1E8C57; --easy:#2F6FE0;
+  --g-again:#FF2E63; --g-hard:#FFE600; --g-good:#00E676; --g-easy:#1F8BFF; --g-tx:0%; --g-bg:22%;
   --shadow:0 1px 2px rgba(20,22,30,.06),0 6px 20px rgba(20,22,30,.06);
   --accent:#1B1D23; --accent-ink:#FFFFFF;
   --r:18px; --display:"Bricolage Grotesque",ui-rounded,system-ui,sans-serif; --body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
@@ -41,6 +42,7 @@ body{margin:0}
   color-scheme:dark;
   --b-paper:#0F1115; --b-surface:#181B21; --b-surface-2:#1E2129; --b-ink:#ECEEF3; --b-ink-2:#C9CDD6; --b-muted:#9097A6; --b-line:#2A2E38; --tp:0%; --ts:0%; --ts2:0%; --tl:0%; --tm:0%; --ti:0%;
   --again:#FF6B6F; --hard:#F0B04A; --good:#4CC38A; --easy:#6FA0FF;
+  --g-again:#FF3D6E; --g-hard:#FFF01F; --g-good:#2BFF88; --g-easy:#3DA2FF; --g-tx:100%; --g-bg:0%;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.3);
   --accent:#ECEEF3; --accent-ink:#111318;
 }}
@@ -48,6 +50,7 @@ body{margin:0}
   color-scheme:dark;
   --b-paper:#0F1115; --b-surface:#181B21; --b-surface-2:#1E2129; --b-ink:#ECEEF3; --b-ink-2:#C9CDD6; --b-muted:#9097A6; --b-line:#2A2E38; --tp:0%; --ts:0%; --ts2:0%; --tl:0%; --tm:0%; --ti:0%;
   --again:#FF6B6F; --hard:#F0B04A; --good:#4CC38A; --easy:#6FA0FF;
+  --g-again:#FF3D6E; --g-hard:#FFF01F; --g-good:#2BFF88; --g-easy:#3DA2FF; --g-tx:100%; --g-bg:0%;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.3);
   --accent:#ECEEF3; --accent-ink:#111318;
 }
@@ -56,12 +59,14 @@ body.m-light{
   color-scheme:light;
   --b-paper:#F5F6F8; --b-surface:#FFFFFF; --b-surface-2:#F9FAFB; --b-ink:#15171C; --b-ink-2:#3A3F4B; --b-muted:#6B7080; --b-line:#E3E5EB; --tp:0%; --ts:0%; --ts2:0%; --tl:0%; --tm:0%; --ti:0%;
   --again:#D93A3F; --hard:#C27A12; --good:#1E8C57; --easy:#2F6FE0;
+  --g-again:#FF2E63; --g-hard:#FFE600; --g-good:#00E676; --g-easy:#1F8BFF; --g-tx:0%; --g-bg:22%;
   --shadow:0 1px 2px rgba(20,22,30,.06),0 6px 20px rgba(20,22,30,.06);
 }
 body.m-dark{
   color-scheme:dark;
   --b-paper:#0F1115; --b-surface:#181B21; --b-surface-2:#1E2129; --b-ink:#ECEEF3; --b-ink-2:#C9CDD6; --b-muted:#9097A6; --b-line:#2A2E38; --tp:0%; --ts:0%; --ts2:0%; --tl:0%; --tm:0%; --ti:0%;
   --again:#FF6B6F; --hard:#F0B04A; --good:#4CC38A; --easy:#6FA0FF;
+  --g-again:#FF3D6E; --g-hard:#FFF01F; --g-good:#2BFF88; --g-easy:#3DA2FF; --g-tx:100%; --g-bg:0%;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.3);
 }
 /* Neutral modes: no colourful accents */
@@ -313,9 +318,9 @@ body[data-ts="l"]{--fs-card:clamp(28px,7.2vw,40px);--fs-back:clamp(33px,8.5vw,47
 body.studying #main{padding-bottom:130px}
 .flash{min-height:calc(100vh - 260px)}
 .tap-hint{text-align:center;font-size:14.5px;color:var(--muted);margin-top:14px}
-.grade{border-radius:14px;padding:11px 4px;background:var(--surface);border:2px solid var(--g);color:var(--g);font-weight:800;display:flex;flex-direction:column;align-items:center;gap:1px}
+.grade{border-radius:14px;padding:11px 4px;background:color-mix(in oklab,var(--g) var(--g-bg),var(--surface));border:2px solid var(--g);color:color-mix(in oklab,var(--g) var(--g-tx),var(--ink));font-weight:800;display:flex;flex-direction:column;align-items:center;gap:1px}
 .grade small{font-weight:600;font-size:13px;color:var(--muted)}
-.grade:hover{background:color-mix(in oklab,var(--g) 12%,var(--surface))}
+.grade:hover{background:color-mix(in oklab,var(--g) 32%,var(--surface))}
 .reveal{margin-top:16px}
 .kbd-hint{text-align:center;font-size:13px;color:var(--muted);margin-top:12px}
 @media (hover:none){.kbd-hint{display:none}}
@@ -609,7 +614,7 @@ body.selecting #main{padding-bottom:170px}
 .gs-opt{display:flex;align-items:center;gap:10px;width:100%;padding:12px;border-radius:14px;background:var(--surface-2);border:2px solid transparent;text-align:left}
 .gs-opt.on{border-color:var(--ink)}
 .gs-row{flex:1;display:flex;gap:6px;flex-wrap:wrap}
-.gs-pill{flex:1;min-width:0;text-align:center;font-size:13px;font-weight:800;color:var(--g);border:2px solid var(--g);border-radius:10px;padding:6px 1px;background:var(--surface);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gs-pill{flex:1;min-width:0;text-align:center;font-size:13px;font-weight:800;color:color-mix(in oklab,var(--g) var(--g-tx),var(--ink));border:2px solid var(--g);border-radius:10px;padding:6px 1px;background:color-mix(in oklab,var(--g) var(--g-bg),var(--surface));overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .gs-row{gap:5px}
 .gs-ck{width:18px;font-weight:900;color:var(--ink)}
 .switch{width:50px;height:30px;border-radius:99px;background:color-mix(in oklab,var(--ink) 18%,transparent);position:relative;flex:none;transition:background .2s ease}
@@ -726,18 +731,18 @@ button.set-item:hover{background:color-mix(in oklab,var(--ink) 4%,transparent)}
 @keyframes out3{0%{transform:none}25%{transform:scale(1.04) translateY(-6px)}100%{transform:translate(90%,-70%) rotate(16deg) scale(.85);opacity:0}}
 .flash[class*="out-g"],.flash.tint{pointer-events:none}
 .flash.tint{border-top-color:var(--gc);box-shadow:0 0 0 4px var(--gc),var(--shadow)}
-.flash.out-g0{animation:out0 .52s ease-in forwards;box-shadow:0 0 0 3px var(--again),var(--shadow)}
-.flash.out-g1{animation:out1 .44s cubic-bezier(.5,0,.75,0) forwards;box-shadow:0 0 0 3px var(--hard),var(--shadow)}
-.flash.out-g2{animation:out2 .44s cubic-bezier(.5,0,.75,0) forwards;box-shadow:0 0 0 3px var(--good),var(--shadow)}
-.flash.out-g3{animation:out3 .44s cubic-bezier(.5,0,.75,0) forwards;box-shadow:0 0 0 3px var(--easy),0 0 40px color-mix(in oklab,var(--easy) 45%,transparent)}
-.flash.out-g0{border-top-color:var(--again);box-shadow:0 0 0 4px var(--again),var(--shadow)}
-.flash.out-g1{border-top-color:var(--hard);box-shadow:0 0 0 4px var(--hard),var(--shadow)}
-.flash.out-g2{border-top-color:var(--good);box-shadow:0 0 0 4px var(--good),var(--shadow)}
-.flash.out-g3{border-top-color:var(--easy);box-shadow:0 0 0 4px var(--easy),0 0 40px color-mix(in oklab,var(--easy) 45%,transparent)}
-.grade.chosen{background:var(--g);color:#fff}
-.grade.chosen small{color:rgba(255,255,255,.85)}
+.flash.out-g0{animation:out0 .52s ease-in forwards;box-shadow:0 0 0 3px var(--g-again),var(--shadow)}
+.flash.out-g1{animation:out1 .44s cubic-bezier(.5,0,.75,0) forwards;box-shadow:0 0 0 3px var(--g-hard),var(--shadow)}
+.flash.out-g2{animation:out2 .44s cubic-bezier(.5,0,.75,0) forwards;box-shadow:0 0 0 3px var(--g-good),var(--shadow)}
+.flash.out-g3{animation:out3 .44s cubic-bezier(.5,0,.75,0) forwards;box-shadow:0 0 0 3px var(--g-easy),0 0 40px color-mix(in oklab,var(--g-easy) 45%,transparent)}
+.flash.out-g0{border-top-color:var(--g-again);box-shadow:0 0 0 4px var(--g-again),var(--shadow)}
+.flash.out-g1{border-top-color:var(--g-hard);box-shadow:0 0 0 4px var(--g-hard),var(--shadow)}
+.flash.out-g2{border-top-color:var(--g-good);box-shadow:0 0 0 4px var(--g-good),var(--shadow)}
+.flash.out-g3{border-top-color:var(--g-easy);box-shadow:0 0 0 4px var(--g-easy),0 0 40px color-mix(in oklab,var(--g-easy) 45%,transparent)}
+.grade.chosen{background:var(--g);color:#111318}
+.grade.chosen small{color:rgba(17,19,24,.7)}
 .grade-fx{position:fixed;left:50%;top:42%;z-index:80;pointer-events:none;width:0;height:0}
-.gfx-badge{position:absolute;left:0;top:0;transform:translate(-50%,-50%);display:flex;align-items:center;gap:8px;background:var(--gc);color:#fff;font-weight:800;font-size:20px;padding:10px 18px;border-radius:99px;box-shadow:0 10px 30px color-mix(in oklab,var(--gc) 45%,transparent);white-space:nowrap}
+.gfx-badge{position:absolute;left:0;top:0;transform:translate(-50%,-50%);display:flex;align-items:center;gap:8px;background:var(--gc);color:#111318;font-weight:800;font-size:20px;padding:10px 18px;border-radius:99px;box-shadow:0 10px 30px color-mix(in oklab,var(--gc) 45%,transparent);white-space:nowrap}
 .gfx-badge b{font-size:24px;line-height:1}
 @keyframes fx0{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}20%{opacity:1;transform:translate(-50%,-50%) scale(1.05) rotate(-4deg)}35%{transform:translate(-50%,-50%) rotate(4deg)}50%{transform:translate(-50%,-50%) rotate(-3deg)}70%{opacity:1;transform:translate(-50%,-50%) rotate(0)}100%{opacity:0;transform:translate(-50%,-40%) scale(.9)}}
 @keyframes fx1{0%{opacity:0;transform:translate(-50%,-50%) scale(.7)}25%{opacity:1;transform:translate(-50%,-50%) scale(1)}70%{opacity:1}100%{opacity:0;transform:translate(-50%,-30%) scale(.95)}}
@@ -748,8 +753,8 @@ button.set-item:hover{background:color-mix(in oklab,var(--ink) 4%,transparent)}
 .grade-fx.g2 .gfx-badge{animation:fx2 .95s cubic-bezier(.2,.8,.25,1) forwards}
 .grade-fx.g3 .gfx-badge{animation:fx3 1s cubic-bezier(.2,.8,.25,1) forwards}
 .grade-fx i{position:absolute;left:-5px;top:-5px;width:10px;height:10px;border-radius:50%;background:var(--gc);animation:spark .8s cubic-bezier(.2,.8,.25,1) forwards}
-.grade-fx i:nth-child(3n){background:var(--hard)}
-.grade-fx i:nth-child(4n){background:var(--good)}
+.grade-fx i:nth-child(3n){background:var(--g-hard)}
+.grade-fx i:nth-child(4n){background:var(--g-good)}
 @keyframes spark{0%{opacity:1;transform:rotate(var(--a)) translateX(0) scale(1)}100%{opacity:0;transform:rotate(var(--a)) translateX(var(--d)) scale(.4)}}
 .learn-btn{display:flex;align-items:center;gap:14px;width:100%;padding:14px 18px;border-radius:16px;background:var(--accent);color:var(--accent-ink);text-align:left;box-shadow:0 8px 22px color-mix(in oklab,var(--accent) 35%,transparent)}
 .learn-btn:hover{filter:brightness(1.06)}
@@ -2363,12 +2368,12 @@ const GRADE_SETS = {
 const gradeSet = () => GRADE_SETS[S.set.gradeSet] || GRADE_SETS["4"];
 const EXAM_GRADES = [{ l:"Nicht gewusst", g:0, v:0 }, { l:"Gewusst", g:2, v:2 }];
 const curGrades = () => (S.study && S.study.exam ? EXAM_GRADES : gradeSet());
-const GRADE_VARS = ["--again","--hard","--good","--easy"];
+const GRADE_VARS = ["--g-again","--g-hard","--g-good","--g-easy"];
 const GRADE_FX = [
-  { cls: "g0", icon: "↺", text: "Nochmal", col: "--again" },
-  { cls: "g1", icon: "〰", text: "Schwer",  col: "--hard" },
-  { cls: "g2", icon: "✓", text: "Gut",     col: "--good" },
-  { cls: "g3", icon: "✦", text: "Einfach", col: "--easy" }
+  { cls: "g0", icon: "↺", text: "Nochmal", col: "--g-again" },
+  { cls: "g1", icon: "〰", text: "Schwer",  col: "--g-hard" },
+  { cls: "g2", icon: "✓", text: "Gut",     col: "--g-good" },
+  { cls: "g3", icon: "✦", text: "Einfach", col: "--g-easy" }
 ];
 function gradeFx(g, label, anchor){
   const fx = GRADE_FX[g], el = document.createElement("div");
