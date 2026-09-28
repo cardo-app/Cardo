@@ -2839,7 +2839,7 @@ document.addEventListener("touchstart", e => {
   sw = null; if (e.touches.length !== 1) return;
   if (animating) settleSwipe();
   if (animating || !canSwipe()) return;
-  if (e.target.closest("input,textarea,select,#czoom,.zoomable,[data-noswipe]")) return;
+  if (e.target.closest("input,textarea,select,#czoom,[data-noswipe]")) return;
   const t = e.touches[0]; if (t.clientX < 18 || t.clientX > innerWidth - 18) return; // leave system edge gestures alone
   if (peekGen !== S.gen) prerender();
   $("#main").style.willChange = "transform"; // Ebene schon beim Aufsetzen anlegen, damit der Start des Wischens nicht ruckelt
@@ -2876,7 +2876,7 @@ document.addEventListener("touchcancel", () => { if (sw && sw.drag) { sw.pts = s
 let wAcc = 0, wLock = 0, wT = 0;
 document.addEventListener("wheel", e => {
   if (!canSwipe() || e.ctrlKey) return;
-  if (Math.abs(e.deltaX) <= Math.abs(e.deltaY) || e.target.closest("#czoom,.zoomable")) return;
+  if (Math.abs(e.deltaX) <= Math.abs(e.deltaY) || e.target.closest("#czoom")) return;
   const now = Date.now(); if (now < wLock) return;
   if (now - wT > 250) wAcc = 0; wT = now; wAcc += e.deltaX;
   if (Math.abs(wAcc) < 90) return;
