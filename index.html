@@ -2761,7 +2761,9 @@ function pageHTML(view){
   if (view === "stats") return statsHTML(); if (view === "settings") return settingsHTML();
   const f = libTarget(); return f ? folderHTML(f) : libHTML();
 }
-let sw = null, animating = false, peekDir = null, peekGen = -1, prT = 0, raf2 = 0, pendingX = null;
+let sw = null, animating = false, peekDir = null, peekGen = -1, prT = 0, raf2 = 0, pendingX = null, finT = 0, finCb = null;
+// Läuft noch ein Seitenwechsel, wenn schon wieder gewischt wird: sofort zu Ende bringen statt die neue Geste zu ignorieren.
+function settleSwipe(){ if (!animating || !finCb) return; clearTimeout(finT); const f = finCb; finCb = null; f(); }
 const PK = () => ({ left: $("#peek"), right: $("#peek2") }); // left-swipe shows the page on the right, and vice versa
 function prerender(){
   if (!canSwipe() || !PAGES.includes(S.view)) return;
@@ -2819,7 +2821,7 @@ function finish(commit, dir, v = 0){
   let dur = toward ? slope * dist / Math.abs(v) : (commit ? 480 : 400);
   dur = Math.round(Math.max(commit ? 300 : 260, Math.min(commit ? 540 : 440, dur)));
   animating = true; cancelAnimationFrame(raf2); place(target, dur, ease);
-  setTimeout(() => {
+  finCb = () => {
     if (commit) {
       const fresh = peekGen === S.gen && PK()[dir].firstElementChild.childNodes.length;
       go(neighbour(dir), neighbour(dir) === "lib" ? libTarget() : null, "none");
@@ -2827,10 +2829,14 @@ function finish(commit, dir, v = 0){
       draw(); if (raf) { cancelAnimationFrame(raf); raf = 0; } // nur einmal zeichnen
     }
     place(0, 0); hidePeek(); clearTabStyles(); $("#main").style.willChange = ""; document.body.classList.remove("swiping"); animating = false;
-  }, dur + 16);
+    if (commit) { clearTimeout(prT); prerender(); } // Nachbarseiten sofort bereitlegen – das nächste Wischen startet ohne Wartezeit
+  };
+  finT = setTimeout(() => { const f = finCb; finCb = null; f && f(); }, dur + 16);
 }
 document.addEventListener("touchstart", e => {
-  sw = null; if (animating || e.touches.length !== 1 || !canSwipe()) return;
+  sw = null; if (e.touches.length !== 1) return;
+  if (animating) settleSwipe();
+  if (animating || !canSwipe()) return;
   if (e.target.closest("input,textarea,select,#czoom,[data-noswipe]")) return;
   const t = e.touches[0]; if (t.clientX < 18 || t.clientX > innerWidth - 18) return; // leave system edge gestures alone
   if (peekGen !== S.gen) prerender();
@@ -2867,11 +2873,13 @@ document.addEventListener("touchcancel", () => { if (sw && sw.drag) { sw.pts = s
 // Two-finger swipe on a Mac trackpad
 let wAcc = 0, wLock = 0, wT = 0;
 document.addEventListener("wheel", e => {
-  if (!canSwipe() || animating || e.ctrlKey) return;
+  if (!canSwipe() || e.ctrlKey) return;
   if (Math.abs(e.deltaX) <= Math.abs(e.deltaY) || e.target.closest("#czoom")) return;
-  const now = Date.now(); if (now < wLock) return; if (now - wT > 250) wAcc = 0; wT = now; wAcc += e.deltaX;
+  const now = Date.now(); if (now < wLock) return;
+  if (now - wT > 250) wAcc = 0; wT = now; wAcc += e.deltaX;
   if (Math.abs(wAcc) < 90) return;
   const dir = wAcc > 0 ? "left" : "right"; wAcc = 0; wLock = now + 700;
+  if (animating) settleSwipe();
   if (!neighbour(dir)) return;
   if (reduceMotion.matches) { go(neighbour(dir), neighbour(dir) === "lib" ? libTarget() : null); return; }
   showPeek(dir); place(0, 0); $("#main").style.willChange = "transform"; document.body.classList.add("swiping");
