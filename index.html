@@ -22,7 +22,11 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'"><!-- lädt im Hintergrund: blockiert das erste Bild beim Start nicht -->
 <style>
 /* Start: alles sofort weiß wie das Startbild von iOS (auch hinter der Statusleiste) – kein schwarzer Rand, kein Zucken */
-html{padding-top:env(safe-area-inset-top,0px);background:#fff}
+:root{--tc:0px}
+/* iOS 26+: In der installierten App legt iOS einen Weichzeichner („Liquid Glass“) über die Statusleiste und ca. 40 pt darunter.
+   Dieser Streifen bleibt deshalb einfarbig (Hintergrund), der Inhalt beginnt erst darunter – so wird nichts verschwommen. */
+@media (display-mode: standalone){@supports (-webkit-touch-callout: none){:root{--tc:40px}@media (max-width:899px){#main{padding-top:8px}}}}
+html{padding-top:calc(env(safe-area-inset-top,0px) + var(--tc));background:#fff}
 html:has(> body.splashing:not(.intro-day):not(.splash-quick)){animation:htmlNight .9s cubic-bezier(.45,0,.55,1) .95s forwards} /* wird dunkel, wenn der Startbildschirm Nacht wird */
 @keyframes htmlNight{to{background-color:#07090F}}
 /* Kein Zoomen: Doppeltipp-Zoom aus */
@@ -146,7 +150,7 @@ h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:-.
 @media (min-width:900px){ #main{padding:32px 36px 120px} }
 body.studying #tabs{display:none!important}
 
-.peek{position:fixed;inset:0;z-index:5;visibility:hidden;will-change:transform;backface-visibility:hidden;contain:layout paint;background:var(--paper);overflow:hidden;pointer-events:none;padding-top:env(safe-area-inset-top,0px)}
+.peek{position:fixed;inset:0;z-index:5;visibility:hidden;will-change:transform;backface-visibility:hidden;contain:layout paint;background:var(--paper);overflow:hidden;pointer-events:none;padding-top:calc(env(safe-area-inset-top,0px) + var(--tc))}
 .peek .pg{padding:18px 16px 110px;max-width:1120px;width:100%;margin:0 auto}
 @media (min-width:900px){ .peek .pg{padding:32px 36px 120px} }
 html,body{overflow-x:clip}
@@ -172,7 +176,7 @@ body.studying #main{max-width:760px;padding-bottom:24px}
 .topbar h1{font-size:33px;font-weight:800}
 .crumbs{display:flex;flex-wrap:wrap;gap:4px;align-items:center;font-size:14.5px;color:var(--muted);margin-bottom:10px}
 /* Ordnerpfad bleibt beim Scrollen oben sichtbar */
-#main > .crumbs{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;margin:-8px -16px 2px;padding:8px 16px;background:var(--paper);transition:box-shadow .2s ease}
+#main > .crumbs{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--tc));z-index:20;margin:-8px -16px 2px;padding:8px 16px;background:var(--paper);transition:box-shadow .2s ease}
 @media (min-width:900px){ #main > .crumbs{margin:-8px -36px 2px;padding:8px 36px} }
 #main > .crumbs.stuck{box-shadow:0 1px 0 var(--line),0 8px 16px -12px rgba(0,0,0,.35)}
 .crumbs button{color:var(--muted);font-weight:600;padding:2px 4px;border-radius:6px}
@@ -370,7 +374,7 @@ button.mrow:hover .nm span:last-child{text-decoration:underline;text-decoration-
 .cz-foot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:13px;margin-top:6px}
 .cz-hint{display:inline-flex;align-items:center;gap:4px;font-weight:650;color:var(--muted)}
 #czoom,#czoom *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
-#czoom{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 12px) 10px calc(env(safe-area-inset-bottom,0px) + 12px);background:rgba(0,0,0,0);transition:background .18s ease}
+#czoom{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + var(--tc) + 12px) 10px calc(env(safe-area-inset-bottom,0px) + 12px);background:rgba(0,0,0,0);transition:background .18s ease}
 #czoom.in{background:rgba(0,0,0,.45)}
 .cz-panel{width:min(100%,920px);background:var(--surface);border-radius:22px;padding:16px 14px 14px;box-shadow:0 20px 60px rgba(0,0,0,.3);transform:scale(.94);opacity:0;transition:transform .2s cubic-bezier(.2,.9,.3,1.2),opacity .16s ease}
 #czoom.in .cz-panel{transform:none;opacity:1}
@@ -883,7 +887,7 @@ body:not(.intro-day):not(.splash-quick) #splash{animation:splashNightEdge .9s cu
 .sp-ball.morph{z-index:3;animation:none;opacity:1;transform-origin:0 0}
 body.splashing #tabs{opacity:0}
 /* Fester, deckender Streifen hinter der Statusleiste: iOS übernimmt dessen Farbe oben (statt eines grauen Verlaufs) */
-#edgeTop{position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);z-index:45;background:var(--paper);pointer-events:none}
+#edgeTop{position:fixed;left:0;right:0;top:0;height:calc(env(safe-area-inset-top,0px) + var(--tc));z-index:45;background:var(--paper);pointer-events:none}
 body.splashing #edgeTop,html:has(> body > #intro:not(.out):not(.out-fast)) #edgeTop{z-index:215;background:#fff}
 body.splashing:not(.intro-day):not(.splash-quick) #edgeTop{animation:htmlNight .9s cubic-bezier(.45,0,.55,1) .95s forwards}
 body.intro-day #splash::before,body.intro-day #splash::after{display:none} /* erstes Öffnen: kein Nachthimmel, das Intro ist weiß wie das App-Icon */
@@ -944,8 +948,8 @@ html.no-scroll{overflow-y:hidden}
 *{scrollbar-width:none}
 ::-webkit-scrollbar{display:none;width:0;height:0}
 /* In der installierten App ist html 100lvh hoch inkl. oberem Abstand (Notch) – body darf deshalb nicht zusätzlich 100lvh hoch sein, sonst lässt sich die Seite um diesen Abstand scrollen */
-@media (display-mode: standalone){body{min-height:calc(100lvh - env(safe-area-inset-top,0px))}}
-html.ios-standalone body{min-height:calc(100lvh - env(safe-area-inset-top,0px))}
+@media (display-mode: standalone){body{min-height:calc(100lvh - env(safe-area-inset-top,0px) - var(--tc))}}
+html.ios-standalone body{min-height:calc(100lvh - env(safe-area-inset-top,0px) - var(--tc))}
 html.android .flash,html.android #tabs,html.android button,html.android .tile,html.android .set-item{-webkit-user-select:none;user-select:none}
 html.ios-standalone body{min-height:100lvh}
 /* Tab-Leiste auf dem iPhone tiefer: weniger Abstand zum Home-Balken (nur schmale Bildschirme, Leiste über volle Breite) */
