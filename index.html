@@ -532,6 +532,28 @@ textarea.in{min-height:92px;resize:vertical;line-height:1.4}
 .selbar .btn.danger{background:var(--again);color:#fff;border-color:transparent}
 .selbar .btn.danger.armed{background:#fff;color:var(--again)}
 .selbar .btn:disabled{opacity:.4}
+.selbar b{flex:1 1 0;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.selbar .sel-acts{display:flex;gap:6px;width:100%}
+.selbar .sel-acts .btn{flex:1;padding:8px 6px;white-space:nowrap}
+.sheet-foot .l{display:flex;gap:8px;flex-wrap:wrap}
+.share-btn{position:relative;color:var(--ink);background:color-mix(in oklab,var(--ink) 6%,transparent)}
+.share-btn svg{width:19px;height:19px;margin-top:-2px}
+.share-btn.live::after{content:"";position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--easy);box-shadow:0 0 0 2px var(--surface)}
+.pk-list{display:flex;flex-direction:column;gap:2px;margin:0 -6px 12px;max-height:min(58vh,520px);overflow:auto;overscroll-behavior:contain}
+.pk-h{font-size:12.5px;font-weight:750;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);padding:12px 8px 6px}
+.pk-row{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:9px 10px 9px calc(10px + var(--d,0) * 20px);border-radius:12px;background:transparent;color:var(--ink);transition:background .12s ease}
+.pk-row:hover:not(:disabled),.pk-row:active:not(:disabled){background:color-mix(in oklab,var(--ink) 7%,transparent)}
+.pk-row:disabled{opacity:.5;cursor:default}
+.pk-dot{width:34px;height:34px;border-radius:10px;flex:none;display:grid;place-items:center;font-size:18px;background-size:cover;background-position:center}
+.pk-ic{background:color-mix(in oklab,var(--ink) 8%,transparent);color:var(--ink)}
+.pk-ic svg{width:18px;height:18px}
+.pk-t{display:flex;flex-direction:column;min-width:0;flex:1}
+.pk-t b{font-weight:700;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pk-t span{font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pk-cur{font-size:13px;color:var(--muted);font-weight:650}
+.pk-ch{color:var(--muted);font-size:20px}
+.sect.rd-target{outline:2px dashed color-mix(in oklab,var(--accent) 70%,transparent);outline-offset:6px;border-radius:14px;background:color-mix(in oklab,var(--accent) 7%,transparent)}
+.sect{transition:background .15s ease}
 body.selecting #main{padding-bottom:170px}
 .sect{margin-top:10px}
 .sect .sec-h{justify-content:flex-start;align-items:center;gap:6px;flex-wrap:wrap}
@@ -930,6 +952,8 @@ const IC = {
   folder:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
   sub:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v9a2 2 0 0 0 2 2h3"/><path d="M11 12a1.5 1.5 0 0 1 1.5-1.5h2.5l1.5 1.5h3a1.5 1.5 0 0 1 1.5 1.5v4a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 11 17.5z"/></svg>',
   sect:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h13"/></svg>',
+  share:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v11"/><path d="M8 7.2 12 3.5l4 3.7"/><path d="M8.5 10.5H7a2 2 0 0 0-2 2V19a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6.5a2 2 0 0 0-2-2h-1.5"/></svg>',
+  move:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 13h6m-2.5-2.5L15 13l-2.5 2.5"/></svg>',
   dots:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5.5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18.5" cy="12" r="1.8"/></svg>',
   sliders:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>',
   close:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
@@ -1846,7 +1870,7 @@ function libHTML(){
 function sectionsHTML(){
   const block = (sid, name, list, own) => {
     const closed = S.closed.has(sid || "_none"), cards = list.reduce((n, f) => n + counts(f.id).total, 0);
-    return `<section class="sect ${closed ? 'closed' : ''}"><div class="sec-h"><button class="sect-t" data-act="toggleSect" data-id="${sid || '_none'}" aria-expanded="${!closed}"><span class="chev">▾</span><h2>${esc(name)}</h2></button>
+    return `<section class="sect ${closed ? 'closed' : ''}" data-sid="${sid || ''}"><div class="sec-h"><button class="sect-t" data-act="toggleSect" data-id="${sid || '_none'}" aria-expanded="${!closed}"><span class="chev">▾</span><h2>${esc(name)}</h2></button>
       ${own ? `<button class="sect-btn" data-act="sectMenu" data-id="${sid}" aria-haspopup="menu" aria-expanded="false" aria-label="Bereich ${esc(name)} bearbeiten" title="Bereich bearbeiten">${IC.sliders}</button>` : ''}</div>
       ${closed ? '' : list.length ? foldersHTML(list) : `<div class="sect-hint">Noch keine Ordner in diesem Bereich. Tippe auf ⋯ › Neuer Ordner hier, oder öffne einen Ordner und ordne ihn über Ordner ⋯ › Ordner gestalten diesem Bereich zu.</div>`}</section>`;
   };
@@ -1863,7 +1887,8 @@ function folderHTML(fid){
   <section class="banner ${coverUrl(f) ? 'has-cover' : ''}">${artHTML(f)}
     <div class="banner-body"><div class="banner-row"><div><h1>${esc(f.name)}</h1><div class="muted banner-meta">${plural(n.total, 'Karte', 'Karten')} · ${n.due} fällig${subs.length ? ' · ' + plural(subs.length, 'Unterordner', 'Unterordner') : ''}${sideOf(fid) !== 'front' ? ` · ${sideOf(fid) === 'both' ? '⇄ beidseitig' : '↺ Rückseite zuerst'}` : ''}</div></div>
       <div class="banner-acts"><button class="lset-btn" style="--c:${esc(colorOf(f))}" data-act="learnMenu" data-id="${fid}" aria-haspopup="menu" aria-expanded="false" aria-label="Lerneinstellungen: ${esc(dailyLabel(fid))}" title="Lerneinstellungen">${IC_LEARN}<span>${esc(learnShort(fid))}</span></button>
-      <button class="icon-btn" data-act="folderMenu" data-id="${fid}" aria-haspopup="menu" aria-expanded="false" aria-label="${f.parentId ? 'Unterordner' : 'Ordner'}-Menü" title="${f.parentId ? 'Unterordner' : 'Ordner'}">${IC.dots}</button></div></div>
+      <button class="icon-btn" data-act="folderMenu" data-id="${fid}" aria-haspopup="menu" aria-expanded="false" aria-label="${f.parentId ? 'Unterordner' : 'Ordner'}-Menü" title="${f.parentId ? 'Unterordner' : 'Ordner'}">${IC.dots}</button>
+      <button class="icon-btn share-btn ${f.share ? 'live' : ''}" data-act="shareSheet" data-id="${fid}" aria-label="Teilen${f.share ? ' (Link aktiv)' : ''}" title="Teilen${f.share ? ' – Link aktiv' : ''}">${IC.share}</button></div></div>
       ${n.total ? (n.due ? `<button class="learn-btn" data-act="study" data-id="${fid}"><span class="lb-play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.9l10.2-6.5a1 1 0 0 0 0-1.8L9.5 4.6A1 1 0 0 0 8 5.5z"/></svg></span><span class="lb-t"><b>Lernen</b><span>${learnSub(n)}</span></span></button>`
         : (n.newLeft ? `<div class="learn-done"><span aria-hidden="true">✓</span> Heute alles gelernt – dein Tageslimit ist erreicht.<button class="btn more-new" data-act="moreNew" data-id="${fid}">＋ 10 weitere Karten</button></div>` : `<div class="learn-done"><span aria-hidden="true">✓</span> Heute alles gelernt. Neue Karten kommen, sobald sie fällig sind.</div>`)) : ''}
       ${n.total ? (() => { const m = mastery(fid); return `<button class="exam-btn lv${m.lv}" data-act="examSheet" data-id="${fid}" title="${m.pct} % der Karten sitzen sicher">${IC_EXAM}Prüfen<span class="ex-pct num">· ${m.pct} % sicher</span></button>`; })() : ''}
@@ -1890,9 +1915,10 @@ function cardListHTML(fid){
 function visibleIds(){ const q = S.q.trim().toLowerCase(); return Object.values(S.decks[S.fid] || {}).filter(c => !q || (c.f + " " + c.b).toLowerCase().includes(q)).map(c => c.id); }
 function selbarHTML(){
   const n = S.sel.size, vis = visibleIds(), all = vis.length && vis.every(id => S.sel.has(id));
-  return `<div class="selbar" role="toolbar" aria-label="Auswahl"><b class="num">${n ? plural(n, 'Karte', 'Karten') + ' ausgewählt' : 'Karten antippen'}</b>
+  return `<div class="selbar" role="toolbar" aria-label="Auswahl"><b class="num">${n ? n + ' ausgewählt' : 'Karten antippen'}</b>
     <button class="btn" data-act="pickAll">${all ? 'Keine' : 'Alle'}</button><button class="btn" data-act="pickCancel">Fertig</button>
-    <button class="btn danger" data-act="pickDelete" ${n ? '' : 'disabled'}>Löschen</button></div>`;
+    <div class="sel-acts"><button class="btn" data-act="pickCopy" ${n ? '' : 'disabled'}>Kopieren</button><button class="btn" data-act="pickMove" ${n ? '' : 'disabled'}>Verschieben</button>
+    <button class="btn danger" data-act="pickDelete" ${n ? '' : 'disabled'}>Löschen</button></div></div>`;
 }
 /* ---------- Settings ---------- */
 const MODE_IC = {
@@ -2681,7 +2707,7 @@ function cardSheet(fid, id){
     <div class="field"><label for="cb">Rückseite</label><textarea class="in" id="cb" placeholder="Antwort">${esc(ex ? ex.b : "")}</textarea></div>
     <div class="field"><label for="cfo">Ordner</label><select class="in" id="cfo">${folderOptions(fid)}</select></div>
     ${ex ? `<div class="muted" style="font-size:14.5px;margin-bottom:14px">${ex.reps ? `${plural(ex.reps, 'Wiederholung', 'Wiederholungen')} · nächste ${isDue(ex) ? 'jetzt' : 'in ' + fmtIvl(ex.due - Date.now()).replace('< ','')}` : 'Noch nicht gelernt'}</div>` : ''}
-    ${ex ? `<div class="sheet-foot"><button class="btn danger" id="cdel">Löschen</button><div class="r"><button class="btn" data-act="close">Abbrechen</button><button class="btn primary" id="csave">Speichern</button></div></div>`
+    ${ex ? `<div class="sheet-foot"><div class="l"><button class="btn danger" id="cdel">Löschen</button><button class="btn" id="ccopy">Kopieren …</button></div><div class="r"><button class="btn" data-act="close">Abbrechen</button><button class="btn primary" id="csave">Speichern</button></div></div>`
       : `<div class="sheet-foot new-card-foot"><button class="btn-quiet" id="csave">Speichern &amp; schließen</button><button class="btn primary" id="cnext">Nächste Karte →</button></div>`}`,
   root => {
     const save = () => {
@@ -2696,7 +2722,71 @@ function cardSheet(fid, id){
       if (save()) { closeSheet(); toast(ex ? "Gespeichert" : "Karte angelegt"); } });
     const nx = $("#cnext", root); if (nx) nx.addEventListener("click", () => { if (save()) { $("#cf", root).value = ""; $("#cb", root).value = ""; $("#cf", root).focus(); toast("Karte angelegt"); } });
     const del = $("#cdel", root); if (del) del.addEventListener("click", () => armDelete(del, () => { delCard(fid, ex.id); closeSheet(); toast("Karte gelöscht"); }));
+    const cp = $("#ccopy", root); if (cp) cp.addEventListener("click", () => {
+      const f = $("#cf", root).value.trim() || ex.f, b = $("#cb", root).value.trim() || ex.b;
+      pickFolderSheet({ title: "Karte kopieren", note: "Die Kopie startet als neue Karte. Das Original bleibt, wo es ist.", back: () => cardSheet(fid, id),
+        onPick: t => { putCard(t.fid, newCardFrom({ f, b }, 0)); toast(`Kopiert nach „${S.folders[t.fid].name}“`); } });
+    });
   });
+}
+/* ---------- Karten kopieren / verschieben, Ordner verschieben ---------- */
+function newCardFrom(c, n){ const now = Date.now(); return { id: uid() + "k" + n.toString(36), f: String(c.f || ""), b: String(c.b || ""), due: now, ivl: 0, ease: 2.5, reps: 0, lapses: 0, created: now + n }; }
+function copyCards(from, ids, to){
+  const src = S.decks[from] || {}, add = {}; let n = 0;
+  ids.forEach(id => { const c = src[id]; if (c) { const k = newCardFrom(c, n++); add[k.id] = k; } });
+  if (!n) return 0;
+  S.decks[to] = { ...(S.decks[to] || {}), ...add }; render(); writeDeck(to); return n;
+}
+function moveCards(from, ids, to){
+  if (from === to) return 0;
+  const src = { ...(S.decks[from] || {}) }, dst = { ...(S.decks[to] || {}) }; let n = 0;
+  ids.forEach(id => { const c = src[id]; if (c) { delete src[id]; dst[c.id] = c; n++; } });
+  if (!n) return 0;
+  S.decks[from] = src; S.decks[to] = dst; render(); writeDeck(to); writeDeck(from); return n;
+}
+// Ordner/Bereich als Ziel wählen. opts: title, note, current (Ordner-ID, nicht wählbar), exclude (IDs), root (Bibliothek/Bereiche anbieten), curRoot (aktueller Bereich, "" = ohne), onPick({fid}|{sid}), back
+function pickFolderSheet(o){
+  const ex = new Set(o.exclude || []), rows = [];
+  const walk = (pid, d) => children(pid).forEach(f => { if (ex.has(f.id)) return; rows.push([f, d]); walk(f.id, d + 1); });
+  walk(null, 0);
+  const row = (f, d) => { const cur = f.id === o.current;
+    return `<button type="button" class="pk-row" data-fid="${f.id}" style="--d:${d}" ${cur ? 'disabled' : ''}>${dotHTML(f, "pk-dot")}<span class="pk-t"><b>${esc(f.name)}</b>${d ? `<span>${esc(pathOf(f.id).slice(0, -1).map(x => x.name).join(" › "))}</span>` : ''}</span>${cur ? '<span class="pk-cur">aktuell</span>' : '<span class="pk-ch" aria-hidden="true">›</span>'}</button>`; };
+  let top = "";
+  if (o.root) {
+    const secs = sectionList(), cur = o.curRoot;
+    const srow = (sid, name, sub) => { const on = cur === sid;
+      return `<button type="button" class="pk-row pk-sect" data-sid="${sid}" ${on ? 'disabled' : ''}><span class="pk-dot pk-ic">${sid ? IC.sect : IC.lib}</span><span class="pk-t"><b>${esc(name)}</b><span>${sub}</span></span>${on ? '<span class="pk-cur">aktuell</span>' : '<span class="pk-ch" aria-hidden="true">›</span>'}</button>`; };
+    top = `<div class="pk-h">${secs.length ? 'Bibliothek – Bereich' : 'Bibliothek'}</div>` + (secs.length ? secs.map(x => srow(x.id, x.name, "Oberste Ebene in diesem Bereich")).join("") + srow("", "Weitere Ordner", "Oberste Ebene ohne Bereich") : srow("", "Bibliothek", "Oberste Ebene"));
+  }
+  openSheet(`${o.back ? headBack(o.title, "__pkBack") : head(o.title)}${o.note ? `<p class="muted" style="margin:-4px 0 12px;font-size:15px">${esc(o.note)}</p>` : ''}
+    <div class="pk-list">${top}${rows.length ? `${o.root ? '<div class="pk-h">In einen Ordner</div>' : ''}${rows.map(([f, d]) => row(f, d)).join("")}` : (o.root ? '' : '<div class="muted">Noch keine anderen Ordner.</div>')}</div>
+    <div class="sheet-foot"><div class="r"><button class="btn" data-act="close">Abbrechen</button></div></div>`,
+  root => {
+    const bk = root.querySelector('[data-act="__pkBack"]'); if (bk) bk.addEventListener("click", ev => { ev.stopPropagation(); o.back(); });
+    root.querySelector(".pk-list").addEventListener("click", ev => { const b = ev.target.closest(".pk-row"); if (!b || b.disabled) return;
+      const t = b.dataset.fid ? { fid: b.dataset.fid } : { sid: b.dataset.sid || null };
+      closeSheet(); o.onPick(t); });
+  });
+}
+function moveFolderTo(id, t){
+  const f = S.folders[id]; if (!f) return false;
+  if (t.fid) {
+    if (t.fid === id || descendants(id).includes(t.fid) || f.parentId === t.fid) return false;
+    const order = children(t.fid).reduce((m, x) => Math.max(m, x.order || 0), -1) + 1;
+    putFolder({ ...f, parentId: t.fid, section: null, order }); S.open.add(t.fid);
+  } else {
+    const sid = t.sid && S.sections[t.sid] ? t.sid : null;
+    if (!f.parentId && sectOf(f) === sid) return false;
+    const order = topIn(sid).reduce((m, x) => Math.max(m, x.order || 0), -1) + 1;
+    putFolder({ ...f, parentId: null, section: sid, order }); if (S.closed.has(sid || "_none")) { S.closed.delete(sid || "_none"); render(); }
+  }
+  return true;
+}
+function moveFolderSheet(id){
+  const f = S.folders[id]; if (!f) return;
+  pickFolderSheet({ title: `„${esc(f.name)}“ verschieben`, note: "Unterordner und Karten wandern mit.", root: true, exclude: [id, ...descendants(id)], current: f.parentId,
+    curRoot: f.parentId ? undefined : (sectOf(f) || ""),
+    onPick: t => { if (!moveFolderTo(id, t)) return; const where = t.fid ? `„${S.folders[t.fid].name}“` : t.sid ? `Bereich „${S.sections[t.sid].name}“` : sectionList().length ? "„Weitere Ordner“" : "die Bibliothek"; toast(`Verschoben nach ${where}`); } });
 }
 
 function cleanHtml(s){
@@ -2770,8 +2860,8 @@ function openMenu(btn, fid){
     <button data-act="newFolder"${d} role="menuitem">＋ Neuer Unterordner</button>
     <button data-act="import"${d} role="menuitem">⇣ Karten importieren</button>
     <button data-act="editFolder"${d} role="menuitem">✎ Ordner gestalten</button>
-    <button data-act="shareSheet"${d} role="menuitem">⇪ Teilen${fo.share ? '<span class="sub" style="color:var(--muted)">Link aktiv</span>' : ''}</button>` + (n.own ? `
-    <button data-act="pickStart"${d} role="menuitem">☑ Karten auswählen und löschen</button>` : '')
+    <button data-act="moveFolder"${d} role="menuitem">↪ ${fo.parentId ? 'Unterordner' : 'Ordner'} verschieben</button>` + (n.own ? `
+    <button data-act="pickStart"${d} role="menuitem">☑ Karten auswählen<span class="sub" style="color:var(--muted)">kopieren, verschieben, löschen</span></button>` : '')
     : `<button data-act="newFolder" role="menuitem">＋ Neuer Ordner</button>
     <button data-act="newSect" role="menuitem">＋ Neuer Bereich (Überschrift)</button>
     <button data-act="import" role="menuitem">⇣ Karten importieren</button>`) + (sortBlock ? `<hr><div class="mh">${fid ? 'Unterordner sortieren nach' : 'Sortieren nach'}</div>
@@ -2887,6 +2977,10 @@ document.addEventListener("click", e => {
   if (a === "shareSheet") { closeMenu(); shareSheet(id); return; }
   if (a === "setCsort") { const f = S.folders[id]; if (f) { putFolder({ ...f, csort: b.dataset.v }); render(); } return; }
   if (a === "pickStart") { S.sel = new Set(); render(); return; }
+  if (a === "pickCopy" || a === "pickMove") { if (!S.sel || !S.sel.size) return; const ids = [...S.sel], from = S.fid, mv = a === "pickMove";
+    pickFolderSheet({ title: `${plural(ids.length, 'Karte', 'Karten')} ${mv ? 'verschieben' : 'kopieren'}`, note: mv ? "Lernstand bleibt erhalten." : "Die Kopien starten als neue Karten.", current: mv ? from : null,
+      onPick: t => { const n = mv ? moveCards(from, ids, t.fid) : copyCards(from, ids, t.fid); if (!n) return; S.sel = null; render(); toast(`${plural(n, 'Karte', 'Karten')} ${mv ? 'verschoben' : 'kopiert'} nach „${S.folders[t.fid].name}“`); } }); return; }
+  if (a === "moveFolder") { moveFolderSheet(id); return; }
   if (a === "pick") { S.sel && (S.sel.has(id) ? S.sel.delete(id) : S.sel.add(id)); render(); return; }
   if (a === "pickAll") { const vis = visibleIds(), all = vis.every(x => S.sel.has(x)); vis.forEach(x => all ? S.sel.delete(x) : S.sel.add(x)); render(); return; }
   if (a === "pickCancel") { S.sel = null; render(); return; }
@@ -3078,7 +3172,9 @@ document.addEventListener("touchcancel", () => { if (sw && sw.drag) { sw.pts = s
 const RD = { t: 0, st: null, on: false, swallow: 0, raf: 0, x: 0, y: 0 };
 function rdItem(target){
   const it = target && target.closest && target.closest("#main .grid > .tile, #main .flist > .frow");
-  return it && it.parentElement.children.length > 1 && S.view === "lib" && !S.sel ? it : null;
+  if (!it || S.view !== "lib" || S.sel) return null;
+  // einzelne Ordner dürfen auch gezogen werden, wenn es andere Bereiche gibt, in die man sie schieben kann
+  return it.parentElement.children.length > 1 || (it.closest(".sect") && document.querySelectorAll("#main .sect").length > 1) ? it : null;
 }
 const rdId = it => (it.dataset.id || (it.querySelector("[data-id]") || {}).dataset?.id);
 function rdDown(target, x, y){
@@ -3097,6 +3193,7 @@ function rdStart(){
   Object.assign(g.style, { left: r.left + "px", top: r.top + "px", width: r.width + "px", height: r.height + "px" });
   document.body.appendChild(g);
   st.ghost = g; st.box = box; st.r0 = r; st.x0 = RD.x; st.y0 = RD.y; st.before = [...box.children].map(rdId).join(",");
+  st.home = box.closest(".sect"); st.cur = st.home; st.drop = null; // Bereiche: Ordner lässt sich in einen anderen Bereich ziehen
   box.classList.add("rd-box"); it.classList.add("rd-src"); document.body.classList.add("reordering");
   RD.on = true; try { navigator.vibrate && navigator.vibrate(8); } catch {}
   requestAnimationFrame(() => g.classList.add("lift"));
@@ -3108,7 +3205,28 @@ function rdMove(x, y){
   st.ghost.style.transform = `translate3d(${x - st.x0}px,${y - st.y0}px,0) scale(1.05)`; // Kopie folgt dem Finger sofort (ohne CSS-Übergang)
   RD.dirty = true; // Platz-Suche einmal pro Bildschirmbild
 }
-function rdFrame(){ if (!RD.st || !RD.dirty) return; RD.dirty = false; rdHit(); }
+function rdFrame(){ if (!RD.st || !RD.dirty) return; RD.dirty = false; rdSect(); rdHit(); }
+// Bereich unter dem Finger: Platzhalter wandert in dessen Kachel-Raster (oder der Bereich leuchtet auf, wenn er leer/zugeklappt ist)
+function rdSect(){
+  const st = RD.st; if (!st.home) return;
+  const secs = [...document.querySelectorAll("#main .sect")];
+  let s = secs.find(el => { const r = el.getBoundingClientRect(); return RD.y >= r.top - 10 && RD.y <= r.bottom + 10; });
+  if (!s) { const last = secs[secs.length - 1]; if (last && RD.y > last.getBoundingClientRect().bottom) s = last; else return; }
+  if (s === st.cur) return;
+  if (st.cur) st.cur.classList.remove("rd-target");
+  st.cur = s; if (s !== st.home) s.classList.add("rd-target");
+  const grid = s.classList.contains("closed") ? null : s.querySelector(":scope > .grid, :scope > .flist");
+  if (grid && grid !== st.box) {
+    const it = st.it, old = st.box, olds = [...old.children].filter(el => el !== it), first = new Map(olds.map(el => [el, el.getBoundingClientRect()]));
+    // an die passende Stelle (nach Zeile/Spalte) einfügen
+    const kids = [...grid.children]; let before = null;
+    for (const el of kids) { const r = el.getBoundingClientRect(); if (RD.y < r.top + r.height / 2 && (RD.y < r.top || RD.x < r.left + r.width / 2)) { before = el; break; } }
+    grid.insertBefore(it, before); old.classList.remove("rd-box"); grid.classList.add("rd-box"); st.box = grid; st.drop = null;
+    olds.forEach(el => { const a = first.get(el), b = el.getBoundingClientRect(), dx = a.left - b.left, dy = a.top - b.top; if (!dx && !dy) return;
+      el.style.transition = "none"; el.style.translate = `${dx}px ${dy}px`; requestAnimationFrame(() => requestAnimationFrame(() => { el.style.transition = "translate .26s cubic-bezier(.2,.8,.25,1)"; el.style.translate = ""; })); });
+  } else if (!grid) st.drop = s;
+  else st.drop = null;
+}
 // Ziel unter dem Finger bestimmen (Layout-Positionen, nicht die gerade animierten) und Platzhalter verschieben
 function rdHit(){
   const st = RD.st, box = st.box, it = st.it, br = box.getBoundingClientRect(), kids = [...box.children];
@@ -3125,17 +3243,29 @@ function rdHit(){
 function rdAuto(){
   const edge = 90, y = RD.y; let v = 0;
   if (y < edge) v = -Math.ceil((edge - y) / 8); else if (y > innerHeight - edge - 20) v = Math.ceil((y - (innerHeight - edge - 20)) / 8);
-  if (v) { scrollBy(0, v); rdHit(); }
+  if (v) { scrollBy(0, v); RD.dirty = true; }
 }
 function rdUp(){
   if (!RD.on) { rdCancel(); return; }
   const st = RD.st; RD.on = false; RD.st = null; cancelAnimationFrame(RD.raf); RD.swallow = Date.now();
   const it = st.it, box = st.box, g = st.ghost, r = it.getBoundingClientRect();
+  const home = st.home, dropS = st.drop, dest = dropS || (home ? box.closest(".sect") : null), fid = rdId(it);
+  const newSid = dest ? (dest.dataset.sid || null) : undefined, moved = home && dest && dest !== home;
+  if (st.cur) st.cur.classList.remove("rd-target");
   g.classList.add("drop"); g.classList.remove("lift");
-  g.style.transform = `translate3d(${r.left - st.r0.left}px,${r.top - st.r0.top}px,0)`;
+  if (dropS) { const sr = dropS.getBoundingClientRect(); g.style.transform = `translate3d(${sr.left + 16 - st.r0.left}px,${sr.top + 8 - st.r0.top}px,0) scale(.4)`; g.style.opacity = "0"; g.style.transition = "transform .22s ease, opacity .22s ease"; }
+  else g.style.transform = `translate3d(${r.left - st.r0.left}px,${r.top - st.r0.top}px,0)`;
   setTimeout(() => {
     g.remove(); it.classList.remove("rd-src"); box.classList.remove("rd-box"); document.body.classList.remove("reordering");
-    [...box.children].forEach(el => { el.style.transition = ""; el.style.translate = ""; });
+    document.querySelectorAll("#main .grid > *, #main .flist > *").forEach(el => { el.style.transition = ""; el.style.translate = ""; });
+    if (moved) {
+      const f = S.folders[fid]; if (!f) { render(); return; }
+      if (dropS) { moveFolderTo(fid, { sid: newSid }); }
+      else { if (S.sort !== "custom") { S.sort = "custom"; saveUi(); }
+        const ids = [...box.children].map(rdId).filter(Boolean);
+        ids.forEach((id, k) => { const x = S.folders[id]; if (!x) return; const nx = id === fid ? { ...x, section: newSid, parentId: null, order: k } : x.order !== k ? { ...x, order: k } : null; if (nx) putFolder(nx); }); }
+      toast(`Verschoben nach ${newSid && S.sections[newSid] ? `„${S.sections[newSid].name}“` : "„Weitere Ordner“"}`); return;
+    }
     const ids = [...box.children].map(rdId).filter(Boolean);
     if (ids.join(",") === st.before) return;
     if (S.sort !== "custom") { S.sort = "custom"; saveUi(); toast("Sortierung: Eigene Reihenfolge"); }
