@@ -195,8 +195,18 @@ body.studying #main{max-width:760px;padding-bottom:24px}
 .rd-box{position:relative}
 .rd-src{opacity:.28}
 .rd-src.tile{box-shadow:none;outline:2px dashed var(--line);outline-offset:-2px}
-.rd-ghost{position:fixed;z-index:90;margin:0;pointer-events:none;will-change:transform;transition:box-shadow .18s ease;border-radius:var(--r);background:var(--surface);opacity:.97}
+.rd-ghost{position:fixed;z-index:90;margin:0;pointer-events:none;will-change:transform;transition:box-shadow .18s ease!important;animation:none!important;border-radius:var(--r);background:var(--surface);opacity:.97}
+.rd-ghost.drop{transition:transform .22s cubic-bezier(.2,.8,.25,1),box-shadow .22s ease!important}
 .rd-ghost.lift{box-shadow:0 22px 50px rgba(0,0,0,.28),0 0 0 1px var(--line)}
+.rd-box>.tile,.rd-box>.frow{transition:none}
+@keyframes rdWig{0%{rotate:-1.3deg}50%{rotate:1.3deg}100%{rotate:-1.3deg}}
+@keyframes rdWigS{0%{rotate:-.35deg}50%{rotate:.35deg}100%{rotate:-.35deg}}
+.rd-box>.tile:not(.rd-src){animation:rdWig .3s ease-in-out infinite}
+.rd-box>.tile:not(.rd-src):nth-child(2n){animation-duration:.34s;animation-delay:-.17s}
+.rd-box>.tile:not(.rd-src):nth-child(3n){animation-duration:.32s;animation-delay:-.08s}
+.rd-box>.frow:not(.rd-src){animation:rdWigS .3s ease-in-out infinite}
+.rd-box>.frow:not(.rd-src):nth-child(2n){animation-delay:-.15s}
+@media (prefers-reduced-motion:reduce){.rd-box>.tile,.rd-box>.frow{animation:none!important}}
 .rd-ghost.frow{border-radius:14px;border-top:0}
 body.reordering,body.reordering *{cursor:grabbing!important}
 .art{aspect-ratio:16/11;position:relative;background-color:var(--c,#888);background-size:cover;background-position:center}
@@ -2899,32 +2909,34 @@ function rdStart(){
   if (sw && sw.drag) { place(0, 0); hidePeek(); clearTabStyles(); document.body.classList.remove("swiping"); }
   sw = null; $("#main").style.willChange = "";
   const it = st.it, box = it.parentElement, r = it.getBoundingClientRect();
-  const g = it.cloneNode(true); g.classList.add("rd-ghost"); g.removeAttribute("data-act");
+  const g = it.cloneNode(true); g.classList.add("rd-ghost"); g.removeAttribute("data-act"); g.style.transform = "translate3d(0,0,0)";
   Object.assign(g.style, { left: r.left + "px", top: r.top + "px", width: r.width + "px", height: r.height + "px" });
   document.body.appendChild(g);
   st.ghost = g; st.box = box; st.r0 = r; st.x0 = RD.x; st.y0 = RD.y; st.before = [...box.children].map(rdId).join(",");
   box.classList.add("rd-box"); it.classList.add("rd-src"); document.body.classList.add("reordering");
   RD.on = true; try { navigator.vibrate && navigator.vibrate(8); } catch {}
   requestAnimationFrame(() => g.classList.add("lift"));
-  const loop = () => { if (!RD.on) return; rdAuto(); RD.raf = requestAnimationFrame(loop); }; RD.raf = requestAnimationFrame(loop);
+  const loop = () => { if (!RD.on) return; rdAuto(); rdFrame(); RD.raf = requestAnimationFrame(loop); }; RD.raf = requestAnimationFrame(loop);
 }
 function rdMove(x, y){
   RD.x = x; RD.y = y; const st = RD.st; if (!st) return;
   if (!RD.on) { if (Math.hypot(x - st.x0, y - st.y0) > 9) rdCancel(); return; }
-  st.ghost.style.transform = `translate3d(${x - st.x0}px,${y - st.y0}px,0) scale(1.04)`;
-  rdHit();
+  st.ghost.style.transform = `translate3d(${x - st.x0}px,${y - st.y0}px,0) scale(1.05)`; // Kopie folgt dem Finger sofort (ohne CSS-Übergang)
+  RD.dirty = true; // Platz-Suche einmal pro Bildschirmbild
 }
+function rdFrame(){ if (!RD.st || !RD.dirty) return; RD.dirty = false; rdHit(); }
 // Ziel unter dem Finger bestimmen (Layout-Positionen, nicht die gerade animierten) und Platzhalter verschieben
 function rdHit(){
   const st = RD.st, box = st.box, it = st.it, br = box.getBoundingClientRect(), kids = [...box.children];
-  const hit = kids.find(el => { const l = br.left + el.offsetLeft, t = br.top + el.offsetTop; return RD.x >= l && RD.x <= l + el.offsetWidth && RD.y >= t && RD.y <= t + el.offsetHeight; });
+  const hit = kids.find(el => { const w = el.offsetWidth, h = el.offsetHeight, l = br.left + el.offsetLeft + w * .15, t = br.top + el.offsetTop + h * .15;
+    return RD.x >= l && RD.x <= l + w * .7 && RD.y >= t && RD.y <= t + h * .7; });
   if (!hit || hit === it) return;
   const first = new Map(kids.map(el => [el, el.getBoundingClientRect()]));
   const i = kids.indexOf(it), j = kids.indexOf(hit);
   box.insertBefore(it, j > i ? hit.nextSibling : hit);
   kids.forEach(el => { if (el === it) return; const a = first.get(el), b = el.getBoundingClientRect(), dx = a.left - b.left, dy = a.top - b.top;
-    if (!dx && !dy) return; el.style.transition = "none"; el.style.transform = `translate(${dx}px,${dy}px)`;
-    requestAnimationFrame(() => { el.style.transition = "transform .22s cubic-bezier(.2,.8,.25,1)"; el.style.transform = ""; }); });
+    if (!dx && !dy) return; el.style.transition = "none"; el.style.translate = `${dx}px ${dy}px`;
+    requestAnimationFrame(() => requestAnimationFrame(() => { el.style.transition = "translate .26s cubic-bezier(.2,.8,.25,1)"; el.style.translate = ""; })); });
 }
 function rdAuto(){
   const edge = 90, y = RD.y; let v = 0;
@@ -2935,11 +2947,11 @@ function rdUp(){
   if (!RD.on) { rdCancel(); return; }
   const st = RD.st; RD.on = false; RD.st = null; cancelAnimationFrame(RD.raf); RD.swallow = Date.now();
   const it = st.it, box = st.box, g = st.ghost, r = it.getBoundingClientRect();
-  g.style.transition = "transform .2s cubic-bezier(.2,.8,.25,1), box-shadow .2s ease";
-  g.style.transform = `translate3d(${r.left - st.r0.left}px,${r.top - st.r0.top}px,0)`; g.classList.remove("lift");
+  g.classList.add("drop"); g.classList.remove("lift");
+  g.style.transform = `translate3d(${r.left - st.r0.left}px,${r.top - st.r0.top}px,0)`;
   setTimeout(() => {
     g.remove(); it.classList.remove("rd-src"); box.classList.remove("rd-box"); document.body.classList.remove("reordering");
-    [...box.children].forEach(el => { el.style.transition = ""; el.style.transform = ""; });
+    [...box.children].forEach(el => { el.style.transition = ""; el.style.translate = ""; });
     const ids = [...box.children].map(rdId).filter(Boolean);
     if (ids.join(",") === st.before) return;
     if (S.sort !== "custom") { S.sort = "custom"; saveUi(); toast("Sortierung: Eigene Reihenfolge"); }
