@@ -337,6 +337,7 @@ button.mrow:hover .nm span:last-child{text-decoration:underline;text-decoration-
 .zoomable:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
 .cz-foot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:13px;margin-top:6px}
 .cz-hint{display:inline-flex;align-items:center;gap:4px;font-weight:650;color:var(--muted)}
+#czoom,#czoom *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
 #czoom{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 12px) 10px calc(env(safe-area-inset-bottom,0px) + 12px);background:rgba(0,0,0,0);transition:background .18s ease}
 #czoom.in{background:rgba(0,0,0,.45)}
 .cz-panel{width:min(100%,920px);background:var(--surface);border-radius:22px;padding:16px 14px 14px;box-shadow:0 20px 60px rgba(0,0,0,.3);transform:scale(.94);opacity:0;transition:transform .2s cubic-bezier(.2,.9,.3,1.2),opacity .16s ease}
@@ -2280,7 +2281,7 @@ function dayChartHTML(fid){
    heute steht beim Öffnen in der Mitte. Die y-Achse bleibt stehen, nur die Balken bewegen sich. */
 const IC_ZOOM = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 20 20M10.5 8v5M8 10.5h5"/></svg>`;
 function chartZoom(fid){
-  closeChartZoom();
+  closeChartZoom(); tip.hidden = true;
   const ids = fid ? new Set([fid, ...descendants(fid)]) : null, t0 = dayStart();
   const seenOn = k => fid ? Object.entries((S.fdays || {})[k] || {}).reduce((a, [f, v]) => a + (ids.has(f) ? v : 0), 0) : (S.days[k] || 0);
   const keys = fid ? Object.keys(S.fdays || {}).filter(k => seenOn(k) > 0) : Object.keys(S.days || {}).filter(k => S.days[k] > 0);
@@ -2316,7 +2317,7 @@ function chartZoom(fid){
       const dt = new Date(d.t), lab = dt.toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" });
       const tipTxt = d.o < 0 ? `${lab}: ${plural(d.v, "Karte", "Karten")} gesehen` : d.o === 0 ? `Heute: ${plural(d.v, "Karte", "Karten")} gesehen` : `${lab}: ${plural(d.v, "Karte", "Karten")} fällig (Vorschau)`;
       const cls = d.o < 0 ? "past" : d.o === 0 ? "today" : "fut";
-      bars += `<g class="b" data-tip="${esc(tipTxt)}"><rect class="hit" x="${x}" y="${T - 20}" width="${slot}" height="${H - T - B + 20}"/>${path ? `<path class="barm ${cls}" d="${path}"/>` : ''}</g>`;
+      if (path) bars += `<path class="barm ${cls}" d="${path}"><title>${esc(tipTxt)}</title></path>`;
       if (d.v) bars += `<text class="axis vlab ${d.o === 0 ? '' : 'dim'}" x="${x + slot / 2}" y="${by - 6}" text-anchor="middle">${d.v}</text>`;
       const wd = d.o === 0 ? "Heute" : dt.toLocaleDateString("de-DE", { weekday: "short" }).replace(".", ""), dm = `${dt.getDate()}.${dt.getMonth() + 1}.`;
       const every = slot >= 34 ? 1 : 2;
