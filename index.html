@@ -314,7 +314,7 @@ body.studying #main{padding-bottom:130px}
 .barm{fill:var(--accent)}
 .barm.today{fill:var(--ink)}
 g.b:hover .barm{filter:brightness(1.12)}
-#tip{position:fixed;z-index:60;pointer-events:none;background:var(--ink);color:var(--paper);font-size:13px;font-weight:600;padding:6px 9px;border-radius:8px;white-space:nowrap}
+#tip{position:fixed;z-index:80;pointer-events:none;background:var(--ink);color:var(--paper);font-size:13px;font-weight:600;padding:6px 9px;border-radius:8px;white-space:nowrap}
 .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--muted);font-weight:600;margin:8px 0 12px}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
 .mrow{display:grid;grid-template-columns:minmax(90px,180px) 1fr 44px;gap:10px;align-items:center;padding:7px 0;border-top:1px solid var(--line);font-size:15.5px}
@@ -330,7 +330,30 @@ button.mrow{width:100%;text-align:left;font:inherit;color:inherit;background:non
 button.mrow:first-of-type{border-top:0}
 button.mrow:hover .nm span:last-child{text-decoration:underline;text-decoration-color:var(--line)}
 .mrow .n .ch{margin-left:6px;color:var(--muted);font-size:17px}
+.chart-wrap.fit{overflow:hidden}
 .chart-wrap.fit svg{min-width:0;max-width:620px;margin:0 auto}
+.zoomable{cursor:zoom-in;border-radius:12px;-webkit-tap-highlight-color:transparent;transition:background .15s ease}
+.zoomable:active{background:color-mix(in oklab,var(--ink) 5%,transparent)}
+.zoomable:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.cz-foot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:13px;margin-top:6px}
+.cz-hint{display:inline-flex;align-items:center;gap:4px;font-weight:650;color:var(--muted)}
+#czoom{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 12px) 10px calc(env(safe-area-inset-bottom,0px) + 12px);background:rgba(0,0,0,0);transition:background .18s ease}
+#czoom.in{background:rgba(0,0,0,.45)}
+.cz-panel{width:min(100%,920px);background:var(--surface);border-radius:22px;padding:16px 14px 14px;box-shadow:0 20px 60px rgba(0,0,0,.3);transform:scale(.94);opacity:0;transition:transform .2s cubic-bezier(.2,.9,.3,1.2),opacity .16s ease}
+#czoom.in .cz-panel{transform:none;opacity:1}
+.cz-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:0 2px}
+.cz-head h2{font-size:20px;margin:0}
+.cz-head .muted{font-size:13.5px;margin-top:2px}
+.cz-body{display:flex;align-items:stretch}
+.cz-axis{flex:none;display:block}
+.cz-scroll{flex:1;min-width:0;overflow:hidden;scrollbar-width:none;overscroll-behavior-x:contain}
+.cz-scroll.scrolls{overflow-x:auto;-webkit-overflow-scrolling:touch;touch-action:pan-x;scroll-behavior:auto}
+.cz-scroll::-webkit-scrollbar{display:none}
+.cz-bars{display:block}
+.axis.small{font-size:11px}
+.axis.vlab.dim{fill:var(--muted);font-weight:700;font-size:12px}
+.cz-note{font-size:13px;margin-top:8px;padding:0 2px}
+@media (prefers-reduced-motion:reduce){#czoom,.cz-panel{transition:none}}
 .today-band{fill:color-mix(in oklab,var(--ink) 6%,transparent)}
 .barm.past{fill:color-mix(in oklab,var(--accent) 36%,var(--surface))}
 .barm.fut{fill:none;stroke:var(--muted);stroke-width:1.4;stroke-dasharray:3 2.5}
@@ -2251,7 +2274,70 @@ function dayChartHTML(fid){
   });
   svg += `<line class="gridl" x1="${L}" x2="${W - R}" y1="${base}" y2="${base}" style="stroke:var(--muted)"/></svg>`;
   return `<div class="legend" style="margin:6px 0 8px"><span><i class="lg-past"></i>Gesehen</span><span><i class="lg-today"></i>Heute</span><span><i class="lg-fut"></i>Fällig (Vorschau)</span></div>
-    <div class="chart-wrap fit">${svg}</div><div class="muted" style="font-size:13px;margin-top:6px">${plural(past, "Karte", "Karten")} gesehen in den letzten ${side + 1} Tagen (inkl. heute)</div>`;
+    <div class="chart-wrap fit zoomable" data-act="chartZoom" data-id="${fid || ''}" role="button" tabindex="0" aria-label="Diagramm vergrößern">${svg}</div><div class="muted cz-foot"><span>${plural(past, "Karte", "Karten")} gesehen in den letzten ${side + 1} Tagen (inkl. heute)</span><span class="cz-hint">${IC_ZOOM}Tippen zum Vergrößern</span></div>`;
+}
+/* Vergrößerte Ansicht „Wiederholungen pro Tag“: alle erfassten Tage. Wischen nur, wenn nicht alles auf den Bildschirm passt;
+   heute steht beim Öffnen in der Mitte. Die y-Achse bleibt stehen, nur die Balken bewegen sich. */
+const IC_ZOOM = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 20 20M10.5 8v5M8 10.5h5"/></svg>`;
+function chartZoom(fid){
+  closeChartZoom();
+  const ids = fid ? new Set([fid, ...descendants(fid)]) : null, t0 = dayStart();
+  const seenOn = k => fid ? Object.entries((S.fdays || {})[k] || {}).reduce((a, [f, v]) => a + (ids.has(f) ? v : 0), 0) : (S.days[k] || 0);
+  const keys = fid ? Object.keys(S.fdays || {}).filter(k => seenOn(k) > 0) : Object.keys(S.days || {}).filter(k => S.days[k] > 0);
+  const first = keys.length ? parseDay(keys.sort()[0]) : t0;
+  const back = Math.max(7, Math.round((t0 - first) / DAY));
+  const cards = cardsIn(fid || null, true).map(x => x.c).filter(c => c.reps);
+  const dueOn = o => { const a = t0 + o * DAY, b = a + DAY; return cards.filter(c => (c.due || 0) >= a && (c.due || 0) < b).length; };
+  let n = 0, data = [];
+  const f = fid && S.folders[fid];
+  const el = document.createElement("div"); el.id = "czoom"; el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true");
+  el.innerHTML = `<div class="cz-panel"><div class="cz-head"><div><h2>Wiederholungen pro Tag</h2><div class="muted">${f ? esc(f.name) + " · " : ""}Gesehene Karten und Vorschau</div></div><button class="xbtn" data-cz="close" aria-label="Schließen">${IC.close}</button></div>
+    <div class="legend" style="margin:4px 0 6px"><span><i class="lg-past"></i>Gesehen</span><span><i class="lg-today"></i>Heute</span><span><i class="lg-fut"></i>Fällig (Vorschau)</span></div>
+    <div class="cz-body"><svg class="cz-axis" width="34" height="300"></svg><div class="cz-scroll" data-noswipe><svg class="cz-bars" width="1" height="300"></svg></div></div>
+    <div class="muted cz-note"></div></div>`;
+  document.body.appendChild(el); document.documentElement.style.overflow = "hidden";
+  requestAnimationFrame(() => el.classList.add("in"));
+  const sc = $(".cz-scroll", el), H = 300, T = 26, B = 44, AX = 34;
+  const draw = () => {
+    // passt alles (gleich viele Tage links und rechts von heute)? Sonst wischbar, und rechts genug Vorschau, damit heute mittig stehen kann.
+    const avail = sc.clientWidth, minSlot = 22, fits = (back * 2 + 1) * minSlot <= avail;
+    const slot = fits ? avail / (back * 2 + 1) : 38, ahead = fits ? back : Math.max(7, Math.ceil((avail / 2) / slot));
+    n = back + 1 + ahead; const W = Math.round(slot * n);
+    data = Array.from({ length: n }, (_, i) => { const o = i - back, t = t0 + o * DAY + DAY / 2; return { o, t, v: o <= 0 ? seenOn(dayKey(t)) : dueOn(o) }; });
+    const max = Math.max(4, ...data.map(d => d.v)), step = Math.ceil(max / 4), topV = step * 4;
+    const y = v => T + (H - T - B) * (1 - v / topV), base = H - B;
+    let ax = "", g = "";
+    for (let i = 0; i <= 4; i++) { const v = step * i; ax += `<text class="axis" x="${AX - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text>`; g += `<line class="gridl" x1="0" x2="${W}" y1="${y(v)}" y2="${y(v)}"/>`; }
+    const ai = $(".cz-axis", el); ai.setAttribute("viewBox", `0 0 ${AX} ${H}`); ai.setAttribute("width", AX); ai.setAttribute("height", H); ai.innerHTML = ax;
+    let bars = g + `<rect class="today-band" x="${back * slot}" y="${T - 20}" width="${slot}" height="${H - T - B + 20}" rx="7"/>`;
+    data.forEach((d, i) => {
+      const x = i * slot, pad = Math.max(2, slot * .14), bx = x + pad, w = slot - pad * 2, by = y(d.v), h = base - by, r = Math.min(5, h / 2, w / 2);
+      const path = d.v ? `M${bx},${base}V${by + r}Q${bx},${by} ${bx + r},${by}H${bx + w - r}Q${bx + w},${by} ${bx + w},${by + r}V${base}Z` : "";
+      const dt = new Date(d.t), lab = dt.toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" });
+      const tipTxt = d.o < 0 ? `${lab}: ${plural(d.v, "Karte", "Karten")} gesehen` : d.o === 0 ? `Heute: ${plural(d.v, "Karte", "Karten")} gesehen` : `${lab}: ${plural(d.v, "Karte", "Karten")} fällig (Vorschau)`;
+      const cls = d.o < 0 ? "past" : d.o === 0 ? "today" : "fut";
+      bars += `<g class="b" data-tip="${esc(tipTxt)}"><rect class="hit" x="${x}" y="${T - 20}" width="${slot}" height="${H - T - B + 20}"/>${path ? `<path class="barm ${cls}" d="${path}"/>` : ''}</g>`;
+      if (d.v) bars += `<text class="axis vlab ${d.o === 0 ? '' : 'dim'}" x="${x + slot / 2}" y="${by - 6}" text-anchor="middle">${d.v}</text>`;
+      const wd = d.o === 0 ? "Heute" : dt.toLocaleDateString("de-DE", { weekday: "short" }).replace(".", ""), dm = `${dt.getDate()}.${dt.getMonth() + 1}.`;
+      const every = slot >= 34 ? 1 : 2;
+      if (d.o === 0 || (d.o % every === 0)) bars += `<text class="axis ${d.o === 0 ? 'now' : ''}" x="${x + slot / 2}" y="${H - 24}" text-anchor="middle">${wd}</text><text class="axis small ${d.o === 0 ? 'now' : ''}" x="${x + slot / 2}" y="${H - 8}" text-anchor="middle">${dm}</text>`;
+    });
+    bars += `<line class="gridl" x1="0" x2="${W}" y1="${base}" y2="${base}" style="stroke:var(--muted)"/>`;
+    const bi = $(".cz-bars", el); bi.setAttribute("viewBox", `0 0 ${W} ${H}`); bi.setAttribute("width", W); bi.setAttribute("height", H); bi.innerHTML = bars;
+    sc.classList.toggle("scrolls", !fits);
+    sc.scrollLeft = fits ? 0 : Math.max(0, back * slot + slot / 2 - avail / 2);
+    const past = data.filter(d => d.o <= 0).reduce((a, d) => a + d.v, 0);
+    $(".cz-note", el).textContent = `${plural(past, "Karte", "Karten")} gesehen seit ${new Date(t0 - back * DAY + DAY / 2).toLocaleDateString("de-DE", { day: "numeric", month: "long" })}` + (fits ? "" : " · Wischen für ältere Tage");
+  };
+  draw();
+  const onResize = () => draw(); addEventListener("resize", onResize);
+  el._off = () => removeEventListener("resize", onResize);
+  el.addEventListener("click", e => { if (e.target === el || e.target.closest('[data-cz="close"]')) closeChartZoom(); });
+}
+function closeChartZoom(){
+  const el = $("#czoom"); if (!el) return; el._off && el._off();
+  if ($("#sheet").hidden) document.documentElement.style.overflow = "";
+  el.classList.remove("in"); setTimeout(() => el.remove(), 180);
 }
 /* Prüfungs-Diagramm: Anteil gefestigter Karten (durchgezogen) gegen die Leitlinie bis 100 % am Prüfungstag (gestrichelt). */
 function examChartHTML(key){
@@ -2594,6 +2680,7 @@ document.addEventListener("click", e => {
   if (a === "setFxMode") { saveSettings({ fxMode: b.dataset.v }); const ap = $("#anPick"); if (ap) ap.innerHTML = animPickerHTML(); return; }
   if (a === "setLayout") { saveSettings({ layout: b.dataset.v }); return; }
   if (a === "setSide") { setSide(id, b.dataset.v); return; }
+  if (a === "chartZoom") { chartZoom(b.dataset.id || null); return; }
   if (a === "setCsort") { const f = S.folders[id]; if (f) { putFolder({ ...f, csort: b.dataset.v }); render(); } return; }
   if (a === "pickStart") { S.sel = new Set(); render(); return; }
   if (a === "pick") { S.sel && (S.sel.has(id) ? S.sel.delete(id) : S.sel.add(id)); render(); return; }
@@ -2744,7 +2831,7 @@ function finish(commit, dir, v = 0){
 }
 document.addEventListener("touchstart", e => {
   sw = null; if (animating || e.touches.length !== 1 || !canSwipe()) return;
-  if (e.target.closest("input,textarea,select,.chart-wrap,[data-noswipe]")) return;
+  if (e.target.closest("input,textarea,select,#czoom,[data-noswipe]")) return;
   const t = e.touches[0]; if (t.clientX < 18 || t.clientX > innerWidth - 18) return; // leave system edge gestures alone
   if (peekGen !== S.gen) prerender();
   $("#main").style.willChange = "transform"; // Ebene schon beim Aufsetzen anlegen, damit der Start des Wischens nicht ruckelt
@@ -2781,7 +2868,7 @@ document.addEventListener("touchcancel", () => { if (sw && sw.drag) { sw.pts = s
 let wAcc = 0, wLock = 0, wT = 0;
 document.addEventListener("wheel", e => {
   if (!canSwipe() || animating || e.ctrlKey) return;
-  if (Math.abs(e.deltaX) <= Math.abs(e.deltaY) || e.target.closest(".chart-wrap")) return;
+  if (Math.abs(e.deltaX) <= Math.abs(e.deltaY) || e.target.closest("#czoom")) return;
   const now = Date.now(); if (now < wLock) return; if (now - wT > 250) wAcc = 0; wT = now; wAcc += e.deltaX;
   if (Math.abs(wAcc) < 90) return;
   const dir = wAcc > 0 ? "left" : "right"; wAcc = 0; wLock = now + 700;
@@ -2792,6 +2879,8 @@ document.addEventListener("wheel", e => {
 }, { passive: true });
 
 document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && $("#czoom")) { closeChartZoom(); return; }
+  if ((e.key === "Enter" || e.key === " ") && document.activeElement && document.activeElement.matches(".zoomable")) { e.preventDefault(); chartZoom(document.activeElement.dataset.id || null); return; }
   if (e.key === "Escape" && !$("#menu").hidden) { closeMenu(); return; }
   if (e.key === "Escape" && !$("#sheet").hidden) { closeSheet(); return; }
   if (S.view !== "study" || !$("#sheet").hidden || /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) return;
