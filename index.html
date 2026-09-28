@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#FFFFFF">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Cardo">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -25,7 +25,7 @@
 :root{--tc:0px}
 /* iOS 26+: In der installierten App legt iOS einen Weichzeichner („Liquid Glass“) über die Statusleiste und ca. 40 pt darunter.
    Dieser Streifen bleibt deshalb einfarbig (Hintergrund), der Inhalt beginnt erst darunter – so wird nichts verschwommen. */
-@media (display-mode: standalone){@supports (-webkit-touch-callout: none){:root{--tc:40px}@media (max-width:899px){#main{padding-top:8px}}}}
+/* (v67: hier stand ein 40-px-Abstand unter der Statusleiste; seit v68 Statusleisten-Stil „default“ → nicht mehr nötig. Bei Rückkehr zu black-translucent: --tc:40px nur für iOS-Installation) */
 html{padding-top:calc(env(safe-area-inset-top,0px) + var(--tc));background:#fff}
 html:has(> body.splashing:not(.intro-day):not(.splash-quick)){animation:htmlNight .9s cubic-bezier(.45,0,.55,1) .95s forwards} /* wird dunkel, wenn der Startbildschirm Nacht wird */
 @keyframes htmlNight{to{background-color:#07090F}}
