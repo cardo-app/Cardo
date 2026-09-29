@@ -1026,20 +1026,23 @@ html.ios-standalone body{min-height:100lvh}
 #mathed{position:fixed;inset:0;z-index:95;background:rgba(10,12,18,.42);display:flex;align-items:flex-start;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 10px) 10px 10px;animation:izIn .16s ease both}
 #mathed.out{opacity:0;transition:opacity .16s ease}
 .me-box{width:min(600px,100%);background:var(--surface);color:var(--ink);border-radius:22px;box-shadow:0 18px 50px rgba(0,0,0,.3);padding:14px 14px 12px;max-height:calc(100% - 10px);overflow:auto}
-.me-h{display:flex;align-items:baseline;gap:10px;margin:0 2px 10px}
-.me-h b{font-size:18px}
-.me-h .muted{font-size:13px}
+.me-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:-2px 0 10px}
+.me-top b{font-size:17px}
+.me-tb{background:none;border:0;font:inherit;font-size:16px;font-weight:600;color:var(--muted);padding:6px 4px;cursor:pointer}
+.me-tb.me-ok{background:var(--ink);color:var(--surface);border-radius:11px;padding:7px 14px;font-weight:750}
 .me-field math-field{display:block;width:100%;min-height:72px;font-size:32px;padding:10px 12px;border-radius:14px;border:2px solid var(--accent);background:var(--surface-2);color:var(--ink);--caret-color:var(--accent);--selection-background-color:var(--accent-soft);--placeholder-color:var(--muted);--contains-highlight-background-color:transparent}
 math-field::part(menu-toggle){display:none}
-.me-keys{display:flex;flex-wrap:wrap;gap:5px;margin:12px 0}
-.me-nav-row{display:flex;gap:5px}
+.me-sub{display:flex;align-items:center;gap:10px;margin:8px 2px 0;font-size:13px}
 .me-del{background:none;border:0;color:var(--again,#d33);font-weight:650;font-size:14px;margin-left:auto;padding:4px 2px;cursor:pointer}
+.me-keys{display:flex;flex-wrap:wrap;gap:5px;margin:12px 0 2px}
 .me-k{min-width:40px;height:38px;padding:0 8px;border-radius:11px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);font-size:18px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;-webkit-user-select:none;user-select:none;touch-action:manipulation;cursor:pointer}
 .me-k svg{width:22px;height:22px}
 .me-k:first-child{border-color:color-mix(in oklab,var(--accent) 45%,var(--line));background:color-mix(in oklab,var(--accent) 9%,var(--surface))}
-.me-nav{color:var(--muted)}
-.me-foot{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.me-foot .r{display:flex;gap:8px}
+.me-more{font-size:14px;color:var(--muted)}
+#mathed:not(.more) .me-more-k{display:none}
+#mathed.more .me-more{display:none}
+#mathed.touch{align-items:flex-start;padding-top:calc(env(safe-area-inset-top,0px) + 8px)}
+#mathed.touch .me-box{padding:12px}
 @media (prefers-reduced-motion:reduce){#imgzoom,#mathed{animation:none}.ed-bar.busy [data-ed="img"]{animation:none}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
@@ -1315,10 +1318,34 @@ function loadMathLive(){
   });
   return mlP;
 }
+// Eigene, schlichte Handy-Tastatur für Formeln (statt der vollen MathLive-Tastatur)
+let mlKbd = false;
+function mathKeyboard(){
+  if (mlKbd || !window.mathVirtualKeyboard) return; mlKbd = true;
+  const K = (latex, label, cls) => ({ latex, ...(label ? { label } : {}), ...(cls ? { class: cls } : {}) });
+  try {
+    window.mathVirtualKeyboard.layouts = [
+      { label: "123", tooltip: "Zahlen & Rechnen", rows: [
+        ["[7]", "[8]", "[9]", "[/]", K("\\frac{#0}{#?}", null, "small"), K("#@^{#?}", null, "small")],
+        ["[4]", "[5]", "[6]", "[*]", K("\\sqrt{#0}", null, "small"), K("#@_{#?}", null, "small")],
+        ["[1]", "[2]", "[3]", "[-]", K("\\left(#0\\right)", "( )"), "\\%"],
+        ["[0]", "{,}", "[.]", "[+]", "[=]", "[backspace]"],
+        ["[left]", "[right]", "\\text{€}", "\\le", "\\ge", "[hide-keyboard]"] ] },
+      "alphabetic",
+      { label: "Mehr", tooltip: "Weitere Zeichen", rows: [
+        ["\\pm", "\\ne", "\\approx", "\\to", "\\infty", "\\cdot", "\\times"],
+        [K("\\sum_{#?}^{#?}", null, "small"), K("\\int_{#?}^{#?}", null, "small"), K("\\sqrt[#?]{#0}", null, "small"), K("\\log_{#?}", null, "small"), "\\ln", "\\Delta", "\\div"],
+        ["\\alpha", "\\beta", "\\gamma", "\\delta", "\\lambda", "\\mu", "\\pi"],
+        ["\\sigma", "\\rho", "\\theta", "\\varepsilon", "\\omega", "[left]", "[right]"],
+        ["[backspace]", "[hide-keyboard]"] ] }
+    ];
+  } catch {}
+}
+const touchUI = () => matchMedia("(pointer: coarse)").matches;
 const MATH_KEYS = [
-  ["Bruch", "\\frac{#0}{#?}", ED_IC.frac], ["Hochzahl", "^{#?}", "x²"], ["Tiefzahl", "_{#?}", "xₙ"], ["Wurzel", "\\sqrt{#0}", "√"], ["n-te Wurzel", "\\sqrt[#?]{#0}", "ⁿ√"], ["Klammern", "\\left(#0\\right)", "( )"],
-  ["mal", "\\cdot ", "·"], ["mal", "\\times ", "×"], ["geteilt", "\\div ", "÷"], ["plus minus", "\\pm ", "±"], ["kleiner gleich", "\\le ", "≤"], ["größer gleich", "\\ge ", "≥"], ["ungleich", "\\ne ", "≠"], ["ungefähr", "\\approx ", "≈"],
-  ["Summe", "\\sum_{#?}^{#?}", "Σ"], ["Integral", "\\int_{#?}^{#?}", "∫"], ["Pfeil", "\\to ", "→"], ["unendlich", "\\infty ", "∞"], ["Prozent", "\\%", "%"], ["Euro", "\\text{€}", "€"],
+  ["Bruch", "\\frac{#0}{#?}", ED_IC.frac], ["Hochzahl", "^{#?}", "x²"], ["Tiefzahl", "_{#?}", "xₙ"], ["Wurzel", "\\sqrt{#0}", "√"], ["Klammern", "\\left(#0\\right)", "( )"],
+  ["mal", "\\cdot ", "·"], ["geteilt", "\\div ", "÷"], ["Prozent", "\\%", "%"], ["n-te Wurzel", "\\sqrt[#?]{#0}", "ⁿ√"], ["mal", "\\times ", "×"], ["plus minus", "\\pm ", "±"], ["kleiner gleich", "\\le ", "≤"], ["größer gleich", "\\ge ", "≥"], ["ungleich", "\\ne ", "≠"], ["ungefähr", "\\approx ", "≈"],
+  ["Summe", "\\sum_{#?}^{#?}", "Σ"], ["Integral", "\\int_{#?}^{#?}", "∫"], ["Pfeil", "\\to ", "→"], ["unendlich", "\\infty ", "∞"], ["Euro", "\\text{€}", "€"],
   ["Delta", "\\Delta ", "Δ"], ["alpha", "\\alpha ", "α"], ["beta", "\\beta ", "β"], ["pi", "\\pi ", "π"], ["sigma", "\\sigma ", "σ"], ["mu", "\\mu ", "μ"], ["lambda", "\\lambda ", "λ"]
 ];
 async function mathEditor(opts){
@@ -1327,12 +1354,15 @@ async function mathEditor(opts){
   clearTimeout(wait);
   return new Promise(res => {
     const el = document.createElement("div"); el.id = "mathed"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "Formel");
-    el.innerHTML = `<div class="me-box"><div class="me-h"><b>Formel</b><span class="muted">Tippe auf ein Kästchen, um es auszufüllen</span>${opts.editing ? '<button type="button" class="me-del" data-me="del">Entfernen</button>' : ''}</div>
+    const touch = touchUI(), MAIN = 8;
+    el.classList.toggle("touch", touch);
+    el.innerHTML = `<div class="me-box"><div class="me-top"><button type="button" class="me-tb" data-me="x">Abbrechen</button><b>Formel</b><button type="button" class="me-tb me-ok" data-me="ok">Fertig</button></div>
       <div class="me-field"></div>
-      <div class="me-keys">${MATH_KEYS.map(([t, v, l], i) => `<button type="button" class="me-k" data-k="${i}" title="${esc(t)}" aria-label="${esc(t)}">${l}</button>`).join("")}</div>
-      <div class="me-foot"><div class="me-nav-row"><button type="button" class="me-k me-nav" data-nav="moveToPreviousChar" aria-label="Zurück">◀</button><button type="button" class="me-k me-nav" data-nav="moveToNextChar" aria-label="Weiter">▶</button><button type="button" class="me-k me-nav" data-nav="deleteBackward" aria-label="Löschen">⌫</button></div><div class="r"><button type="button" class="btn" data-me="x">Abbrechen</button><button type="button" class="btn primary" data-me="ok">Fertig</button></div></div></div>`;
+      <div class="me-sub"><span class="muted">${touch ? "Tippe auf ein Kästchen, um es auszufüllen." : "Tippen mit der Tastatur, Kästchen mit Tab wechseln."}</span>${opts.editing ? '<button type="button" class="me-del" data-me="del">Formel entfernen</button>' : ''}</div>
+      ${touch ? "" : `<div class="me-keys">${MATH_KEYS.map(([t, v, l], i) => `<button type="button" class="me-k${i >= MAIN ? " me-more-k" : ""}" data-k="${i}" title="${esc(t)}" aria-label="${esc(t)}">${l}</button>`).join("")}<button type="button" class="me-k me-more" data-more>Mehr …</button></div>`}</div>`;
     const mf = new MathfieldElement();
-    try { mf.mathVirtualKeyboardPolicy = "auto"; mf.smartFence = true; mf.menuItems = []; } catch {}
+    mathKeyboard();
+    try { mf.mathVirtualKeyboardPolicy = touch ? "auto" : "manual"; mf.smartFence = true; mf.menuItems = []; } catch {}
     mf.value = opts.latex || "";
     el.querySelector(".me-field").appendChild(mf);
     document.body.appendChild(el);
@@ -1348,6 +1378,7 @@ async function mathEditor(opts){
     document.addEventListener("keydown", key, true);
     el.querySelectorAll(".me-k").forEach(b => { b.addEventListener("pointerdown", e => e.preventDefault()); b.addEventListener("mousedown", e => e.preventDefault()); });
     el.addEventListener("click", e => {
+      if (e.target.closest("[data-more]")) { el.classList.add("more"); mf.focus(); return; }
       const k = e.target.closest("[data-k]"), n = e.target.closest("[data-nav]"), a = e.target.closest("[data-me]");
       if (k) { mf.focus(); mf.executeCommand(["insert", MATH_KEYS[+k.dataset.k][1]]); return; }
       if (n) { mf.focus(); mf.executeCommand(n.dataset.nav); return; }
@@ -1361,6 +1392,7 @@ async function mathEditor(opts){
       try { mf.focus(); } catch {}
       const ok = (mf.hasFocus && mf.hasFocus()) || mf.contains(document.activeElement) || document.activeElement === mf;
       if (ok && !ins && opts.insert) { ins = true; mf.executeCommand(["insert", opts.insert]); }
+      if (ok && touch) { try { window.mathVirtualKeyboard.show(); } catch {} }
       if (!ok && ++tries < 12) setTimeout(go, 50);
       else if (!ins && opts.insert) { ins = true; mf.executeCommand(["insert", opts.insert]); }
     };
