@@ -1005,6 +1005,16 @@ html.ios-standalone body{min-height:100lvh}
 .ed-b.on{background:var(--accent-soft);border-color:color-mix(in oklab,var(--accent) 50%,transparent);color:var(--accent-text)}
 .ed-bar.busy [data-ed="img"]{opacity:.5;animation:edPulse 1s ease-in-out infinite}
 @keyframes edPulse{50%{opacity:.25}}
+.ed-g{gap:2px;padding:0 7px 0 9px}
+.ed-g .ed-chev{width:10px;height:10px;opacity:.6;transition:transform .15s ease}
+.ed-g.open{background:var(--accent-soft);border-color:color-mix(in oklab,var(--accent) 50%,transparent);color:var(--accent-text)}
+.ed-g.open .ed-chev{transform:rotate(180deg)}
+.ed-g{position:relative}
+.ed-g.used::after{content:"";position:absolute;top:4px;right:4px;width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.ed-aa{font-weight:750;font-size:16px;letter-spacing:-.02em}
+.ed-sub{display:flex;gap:4px;width:max-content;max-width:100%;margin:0 0 7px;padding:5px;border-radius:13px;background:var(--surface-2);border:1px solid var(--line);animation:fadeIn .15s ease}
+.ed-sub[hidden]{display:none}
+.ed-sub .ed-b{min-width:40px}
 .ed-tbar{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;margin:0 0 7px;padding-bottom:1px}.ed-tbar::-webkit-scrollbar{display:none}
 .ed-tbar[hidden]{display:none}
 .ed-tb{flex:none;white-space:nowrap;height:31px;padding:0 9px;border-radius:9px;font-size:13.5px;font-weight:650;border:1px solid color-mix(in oklab,var(--accent) 35%,var(--line));background:color-mix(in oklab,var(--accent) 7%,var(--surface));color:var(--ink);-webkit-user-select:none;user-select:none;touch-action:manipulation;cursor:pointer}
@@ -1273,7 +1283,7 @@ function openImgZoom(src){
    Der Editor zeigt den Karten-Text formatiert an (richEdit) und liest ihn beim Speichern zurück (edSer).
    Formeln baut man im Formel-Editor (MathLive) – ganz ohne Formelsprache. */
 const ED_IC = {
-  b: '<b>B</b>', i: '<i>I</i>',
+  b: '<b>B</b>', i: '<i>I</i>', grpText: '<span class="ed-aa">Aa</span>',
   mark: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>',
   ul: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1" fill="currentColor"/><circle cx="4.5" cy="12" r="1" fill="currentColor"/><circle cx="4.5" cy="18" r="1" fill="currentColor"/></svg>',
   ol: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 6h10M10 12h10M10 18h10"/><path d="M4 4.5h1.2V9M3.6 9h2.6M3.6 14.2c.4-.6 2.6-.9 2.6.6 0 1-2.6 2.2-2.6 3.2h2.7" stroke-width="1.5"/></svg>',
@@ -1285,8 +1295,11 @@ const ED_IC = {
 function edHTML(id, ph, label){
   const b = (k, t, ic) => `<button type="button" class="ed-b" data-ed="${k}" title="${t}" aria-label="${t}">${ic}</button>`;
   const tb = (k, t) => `<button type="button" class="ed-tb" data-tb="${k}">${t}</button>`;
+  const g = (k, t, ic) => `<button type="button" class="ed-b ed-g" data-grp-open="${k}" title="${t}" aria-label="${t}" aria-expanded="false">${ic}<svg class="ed-chev" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m2.5 4 2.5 2.5L7.5 4"/></svg></button>`;
   return `<div class="field ed-field"><label for="${id}">${label}</label>
-    <div class="ed-bar" data-for="${id}" role="toolbar" aria-label="Formatierung">${b("b", "Fett", ED_IC.b)}${b("i", "Kursiv", ED_IC.i)}${b("mark", "Markieren", ED_IC.mark)}<span class="ed-sep"></span>${b("ul", "Aufzählung", ED_IC.ul)}${b("ol", "Nummerierte Liste", ED_IC.ol)}${b("table", "Tabelle", ED_IC.table)}<span class="ed-sep"></span>${b("tex", "Mathe", ED_IC.tex)}${b("img", "Bild", ED_IC.img)}<input type="file" accept="image/*" hidden class="ed-file"></div>
+    <div class="ed-bar" data-for="${id}" role="toolbar" aria-label="Formatierung">${g("text", "Schrift: fett, kursiv, markieren", ED_IC.grpText)}${g("list", "Listen und Tabelle", ED_IC.ul)}<span class="ed-sep"></span>${b("tex", "Mathe", ED_IC.tex)}${b("img", "Bild", ED_IC.img)}<input type="file" accept="image/*" hidden class="ed-file"></div>
+    <div class="ed-sub" data-grp="text" hidden>${b("b", "Fett", ED_IC.b)}${b("i", "Kursiv", ED_IC.i)}${b("mark", "Markieren", ED_IC.mark)}</div>
+    <div class="ed-sub" data-grp="list" hidden>${b("ul", "Aufzählung", ED_IC.ul)}${b("ol", "Nummerierte Liste", ED_IC.ol)}${b("table", "Tabelle", ED_IC.table)}</div>
     <div class="ed-tbar" hidden>${tb("rowAdd", "＋ Zeile")}${tb("rowDel", "− Zeile")}${tb("colAdd", "＋ Spalte")}${tb("colDel", "− Spalte")}${tb("head", "Kopfzeile")}${tb("tblDel", "Tabelle löschen")}</div>
     <div class="in ed-area" id="${id}" contenteditable="true" role="textbox" aria-multiline="true" data-ph="${esc(ph)}" spellcheck="true"></div></div>`;
 }
@@ -1534,12 +1547,19 @@ function mountRichEditor(root, host, initial){
     const r = cur(); if (!r) return; saved = r.cloneRange();
     const q = c => { try { return document.queryCommandState(c); } catch { return false; } };
     const on = { b: !!fmtAnc(r.startContainer, "b") || q("bold"), i: !!fmtAnc(r.startContainer, "i") || q("italic"), mark: !!inMark(r.startContainer), ul: q("insertUnorderedList"), ol: q("insertOrderedList") };
-    bar.querySelectorAll("[data-ed]").forEach(b => b.classList.toggle("on", !!on[b.dataset.ed]));
+    field.querySelectorAll("[data-ed]").forEach(b => b.classList.toggle("on", !!on[b.dataset.ed]));
+    field.querySelectorAll("[data-grp-open]").forEach(b => { const sub = field.querySelector(`.ed-sub[data-grp="${b.dataset.grpOpen}"]`); b.classList.toggle("used", !!sub.querySelector(".on")); });
     const c = cellOf(r.startContainer); tbar.hidden = !c;
     host.querySelectorAll(".cur").forEach(x => x !== c && x.classList.remove("cur")); if (c) c.classList.add("cur");
     if (c) { const hd = c.closest("table").rows[0]; tbar.querySelector('[data-tb="head"]').classList.toggle("on", !!hd && [...hd.cells].some(x => x.tagName === "TH")); }
   }
   host._state = state;
+  // Cursor-Position als Zeichenzahl ab Feldanfang merken/wiederherstellen (Listen-Befehl setzt ihn sonst an den Zeilenanfang)
+  const caretOffset = () => { const r = cur(); if (!r) return null; const x = document.createRange(); x.selectNodeContents(host); x.setEnd(r.startContainer, r.startOffset); return x.toString().length; };
+  const setCaretOffset = n => {
+    const w = document.createTreeWalker(host, NodeFilter.SHOW_TEXT); let t, left = n;
+    while ((t = w.nextNode())) { if (left <= t.length) { const r = document.createRange(); r.setStart(t, left); r.collapse(true); const s = getSelection(); s.removeAllRanges(); s.addRange(r); return; } left -= t.length; }
+  };
   const exec = (c, v) => { try { document.execCommand(c, false, v); } catch {} };
   try { document.execCommand("defaultParagraphSeparator", false, "div"); document.execCommand("styleWithCSS", false, false); } catch {}
   const FMT = { b: { tag: "b", sel: "b,strong,span[style*='font-weight']" }, i: { tag: "i", sel: "i,em,span[style*='italic']" }, mark: { tag: "mark", sel: "mark" } };
@@ -1624,12 +1644,20 @@ function mountRichEditor(root, host, initial){
     busy = false; bar.classList.remove("busy");
   };
   // Leisten-Knöpfe dürfen die Tastatur nicht schließen
-  [bar, tbar].forEach(el => ["pointerdown", "mousedown"].forEach(ev => el.addEventListener(ev, e => { if (e.target.closest("button")) e.preventDefault(); })));
+  [bar, tbar, ...field.querySelectorAll(".ed-sub")].forEach(el => ["pointerdown", "mousedown"].forEach(ev => el.addEventListener(ev, e => { if (e.target.closest("button")) e.preventDefault(); })));
+  // Gruppen-Knöpfe klappen eine Unterleiste auf (Schrift / Listen & Tabelle)
   bar.addEventListener("click", e => {
-    const b = e.target.closest("[data-ed]"); if (!b) return; e.preventDefault(); const k = b.dataset.ed;
+    const gb = e.target.closest("[data-grp-open]"); if (!gb) return; e.preventDefault(); e.stopImmediatePropagation();
+    const k = gb.dataset.grpOpen, sub = field.querySelector(`.ed-sub[data-grp="${k}"]`), open = sub.hidden;
+    field.querySelectorAll(".ed-sub").forEach(x => x.hidden = true); field.querySelectorAll("[data-grp-open]").forEach(x => { x.classList.remove("open"); x.setAttribute("aria-expanded", "false"); });
+    if (open) { sub.hidden = false; gb.classList.add("open"); gb.setAttribute("aria-expanded", "true"); }
+    state();
+  });
+  field.addEventListener("click", e => {
+    const b = e.target.closest(".ed-bar [data-ed], .ed-sub [data-ed]"); if (!b || !field.contains(b)) return; e.preventDefault(); const k = b.dataset.ed;
     const r = restore(), inCell = !!cellOf(r.startContainer);
     if (k === "b" || k === "i" || k === "mark") toggleFmt(k);
-    else if (k === "ul" || k === "ol") { if (inCell) { toast("In einer Tabelle gehen keine Listen."); return; } exec(k === "ul" ? "insertUnorderedList" : "insertOrderedList"); }
+    else if (k === "ul" || k === "ol") { if (inCell) { toast("In einer Tabelle gehen keine Listen."); return; } const off = caretOffset(); exec(k === "ul" ? "insertUnorderedList" : "insertOrderedList"); if (off != null) setCaretOffset(off); }
     else if (k === "table") { if (inCell) { toast("Du bist schon in einer Tabelle – nutze die Knöpfe darunter."); return; } newTable(); }
     else if (k === "tex") { addMath(null); return; }
     else if (k === "img") { if (!busy) file.click(); return; }
