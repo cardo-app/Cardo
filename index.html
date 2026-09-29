@@ -2334,14 +2334,24 @@ function makeStore(sb, uid){
   }
   function write(path, data){ data === null ? rows.delete(path) : rows.set(path, data); pending[path] = data; savePending(); saveCache(); emit(); flush(); return Promise.resolve(); }
   async function load(){
-    const all = []; let from = 0;
+    const all = [], t0 = Date.now(); let from = 0;
     while (true) {
       const r = await sb.from("docs").select("path,data").range(from, from + 999);
       if (r.error) throw r.error; all.push(...r.data); if (r.data.length < 1000) break; from += 1000;
     }
     rows = new Map(all.map(x => [x.path, x.data]));
     Object.entries(pending).forEach(([p, d]) => d === null ? rows.delete(p) : rows.set(p, d));
-    saveCache(); emit();
+    saveCache(); emit(); syncT = t0;
+  }
+  // Nur geänderte Dokumente seit dem letzten Abgleich holen (z. B. neues Tageslimit vom Mac) – spart Datenvolumen.
+  // 2 Minuten Überlappung, weil die Uhren der Geräte leicht abweichen können.
+  let syncT = Date.now();
+  async function loadSince(){
+    const t0 = Date.now(), since = new Date(syncT - 120000).toISOString();
+    const r = await sb.from("docs").select("path,data").gt("updated_at", since).limit(1000);
+    if (r.error) throw r.error;
+    let ch = 0; r.data.forEach(x => { if (x.path in pending) return; if (JSON.stringify(rows.get(x.path)) !== JSON.stringify(x.data)) { rows.set(x.path, x.data); ch++; } });
+    syncT = t0; if (ch) { saveCache(); emit(); }
   }
   sb.channel("docs-" + uid).on("postgres_changes", { event: "*", schema: "public", table: "docs", filter: "user_id=eq." + uid }, ev => {
     const path = (ev.new && ev.new.path) || (ev.old && ev.old.path); if (!path || path in pending) return;
@@ -2350,7 +2360,13 @@ function makeStore(sb, uid){
   }).subscribe();
   addEventListener("online", () => { flush(); load().catch(() => {}); });
   let lastLoad = Date.now(); // beim Zurückwechseln nur neu laden, wenn länger als 5 Minuten her (spart Datenvolumen)
-  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && Date.now() - lastLoad > 5 * 60000) { lastLoad = Date.now(); load().catch(() => {}); } });
+  let lastQuick = 0;
+  const refresh = () => {
+    if (document.visibilityState !== "visible" || !navigator.onLine) return;
+    if (Date.now() - lastLoad > 5 * 60000) { lastLoad = lastQuick = Date.now(); load().catch(() => {}); return; }
+    if (Date.now() - lastQuick > 8000) { lastQuick = Date.now(); loadSince().catch(() => {}); }
+  };
+  document.addEventListener("visibilitychange", refresh); addEventListener("focus", refresh); addEventListener("pageshow", refresh);
   const api = {
     doc: path => ({ set: d => write(path, JSON.parse(JSON.stringify(d))), delete: () => write(path, null),
       onSnapshot: cb => { subs.push({ path, cb }); cb(docSnap(path)); return () => {}; } }),
@@ -3294,7 +3310,7 @@ function studyHTML(){
   const cur = curCard(), left = st.queue.length, pct = st.done + left ? Math.round(st.done / (st.done + left) * 100) : 100;
   const top = `<div class="study-top"><button class="xbtn" data-act="endStudy" aria-label="Lernen beenden">${IC.close}</button>${st.exam ? '<span class="exam-tag">Prüfung</span>' : ''}${cur ? `<button class="xbtn" data-act="studyEdit" aria-label="Karte bearbeiten" title="Karte bearbeiten (E)">${IC.edit}</button>` : ""}${st.hist && st.hist.length ? `<button class="xbtn undo" data-act="undoGrade" aria-label="Letzte Bewertung rückgängig" title="Rückgängig (Z)">${IC.undo}</button>` : ""}<div class="bar"><i style="width:${pct}%"></i></div><div class="study-count num">${left} übrig</div></div>`;
   if (!cur && st.exam) return top + examDoneHTML(st);
-  if (!cur) return top + `<div class="done"><div class="big">🎉</div><h1>Geschafft!</h1><p class="muted">${plural(st.done, 'Karte', 'Karten')} wiederholt · ${plural(streak(), 'Tag', 'Tage')} Serie</p><div class="actions" style="justify-content:center;margin-top:18px">${st.fid && todayCards(st.fid).newLeft ? `<button class="btn" data-act="moreNew" data-id="${st.fid}">＋ 10 weitere Karten</button>` : ''}<button class="btn primary" data-act="endStudy">Zurück</button></div></div>`;
+  if (!cur) return top + `<div class="done"><div class="big">🎉</div><h1>Geschafft!</h1><p class="muted">${plural(st.done, 'Karte', 'Karten')} wiederholt · ${plural(streak(), 'Tag', 'Tage')} Serie</p><div class="actions" style="justify-content:center;margin-top:18px">${(() => { const tc = st.fid ? todayCards(st.fid) : null; return tc && tc.rev.length + tc.nw.length ? `<button class="btn primary" data-act="studyAgain" data-id="${st.fid}">Weiterlernen · ${tc.rev.length + tc.nw.length}</button>` : ""; })()}${st.fid && todayCards(st.fid).newLeft ? `<button class="btn" data-act="moreNew" data-id="${st.fid}">＋ 10 weitere Karten</button>` : ''}<button class="btn primary" data-act="endStudy">Zurück</button></div></div>`;
   const f = S.folders[cur.fid], now = Date.now();
   const opts = curGrades();
   const fresh = st.shown !== cur.id + ":" + st.done; st.shown = cur.id + ":" + st.done; const jf = st.justFlipped; st.justFlipped = false;
@@ -3954,6 +3970,7 @@ document.addEventListener("click", e => {
   if (a === "setNewLimit") { saveSettings({ newPerDay: +b.dataset.v }); const np = $("#nlPick"); if (np) np.innerHTML = newLimitPickerHTML(); return; }
   if (a === "undoGrade") { undoGrade(); return; }
   if (a === "studyEdit") { const c = curCard(); if (c && !(S.study && S.study.busy)) cardSheet(c.fid, c.id); return; }
+  if (a === "studyAgain") { const bk = S.study; if (bk) { S.study = null; S.view = bk.back; S.fid = bk.backFid; } startStudy(id); return; }
   if (a === "moreNew") { const bk = S.study; addExtraNew(id, 10); if (bk) { S.study = null; S.view = bk.back; S.fid = bk.backFid; } startStudy(id); return; }
   if (a === "setGradeSet") { saveSettings({ gradeSet: b.dataset.v }); const gp = $("#gsPick"); if (gp) gp.innerHTML = gradeSetPickerHTML(); return; }
   if (a === "cardsSheet") { cardsSheet(); return; }
