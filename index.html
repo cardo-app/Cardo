@@ -1640,7 +1640,55 @@ function mountRichEditor(root, host, initial){
     const ch = e.target.closest(".mchip"); if (ch && host.contains(ch)) { e.preventDefault(); addMath(null, ch); return; }
     const im = e.target.closest("img.cimg"); if (im) { const r = document.createRange(); r.selectNode(im); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
   });
+  // Formel-Kästchen direkt vor/hinter dem Cursor finden (für die normale Löschtaste)
+  const isBlk = n => n && n.nodeType === 1 && (ED_BLOCK.test(n.tagName) || /^(LI|TD|TH|TR|TABLE|UL|OL)$/.test(n.tagName));
+  const chipNear = dir => {
+    const s = getSelection(); if (!s.rangeCount || !s.isCollapsed) return null;
+    let n = s.anchorNode, o = s.anchorOffset; if (!host.contains(n)) return null;
+    const empty = t => !t.replace(/\u200B/g, "");
+    const pick = c => { // von c aus in Richtung dir das nächste sichtbare Element suchen
+      while (c) {
+        if (c.nodeType === 3) { if (!empty(c.nodeValue)) return null; c = dir < 0 ? c.previousSibling : c.nextSibling; continue; }
+        if (c.nodeType !== 1) { c = dir < 0 ? c.previousSibling : c.nextSibling; continue; }
+        if (c.classList.contains("mchip")) return c;
+        if (isBlk(c) || c.tagName === "BR" || c.tagName === "IMG" || !c.firstChild) return null;
+        c = dir < 0 ? c.lastChild : c.firstChild;
+      }
+      return null;
+    };
+    if (n.nodeType === 3) {
+      if (!empty(dir < 0 ? n.nodeValue.slice(0, o) : n.nodeValue.slice(o))) return null;
+    } else {
+      const c = dir < 0 ? n.childNodes[o - 1] : n.childNodes[o];
+      if (c) return pick(c);
+    }
+    while (n && n !== host && !(dir < 0 ? n.previousSibling : n.nextSibling)) { if (isBlk(n)) return null; n = n.parentNode; }
+    if (!n || n === host || isBlk(n)) return null;
+    return pick(dir < 0 ? n.previousSibling : n.nextSibling);
+  };
+  const dropChip = ch => {
+    const r = document.createRange(); r.setStartBefore(ch); r.collapse(true);
+    [ch.previousSibling, ch.nextSibling].forEach(z => { if (z && z.nodeType === 3 && !z.nodeValue.replace(/\u200B/g, "")) z.remove(); });
+    const p = ch.parentNode; ch.remove();
+    if (!r.startContainer.isConnected) { r.selectNodeContents(p); r.collapse(false); }
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    if (!host.firstChild) host.appendChild(edEmptyDiv());
+    host.dispatchEvent(new Event("input", { bubbles: true })); state();
+  };
+  const delChip = e => {
+    const back = e.key ? e.key === "Backspace" : e.inputType === "deleteContentBackward";
+    const fwd = e.key ? e.key === "Delete" : e.inputType === "deleteContentForward";
+    if (!back && !fwd) return false;
+    const ch = chipNear(back ? -1 : 1); if (!ch) return false;
+    e.preventDefault(); dropChip(ch); return true;
+  };
+  host.addEventListener("beforeinput", e => { delChip(e); });
+  // Leeres Feld: Cursor immer ganz oben am Anfang
+  const toStart = () => { if (edIsEmpty(host) && host.firstChild) edCaret(host.firstChild, true); };
+  host.addEventListener("focus", () => setTimeout(toStart, 0));
+  host.addEventListener("pointerup", () => setTimeout(toStart, 0));
   host.addEventListener("keydown", e => {
+    if ((e.key === "Backspace" || e.key === "Delete") && !e.metaKey && !e.altKey && delChip(e)) return;
     if ((e.metaKey || e.ctrlKey) && !e.altKey && ["b", "i"].includes(e.key.toLowerCase())) { e.preventDefault(); toggleFmt(e.key.toLowerCase()); state(); return; }
     if (e.key === "Tab") {
       const r = cur(), c = r && cellOf(r.startContainer); if (!c) return; e.preventDefault();
