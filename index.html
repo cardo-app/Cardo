@@ -1113,7 +1113,7 @@ function inlHTML(s, blocks, opt){
     else if (m[2]) h = opt && opt.line ? '<span class="rl-img" aria-label="Bild">🖼</span>' : `<img class="cimg" src="${esc(imgSrc(m[2]))}"${ed ? ` data-src="${esc(m[2])}"` : ""} crossorigin="anonymous" alt="${esc(m[1] || "Bild")}" loading="lazy" decoding="async" draggable="false">`;
     else if (ed) h = chipHTML(m[3] != null ? (blocks[+m[3]] || "") : m[4] != null ? m[4] : m[5]);
     else if (m[3] != null) h = texHTML(blocks[+m[3]] || "", !(opt && opt.line));
-    else h = texHTML(m[4] != null ? m[4] : m[5], false);
+    else h = texHTML((opt && opt.line ? "" : "\\displaystyle ") + (m[4] != null ? m[4] : m[5]), false);
     return "\u0001" + (parts.push(h) - 1) + "\u0001";
   });
   return fmtText(t).replace(/\u0001(\d+)\u0001/g, (m, n) => parts[+n]);
@@ -1229,7 +1229,7 @@ function edHTML(id, ph, label){
 }
 // Karten-Text → HTML für den Editor
 function richEdit(raw){ return rich(raw, { edit: true }); }
-function chipHTML(latex){ return `<span class="mchip" contenteditable="false" data-latex="${esc(latex)}">${texHTML(latex, false)}</span>`; }
+function chipHTML(latex){ return `<span class="mchip" contenteditable="false" data-latex="${esc(latex)}">${texHTML("\\displaystyle " + latex, false)}</span>`; }
 // Editor-HTML → Karten-Text
 function edEscape(t){ return t.replace(/[\\*_=$|\[\]]/g, "\\$&"); }
 function edRunsStr(runs){
