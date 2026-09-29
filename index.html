@@ -1102,7 +1102,7 @@ function fmtText(t){
     .replace(/\*\*(?=\S)(.*?\S)\*\*/g, "<b>$1</b>")
     .replace(/(^|[^\w*])\*(?=[^\s*])([^*\n]*?[^\s*])?\*(?![\w*])/g, (m, a, b, off, all) => b === undefined ? m : `${a}<i>${b}</i>`)
     .replace(/(^|[^\w_])_(?=[^\s_])([^_\n]*?[^\s_])?_(?![\w_])/g, (m, a, b) => b === undefined ? m : `${a}<i>${b}</i>`)
-    .replace(/==(?=\S)([^=\n]*?\S)==/g, "<mark>$1</mark>");
+    .replace(/==(?=\S)((?:[^=\n]|=(?!=))*?\S)==/g, "<mark>$1</mark>");
 }
 function inlHTML(s, blocks, opt){
   // Formeln und Bilder zuerst durch Platzhalter ersetzen, damit **fett** auch um eine Formel herum funktioniert
