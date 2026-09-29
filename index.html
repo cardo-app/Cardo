@@ -1011,7 +1011,7 @@ html.ios-standalone body{min-height:100lvh}
 .ed-tb.on{background:var(--accent-soft);color:var(--accent-text)}
 .ed-tb[data-tb="tblDel"]{border-color:var(--line);background:var(--surface);color:var(--muted)}
 .ed-area{position:relative;min-height:clamp(120px,23vh,270px);font-size:18px;line-height:1.45;padding:14px 15px;border-radius:14px;overflow-wrap:anywhere;white-space:pre-wrap;cursor:text;-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
-.ed-area.empty::before{content:attr(data-ph);position:absolute;left:16px;top:14px;color:var(--muted);opacity:.8;pointer-events:none}
+.ed-area.empty[data-ph]:not([data-ph=""])::before{content:attr(data-ph);position:absolute;left:16px;top:14px;color:var(--muted);opacity:.8;pointer-events:none}
 .ed-area:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent}
 .ed-area b,.ed-area strong{font-weight:800}
 .ed-area mark{background:color-mix(in oklab,var(--g-hard,#FFE600) 55%,transparent);color:inherit;border-radius:.2em;padding:0 .1em}
@@ -3488,8 +3488,8 @@ function cardSheet(fid, id){
   const ex = id && S.decks[fid] ? S.decks[fid][id] : null;
   if (!Object.keys(S.folders).length) { toast("Leg zuerst einen Ordner an."); return; }
   openSheet(`${head(ex ? "Karte bearbeiten" : "Neue Karte")}
-    ${edHTML("cf", "Frage oder Begriff", "Vorderseite")}
-    ${edHTML("cb", "Antwort", "Rückseite")}
+    ${edHTML("cf", "", "Vorderseite")}
+    ${edHTML("cb", "", "Rückseite")}
     <div class="field"><label for="cfo">Ordner</label><select class="in" id="cfo">${folderOptions(fid)}</select></div>
     ${ex ? `<div class="muted" style="font-size:14.5px;margin-bottom:14px">${ex.reps ? `${plural(ex.reps, 'Wiederholung', 'Wiederholungen')} · nächste ${isDue(ex) ? 'jetzt' : 'in ' + fmtIvl(ex.due - Date.now()).replace('< ','')}` : 'Noch nicht gelernt'}</div>` : ''}
     ${ex ? `<div class="sheet-foot"><button class="btn danger" id="cdel">Löschen</button><div class="r"><button class="btn" data-act="close">Abbrechen</button><button class="btn primary" id="csave">Speichern</button></div></div>`
