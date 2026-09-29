@@ -1035,6 +1035,16 @@ html.ios-standalone body{min-height:100lvh}
 .ed-area td.cur,.ed-area th.cur{box-shadow:inset 0 0 0 2px var(--accent)}
 .ed-area img.cimg{display:block;max-width:100%;max-height:220px;object-fit:contain;border-radius:12px;margin:.3em 0;cursor:pointer;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .ed-area img.cimg.sized{max-height:none;height:auto}
+.ed-area img.cimg{margin:.3em auto}
+.ed-area img.cimg.fl-l,.rich img.cimg.fl-l{float:left;margin:.2em .9em .5em 0;max-width:60%}
+.ed-area img.cimg.fl-r,.rich img.cimg.fl-r{float:right;margin:.2em 0 .5em .9em;max-width:60%}
+.ed-area img.cimg.fl-l:not(.sized),.ed-area img.cimg.fl-r:not(.sized),.rich img.cimg.fl-l:not(.sized),.rich img.cimg.fl-r:not(.sized){width:45%}
+.rich p:has(img.fl-l),.rich p:has(img.fl-r){text-align:left}
+.ed-area::after,.rich::after{content:"";display:block;clear:both}
+.ed-imgbox .mv{position:absolute;inset:14px;pointer-events:auto;cursor:grab;touch-action:none;border-radius:8px}
+.ed-drop{position:absolute;z-index:6;height:3px;border-radius:2px;background:var(--accent);pointer-events:none;box-shadow:0 0 0 2px color-mix(in oklab,var(--surface) 70%,transparent)}
+.ed-imgbar button.on{background:var(--accent-soft);color:var(--accent-text)}
+.ed-imgbar .sep{width:1px;background:var(--line);margin:4px 2px}
 .ed-field{position:relative}
 .ed-imgbox{position:absolute;z-index:4;border:2px solid var(--accent);border-radius:12px;pointer-events:none;box-shadow:0 0 0 1px color-mix(in oklab,var(--surface) 70%,transparent)}
 .ed-imgbox .h{position:absolute;width:24px;height:24px;border-radius:50%;background:var(--surface);border:2.5px solid var(--accent);pointer-events:auto;touch-action:none;box-shadow:0 2px 6px rgba(0,0,0,.25)}
@@ -1197,7 +1207,9 @@ function texHTML(src, display){
   return `<span class="${cls}" data-tex="${esc(src)}">${esc(src)}</span>`;
 }
 // Bildgröße steckt im Alt-Text: ![w60](…) = 60 % der Kartenbreite
-const imgW = a => { const m = /^w(\d{1,3})$/.exec(a || ""); return m ? Math.max(10, Math.min(100, +m[1])) : 0; };
+// Alt-Text: „w60“ = Breite 60 %, „l“/„r“ = links/rechts (Text fließt daneben), sonst mittig
+const imgW = a => { const m = /(?:^|\s)w(\d{1,3})(?=\s|$)/.exec(a || ""); return m ? Math.max(10, Math.min(100, +m[1])) : 0; };
+const imgAl = a => /(?:^|\s)([lr])(?=\s|$)/.test(a || "") ? /(?:^|\s)([lr])(?=\s|$)/.exec(a)[1] : "";
 const imgSrc = s => s.startsWith("cimg:") ? `${SB_URL}/storage/v1/object/public/${IMG_BUCKET}/${s.slice(5)}` : s;
 const IMG_RE_SRC = String.raw`!\[([^\]\n]*)\]\(((?:cimg:[\w\-./]+)|(?:https:\/\/[^)\s]+)|(?:data:image\/[a-z+]+;base64,[A-Za-z0-9+/=]+))\)`;
 const INL_RE = new RegExp(IMG_RE_SRC + String.raw`|\u0000(\d+)\u0000|\\\((.+?)\\\)|(?<![\\$])\$([^\s$](?:[^$\n]*?[^\s\\$])?)\$(?![\d$])|\\([\\*_=$|\[\]\-•.)])`, "g");
@@ -1214,7 +1226,7 @@ function inlHTML(s, blocks, opt){
   const t = s.replace(INL_RE, (...m) => {
     let h; const ed = opt && opt.edit;
     if (m[6] != null) h = esc(m[6]);
-    else if (m[2]) { const w = imgW(m[1]); h = opt && opt.line ? '<span class="rl-img" aria-label="Bild">🖼</span>' : `<img class="cimg${w ? " sized" : ""}" src="${esc(imgSrc(m[2]))}"${ed ? ` data-src="${esc(m[2])}"` : ""}${w ? ` data-w="${w}" style="width:${w}%"` : ""} crossorigin="anonymous" alt="Bild" loading="lazy" decoding="async" draggable="false">`; }
+    else if (m[2]) { const w = imgW(m[1]), al = imgAl(m[1]); h = opt && opt.line ? '<span class="rl-img" aria-label="Bild">🖼</span>' : `<img class="cimg${w ? " sized" : ""}${al ? " fl-" + al : ""}" src="${esc(imgSrc(m[2]))}"${ed ? ` data-src="${esc(m[2])}"` : ""}${al ? ` data-al="${al}"` : ""}${w ? ` data-w="${w}" style="width:${w}%"` : ""} crossorigin="anonymous" alt="Bild" loading="lazy" decoding="async" draggable="false">`; }
     else if (ed) h = chipHTML(m[3] != null ? (blocks[+m[3]] || "") : m[4] != null ? m[4] : m[5]);
     else if (m[3] != null) h = texHTML(blocks[+m[3]] || "", !(opt && opt.line));
     else h = texHTML((opt && opt.line ? "" : "\\displaystyle ") + (m[4] != null ? m[4] : m[5]), false);
@@ -1233,7 +1245,7 @@ function rich(raw, opt){
   const [s, blocks] = protectBlocks(raw.replace(/\r\n?/g, "\n"));
   const lines = s.split("\n"), il = t => inlHTML(t, blocks, ed ? { edit: true } : null);
   let html = "", para = [], i = 0;
-  const flush = () => { if (para.length) { html += ed ? para.map(l => `<div>${il(l) || "<br>"}</div>`).join("") : `<p>${para.map(il).join("<br>")}</p>`; para = []; } };
+  const flush = () => { if (para.length) { html += ed ? para.map(l => `<div>${il(l) || "<br>"}</div>`).join("") : `<p>${para.map(il).join("<br>").replace(/(<img [^>]*\bfl-[lr]\b[^>]*>)<br>/g, "$1")}</p>`; para = []; } }; // neben einem Bild beginnt der Text direkt oben
   const LI = /^\s*([-*•]|\d{1,3}[.)])\s+(.*)$/, TR = /^\s*\|.*\|?\s*$/, SEP = /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/;
   while (i < lines.length) {
     const ln = lines[i];
@@ -1368,7 +1380,7 @@ function edSer(host){
     if (n.nodeType !== 1) return;
     const tg = n.tagName;
     if (n.classList.contains("mchip")) { add({ tex: n.dataset.latex || "" }); return; }
-    if (tg === "IMG") { if (n.dataset.src) { if (flat) add({ raw: "" }); else { push(); lines.push(`![${n.dataset.w ? "w" + n.dataset.w : ""}](${n.dataset.src})`); } } return; }
+    if (tg === "IMG") { if (n.dataset.src) { if (flat) add({ raw: "" }); else { push(); lines.push(`![${[n.dataset.w ? "w" + n.dataset.w : "", n.dataset.al || ""].filter(Boolean).join(" ")}](${n.dataset.src})`); } } return; }
     if (tg === "BR") { if (flat) add({ t: " ", b: f.b, i: f.i, m: f.m }); else if (runs) push(); else lines.push(""); return; }
     if (tg === "UL" || tg === "OL") {
       push(); let k = 0;
@@ -1759,17 +1771,26 @@ function mountRichEditor(root, host, initial){
     const bw = imgBar.offsetWidth; imgBar.style.left = Math.max(0, Math.min(f.width - bw, r.left - f.left + r.width / 2 - bw / 2)) + "px";
     imgBar.style.top = (r.bottom - f.top + 14) + "px"; // unter dem Bild, damit der Text darüber sichtbar bleibt
   };
+  function setAlign(im, al, quiet){
+    if (al) { im.dataset.al = al; } else delete im.dataset.al;
+    im.classList.toggle("fl-l", al === "l"); im.classList.toggle("fl-r", al === "r");
+    if (imgBar) imgBar.querySelectorAll("[data-al]").forEach(b => b.classList.toggle("on", b.dataset.al === al));
+    const blk = edTopBlock(host, im); if (al && blk && !blk.nextSibling) host.appendChild(edEmptyDiv()); // Platz für Text daneben
+    if (!quiet) host.dispatchEvent(new Event("input", { bubbles: true }));
+    requestAnimationFrame(placeImg);
+  }
   function imgTools(im){
     hideImg(); imgSel = im;
     const s = getSelection(); s.removeAllRanges();
-    imgBox = document.createElement("div"); imgBox.className = "ed-imgbox"; imgBox.innerHTML = '<i class="h tl" data-c="tl"></i><i class="h tr" data-c="tr"></i><i class="h bl" data-c="bl"></i><i class="h br" data-c="br"></i><span class="pct"></span>';
+    imgBox = document.createElement("div"); imgBox.className = "ed-imgbox"; imgBox.innerHTML = '<i class="mv"></i><i class="h tl" data-c="tl"></i><i class="h tr" data-c="tr"></i><i class="h bl" data-c="bl"></i><i class="h br" data-c="br"></i><span class="pct"></span>';
     imgBar = document.createElement("div"); imgBar.className = "ed-imgbar";
-    imgBar.innerHTML = `<button type="button" data-im="crop">${CROP_IC}Zuschneiden</button><button type="button" data-im="del" class="del">${DEL_IC}Entfernen</button>`;
+    const AL = [["l", "Links, Text daneben", '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="8" height="8" rx="1.5"/><path d="M14 6h7M14 10h7M14 14h7M3 18h18"/></svg>'], ["", "Mittig", '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="7" y="4" width="10" height="9" rx="1.5"/><path d="M3 17h18M6 21h12"/></svg>'], ["r", "Rechts, Text daneben", '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="13" y="5" width="8" height="8" rx="1.5"/><path d="M3 6h7M3 10h7M3 14h7M3 18h18"/></svg>']];
+    imgBar.innerHTML = AL.map(([k, t, ic]) => `<button type="button" data-al="${k}" title="${t}" aria-label="${t}" class="${(im.dataset.al || "") === k ? "on" : ""}">${ic}</button>`).join("") + `<span class="sep"></span><button type="button" data-im="crop">${CROP_IC}Zuschneiden</button><button type="button" data-im="del" class="del" aria-label="Entfernen" title="Entfernen">${DEL_IC}</button>`;
     field.append(imgBox, imgBar); placeImg();
     // Ecken ziehen: Breite ändern, Seitenverhältnis bleibt (Höhe automatisch)
     imgBox.addEventListener("pointerdown", e => {
       const h = e.target.closest(".h"); if (!h) return; e.preventDefault(); e.stopPropagation();
-      const c = h.dataset.c, x0 = e.clientX, w0 = im.getBoundingClientRect().width, full = host.clientWidth - 30, sign = c === "tr" || c === "br" ? 1 : -1;
+      const c = h.dataset.c, x0 = e.clientX, w0 = im.getBoundingClientRect().width, full = host.clientWidth - 30, sign = (c === "tr" || c === "br" ? 1 : -1) * (im.dataset.al ? 1 : 2); // mittig wächst das Bild nach beiden Seiten
       try { h.setPointerCapture(e.pointerId); } catch {}
       imgBox.classList.add("drag");
       const mv = ev => {
@@ -1780,7 +1801,39 @@ function mountRichEditor(root, host, initial){
       h.addEventListener("pointermove", mv); h.addEventListener("pointerup", up); h.addEventListener("pointercancel", up);
     });
     ["pointerdown", "mousedown"].forEach(ev => imgBar.addEventListener(ev, e => e.preventDefault()));
+    // Bild ziehen: nach oben/unten zwischen die Zeilen, nach links/Mitte/rechts
+    imgBox.querySelector(".mv").addEventListener("pointerdown", e => {
+      e.preventDefault(); e.stopPropagation();
+      const mvEl = e.currentTarget, blk = edTopBlock(host, im), x0 = e.clientX, y0 = e.clientY; let moved = false, before, al = im.dataset.al || "";
+      try { mvEl.setPointerCapture(e.pointerId); } catch {}
+      const line = document.createElement("div"); line.className = "ed-drop";
+      const mv = ev => {
+        if (!moved && Math.hypot(ev.clientX - x0, ev.clientY - y0) < 8) return;
+        if (!moved) { moved = true; field.appendChild(line); imgBar.style.visibility = "hidden"; }
+        const hr = host.getBoundingClientRect(), f = field.getBoundingClientRect();
+        // waagrecht: Drittel → links / mittig / rechts
+        const rel = (ev.clientX - hr.left) / hr.width; al = rel < .36 ? "l" : rel > .64 ? "r" : "";
+        if ((im.dataset.al || "") !== al) setAlign(im, al, true);
+        // senkrecht: vor welche Zeile?
+        const kids = [...host.children].filter(k => k !== blk && k.getBoundingClientRect().height > 0);
+        before = kids.find(k => { const r = k.getBoundingClientRect(); return ev.clientY < r.top + r.height / 2; }) || null;
+        const ref = before ? before.getBoundingClientRect().top : (kids.length ? kids[kids.length - 1].getBoundingClientRect().bottom : hr.top + 14);
+        Object.assign(line.style, { left: (hr.left - f.left + 12) + "px", width: (hr.width - 24) + "px", top: (ref - f.top - 2) + "px" });
+      };
+      const up = () => {
+        mvEl.removeEventListener("pointermove", mv); mvEl.removeEventListener("pointerup", up); mvEl.removeEventListener("pointercancel", up);
+        line.remove(); if (imgBar) imgBar.style.visibility = "";
+        if (moved && blk && blk.parentNode === host) {
+          if (before !== blk) host.insertBefore(blk, before);
+          if (!blk.nextSibling) host.appendChild(edEmptyDiv()); // unter einem Bild muss man weiterschreiben können
+          host.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+        placeImg();
+      };
+      mvEl.addEventListener("pointermove", mv); mvEl.addEventListener("pointerup", up); mvEl.addEventListener("pointercancel", up);
+    });
     imgBar.addEventListener("click", e => {
+      const a = e.target.closest("[data-al]"); if (a) { e.preventDefault(); setAlign(im, a.dataset.al); return; }
       const b = e.target.closest("[data-im]"); if (!b) return; e.preventDefault();
       if (b.dataset.im === "del") { const blk = im.parentNode; im.remove(); hideImg(); if (blk !== host && ED_BLOCK.test(blk.tagName) && edIsEmpty(blk) && !blk.querySelector("br")) blk.appendChild(document.createElement("br")); if (!host.firstChild) host.appendChild(edEmptyDiv()); host.dispatchEvent(new Event("input", { bubbles: true })); return; }
       if (b.dataset.im === "crop") { const target = im; hideImg(); cropImage(target, () => { host.dispatchEvent(new Event("input", { bubbles: true })); imgTools(target); }); }
