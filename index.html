@@ -1034,9 +1034,11 @@ function fixBottomGap(){
   const typing = /INPUT|TEXTAREA|SELECT/.test((document.activeElement || {}).tagName || "");
   if (isIOS && standalone && !typing) {
     const probe = document.createElement("div");
-    probe.style.cssText = "position:fixed;top:0;bottom:0;left:0;width:0;visibility:hidden;pointer-events:none";
+    probe.style.cssText = "position:fixed;top:0;bottom:0;left:0;width:0;visibility:hidden;pointer-events:none;padding-top:env(safe-area-inset-top,0px)";
     document.body.appendChild(probe);
-    const boxH = probe.getBoundingClientRect().height; probe.remove();
+    const boxH = probe.getBoundingClientRect().height, insetTop = parseFloat(getComputedStyle(probe).paddingTop) || 0; probe.remove();
+    // Statusleisten-Stil „default“: die App beginnt erst unter der Statusleiste (insetTop 0) → Höhe ist absichtlich kleiner als der Bildschirm, kein Ausgleich (sonst rutscht die Tab-Leiste aus dem Bild)
+    if (insetTop < 1) { document.documentElement.style.setProperty("--vgap", "0px"); return; }
     const portrait = matchMedia("(orientation: portrait)").matches;
     const screenH = portrait ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height);
     g = Math.round(screenH - boxH); if (g < 2 || g > 140) g = 0;
