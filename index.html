@@ -1436,7 +1436,7 @@ async function mathEditor(opts){
     // Hoch-/Tiefzahlen im Formelfeld etwas kleiner (wie später in der Karte, ca. 60 %)
     try { if (mf.shadowRoot) {
       const sr = mf.shadowRoot, st = document.createElement("style");
-      st.textContent = '[style*="font-size: 70%"]>span{font-size:86%} .cardo-pct{font-family:Figtree,system-ui,-apple-system,sans-serif!important;font-style:normal!important;font-weight:500}';
+      st.textContent = '[part=content]{padding-top:.3em!important;padding-bottom:.3em!important;overflow-y:visible} [style*="font-size: 70%"]>span{font-size:86%} .cardo-pct{font-family:Figtree,system-ui,-apple-system,sans-serif!important;font-style:normal!important;font-weight:500}';
       sr.appendChild(st);
       // Prozentzeichen in schlichter Schrift (ohne Bogen zwischen Kreis und Strich)
       const pct = () => sr.querySelectorAll("span").forEach(e => { if (!e.children.length) e.classList.toggle("cardo-pct", e.textContent === "%" || e.textContent === "‰"); });
