@@ -978,9 +978,11 @@ html.ios-standalone body{min-height:100lvh}
 .rich img.cimg{display:block;max-width:100%;max-height:min(46vh,460px);width:auto;height:auto;margin:.1em auto;border-radius:14px;object-fit:contain;background:color-mix(in oklab,var(--ink) 4%,var(--surface));-webkit-user-drag:none}
 .flash.flipped .rich img.cimg{cursor:zoom-in}
 .flash.flipped .flash-face:not(.flash-back) .rich img.cimg{max-height:min(22vh,200px)}
-.tex{display:inline-block;max-width:100%;overflow-x:auto;overflow-y:hidden;vertical-align:middle;-webkit-overflow-scrolling:touch}
+.tex{display:inline-block;max-width:100%;vertical-align:middle;line-height:1.2}
 .tex .katex{font-size:1.05em;white-space:nowrap}
-.tex.d{display:block;margin:.25em 0}
+.tex-pct{font-family:var(--body),system-ui,-apple-system,sans-serif;font-style:normal;font-weight:500} /* Prozent ohne Verbindungsbogen */
+.tex-cur{font-family:"Times New Roman",Times,"Noto Serif",Georgia,serif;font-style:normal;font-weight:400}
+.tex.d{display:block;margin:.25em 0;overflow-x:auto;overflow-y:hidden;padding:.2em 0;-webkit-overflow-scrolling:touch}
 .tex.d .katex-display{margin:0}
 .tex[data-tex]{font-family:ui-monospace,Menlo,monospace;font-size:.8em;opacity:.75}
 .rl-img{font-size:.95em;margin:0 .1em}
@@ -1020,30 +1022,59 @@ html.ios-standalone body{min-height:100lvh}
 .ed-area th{background:color-mix(in oklab,var(--ink) 7%,var(--surface));font-weight:800}
 .ed-area td.cur,.ed-area th.cur{box-shadow:inset 0 0 0 2px var(--accent)}
 .ed-area img.cimg{display:block;max-width:100%;max-height:220px;border-radius:12px;margin:.3em 0;cursor:default}
-.mchip{display:inline-block;padding:1px 6px;margin:0 1px;border-radius:8px;background:color-mix(in oklab,var(--accent) 9%,transparent);border:1px solid color-mix(in oklab,var(--accent) 30%,transparent);cursor:pointer;vertical-align:middle;white-space:nowrap;-webkit-user-select:none;user-select:none;line-height:1.2}
+.mchip{display:inline-block;padding:4px 7px;margin:0 1px;border-radius:8px;background:color-mix(in oklab,var(--accent) 9%,transparent);border:1px solid color-mix(in oklab,var(--accent) 30%,transparent);cursor:pointer;vertical-align:middle;white-space:nowrap;-webkit-user-select:none;user-select:none;line-height:1.2}
 .mchip .tex{vertical-align:baseline;overflow:visible}
 .mchip .tex .katex{font-size:1.08em}
-#mathed{position:fixed;inset:0;z-index:95;background:rgba(10,12,18,.42);display:flex;align-items:flex-start;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 10px) 10px 10px;animation:izIn .16s ease both}
-#mathed.out{opacity:0;transition:opacity .16s ease}
-.me-box{width:min(600px,100%);background:var(--surface);color:var(--ink);border-radius:22px;box-shadow:0 18px 50px rgba(0,0,0,.3);padding:14px 14px 12px;max-height:calc(100% - 10px);overflow:auto}
-.me-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:-2px 0 10px}
-.me-top b{font-size:17px}
-.me-tb{background:none;border:0;font:inherit;font-size:16px;font-weight:600;color:var(--muted);padding:6px 4px;cursor:pointer}
-.me-tb.me-ok{background:var(--ink);color:var(--surface);border-radius:11px;padding:7px 14px;font-weight:750}
-.me-field math-field{display:block;width:100%;min-height:72px;font-size:32px;padding:10px 12px;border-radius:14px;border:2px solid var(--accent);background:var(--surface-2);color:var(--ink);--caret-color:var(--accent);--selection-background-color:var(--accent-soft);--placeholder-color:var(--muted);--contains-highlight-background-color:transparent}
-math-field::part(menu-toggle){display:none}
-.me-sub{display:flex;align-items:center;gap:10px;margin:8px 2px 0;font-size:13px}
-.me-del{background:none;border:0;color:var(--again,#d33);font-weight:650;font-size:14px;margin-left:auto;padding:4px 2px;cursor:pointer}
-.me-keys{display:flex;flex-wrap:wrap;gap:5px;margin:12px 0 2px}
-.me-k{min-width:40px;height:38px;padding:0 8px;border-radius:11px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);font-size:18px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;-webkit-user-select:none;user-select:none;touch-action:manipulation;cursor:pointer}
-.me-k svg{width:22px;height:22px}
-.me-k:first-child{border-color:color-mix(in oklab,var(--accent) 45%,var(--line));background:color-mix(in oklab,var(--accent) 9%,var(--surface))}
-.me-more{font-size:14px;color:var(--muted)}
-#mathed:not(.more) .me-more-k{display:none}
-#mathed.more .me-more{display:none}
-#mathed.touch{align-items:flex-start;padding-top:calc(env(safe-area-inset-top,0px) + 8px)}
-#mathed.touch .me-box{padding:12px}
-@media (prefers-reduced-motion:reduce){#imgzoom,#mathed{animation:none}.ed-bar.busy [data-ed="img"]{animation:none}}
+#mathsheet{position:fixed;inset:0;z-index:60;display:flex;align-items:flex-end;justify-content:center;background:rgba(10,12,18,.42);animation:fadeIn .25s ease}
+#mathsheet .sheet{animation:sheetIn .45s cubic-bezier(.16,1,.3,1);max-width:560px;transition:transform .2s ease}
+#mathsheet.closing{animation:fadeOut .24s ease forwards}
+#mathsheet.closing .sheet{animation:sheetOut .24s ease-in forwards}
+@media (min-width:700px){#mathsheet{align-items:center}}
+.ms-sheet .sheet-h{margin-bottom:10px}
+.ms-field math-field{display:block;width:100%;min-height:68px;font-size:30px;padding:10px 12px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface-2);color:var(--ink);--caret-color:var(--ink);--selection-background-color:var(--accent-soft);--placeholder-color:var(--muted);--contains-highlight-background-color:transparent;outline:none}
+.ms-field math-field:focus-within{border-color:var(--ink)}
+math-field::part(menu-toggle),math-field::part(virtual-keyboard-toggle){display:none}
+.ms-hint{font-size:13px;margin:7px 2px 12px}
+.ms-tabs{grid-template-columns:repeat(4,1fr);margin-bottom:10px}
+.ms-tabs button{padding:8px 2px;font-size:14.5px}
+.ms-pads{height:206px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;margin:0 -2px;padding:0 2px}
+.ms-pads::-webkit-scrollbar{display:none}
+.ms-pad{display:grid;grid-template-columns:repeat(var(--c),1fr);gap:6px}
+.ms-abc{display:flex;flex-direction:column;gap:6px}
+.ms-row{display:flex;gap:5px;justify-content:center}
+.ms-row .ms-k{flex:1 1 0;max-width:calc((100% - 45px) / 10);min-width:0;padding:0}
+.ms-row .ms-shift{max-width:calc((100% - 45px) / 10 * 1.5);flex-grow:1.5}
+.ms-k{height:46px;min-width:0;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);color:var(--ink);font-size:19px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:1px;-webkit-user-select:none;user-select:none;touch-action:manipulation;cursor:pointer;line-height:1;font-family:"Times New Roman",Georgia,serif}
+.ms-k:active{background:color-mix(in oklab,var(--ink) 10%,var(--surface-2));transform:scale(.95)}
+.ms-pad[data-pad="n"] .ms-k,.ms-abc .ms-k{font-family:var(--body)}
+.ms-pad[data-pad="f"] .ms-k{font-size:18px}
+.ms-k.hi{background:var(--accent-soft);border-color:color-mix(in oklab,var(--accent) 30%,var(--line))}
+.ms-shift.on{background:var(--ink);color:var(--surface)}
+.ms-k sup,.ms-k sub{font-size:.62em;line-height:0;position:relative}.ms-k sup{top:-.55em}.ms-k sub{top:.35em}
+.ms-k sup.ms-n{margin-right:-.25em}
+.ms-bx{display:inline-block;width:.62em;height:.72em;border:1.5px solid currentColor;border-radius:2px;opacity:.5;vertical-align:-.05em}
+sup .ms-bx,sub .ms-bx{width:.8em;height:.9em}
+.ms-fr{display:inline-flex;flex-direction:column;align-items:center;gap:2px}
+.ms-fr i{width:.62em;height:.52em;border:1.5px solid currentColor;border-radius:2px;opacity:.5}
+.ms-fr b{width:.95em;height:2px;background:currentColor;border-radius:1px}
+.ms-bin{display:inline-flex;align-items:center;gap:1px}
+.ms-bin span{display:inline-flex;flex-direction:column;gap:2px}
+.ms-bin i{width:.5em;height:.45em;border:1.5px solid currentColor;border-radius:2px;opacity:.5}
+.ms-k.cur{position:relative;touch-action:none}
+.ms-k.cur::after{content:"";position:absolute;right:6px;bottom:6px;width:0;height:0;border-left:4px solid transparent;border-top:4px solid var(--muted);transform:rotate(-45deg);opacity:.7}
+.ms-alt{position:absolute;z-index:3;display:grid;grid-template-columns:repeat(6,44px);gap:4px;padding:6px;border-radius:16px;background:var(--surface);box-shadow:0 10px 30px rgba(0,0,0,.25),0 0 0 1px var(--line);animation:fadeIn .12s ease}
+.ms-alt button{min-width:0;height:46px;padding:0 2px;border-radius:11px;font-size:19px;font-weight:600;color:var(--ink);background:var(--surface-2)}
+.ms-alt button.on,.ms-alt button:hover{background:var(--ink);color:var(--surface)}
+.ms-sheet{position:relative}
+.ms-foot{display:flex;align-items:center;gap:8px;margin-top:12px;min-width:0}
+.ms-sheet{overflow-x:hidden}
+.ms-hbtns{display:flex;gap:8px}
+.ms-delx{color:var(--again)}
+.ms-delx svg{width:19px;height:19px}
+.ms-nav{display:flex;gap:6px;flex:none}
+.ms-nav .ms-k{width:46px;font-family:var(--body);font-size:18px}
+.ms-foot .btn{height:46px;padding:0 14px;flex:1 1 auto;min-width:0;justify-content:center;white-space:nowrap}
+@media (prefers-reduced-motion:reduce){#imgzoom,#mathsheet,#mathsheet .sheet{animation:none}.ed-bar.busy [data-ed="img"]{animation:none}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 </head>
@@ -1088,12 +1119,41 @@ function loadKatex(){
 }
 function texFill(el){
   if (!window.katex) return;
-  try { el.innerHTML = window.katex.renderToString(el.dataset.tex, { throwOnError: false, displayMode: el.classList.contains("d"), strict: "ignore", trust: false, maxSize: 20, maxExpand: 200 }); el.removeAttribute("data-tex"); } catch {}
+  try { el.innerHTML = curSpan(window.katex.renderToString(el.dataset.tex, { throwOnError: false, displayMode: el.classList.contains("d"), strict: "ignore", trust: false, maxSize: 20, maxExpand: 200 })); el.removeAttribute("data-tex"); } catch {}
+}
+// MathLive schreibt manche Zeichen als eigene Befehle, die KaTeX nicht kennt → in normale Zeichen umwandeln
+const texFix = t => String(t || "").replace(/\\euro(?![a-zA-Z])\s*(\{\})?/g, "€").replace(/\\pounds(?![a-zA-Z])\s*(\{\})?/g, "£").replace(/\\yen(?![a-zA-Z])\s*(\{\})?/g, "¥")
+  .replace(/\\degree(?![a-zA-Z])\s*(\{\})?/g, "^{\\circ}").replace(/\\differentialD(?![a-zA-Z])/g, "\\mathrm{d}").replace(/\\exponentialE(?![a-zA-Z])/g, "e").replace(/\\imaginaryI(?![a-zA-Z])/g, "i").replace(/\\placeholder\{\}/g, "")
+  .replace(/\\text\{([€£¥₹₽₩₺₿¢‰])\}/g, "$1").replace(/[€£¥₹₽₩₺₿¢‰]/g, "\\text{$&}"); // Währungen aufrecht wie im Text
+const curSpan = h => h.replace(/(<span class="katex-html"[\s\S]*)$/, m => m.replace(/[€£¥₹₽₩₺₿¢]/g, "<span class=\"tex-cur\">$&</span>").replace(/[%‰]/g, "<span class=\"tex-pct\">$&</span>"));
+// Hoch- und Tiefzahlen kleiner setzen (KaTeX rechnet die Position selbst → nichts ragt heraus): 1. Ebene 60 %, tiefer 50 %
+function smallScripts(t, d = 0){
+  let out = "", i = 0, last = "";
+  const BIG = /^\\(sum|prod|coprod|int|iint|iiint|oint|lim|limsup|liminf|bigcup|bigcap|bigoplus|bigotimes|max|min|sup|inf)$/;
+  const cmd = k => { const m = t.slice(k).match(/^\\([a-zA-Z]+|[\s\S])/); return m ? m[0] : "\\"; };
+  while (i < t.length) {
+    const c = t[i];
+    if (c === "\\") { const m = cmd(i); out += m; i += m.length; if (/^\\[a-zA-Z]/.test(m)) last = m; continue; }
+    if (c === "^" || c === "_") {
+      out += c; i++; while (t[i] === " ") i++;
+      let arg = "";
+      if (t[i] === "{") { let dep = 0, j = i; for (; j < t.length; j++) { if (t[j] === "\\") { j++; continue; } if (t[j] === "{") dep++; else if (t[j] === "}" && --dep === 0) break; } arg = t.slice(i + 1, j); i = j + 1; }
+      else if (t[i] === "\\") { arg = cmd(i); i += arg.length; }
+      else if (i < t.length) { arg = t[i]; i++; }
+      if (BIG.test(last)) out += `{${smallScripts(arg, d + 1)}}`; // Grenzen von Summe, Integral usw. bleiben wie sie sind
+      else out += `{${d ? "\\small\\scriptscriptstyle" : "\\small\\scriptstyle"} ${smallScripts(arg, d + 1)}}`; // Hochzahl ca. 60 % der Zahl
+      continue;
+    }
+    if (!/\s/.test(c) && c !== "^" && c !== "_") last = c === "}" ? last : "";
+    out += c; i++;
+  }
+  return out;
 }
 function katexCss(){ if (!document.getElementById("katexcss")) { const l = document.createElement("link"); l.id = "katexcss"; l.rel = "stylesheet"; l.href = KATEX_URL + "katex.min.css"; document.head.appendChild(l); } }
 function texHTML(src, display){
+  src = smallScripts(texFix(src));
   const cls = "tex" + (display ? " d" : "");
-  if (window.katex) { katexCss(); try { return `<span class="${cls}">${window.katex.renderToString(src, { throwOnError: false, displayMode: display, strict: "ignore", trust: false, maxSize: 20, maxExpand: 200 })}</span>`; } catch {} }
+  if (window.katex) { katexCss(); try { return `<span class="${cls}">${curSpan(window.katex.renderToString(src, { throwOnError: false, displayMode: display, strict: "ignore", trust: false, maxSize: 20, maxExpand: 200 }))}</span>`; } catch {} }
   loadKatex();
   return `<span class="${cls}" data-tex="${esc(src)}">${esc(src)}</span>`;
 }
@@ -1219,14 +1279,14 @@ const ED_IC = {
   ol: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 6h10M10 12h10M10 18h10"/><path d="M4 4.5h1.2V9M3.6 9h2.6M3.6 14.2c.4-.6 2.6-.9 2.6.6 0 1-2.6 2.2-2.6 3.2h2.7" stroke-width="1.5"/></svg>',
   table: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M3 15h18M12 4v16"/></svg>',
   frac: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="8.5" y="2.5" width="7" height="7" rx="1.5"/><path d="M5 12h14"/><rect x="8.5" y="14.5" width="7" height="7" rx="1.5"/></svg>',
-  tex: '<span class="ed-fx">∑</span>',
+  tex: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13h3l3 7 4-16h8"/><path d="m15 11 5 6M20 11l-5 6"/></svg>',
   img: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="m21 16-5-5-9 9"/></svg>'
 };
 function edHTML(id, ph, label){
   const b = (k, t, ic) => `<button type="button" class="ed-b" data-ed="${k}" title="${t}" aria-label="${t}">${ic}</button>`;
   const tb = (k, t) => `<button type="button" class="ed-tb" data-tb="${k}">${t}</button>`;
   return `<div class="field ed-field"><label for="${id}">${label}</label>
-    <div class="ed-bar" data-for="${id}" role="toolbar" aria-label="Formatierung">${b("b", "Fett", ED_IC.b)}${b("i", "Kursiv", ED_IC.i)}${b("mark", "Markieren", ED_IC.mark)}<span class="ed-sep"></span>${b("ul", "Aufzählung", ED_IC.ul)}${b("ol", "Nummerierte Liste", ED_IC.ol)}${b("table", "Tabelle", ED_IC.table)}<span class="ed-sep"></span>${b("frac", "Bruch", ED_IC.frac)}${b("tex", "Formel", ED_IC.tex)}${b("img", "Bild", ED_IC.img)}<input type="file" accept="image/*" hidden class="ed-file"></div>
+    <div class="ed-bar" data-for="${id}" role="toolbar" aria-label="Formatierung">${b("b", "Fett", ED_IC.b)}${b("i", "Kursiv", ED_IC.i)}${b("mark", "Markieren", ED_IC.mark)}<span class="ed-sep"></span>${b("ul", "Aufzählung", ED_IC.ul)}${b("ol", "Nummerierte Liste", ED_IC.ol)}${b("table", "Tabelle", ED_IC.table)}<span class="ed-sep"></span>${b("tex", "Mathe", ED_IC.tex)}${b("img", "Bild", ED_IC.img)}<input type="file" accept="image/*" hidden class="ed-file"></div>
     <div class="ed-tbar" hidden>${tb("rowAdd", "＋ Zeile")}${tb("rowDel", "− Zeile")}${tb("colAdd", "＋ Spalte")}${tb("colDel", "− Spalte")}${tb("head", "Kopfzeile")}${tb("tblDel", "Tabelle löschen")}</div>
     <div class="in ed-area" id="${id}" contenteditable="true" role="textbox" aria-multiline="true" data-ph="${esc(ph)}" spellcheck="true"></div></div>`;
 }
@@ -1318,85 +1378,135 @@ function loadMathLive(){
   });
   return mlP;
 }
-// Eigene, schlichte Handy-Tastatur für Formeln (statt der vollen MathLive-Tastatur)
-let mlKbd = false;
-function mathKeyboard(){
-  if (mlKbd || !window.mathVirtualKeyboard) return; mlKbd = true;
-  const K = (latex, label, cls) => ({ latex, ...(label ? { label } : {}), ...(cls ? { class: cls } : {}) });
-  try {
-    window.mathVirtualKeyboard.layouts = [
-      { label: "123", tooltip: "Zahlen & Rechnen", rows: [
-        ["[7]", "[8]", "[9]", "[/]", K("\\frac{#0}{#?}", null, "small"), K("#@^{#?}", null, "small")],
-        ["[4]", "[5]", "[6]", "[*]", K("\\sqrt{#0}", null, "small"), K("#@_{#?}", null, "small")],
-        ["[1]", "[2]", "[3]", "[-]", K("\\left(#0\\right)", "( )"), "\\%"],
-        ["[0]", "{,}", "[.]", "[+]", "[=]", "[backspace]"],
-        ["[left]", "[right]", "\\text{€}", "\\le", "\\ge", "[hide-keyboard]"] ] },
-      "alphabetic",
-      { label: "Mehr", tooltip: "Weitere Zeichen", rows: [
-        ["\\pm", "\\ne", "\\approx", "\\to", "\\infty", "\\cdot", "\\times"],
-        [K("\\sum_{#?}^{#?}", null, "small"), K("\\int_{#?}^{#?}", null, "small"), K("\\sqrt[#?]{#0}", null, "small"), K("\\log_{#?}", null, "small"), "\\ln", "\\Delta", "\\div"],
-        ["\\alpha", "\\beta", "\\gamma", "\\delta", "\\lambda", "\\mu", "\\pi"],
-        ["\\sigma", "\\rho", "\\theta", "\\varepsilon", "\\omega", "[left]", "[right]"],
-        ["[backspace]", "[hide-keyboard]"] ] }
-    ];
-  } catch {}
+// Mathe-Untermenü: Blatt von unten (wie die anderen Untermenüs) mit Formelfeld und eigener Tastatur
+const MS_BOX = '<i class="ms-bx"></i>';
+const MS_TABS = [["n", "123"], ["a", "abc"], ["f", "Funktionen"], ["s", "Zeichen"]];
+// [Beschriftung, einzufügende Formel, Titel, Klasse]
+const MS_PADS = {
+  n: { cols: 6, keys: [
+    ["7", "7"], ["8", "8"], ["9", "9"], ["÷", "\\div "], ["(", "("], [")", ")"],
+    ["4", "4"], ["5", "5"], ["6", "6"], ["×", "\\times "], [`<span class="ms-fr"><i></i><b></b><i></i></span>`, "\\frac{#0}{#?}", "Bruch", "hi"], [`x${`<sup>${MS_BOX}</sup>`}`, "^{#?}", "Hochzahl", "hi"],
+    ["1", "1"], ["2", "2"], ["3", "3"], ["−", "-"], [`√${MS_BOX}`, "\\sqrt{#0}", "Wurzel", "hi"], [`x<sub>${MS_BOX}</sub>`, "_{#?}", "Tiefzahl", "hi"],
+    ["0", "0"], [",", "{,}"], ["=", "="], ["+", "+"], ["%", "\\%"], ["€", "€", "Währung – lange drücken für weitere", "cur"]
+  ] },
+  a: { letters: true, rows: ["q w e r t z u i o p", "a s d f g h j k l", "⇧ y x c v b n m"] },
+  f: { cols: 4, keys: [
+    [`<span class="ms-fr"><i></i><b></b><i></i></span>`, "\\frac{#0}{#?}", "Bruch"], [`x${`<sup>${MS_BOX}</sup>`}`, "^{#?}", "Hochzahl"], [`x<sub>${MS_BOX}</sub>`, "_{#?}", "Tiefzahl"], [`e${`<sup>${MS_BOX}</sup>`}`, "e^{#?}", "e hoch"],
+    [`√${MS_BOX}`, "\\sqrt{#0}", "Wurzel"], [`<sup class="ms-n">n</sup>√${MS_BOX}`, "\\sqrt[#?]{#0}", "n-te Wurzel"], [`|${MS_BOX}|`, "\\left|#0\\right|", "Betrag"], [`(${MS_BOX})`, "\\left(#0\\right)", "Klammern"],
+    ["Σ", "\\sum_{#?}^{#?}", "Summe"], ["∏", "\\prod_{#?}^{#?}", "Produkt"], ["∫", "\\int_{#?}^{#?}", "Integral"], ["lim", "\\lim_{#?\\to#?}", "Grenzwert"],
+    ["log", "\\log_{#?}", "Logarithmus"], ["ln", "\\ln ", "ln"], ["sin", "\\sin ", "Sinus"], ["cos", "\\cos ", "Kosinus"],
+    ["tan", "\\tan ", "Tangens"], ["f′", "'", "Ableitung"], [`x̄`, "\\overline{#0}", "Mittelwert"], [`n!`, "!", "Fakultät"],
+    [`<span class="ms-bin">(<span><i></i><i></i></span>)</span>`, "\\binom{#?}{#?}", "Binomialkoeffizient"], [`a⃗`, "\\vec{#0}", "Vektor"], [`Δ`, "\\Delta ", "Delta"], ["∞", "\\infty ", "unendlich"]
+  ] },
+  s: { cols: 7, keys: [
+    ["<", "<"], [">", ">"], ["≤", "\\le "], ["≥", "\\ge "], ["≠", "\\ne "], ["≈", "\\approx "], ["±", "\\pm "],
+    ["·", "\\cdot "], ["→", "\\to "], ["⇒", "\\Rightarrow "], ["⇔", "\\Leftrightarrow "], ["∈", "\\in "], ["∉", "\\notin "], ["⊂", "\\subset "],
+    ["∪", "\\cup "], ["∩", "\\cap "], ["∅", "\\emptyset "], ["∀", "\\forall "], ["∃", "\\exists "], ["°", "^{\\circ}"], ["‰", "‰"],
+    ["α", "\\alpha "], ["β", "\\beta "], ["γ", "\\gamma "], ["δ", "\\delta "], ["ε", "\\varepsilon "], ["λ", "\\lambda "], ["μ", "\\mu "],
+    ["π", "\\pi "], ["ρ", "\\rho "], ["σ", "\\sigma "], ["τ", "\\tau "], ["φ", "\\varphi "], ["ω", "\\omega "], ["Ω", "\\Omega "],
+    ["Σ", "\\Sigma "], ["Φ", "\\Phi "], ["θ", "\\theta "], ["∠", "\\angle "], ["⊥", "\\perp "], ["∥", "\\parallel "], ["ℝ", "\\mathbb{R}"]
+  ] }
+};
+const MS_CUR = [["€", "€"], ["$", "\\$"], ["£", "£"], ["¥", "¥"], ["CHF", "\\mathrm{CHF}"], ["₹", "₹"], ["₽", "₽"], ["₩", "₩"], ["₺", "₺"], ["₿", "₿"], ["¢", "¢"]];
+function msPadHTML(t, shift){
+  const p = MS_PADS[t];
+  if (p.letters) return `<div class="ms-pad ms-abc" data-pad="a">${p.rows.map(r => `<div class="ms-row">${r.split(" ").map(k => k === "⇧" ? `<button type="button" class="ms-k ms-shift${shift ? " on" : ""}" data-shift aria-label="Großbuchstaben">⇧</button>` : `<button type="button" class="ms-k" data-ins="${shift ? k.toUpperCase() : k}">${shift ? k.toUpperCase() : k}</button>`).join("")}</div>`).join("")}</div>`;
+  return `<div class="ms-pad" data-pad="${t}" style="--c:${p.cols}">${p.keys.map(([l, v, ti, cls]) => `<button type="button" class="ms-k${cls ? " " + cls : ""}" data-ins="${esc(v)}"${ti ? ` title="${esc(ti)}" aria-label="${esc(ti)}"` : ""}>${l}</button>`).join("")}</div>`;
 }
-const touchUI = () => matchMedia("(pointer: coarse)").matches;
-const MATH_KEYS = [
-  ["Bruch", "\\frac{#0}{#?}", ED_IC.frac], ["Hochzahl", "^{#?}", "x²"], ["Tiefzahl", "_{#?}", "xₙ"], ["Wurzel", "\\sqrt{#0}", "√"], ["Klammern", "\\left(#0\\right)", "( )"],
-  ["mal", "\\cdot ", "·"], ["geteilt", "\\div ", "÷"], ["Prozent", "\\%", "%"], ["n-te Wurzel", "\\sqrt[#?]{#0}", "ⁿ√"], ["mal", "\\times ", "×"], ["plus minus", "\\pm ", "±"], ["kleiner gleich", "\\le ", "≤"], ["größer gleich", "\\ge ", "≥"], ["ungleich", "\\ne ", "≠"], ["ungefähr", "\\approx ", "≈"],
-  ["Summe", "\\sum_{#?}^{#?}", "Σ"], ["Integral", "\\int_{#?}^{#?}", "∫"], ["Pfeil", "\\to ", "→"], ["unendlich", "\\infty ", "∞"], ["Euro", "\\text{€}", "€"],
-  ["Delta", "\\Delta ", "Δ"], ["alpha", "\\alpha ", "α"], ["beta", "\\beta ", "β"], ["pi", "\\pi ", "π"], ["sigma", "\\sigma ", "σ"], ["mu", "\\mu ", "μ"], ["lambda", "\\lambda ", "λ"]
-];
 async function mathEditor(opts){
-  const wait = setTimeout(() => toast("Formel-Editor wird geladen …"), 350);
-  try { await loadMathLive(); } catch { clearTimeout(wait); toast("Der Formel-Editor braucht beim ersten Öffnen Internet."); return null; }
+  const wait = setTimeout(() => toast("Mathe wird geladen …"), 350);
+  try { await loadMathLive(); } catch { clearTimeout(wait); toast("Mathe braucht beim ersten Öffnen Internet."); return null; }
   clearTimeout(wait);
   return new Promise(res => {
-    const el = document.createElement("div"); el.id = "mathed"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "Formel");
-    const touch = touchUI(), MAIN = 8;
-    el.classList.toggle("touch", touch);
-    el.innerHTML = `<div class="me-box"><div class="me-top"><button type="button" class="me-tb" data-me="x">Abbrechen</button><b>Formel</b><button type="button" class="me-tb me-ok" data-me="ok">Fertig</button></div>
-      <div class="me-field"></div>
-      <div class="me-sub"><span class="muted">${touch ? "Tippe auf ein Kästchen, um es auszufüllen." : "Tippen mit der Tastatur, Kästchen mit Tab wechseln."}</span>${opts.editing ? '<button type="button" class="me-del" data-me="del">Formel entfernen</button>' : ''}</div>
-      ${touch ? "" : `<div class="me-keys">${MATH_KEYS.map(([t, v, l], i) => `<button type="button" class="me-k${i >= MAIN ? " me-more-k" : ""}" data-k="${i}" title="${esc(t)}" aria-label="${esc(t)}">${l}</button>`).join("")}<button type="button" class="me-k me-more" data-more>Mehr …</button></div>`}</div>`;
+    let tab = "n", shift = false, done = false;
+    const el = document.createElement("div"); el.id = "mathsheet";
+    el.innerHTML = `<div class="sheet ms-sheet" role="dialog" aria-modal="true" aria-label="Mathe"><div class="grab"></div>
+      <div class="sheet-h"><h2>Mathe</h2><div class="ms-hbtns">${opts.editing ? `<button type="button" class="xbtn ms-delx" data-ms="del" aria-label="Formel entfernen" title="Formel entfernen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg></button>` : ""}<button type="button" class="xbtn" data-ms="x" aria-label="Schließen">${IC.close}</button></div></div>
+      <div class="ms-field"></div>
+      <div class="ms-hint muted">Tippe auf ein Kästchen, um es auszufüllen.</div>
+      <div class="seg ms-tabs" role="tablist">${MS_TABS.map(([k, l]) => `<button type="button" role="tab" data-tab="${k}" class="${k === tab ? "on" : ""}">${l}</button>`).join("")}</div>
+      <div class="ms-pads">${msPadHTML(tab)}</div>
+      <div class="ms-foot"><div class="ms-nav"><button type="button" class="ms-k" data-cmd="moveToPreviousChar" aria-label="Zurück">←</button><button type="button" class="ms-k" data-cmd="moveToNextChar" aria-label="Weiter">→</button><button type="button" class="ms-k" data-cmd="deleteBackward" aria-label="Löschen">⌫</button></div>
+        <button type="button" class="btn primary" data-ms="ok">${opts.editing ? "Übernehmen" : "Einfügen"}</button></div>
+    </div>`;
     const mf = new MathfieldElement();
-    mathKeyboard();
-    try { mf.mathVirtualKeyboardPolicy = touch ? "auto" : "manual"; mf.smartFence = true; mf.menuItems = []; } catch {}
+    try { mf.mathVirtualKeyboardPolicy = "manual"; mf.smartFence = true; mf.menuItems = []; } catch {}
     mf.value = opts.latex || "";
-    el.querySelector(".me-field").appendChild(mf);
+    el.querySelector(".ms-field").appendChild(mf);
+    // Hoch-/Tiefzahlen im Formelfeld etwas kleiner (wie später in der Karte, ca. 60 %)
+    try { if (mf.shadowRoot) {
+      const sr = mf.shadowRoot, st = document.createElement("style");
+      st.textContent = '[style*="font-size: 70%"]>span{font-size:86%} .cardo-pct{font-family:Figtree,system-ui,-apple-system,sans-serif!important;font-style:normal!important;font-weight:500}';
+      sr.appendChild(st);
+      // Prozentzeichen in schlichter Schrift (ohne Bogen zwischen Kreis und Strich)
+      const pct = () => sr.querySelectorAll("span").forEach(e => { if (!e.children.length) e.classList.toggle("cardo-pct", e.textContent === "%" || e.textContent === "‰"); });
+      new MutationObserver(pct).observe(sr, { childList: true, subtree: true, characterData: true }); pct();
+    } } catch {}
     document.body.appendChild(el);
-    let done = false;
+    const val = () => { try { return texFix(mf.getValue("latex")).trim(); } catch { return ""; } };
     const finish = v => {
       if (done) return; done = true;
       try { window.mathVirtualKeyboard && window.mathVirtualKeyboard.hide(); } catch {}
       document.removeEventListener("keydown", key, true);
-      el.classList.add("out"); setTimeout(() => el.remove(), 160); res(v);
+      el.classList.add("closing"); setTimeout(() => el.remove(), 230); res(v);
     };
-    const val = () => { try { return mf.getValue("latex").replace(/\\placeholder\{\}/g, "").trim(); } catch { return ""; } };
     const key = e => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); finish(null); } else if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); e.stopPropagation(); finish({ latex: val() }); } };
     document.addEventListener("keydown", key, true);
-    el.querySelectorAll(".me-k").forEach(b => { b.addEventListener("pointerdown", e => e.preventDefault()); b.addEventListener("mousedown", e => e.preventDefault()); });
-    el.addEventListener("click", e => {
-      if (e.target.closest("[data-more]")) { el.classList.add("more"); mf.focus(); return; }
-      const k = e.target.closest("[data-k]"), n = e.target.closest("[data-nav]"), a = e.target.closest("[data-me]");
-      if (k) { mf.focus(); mf.executeCommand(["insert", MATH_KEYS[+k.dataset.k][1]]); return; }
-      if (n) { mf.focus(); mf.executeCommand(n.dataset.nav); return; }
-      if (a) { const t = a.dataset.me; finish(t === "ok" ? { latex: val() } : t === "del" ? { del: true } : null); return; }
-      if (e.target === el) finish({ latex: val() });
+    // Tasten dürfen den Fokus nicht aus dem Formelfeld nehmen
+    ["pointerdown", "mousedown"].forEach(ev => el.addEventListener(ev, e => { if (e.target.closest(".ms-k,.ms-tabs button,.ms-alt button")) e.preventDefault(); }));
+    // Währungstaste lange drücken → weitere Währungen (Finger darüberziehen und loslassen oder antippen)
+    let lp = null, alt = null, skipClick = false;
+    const closeAlt = () => { if (alt) { alt.remove(); alt = null; } };
+    const openAlt = key => {
+      closeAlt(); const r = key.getBoundingClientRect(), br = el.querySelector(".sheet").getBoundingClientRect();
+      alt = document.createElement("div"); alt.className = "ms-alt"; alt.setAttribute("role", "menu");
+      alt.innerHTML = MS_CUR.map(([l, v]) => `<button type="button" role="menuitem" data-ins="${esc(v)}">${l}</button>`).join("");
+      el.querySelector(".sheet").appendChild(alt);
+      const w = alt.offsetWidth, left = Math.max(8, Math.min(r.left + r.width / 2 - w / 2 - br.left, br.width - w - 8));
+      alt.style.left = left + "px"; alt.style.top = (r.top - br.top - alt.offsetHeight - 8) + "px";
+      try { navigator.vibrate && navigator.vibrate(8); } catch {}
+    };
+    const altAt = (x, y) => {
+      if (!alt) return null; const a = alt.getBoundingClientRect(); let hit = null, best = 1e9;
+      if (x >= a.left - 30 && x <= a.right + 30 && y >= a.top - 40 && y <= a.bottom + 50)
+        alt.querySelectorAll("button").forEach(b => { const q = b.getBoundingClientRect(), d = Math.hypot(x - (q.left + q.width / 2), y - (q.top + q.height / 2)); if (d < best) { best = d; hit = b; } });
+      alt.querySelectorAll("button").forEach(b => b.classList.toggle("on", b === hit)); return hit;
+    };
+    el.addEventListener("pointerdown", e => {
+      const k = e.target.closest(".ms-k.cur"); if (!k) { if (alt && !e.target.closest(".ms-alt")) closeAlt(); return; }
+      clearTimeout(lp); lp = setTimeout(() => { lp = null; openAlt(k); skipClick = true; }, 380);
     });
-    // Fokus sicher in das Formelfeld holen (der Karten-Editor darf nichts mehr abbekommen)
+    el.addEventListener("pointermove", e => { if (alt && e.pointerType !== "mouse" || (alt && e.buttons)) altAt(e.clientX, e.clientY); });
+    ["pointerup", "pointercancel"].forEach(ev => el.addEventListener(ev, e => {
+      clearTimeout(lp); lp = null;
+      if (alt && skipClick && ev === "pointerup") { const b = altAt(e.clientX, e.clientY); if (b) { mf.focus(); mf.executeCommand(["insert", b.dataset.ins]); closeAlt(); } }
+    }));
+    el.addEventListener("contextmenu", e => { if (e.target.closest(".ms-k.cur,.ms-alt")) e.preventDefault(); });
+    el.addEventListener("click", e => {
+      const k = e.target.closest("[data-ins]"), c = e.target.closest("[data-cmd]"), t = e.target.closest("[data-tab]"), a = e.target.closest("[data-ms]");
+      if (skipClick && e.target.closest(".ms-k.cur")) { skipClick = false; return; }
+      skipClick = false;
+      if (k) { mf.focus(); mf.executeCommand(["insert", k.dataset.ins]); closeAlt(); if (shift) { shift = false; el.querySelector(".ms-pads").innerHTML = msPadHTML("a", false); } return; }
+      if (e.target.closest("[data-shift]")) { shift = !shift; el.querySelector(".ms-pads").innerHTML = msPadHTML("a", shift); return; }
+      if (c) { mf.focus(); mf.executeCommand(c.dataset.cmd); return; }
+      if (t) { tab = t.dataset.tab; shift = false; el.querySelectorAll(".ms-tabs button").forEach(b => b.classList.toggle("on", b === t)); el.querySelector(".ms-pads").innerHTML = msPadHTML(tab, false); mf.focus(); return; }
+      if (a) { const v = a.dataset.ms; finish(v === "ok" ? { latex: val() } : v === "del" ? { del: true } : null); return; }
+      if (e.target === el) finish(null);
+    });
+    // Nach unten wegwischen schließt (wie bei den anderen Untermenüs)
+    const sh = el.querySelector(".sheet"); let sy = null;
+    sh.addEventListener("touchstart", e => { sy = e.target.closest(".grab,.sheet-h") ? e.touches[0].clientY : null; }, { passive: true });
+    sh.addEventListener("touchmove", e => { if (sy == null) return; const d = Math.max(0, e.touches[0].clientY - sy); sh.style.transform = `translateY(${d}px)`; }, { passive: true });
+    sh.addEventListener("touchend", e => { if (sy == null) return; const d = (e.changedTouches[0].clientY - sy); sy = null; if (d > 90) finish(null); else sh.style.transform = ""; });
     const ae = document.activeElement; if (ae && ae !== document.body && ae.blur) ae.blur();
     let tries = 0, ins = false;
     const go = () => {
       try { mf.focus(); } catch {}
-      const ok = (mf.hasFocus && mf.hasFocus()) || mf.contains(document.activeElement) || document.activeElement === mf;
+      const ok = (mf.hasFocus && mf.hasFocus()) || document.activeElement === mf;
       if (ok && !ins && opts.insert) { ins = true; mf.executeCommand(["insert", opts.insert]); }
-      if (ok && touch) { try { window.mathVirtualKeyboard.show(); } catch {} }
-      if (!ok && ++tries < 12) setTimeout(go, 50);
-      else if (!ins && opts.insert) { ins = true; mf.executeCommand(["insert", opts.insert]); }
+      if (!ok && ++tries < 12) setTimeout(go, 50); else if (!ins && opts.insert) { ins = true; mf.executeCommand(["insert", opts.insert]); }
     };
-    setTimeout(go, 30);
+    setTimeout(go, 60);
   });
 }
 
@@ -1521,7 +1631,6 @@ function mountRichEditor(root, host, initial){
     if (k === "b" || k === "i" || k === "mark") toggleFmt(k);
     else if (k === "ul" || k === "ol") { if (inCell) { toast("In einer Tabelle gehen keine Listen."); return; } exec(k === "ul" ? "insertUnorderedList" : "insertOrderedList"); }
     else if (k === "table") { if (inCell) { toast("Du bist schon in einer Tabelle – nutze die Knöpfe darunter."); return; } newTable(); }
-    else if (k === "frac") { addMath("\\frac{#0}{#?}"); return; }
     else if (k === "tex") { addMath(null); return; }
     else if (k === "img") { if (!busy) file.click(); return; }
     host.dispatchEvent(new Event("input", { bubbles: true })); state();
@@ -3772,7 +3881,7 @@ document.addEventListener("touchstart", e => {
   sw = null; if (e.touches.length !== 1) return;
   if (animating) settleSwipe();
   if (animating || !canSwipe() || RD.on) return;
-  if (e.target.closest("input,textarea,select,#czoom,#mathed,.ed-area,[data-noswipe]")) return;
+  if (e.target.closest("input,textarea,select,#czoom,#mathsheet,.ed-area,[data-noswipe]")) return;
   const t = e.touches[0]; if (t.clientX < 18 || t.clientX > innerWidth - 18) return; // leave system edge gestures alone
   if (peekGen !== S.gen) prerender();
   $("#main").style.willChange = "transform"; // Ebene schon beim Aufsetzen anlegen, damit der Start des Wischens nicht ruckelt
@@ -3997,7 +4106,7 @@ document.addEventListener("keydown", e => {
   if ((e.key === "Enter" || e.key === " ") && document.activeElement && document.activeElement.matches(".zoomable")) { e.preventDefault(); chartZoom(document.activeElement.dataset.id || null); return; }
   if (e.key === "Escape" && !$("#menu").hidden) { closeMenu(); return; }
   if (e.key === "Escape" && !$("#sheet").hidden) { closeSheet(); return; }
-  if (S.view !== "study" || !$("#sheet").hidden || /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) || document.activeElement.isContentEditable || $("#mathed")) return;
+  if (S.view !== "study" || !$("#sheet").hidden || /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) || document.activeElement.isContentEditable || $("#mathsheet")) return;
   if ((e.key === " " || e.key === "Enter") && S.study && !S.study.flipped) { e.preventDefault(); S.study.flipped = true; S.study.justFlipped = true; render(); }
   else if (/^[1-4]$/.test(e.key) && S.study && S.study.flipped && +e.key <= curGrades().length) { e.preventDefault(); grade(+e.key - 1); }
   else if ((e.key === "e" || e.key === "E") && !e.metaKey && !e.ctrlKey) { const c = curCard(); if (c && !S.study.busy) { e.preventDefault(); cardSheet(c.fid, c.id); } }
