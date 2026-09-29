@@ -1075,7 +1075,7 @@ function loadKatex(){
   if (window.katex) return Promise.resolve(window.katex);
   if (katexP) return katexP;
   katexP = new Promise((res, rej) => {
-    const l = document.createElement("link"); l.rel = "stylesheet"; l.href = KATEX_URL + "katex.min.css"; document.head.appendChild(l);
+    katexCss();
     const s = document.createElement("script"); s.src = KATEX_URL + "katex.min.js"; s.async = true;
     s.onload = () => res(window.katex); s.onerror = () => { katexP = null; rej(new Error("katex")); };
     document.head.appendChild(s);
@@ -1087,9 +1087,10 @@ function texFill(el){
   if (!window.katex) return;
   try { el.innerHTML = window.katex.renderToString(el.dataset.tex, { throwOnError: false, displayMode: el.classList.contains("d"), strict: "ignore", trust: false, maxSize: 20, maxExpand: 200 }); el.removeAttribute("data-tex"); } catch {}
 }
+function katexCss(){ if (!document.getElementById("katexcss")) { const l = document.createElement("link"); l.id = "katexcss"; l.rel = "stylesheet"; l.href = KATEX_URL + "katex.min.css"; document.head.appendChild(l); } }
 function texHTML(src, display){
   const cls = "tex" + (display ? " d" : "");
-  if (window.katex) { try { return `<span class="${cls}">${window.katex.renderToString(src, { throwOnError: false, displayMode: display, strict: "ignore", trust: false, maxSize: 20, maxExpand: 200 })}</span>`; } catch {} }
+  if (window.katex) { katexCss(); try { return `<span class="${cls}">${window.katex.renderToString(src, { throwOnError: false, displayMode: display, strict: "ignore", trust: false, maxSize: 20, maxExpand: 200 })}</span>`; } catch {} }
   loadKatex();
   return `<span class="${cls}" data-tex="${esc(src)}">${esc(src)}</span>`;
 }
@@ -1353,7 +1354,17 @@ async function mathEditor(opts){
       if (a) { const t = a.dataset.me; finish(t === "ok" ? { latex: val() } : t === "del" ? { del: true } : null); return; }
       if (e.target === el) finish({ latex: val() });
     });
-    requestAnimationFrame(() => { mf.focus(); if (opts.insert) mf.executeCommand(["insert", opts.insert]); });
+    // Fokus sicher in das Formelfeld holen (der Karten-Editor darf nichts mehr abbekommen)
+    const ae = document.activeElement; if (ae && ae !== document.body && ae.blur) ae.blur();
+    let tries = 0, ins = false;
+    const go = () => {
+      try { mf.focus(); } catch {}
+      const ok = (mf.hasFocus && mf.hasFocus()) || mf.contains(document.activeElement) || document.activeElement === mf;
+      if (ok && !ins && opts.insert) { ins = true; mf.executeCommand(["insert", opts.insert]); }
+      if (!ok && ++tries < 12) setTimeout(go, 50);
+      else if (!ins && opts.insert) { ins = true; mf.executeCommand(["insert", opts.insert]); }
+    };
+    setTimeout(go, 30);
   });
 }
 
