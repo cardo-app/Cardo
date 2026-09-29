@@ -842,7 +842,6 @@ body.authing #tabs{display:none}
 .cm-list .cm-del .cm-ic{background:color-mix(in oklab,var(--again) 14%,var(--surface));color:var(--again)}
 .cm-list .cm-del.armed{background:var(--again);color:#fff}
 .cm-list .cm-del.armed .cm-ic{background:rgba(255,255,255,.2);color:#fff}
-.sheet:has(#cf) textarea.in{min-height:clamp(120px,23vh,270px);font-size:18px;line-height:1.45;padding:14px 15px;border-radius:14px}
 .sheet:has(#cf){max-width:640px}
 .sheet:has(#cf) .sheet-foot{flex-wrap:nowrap;gap:6px}
 .sheet:has(#cf) .sheet-foot .r{gap:6px}
@@ -992,25 +991,56 @@ html.ios-standalone body{min-height:100lvh}
 #imgzoom .xbtn{position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);right:14px;background:rgba(255,255,255,.14);border-color:transparent;color:#fff}
 #imgzoom.out{opacity:0;transition:opacity .18s ease}
 @keyframes izIn{from{opacity:0}to{opacity:1}}
-/* Editor-Leiste */
-.ed-bar{display:flex;gap:4px;flex-wrap:wrap;margin:0 0 6px}
-.ed-b{min-width:36px;height:34px;padding:0 8px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:inline-flex;align-items:center;justify-content:center;font-size:16px;-webkit-user-select:none;user-select:none;touch-action:manipulation}
-.ed-b svg{width:18px;height:18px}
-.ed-b i{font-family:Georgia,serif;font-size:17px}
-.ed-b .ed-fx{font-size:18px;font-weight:700}
-.ed-b.on{background:var(--accent-soft);border-color:color-mix(in oklab,var(--accent) 45%,transparent);color:var(--accent-text)}
+/* Karten-Editor */
+.ed-field{margin-bottom:14px}
+.ed-bar{display:flex;gap:3px;align-items:center;overflow-x:auto;scrollbar-width:none;margin:6px 0 6px;padding:1px 0 3px}
+.ed-bar::-webkit-scrollbar{display:none}
+.ed-sep{flex:none;width:1px;height:22px;background:var(--line);margin:0 1px}
+.ed-b{flex:none;min-width:34px;height:36px;padding:0 6px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:inline-flex;align-items:center;justify-content:center;font-size:17px;-webkit-user-select:none;user-select:none;touch-action:manipulation;cursor:pointer}
+.ed-b svg{width:19px;height:19px}
+.ed-b i{font-family:Georgia,"Times New Roman",serif;font-size:18px}
+.ed-b .ed-fx{font-size:19px;font-weight:700}
+.ed-b.on{background:var(--accent-soft);border-color:color-mix(in oklab,var(--accent) 50%,transparent);color:var(--accent-text)}
 .ed-bar.busy [data-ed="img"]{opacity:.5;animation:edPulse 1s ease-in-out infinite}
 @keyframes edPulse{50%{opacity:.25}}
-.ed-snips{display:flex;gap:4px;overflow-x:auto;padding:2px 0 8px;margin-bottom:2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.ed-snips::-webkit-scrollbar{display:none}
-.ed-snips[hidden]{display:none}
-.ed-s{flex:none;min-width:38px;height:34px;padding:0 9px;border-radius:10px;border:1px solid color-mix(in oklab,var(--accent) 35%,var(--line));background:color-mix(in oklab,var(--accent) 7%,var(--surface));color:var(--ink);font-size:16px;font-weight:600;-webkit-user-select:none;user-select:none;touch-action:manipulation}
-.ed-prev{margin-top:8px;padding:12px 14px;border-radius:12px;border:1px dashed var(--line);background:color-mix(in oklab,var(--ink) 3%,var(--surface));font-size:18px;font-weight:600;line-height:1.35;text-align:center;overflow-wrap:anywhere;position:relative}
-.ed-prev[hidden]{display:none}
-.ed-prev::before{content:"Vorschau";display:block;font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;margin-bottom:6px}
-.ed-prev .rich img.cimg{max-height:200px;cursor:zoom-in}
-.ed-prev .rich table{font-size:.8em}
-@media (prefers-reduced-motion:reduce){#imgzoom{animation:none}.ed-bar.busy [data-ed="img"]{animation:none}}
+.ed-tbar{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;margin:0 0 7px;padding-bottom:1px}.ed-tbar::-webkit-scrollbar{display:none}
+.ed-tbar[hidden]{display:none}
+.ed-tb{flex:none;white-space:nowrap;height:31px;padding:0 9px;border-radius:9px;font-size:13.5px;font-weight:650;border:1px solid color-mix(in oklab,var(--accent) 35%,var(--line));background:color-mix(in oklab,var(--accent) 7%,var(--surface));color:var(--ink);-webkit-user-select:none;user-select:none;touch-action:manipulation;cursor:pointer}
+.ed-tb.on{background:var(--accent-soft);color:var(--accent-text)}
+.ed-tb[data-tb="tblDel"]{border-color:var(--line);background:var(--surface);color:var(--muted)}
+.ed-area{position:relative;min-height:clamp(120px,23vh,270px);font-size:18px;line-height:1.45;padding:14px 15px;border-radius:14px;overflow-wrap:anywhere;white-space:pre-wrap;cursor:text;-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+.ed-area.empty::before{content:attr(data-ph);position:absolute;left:16px;top:14px;color:var(--muted);opacity:.8;pointer-events:none}
+.ed-area:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent}
+.ed-area b,.ed-area strong{font-weight:800}
+.ed-area mark{background:color-mix(in oklab,var(--g-hard,#FFE600) 55%,transparent);color:inherit;border-radius:.2em;padding:0 .1em}
+.ed-area ul,.ed-area ol{margin:.15em 0;padding-left:1.5em;white-space:normal}
+.ed-area li{margin:.1em 0}
+.ed-area table{border-collapse:collapse;width:100%;margin:.35em 0;font-size:16px;white-space:normal}
+.ed-area th,.ed-area td{border:1px solid color-mix(in oklab,var(--ink) 25%,var(--surface));padding:7px 9px;min-width:48px;vertical-align:top;text-align:left;overflow-wrap:anywhere}
+.ed-area th{background:color-mix(in oklab,var(--ink) 7%,var(--surface));font-weight:800}
+.ed-area td.cur,.ed-area th.cur{box-shadow:inset 0 0 0 2px var(--accent)}
+.ed-area img.cimg{display:block;max-width:100%;max-height:220px;border-radius:12px;margin:.3em 0;cursor:default}
+.mchip{display:inline-block;padding:1px 6px;margin:0 1px;border-radius:8px;background:color-mix(in oklab,var(--accent) 9%,transparent);border:1px solid color-mix(in oklab,var(--accent) 30%,transparent);cursor:pointer;vertical-align:middle;white-space:nowrap;-webkit-user-select:none;user-select:none;line-height:1.2}
+.mchip .tex{vertical-align:baseline;overflow:visible}
+.mchip .tex .katex{font-size:1.08em}
+#mathed{position:fixed;inset:0;z-index:95;background:rgba(10,12,18,.42);display:flex;align-items:flex-start;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 10px) 10px 10px;animation:izIn .16s ease both}
+#mathed.out{opacity:0;transition:opacity .16s ease}
+.me-box{width:min(600px,100%);background:var(--surface);color:var(--ink);border-radius:22px;box-shadow:0 18px 50px rgba(0,0,0,.3);padding:14px 14px 12px;max-height:calc(100% - 10px);overflow:auto}
+.me-h{display:flex;align-items:baseline;gap:10px;margin:0 2px 10px}
+.me-h b{font-size:18px}
+.me-h .muted{font-size:13px}
+.me-field math-field{display:block;width:100%;min-height:72px;font-size:32px;padding:10px 12px;border-radius:14px;border:2px solid var(--accent);background:var(--surface-2);color:var(--ink);--caret-color:var(--accent);--selection-background-color:var(--accent-soft);--placeholder-color:var(--muted);--contains-highlight-background-color:transparent}
+math-field::part(menu-toggle){display:none}
+.me-keys{display:flex;flex-wrap:wrap;gap:5px;margin:12px 0}
+.me-nav-row{display:flex;gap:5px}
+.me-del{background:none;border:0;color:var(--again,#d33);font-weight:650;font-size:14px;margin-left:auto;padding:4px 2px;cursor:pointer}
+.me-k{min-width:40px;height:38px;padding:0 8px;border-radius:11px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);font-size:18px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;-webkit-user-select:none;user-select:none;touch-action:manipulation;cursor:pointer}
+.me-k svg{width:22px;height:22px}
+.me-k:first-child{border-color:color-mix(in oklab,var(--accent) 45%,var(--line));background:color-mix(in oklab,var(--accent) 9%,var(--surface))}
+.me-nav{color:var(--muted)}
+.me-foot{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.me-foot .r{display:flex;gap:8px}
+@media (prefers-reduced-motion:reduce){#imgzoom,#mathed{animation:none}.ed-bar.busy [data-ed="img"]{animation:none}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 </head>
@@ -1065,40 +1095,44 @@ function texHTML(src, display){
 }
 const imgSrc = s => s.startsWith("cimg:") ? `${SB_URL}/storage/v1/object/public/${IMG_BUCKET}/${s.slice(5)}` : s;
 const IMG_RE_SRC = String.raw`!\[([^\]\n]*)\]\(((?:cimg:[\w\-./]+)|(?:https:\/\/[^)\s]+)|(?:data:image\/[a-z+]+;base64,[A-Za-z0-9+/=]+))\)`;
-const INL_RE = new RegExp(IMG_RE_SRC + String.raw`|\u0000(\d+)\u0000|\\\((.+?)\\\)|(?<![\\$])\$([^\s$](?:[^$\n]*?[^\s\\$])?)\$(?![\d$])`, "g");
+const INL_RE = new RegExp(IMG_RE_SRC + String.raw`|\u0000(\d+)\u0000|\\\((.+?)\\\)|(?<![\\$])\$([^\s$](?:[^$\n]*?[^\s\\$])?)\$(?![\d$])|\\([\\*_=$|\[\]\-•.)])`, "g");
 function fmtText(t){
   return esc(t)
     .replace(/\*\*(?=\S)(.*?\S)\*\*/g, "<b>$1</b>")
     .replace(/(^|[^\w*])\*(?=[^\s*])([^*\n]*?[^\s*])?\*(?![\w*])/g, (m, a, b, off, all) => b === undefined ? m : `${a}<i>${b}</i>`)
+    .replace(/(^|[^\w_])_(?=[^\s_])([^_\n]*?[^\s_])?_(?![\w_])/g, (m, a, b) => b === undefined ? m : `${a}<i>${b}</i>`)
     .replace(/==(?=\S)([^=\n]*?\S)==/g, "<mark>$1</mark>");
 }
 function inlHTML(s, blocks, opt){
   // Formeln und Bilder zuerst durch Platzhalter ersetzen, damit **fett** auch um eine Formel herum funktioniert
   const parts = [];
   const t = s.replace(INL_RE, (...m) => {
-    let h;
-    if (m[2]) h = opt && opt.line ? '<span class="rl-img" aria-label="Bild">🖼</span>' : `<img class="cimg" src="${esc(imgSrc(m[2]))}" crossorigin="anonymous" alt="${esc(m[1] || "Bild")}" loading="lazy" decoding="async" draggable="false">`;
+    let h; const ed = opt && opt.edit;
+    if (m[6] != null) h = esc(m[6]);
+    else if (m[2]) h = opt && opt.line ? '<span class="rl-img" aria-label="Bild">🖼</span>' : `<img class="cimg" src="${esc(imgSrc(m[2]))}"${ed ? ` data-src="${esc(m[2])}"` : ""} crossorigin="anonymous" alt="${esc(m[1] || "Bild")}" loading="lazy" decoding="async" draggable="false">`;
+    else if (ed) h = chipHTML(m[3] != null ? (blocks[+m[3]] || "") : m[4] != null ? m[4] : m[5]);
     else if (m[3] != null) h = texHTML(blocks[+m[3]] || "", !(opt && opt.line));
     else h = texHTML(m[4] != null ? m[4] : m[5], false);
     return "\u0001" + (parts.push(h) - 1) + "\u0001";
   });
   return fmtText(t).replace(/\u0001(\d+)\u0001/g, (m, n) => parts[+n]);
 }
-const RICH_TEST = /\*\*|\*[^\s*]|==|\$|\\\(|!\[|^\s*(?:[-•*]|\d{1,3}[.)])\s|^\s*\|/m;
+const RICH_TEST = /\*\*|\*[^\s*]|(?:^|[^\w_])_[^\s_]|==|\$|\\\(|\\[\\*_=$|\[\]\-•.)]|!\[|^\s*(?:[-•*]|\d{1,3}[.)])\s|^\s*\|/m;
+const splitCells = r => { let t = r.trim(); if (t.startsWith("|")) t = t.slice(1); if (t.endsWith("|") && !t.endsWith("\\|")) t = t.slice(0, -1); return t.split(/(?<!\\)\|/).map(x => x.trim()); };
 const hasRich = s => RICH_TEST.test(String(s ?? ""));
 function protectBlocks(s){ const blocks = []; s = s.replace(/\$\$([\s\S]+?)\$\$/g, (m, x) => "\u0000" + (blocks.push(x.trim()) - 1) + "\u0000"); return [s, blocks]; }
-// Ganzer Karteninhalt (Lernen, Vorschau)
-function rich(raw){
-  raw = String(raw ?? "");
-  if (!hasRich(raw)) return esc(raw);
+// Ganzer Karteninhalt (Lernen); opt.edit = HTML für den Karten-Editor
+function rich(raw, opt){
+  raw = String(raw ?? ""); const ed = !!(opt && opt.edit);
+  if (!hasRich(raw)) return ed ? raw.replace(/\r\n?/g, "\n").split("\n").map(l => `<div>${esc(l) || "<br>"}</div>`).join("") : esc(raw);
   const [s, blocks] = protectBlocks(raw.replace(/\r\n?/g, "\n"));
-  const lines = s.split("\n"), il = t => inlHTML(t, blocks);
+  const lines = s.split("\n"), il = t => inlHTML(t, blocks, ed ? { edit: true } : null);
   let html = "", para = [], i = 0;
-  const flush = () => { if (para.length) { html += `<p>${para.map(il).join("<br>")}</p>`; para = []; } };
+  const flush = () => { if (para.length) { html += ed ? para.map(l => `<div>${il(l) || "<br>"}</div>`).join("") : `<p>${para.map(il).join("<br>")}</p>`; para = []; } };
   const LI = /^\s*([-*•]|\d{1,3}[.)])\s+(.*)$/, TR = /^\s*\|.*\|?\s*$/, SEP = /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/;
   while (i < lines.length) {
     const ln = lines[i];
-    if (!ln.trim()) { flush(); i++; continue; }
+    if (!ln.trim()) { flush(); if (ed) html += "<div><br></div>"; i++; continue; }
     let m = ln.match(LI);
     if (m && !(m[1] === "*" && /^\*[^\s]/.test(ln.trim()))) {
       flush(); const ord = /\d/.test(m[1]); let items = "";
@@ -1108,18 +1142,19 @@ function rich(raw){
     if (TR.test(ln) && ln.trim().startsWith("|")) {
       flush(); const rows = [];
       while (i < lines.length && TR.test(lines[i]) && lines[i].trim().startsWith("|")) rows.push(lines[i++]);
-      const cells = r => { let t = r.trim(); if (t.startsWith("|")) t = t.slice(1); if (t.endsWith("|")) t = t.slice(0, -1); return t.split("|").map(x => x.trim()); };
+      const cells = splitCells;
       const hasHead = rows.length > 1 && SEP.test(rows[1]);
       const body = rows.filter((r, k) => !(k === 1 && hasHead) && !SEP.test(r));
       const n = Math.max(...body.map(r => cells(r).length));
-      const row = (r, tag) => "<tr>" + Array.from({ length: n }, (_, k) => `<${tag}>${il(cells(r)[k] || "")}</${tag}>`).join("") + "</tr>";
+      const row = (r, tag) => "<tr>" + Array.from({ length: n }, (_, k) => `<${tag}>${il(cells(r)[k] || "") || (ed ? "<br>" : "")}</${tag}>`).join("") + "</tr>";
+      if (ed) { html += `<table><tbody>${hasHead ? row(body[0], "th") : ""}${body.slice(hasHead ? 1 : 0).map(r => row(r, "td")).join("")}</tbody></table>`; if (i >= lines.length) html += "<div><br></div>"; continue; }
       html += `<div class="rt-wrap"><table>${hasHead ? `<thead>${row(body[0], "th")}</thead>` : ""}<tbody>${body.slice(hasHead ? 1 : 0).map(r => row(r, "td")).join("")}</tbody></table></div>`;
       continue;
     }
     para.push(ln); i++;
   }
   flush();
-  return `<div class="rich">${html}</div>`;
+  return ed ? html : `<div class="rich">${html}</div>`;
 }
 // Einzeilige Kurzfassung (Kartenliste, Menüs, Zusammenfassungen)
 function richLine(raw){
@@ -1127,7 +1162,7 @@ function richLine(raw){
   if (!hasRich(raw)) return esc(raw);
   const [s, blocks] = protectBlocks(raw.replace(/\r\n?/g, "\n"));
   const t = s.split("\n").filter(l => !/^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/.test(l))
-    .map(l => l.replace(/^\s*\|(.*?)\|?\s*$/, (m, x) => x.split("|").map(c => c.trim()).join(" · ")).replace(/^\s*([-•]|\*(?=\s))\s+/, "• "))
+    .map(l => /^\s*\|/.test(l) ? splitCells(l).join(" · ") : l).map(l => l.replace(/^\s*([-•]|\*(?=\s))\s+/, "• "))
     .filter(l => l.trim()).join("  ");
   return inlHTML(t, blocks, { line: true });
 }
@@ -1170,84 +1205,298 @@ function openImgZoom(src){
   document.body.appendChild(el);
 }
 
-/* ---------- Editor-Leiste für Vorder-/Rückseite ---------- */
+/* ---------- Karten-Editor: direkt formatieren wie in einer Textverarbeitung ----------
+   Der Editor zeigt den Karten-Text formatiert an (richEdit) und liest ihn beim Speichern zurück (edSer).
+   Formeln baut man im Formel-Editor (MathLive) – ganz ohne Formelsprache. */
 const ED_IC = {
-  b: '<b>B</b>', i: '<i>I</i>', mark: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>',
+  b: '<b>B</b>', i: '<i>I</i>',
+  mark: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>',
   ul: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1" fill="currentColor"/><circle cx="4.5" cy="12" r="1" fill="currentColor"/><circle cx="4.5" cy="18" r="1" fill="currentColor"/></svg>',
   ol: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 6h10M10 12h10M10 18h10"/><path d="M4 4.5h1.2V9M3.6 9h2.6M3.6 14.2c.4-.6 2.6-.9 2.6.6 0 1-2.6 2.2-2.6 3.2h2.7" stroke-width="1.5"/></svg>',
   table: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M3 15h18M12 4v16"/></svg>',
-  tex: '<span class="ed-fx">∑</span>', img: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="m21 16-5-5-9 9"/></svg>'
+  frac: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="8.5" y="2.5" width="7" height="7" rx="1.5"/><path d="M5 12h14"/><rect x="8.5" y="14.5" width="7" height="7" rx="1.5"/></svg>',
+  tex: '<span class="ed-fx">∑</span>',
+  img: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="m21 16-5-5-9 9"/></svg>'
 };
-const TEX_SNIPS = [["$ Formel $", "|"], ["a⁄b", "\\frac{|}{}"], ["x²", "^{|}"], ["xₙ", "_{|}"], ["√", "\\sqrt{|}"], ["·", "\\cdot "], ["×", "\\times "], ["÷", "\\div "], ["±", "\\pm "], ["≤", "\\le "], ["≥", "\\ge "], ["≠", "\\ne "], ["≈", "\\approx "], ["Δ", "\\Delta "], ["Σ", "\\sum_{|}"], ["∫", "\\int_{|}"], ["→", "\\to "], ["∞", "\\infty "], ["%", "\\%"], ["α", "\\alpha "], ["β", "\\beta "], ["π", "\\pi "], ["σ", "\\sigma "], ["μ", "\\mu "], ["€", "\\text{€}"]];
-function edBarHTML(id){
-  const b = (k, t, ic) => `<button type="button" class="ed-b" data-ed="${k}" data-for="${id}" title="${t}" aria-label="${t}">${ic}</button>`;
-  return `<div class="ed-bar" data-for="${id}">${b("b", "Fett", ED_IC.b)}${b("i", "Kursiv", ED_IC.i)}${b("mark", "Markieren", ED_IC.mark)}${b("ul", "Aufzählung", ED_IC.ul)}${b("ol", "Nummerierte Liste", ED_IC.ol)}${b("table", "Tabelle", ED_IC.table)}${b("tex", "Formel", ED_IC.tex)}${b("img", "Bild", ED_IC.img)}<input type="file" accept="image/*" hidden class="ed-file"></div>
-    <div class="ed-snips" hidden>${TEX_SNIPS.map(([l, v]) => `<button type="button" class="ed-s" data-snip="${esc(v)}">${esc(l)}</button>`).join("")}</div>`;
+function edHTML(id, ph, label){
+  const b = (k, t, ic) => `<button type="button" class="ed-b" data-ed="${k}" title="${t}" aria-label="${t}">${ic}</button>`;
+  const tb = (k, t) => `<button type="button" class="ed-tb" data-tb="${k}">${t}</button>`;
+  return `<div class="field ed-field"><label for="${id}">${label}</label>
+    <div class="ed-bar" data-for="${id}" role="toolbar" aria-label="Formatierung">${b("b", "Fett", ED_IC.b)}${b("i", "Kursiv", ED_IC.i)}${b("mark", "Markieren", ED_IC.mark)}<span class="ed-sep"></span>${b("ul", "Aufzählung", ED_IC.ul)}${b("ol", "Nummerierte Liste", ED_IC.ol)}${b("table", "Tabelle", ED_IC.table)}<span class="ed-sep"></span>${b("frac", "Bruch", ED_IC.frac)}${b("tex", "Formel", ED_IC.tex)}${b("img", "Bild", ED_IC.img)}<input type="file" accept="image/*" hidden class="ed-file"></div>
+    <div class="ed-tbar" hidden>${tb("rowAdd", "＋ Zeile")}${tb("rowDel", "− Zeile")}${tb("colAdd", "＋ Spalte")}${tb("colDel", "− Spalte")}${tb("head", "Kopfzeile")}${tb("tblDel", "Tabelle löschen")}</div>
+    <div class="in ed-area" id="${id}" contenteditable="true" role="textbox" aria-multiline="true" data-ph="${esc(ph)}" spellcheck="true"></div></div>`;
 }
-function edInsert(ta, text, selFrom, selTo){
-  const fresh = ta._fresh; ta.focus();
-  if (fresh) { ta._fresh = false; ta.setSelectionRange(ta.value.length, ta.value.length); }
-  const a = ta.selectionStart, e = ta.selectionEnd;
-  ta.setRangeText(text, a, e, "end");
-  if (selFrom != null) ta.setSelectionRange(a + selFrom, a + (selTo ?? selFrom));
-  ta.dispatchEvent(new Event("input", { bubbles: true }));
+// Karten-Text → HTML für den Editor
+function richEdit(raw){ return rich(raw, { edit: true }); }
+function chipHTML(latex){ return `<span class="mchip" contenteditable="false" data-latex="${esc(latex)}">${texHTML(latex, false)}</span>`; }
+// Editor-HTML → Karten-Text
+function edEscape(t){ return t.replace(/[\\*_=$|\[\]]/g, "\\$&"); }
+function edRunsStr(runs){
+  const m = [];
+  runs.forEach(r => { const p = m[m.length - 1]; if (r.t != null && p && p.t != null && p.b === r.b && p.i === r.i && p.m === r.m) p.t += r.t; else m.push({ ...r }); });
+  let out = "";
+  m.forEach(r => {
+    if (r.raw != null) { out += r.raw; return; }
+    if (r.tex != null) { if (r.tex.trim()) out += "$" + r.tex.trim() + "$"; return; }
+    const lead = r.t.match(/^\s*/)[0], rest = r.t.slice(lead.length), trail = rest.match(/\s*$/)[0], core = rest.slice(0, rest.length - trail.length);
+    if (!core) { out += r.t; return; }
+    let c = edEscape(core); if (r.i) c = "_" + c + "_"; if (r.b) c = "**" + c + "**"; if (r.m) c = "==" + c + "==";
+    out += lead + c + trail;
+  });
+  return out;
 }
-function edWrap(ta, l, r, ph){
-  const a = ta.selectionStart, e = ta.selectionEnd, sel = ta.value.slice(a, e);
-  if (sel && ta.value.slice(a - l.length, a) === l && ta.value.slice(e, e + r.length) === r) { // schon formatiert → entfernen
-    ta.setSelectionRange(a - l.length, e + r.length); edInsert(ta, sel, 0, sel.length); return;
+const ED_BLOCK = /^(DIV|P|H[1-6]|BLOCKQUOTE|PRE|SECTION|ARTICLE|HEADER|FOOTER)$/;
+function edSer(host){
+  const lines = []; let runs = null, flat = 0;
+  const push = () => { if (runs) { let s = edRunsStr(runs); if (!flat) s = s.replace(/^(\s*)([-•])(?=\s)/, "$1\\$2").replace(/^(\s*\d{1,3})([.)])(?=\s)/, "$1\\$2"); lines.push(s.replace(/\s+$/, "")); runs = null; } };
+  const add = r => { (runs = runs || []).push(r); };
+  const fmt = (el, f) => {
+    const t = el.tagName, st = el.style || {}, bg = st.backgroundColor || "";
+    return { b: f.b || t === "B" || t === "STRONG" || /^(bold|bolder|[6-9]00)$/.test(st.fontWeight || ""), i: f.i || t === "I" || t === "EM" || st.fontStyle === "italic",
+      m: f.m || t === "MARK" || (!!bg && !/transparent|rgba\(0, 0, 0, 0\)|initial|inherit/.test(bg)) };
+  };
+  const walk = (n, f) => {
+    if (n.nodeType === 3) { const t = n.nodeValue.replace(/[​﻿]/g, "").replace(/ /g, " ").replace(/[\r\n]+/g, " "); if (t) add({ t, b: f.b, i: f.i, m: f.m }); return; }
+    if (n.nodeType !== 1) return;
+    const tg = n.tagName;
+    if (n.classList.contains("mchip")) { add({ tex: n.dataset.latex || "" }); return; }
+    if (tg === "IMG") { if (n.dataset.src) { if (flat) add({ raw: "" }); else { push(); lines.push(`![](${n.dataset.src})`); } } return; }
+    if (tg === "BR") { if (flat) add({ t: " ", b: f.b, i: f.i, m: f.m }); else if (runs) push(); else lines.push(""); return; }
+    if (tg === "UL" || tg === "OL") {
+      push(); let k = 0;
+      [...n.children].forEach(li => {
+        if (li.tagName === "UL" || li.tagName === "OL") { walk(li, f); return; }
+        k++; runs = [{ raw: tg === "OL" ? `${k}. ` : "- " }]; flat++;
+        [...li.childNodes].forEach(c => (c.tagName === "UL" || c.tagName === "OL") ? null : walk(c, f)); flat--;
+        const s = edRunsStr(runs).replace(/\s+$/, ""); runs = null; if (s.replace(/^(- |\d+\. )/, "").trim()) lines.push(s);
+        [...li.children].filter(c => c.tagName === "UL" || c.tagName === "OL").forEach(c => walk(c, f));
+      });
+      return;
+    }
+    if (tg === "TABLE") {
+      push(); const rows = [...n.rows]; if (!rows.length) return;
+      const w = Math.max(...rows.map(r => r.cells.length)); if (!w) return;
+      rows.forEach((r, ri) => {
+        const cells = [];
+        for (let ci = 0; ci < w; ci++) { const c = r.cells[ci]; runs = []; flat++; if (c) [...c.childNodes].forEach(x => walk(x, f)); flat--; runs.forEach(x => { if (x.tex) x.tex = x.tex.replace(/\|/g, "\\vert "); }); cells.push(edRunsStr(runs).replace(/\s+/g, " ").trim()); runs = null; }
+        lines.push("| " + cells.map(c => c || " ").join(" | ") + " |");
+        if (ri === 0 && [...r.cells].some(c => c.tagName === "TH")) lines.push("|" + " --- |".repeat(w));
+      });
+      return;
+    }
+    if (ED_BLOCK.test(tg) || tg === "LI" || tg === "TR") {
+      if (flat) { [...n.childNodes].forEach(c => walk(c, f)); add({ t: " ", b: f.b, i: f.i, m: f.m }); return; }
+      push(); const had = lines.length;
+      [...n.childNodes].forEach(c => walk(c, f));
+      if (runs) push(); else if (lines.length === had && !n.querySelector("img,br,table,.mchip")) lines.push("");
+      return;
+    }
+    const g = fmt(n, f); [...n.childNodes].forEach(c => walk(c, g));
+  };
+  [...host.childNodes].forEach(c => walk(c, { b: false, i: false, m: false }));
+  push();
+  while (lines.length && !lines[lines.length - 1].trim()) lines.pop();
+  while (lines.length && !lines[0].trim()) lines.shift();
+  return lines.join("\n");
+}
+
+/* ---- Formel-Editor (MathLive) ---- */
+const ML_V = "0.110.0", ML_URL = `https://cdn.jsdelivr.net/npm/mathlive@${ML_V}/`;
+let mlP = null;
+function loadMathLive(){
+  if (window.MathfieldElement) return Promise.resolve();
+  if (mlP) return mlP;
+  mlP = new Promise((res, rej) => {
+    const s = document.createElement("script"); s.src = ML_URL + "mathlive.min.js"; s.async = true;
+    s.onload = () => { try { MathfieldElement.fontsDirectory = ML_URL + "fonts/"; MathfieldElement.soundsDirectory = null; } catch {} res(); };
+    s.onerror = () => { mlP = null; rej(new Error("mathlive")); };
+    document.head.appendChild(s);
+  });
+  return mlP;
+}
+const MATH_KEYS = [
+  ["Bruch", "\\frac{#0}{#?}", ED_IC.frac], ["Hochzahl", "^{#?}", "x²"], ["Tiefzahl", "_{#?}", "xₙ"], ["Wurzel", "\\sqrt{#0}", "√"], ["n-te Wurzel", "\\sqrt[#?]{#0}", "ⁿ√"], ["Klammern", "\\left(#0\\right)", "( )"],
+  ["mal", "\\cdot ", "·"], ["mal", "\\times ", "×"], ["geteilt", "\\div ", "÷"], ["plus minus", "\\pm ", "±"], ["kleiner gleich", "\\le ", "≤"], ["größer gleich", "\\ge ", "≥"], ["ungleich", "\\ne ", "≠"], ["ungefähr", "\\approx ", "≈"],
+  ["Summe", "\\sum_{#?}^{#?}", "Σ"], ["Integral", "\\int_{#?}^{#?}", "∫"], ["Pfeil", "\\to ", "→"], ["unendlich", "\\infty ", "∞"], ["Prozent", "\\%", "%"], ["Euro", "\\text{€}", "€"],
+  ["Delta", "\\Delta ", "Δ"], ["alpha", "\\alpha ", "α"], ["beta", "\\beta ", "β"], ["pi", "\\pi ", "π"], ["sigma", "\\sigma ", "σ"], ["mu", "\\mu ", "μ"], ["lambda", "\\lambda ", "λ"]
+];
+async function mathEditor(opts){
+  const wait = setTimeout(() => toast("Formel-Editor wird geladen …"), 350);
+  try { await loadMathLive(); } catch { clearTimeout(wait); toast("Der Formel-Editor braucht beim ersten Öffnen Internet."); return null; }
+  clearTimeout(wait);
+  return new Promise(res => {
+    const el = document.createElement("div"); el.id = "mathed"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "Formel");
+    el.innerHTML = `<div class="me-box"><div class="me-h"><b>Formel</b><span class="muted">Tippe auf ein Kästchen, um es auszufüllen</span>${opts.editing ? '<button type="button" class="me-del" data-me="del">Entfernen</button>' : ''}</div>
+      <div class="me-field"></div>
+      <div class="me-keys">${MATH_KEYS.map(([t, v, l], i) => `<button type="button" class="me-k" data-k="${i}" title="${esc(t)}" aria-label="${esc(t)}">${l}</button>`).join("")}</div>
+      <div class="me-foot"><div class="me-nav-row"><button type="button" class="me-k me-nav" data-nav="moveToPreviousChar" aria-label="Zurück">◀</button><button type="button" class="me-k me-nav" data-nav="moveToNextChar" aria-label="Weiter">▶</button><button type="button" class="me-k me-nav" data-nav="deleteBackward" aria-label="Löschen">⌫</button></div><div class="r"><button type="button" class="btn" data-me="x">Abbrechen</button><button type="button" class="btn primary" data-me="ok">Fertig</button></div></div></div>`;
+    const mf = new MathfieldElement();
+    try { mf.mathVirtualKeyboardPolicy = "auto"; mf.smartFence = true; mf.menuItems = []; } catch {}
+    mf.value = opts.latex || "";
+    el.querySelector(".me-field").appendChild(mf);
+    document.body.appendChild(el);
+    let done = false;
+    const finish = v => {
+      if (done) return; done = true;
+      try { window.mathVirtualKeyboard && window.mathVirtualKeyboard.hide(); } catch {}
+      document.removeEventListener("keydown", key, true);
+      el.classList.add("out"); setTimeout(() => el.remove(), 160); res(v);
+    };
+    const val = () => { try { return mf.getValue("latex").replace(/\\placeholder\{\}/g, "").trim(); } catch { return ""; } };
+    const key = e => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); finish(null); } else if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); e.stopPropagation(); finish({ latex: val() }); } };
+    document.addEventListener("keydown", key, true);
+    el.querySelectorAll(".me-k").forEach(b => { b.addEventListener("pointerdown", e => e.preventDefault()); b.addEventListener("mousedown", e => e.preventDefault()); });
+    el.addEventListener("click", e => {
+      const k = e.target.closest("[data-k]"), n = e.target.closest("[data-nav]"), a = e.target.closest("[data-me]");
+      if (k) { mf.focus(); mf.executeCommand(["insert", MATH_KEYS[+k.dataset.k][1]]); return; }
+      if (n) { mf.focus(); mf.executeCommand(n.dataset.nav); return; }
+      if (a) { const t = a.dataset.me; finish(t === "ok" ? { latex: val() } : t === "del" ? { del: true } : null); return; }
+      if (e.target === el) finish({ latex: val() });
+    });
+    requestAnimationFrame(() => { mf.focus(); if (opts.insert) mf.executeCommand(["insert", opts.insert]); });
+  });
+}
+
+/* ---- Editor einrichten ---- */
+function edTopBlock(host, node){ while (node && node.parentNode !== host) node = node.parentNode; return node; }
+function edCaret(node, atStart){ const r = document.createRange(); if (node.nodeType === 3) r.setStart(node, atStart ? 0 : node.length); else { r.selectNodeContents(node); r.collapse(!!atStart); } const s = getSelection(); s.removeAllRanges(); s.addRange(r); return r; }
+function edEmptyDiv(){ const d = document.createElement("div"); d.appendChild(document.createElement("br")); return d; }
+function edIsEmpty(n){ return !(n.textContent || "").replace(/[​\s]/g, "") && !(n.querySelector && n.querySelector("img,table,.mchip")); }
+function mountRichEditor(root, host, initial){
+  const field = host.closest(".ed-field"), bar = field.querySelector(".ed-bar"), tbar = field.querySelector(".ed-tbar"), file = bar.querySelector(".ed-file");
+  let saved = null, busy = false;
+  const set = v => { host.innerHTML = String(v || "").trim() ? richEdit(v) : "<div><br></div>"; state(); };
+  Object.defineProperty(host, "value", { get: () => edSer(host), set, configurable: true });
+  const inHost = r => r && host.contains(r.commonAncestorContainer);
+  const cur = () => { const s = getSelection(); return s.rangeCount && inHost(s.getRangeAt(0)) ? s.getRangeAt(0) : null; };
+  const restore = () => {
+    if (cur()) return cur();
+    host.focus({ preventScroll: true });
+    if (saved && host.contains(saved.startContainer)) { const s = getSelection(); s.removeAllRanges(); s.addRange(saved); return saved; }
+    const last = host.lastChild; return last ? edCaret(last.nodeType === 1 && last.lastChild && last.lastChild.tagName === "BR" ? last : last, false) : edCaret(host, false);
+  };
+  const cellOf = n => { const e = n && (n.nodeType === 1 ? n : n.parentNode); const c = e && e.closest && e.closest("td,th"); return c && host.contains(c) ? c : null; };
+  const inMark = n => { const e = n && (n.nodeType === 1 ? n : n.parentNode); const m = e && e.closest && e.closest("mark"); return m && host.contains(m) ? m : null; };
+  function state(){
+    host.classList.toggle("empty", edIsEmpty(host));
+    const r = cur(); if (!r) return; saved = r.cloneRange();
+    const q = c => { try { return document.queryCommandState(c); } catch { return false; } };
+    const on = { b: q("bold"), i: q("italic"), mark: !!inMark(r.startContainer), ul: q("insertUnorderedList"), ol: q("insertOrderedList") };
+    bar.querySelectorAll("[data-ed]").forEach(b => b.classList.toggle("on", !!on[b.dataset.ed]));
+    const c = cellOf(r.startContainer); tbar.hidden = !c;
+    host.querySelectorAll(".cur").forEach(x => x !== c && x.classList.remove("cur")); if (c) c.classList.add("cur");
+    if (c) { const hd = c.closest("table").rows[0]; tbar.querySelector('[data-tb="head"]').classList.toggle("on", !!hd && [...hd.cells].some(x => x.tagName === "TH")); }
   }
-  const t = sel || ph; edInsert(ta, l + t + r, l.length, l.length + t.length);
-}
-function edLines(ta, kind){
-  const v = ta.value, a = v.lastIndexOf("\n", ta.selectionStart - 1) + 1; let e = v.indexOf("\n", ta.selectionEnd); if (e < 0) e = v.length;
-  const ls = v.slice(a, e).split("\n"), re = kind === "ul" ? /^\s*[-•*]\s+/ : /^\s*\d{1,3}[.)]\s+/;
-  const all = ls.some(l => l.trim()) && ls.every(l => re.test(l) || !l.trim());
-  const out = ls.map((l, k) => all ? l.replace(re, "") : (l.trim() || ls.length === 1 ? (kind === "ul" ? "- " : (k + 1) + ". ") + l.replace(/^\s*([-•*]|\d{1,3}[.)])\s+/, "") : l));
-  ta.setSelectionRange(a, e); const t = out.join("\n"); edInsert(ta, t, t.length);
-}
-function inMath(ta){ const b = ta.value.slice(0, ta.selectionStart).replace(/\\\$/g, ""); return ((b.match(/\$/g) || []).length % 2) === 1; }
-function mountEditor(root, ta, prev){
-  const bar = root.querySelector(`.ed-bar[data-for="${ta.id}"]`), snips = bar.nextElementSibling, file = bar.querySelector(".ed-file");
-  let busy = false, pt = 0;
-  ta._fresh = true; ta.addEventListener("focus", () => { ta._fresh = false; }, { once: true });
-  const upd = () => { clearTimeout(pt); pt = setTimeout(() => { const v = ta.value; const on = hasRich(v) && v.trim(); prev.hidden = !on; if (on) prev.innerHTML = rich(v); }, 120); };
-  // Tippen auf die Leiste darf die Tastatur nicht schließen
-  [bar, snips].forEach(el => el.addEventListener("pointerdown", e => { if (e.target.closest("button")) e.preventDefault(); }));
-  bar.addEventListener("click", e => {
-    const b = e.target.closest("[data-ed]"); if (!b) return; e.preventDefault(); const k = b.dataset.ed;
-    if (k === "b") edWrap(ta, "**", "**", "fett");
-    else if (k === "i") edWrap(ta, "*", "*", "kursiv");
-    else if (k === "mark") edWrap(ta, "==", "==", "wichtig");
-    else if (k === "ul" || k === "ol") edLines(ta, k);
-    else if (k === "table") { const pre = ta.selectionStart && ta.value[ta.selectionStart - 1] !== "\n" ? "\n" : ""; const t = `${pre}| Spalte 1 | Spalte 2 |\n| --- | --- |\n|  |  |\n|  |  |\n`; edInsert(ta, t, pre.length + 2, pre.length + 10); }
-    else if (k === "tex") { const open = snips.hidden, sel = ta.selectionEnd > ta.selectionStart && !ta._fresh; snips.hidden = !open; b.classList.toggle("on", open); if (sel && !inMath(ta)) edWrap(ta, "$", "$", ""); else if (open && !ta._fresh && document.activeElement !== ta) ta.focus(); }
-    else if (k === "img") { if (!busy) file.click(); }
-  });
-  snips.addEventListener("click", e => {
-    const b = e.target.closest("[data-snip]"); if (!b) return; e.preventDefault();
-    let v = b.dataset.snip, c = v.indexOf("|"); v = v.replace("|", ""); if (c < 0) c = v.length;
-    if (!inMath(ta)) { v = "$" + v + "$"; c += 1; }
-    edInsert(ta, v, c);
-  });
+  host._state = state;
+  const exec = (c, v) => { try { document.execCommand(c, false, v); } catch {} };
+  try { document.execCommand("defaultParagraphSeparator", false, "div"); document.execCommand("styleWithCSS", false, false); } catch {}
+  function toggleMark(){
+    const r = restore(), m = inMark(r.startContainer) || inMark(r.endContainer);
+    if (m) { const p = m.parentNode; const first = m.firstChild, last = m.lastChild; while (m.firstChild) p.insertBefore(m.firstChild, m); m.remove(); if (first && last) { const nr = document.createRange(); nr.setStartBefore(first); nr.setEndAfter(last); const s = getSelection(); s.removeAllRanges(); s.addRange(nr); } return; }
+    if (r.collapsed) { toast("Wähle zuerst den Text aus, den du markieren willst."); return; }
+    const frag = r.extractContents(); frag.querySelectorAll("mark").forEach(x => x.replaceWith(...x.childNodes));
+    const mk = document.createElement("mark"); mk.appendChild(frag); r.insertNode(mk);
+    const nr = document.createRange(); nr.selectNodeContents(mk); const s = getSelection(); s.removeAllRanges(); s.addRange(nr);
+  }
+  function insertBlock(el, caretIn){
+    const r = restore(); const c = cellOf(r.startContainer);
+    let blk = c ? c.closest("table") : edTopBlock(host, r.startContainer);
+    if (blk && blk.parentNode !== host) blk = edTopBlock(host, blk);
+    if (!blk || blk === host) host.appendChild(el);
+    else if (!c && blk.nodeType === 1 && ED_BLOCK.test(blk.tagName) && edIsEmpty(blk)) host.replaceChild(el, blk);
+    else blk.after(el);
+    if (!el.nextSibling || !(el.nextSibling.nodeType === 1 && ED_BLOCK.test(el.nextSibling.tagName))) el.after(edEmptyDiv());
+    edCaret(caretIn || el.nextSibling, true); host.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+  function newTable(){
+    const t = document.createElement("table");
+    t.innerHTML = "<tbody><tr><th><br></th><th><br></th></tr><tr><td><br></td><td><br></td></tr><tr><td><br></td><td><br></td></tr></tbody>";
+    insertBlock(t, t.rows[0].cells[0]);
+  }
+  function tableOp(op){
+    const r = restore(), c = cellOf(r.startContainer); if (!c) return;
+    const tr = c.parentNode, t = c.closest("table"), ci = c.cellIndex, rows = [...t.rows], w = Math.max(...rows.map(x => x.cells.length));
+    const mk = tag => { const x = document.createElement(tag); x.appendChild(document.createElement("br")); return x; };
+    const hasHead = [...rows[0].cells].some(x => x.tagName === "TH");
+    if (op === "rowAdd") { const n = document.createElement("tr"); for (let k = 0; k < w; k++) n.appendChild(mk("td")); tr.after(n); edCaret(n.cells[Math.min(ci, w - 1)], true); }
+    else if (op === "rowDel") { if (rows.length <= 1) return tableOp("tblDel"); const nx = tr.nextElementSibling || tr.previousElementSibling; tr.remove(); if (tr === rows[0] && hasHead && nx) [...nx.cells].forEach(x => { const h = mk("th"); h.innerHTML = x.innerHTML; x.replaceWith(h); }); edCaret(nx.cells[Math.min(ci, nx.cells.length - 1)], true); }
+    else if (op === "colAdd") { rows.forEach((x, k) => { const n = mk(k === 0 && hasHead ? "th" : "td"); const ref = x.cells[ci]; ref ? ref.after(n) : x.appendChild(n); }); edCaret(tr.cells[ci + 1], true); }
+    else if (op === "colDel") { if (w <= 1) return tableOp("tblDel"); rows.forEach(x => x.cells[ci] && x.cells[ci].remove()); edCaret(tr.cells[Math.max(0, ci - 1)], true); }
+    else if (op === "head") { [...rows[0].cells].forEach(x => { const h = mk(hasHead ? "td" : "th"); h.innerHTML = x.innerHTML; x.replaceWith(h); }); edCaret(rows[0].cells[Math.min(ci, rows[0].cells.length - 1)], false); }
+    else if (op === "tblDel") { const nx = t.nextSibling || t.previousSibling; t.remove(); if (!host.firstChild) host.appendChild(edEmptyDiv()); edCaret(nx && host.contains(nx) ? nx : host.lastChild, false); }
+    host.dispatchEvent(new Event("input", { bubbles: true })); state();
+  }
+  async function addMath(tpl, chip){
+    const r = restore(); let sel = "";
+    if (!chip && !r.collapsed) { sel = r.toString(); }
+    const pos = r.cloneRange();
+    const out = await mathEditor({ latex: chip ? chip.dataset.latex : "", insert: chip ? null : sel ? (tpl || "#0").replace("#0", sel.replace(/[\\{}#%&_^$~]/g, c => c === "\\" ? "\\backslash " : "\\" + c)) : tpl, editing: !!chip });
+    host.focus({ preventScroll: true });
+    if (!out) { const s = getSelection(); s.removeAllRanges(); s.addRange(pos); return; }
+    if (chip) {
+      if (out.del || !out.latex) { const nx = chip.nextSibling; chip.remove(); if (nx) edCaret(nx, true); }
+      else { chip.outerHTML = chipHTML(out.latex); }
+    } else if (out.latex) {
+      const s = getSelection(); s.removeAllRanges(); s.addRange(pos); if (!pos.collapsed) pos.deleteContents();
+      const tmp = document.createElement("div"); tmp.innerHTML = chipHTML(out.latex); const ch = tmp.firstChild, z = document.createTextNode("​");
+      pos.insertNode(z); pos.insertNode(ch);
+      const nr = document.createRange(); nr.setStart(z, 1); nr.collapse(true); s.removeAllRanges(); s.addRange(nr);
+    }
+    host.dispatchEvent(new Event("input", { bubbles: true })); state();
+  }
   const addImg = async f => {
-    if (busy) return; busy = true; bar.classList.add("busy");
-    const a = ta._fresh ? ta.value.length : ta.selectionEnd, e = a;
+    if (busy) return; busy = true; bar.classList.add("busy"); restore();
     try {
       toast("Bild wird hinzugefügt …");
-      const tok = await uploadCardImage(f);
-      ta.setSelectionRange(a, e);
-      const before = ta.value.slice(0, a), nl1 = before && !before.endsWith("\n") ? "\n" : "", nl2 = ta.value.slice(e) && !ta.value.slice(e).startsWith("\n") ? "\n" : "";
-      edInsert(ta, nl1 + tok + nl2, (nl1 + tok + nl2).length);
+      const tok = await uploadCardImage(f), src = tok.slice(4, -1);
+      const d = document.createElement("div"), im = document.createElement("img");
+      im.className = "cimg"; im.src = imgSrc(src); im.dataset.src = src; im.alt = ""; im.draggable = false; im.setAttribute("crossorigin", "anonymous"); d.appendChild(im);
+      insertBlock(d);
     } catch (err) { toast(err && err.message && !/fetch|network/i.test(err.message) ? "Bild: " + err.message : "Bild konnte nicht hochgeladen werden."); }
     busy = false; bar.classList.remove("busy");
   };
+  // Leisten-Knöpfe dürfen die Tastatur nicht schließen
+  [bar, tbar].forEach(el => ["pointerdown", "mousedown"].forEach(ev => el.addEventListener(ev, e => { if (e.target.closest("button")) e.preventDefault(); })));
+  bar.addEventListener("click", e => {
+    const b = e.target.closest("[data-ed]"); if (!b) return; e.preventDefault(); const k = b.dataset.ed;
+    const r = restore(), inCell = !!cellOf(r.startContainer);
+    if (k === "b") exec("bold");
+    else if (k === "i") exec("italic");
+    else if (k === "mark") toggleMark();
+    else if (k === "ul" || k === "ol") { if (inCell) { toast("In einer Tabelle gehen keine Listen."); return; } exec(k === "ul" ? "insertUnorderedList" : "insertOrderedList"); }
+    else if (k === "table") { if (inCell) { toast("Du bist schon in einer Tabelle – nutze die Knöpfe darunter."); return; } newTable(); }
+    else if (k === "frac") { addMath("\\frac{#0}{#?}"); return; }
+    else if (k === "tex") { addMath(null); return; }
+    else if (k === "img") { if (!busy) file.click(); return; }
+    host.dispatchEvent(new Event("input", { bubbles: true })); state();
+  });
+  tbar.addEventListener("click", e => { const b = e.target.closest("[data-tb]"); if (b) { e.preventDefault(); tableOp(b.dataset.tb); } });
+  host.addEventListener("click", e => {
+    const ch = e.target.closest(".mchip"); if (ch && host.contains(ch)) { e.preventDefault(); addMath(null, ch); return; }
+    const im = e.target.closest("img.cimg"); if (im) { const r = document.createRange(); r.selectNode(im); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+  });
+  host.addEventListener("keydown", e => {
+    if ((e.metaKey || e.ctrlKey) && !e.altKey && ["b", "i"].includes(e.key.toLowerCase())) { e.preventDefault(); exec(e.key.toLowerCase() === "b" ? "bold" : "italic"); state(); return; }
+    if (e.key === "Tab") {
+      const r = cur(), c = r && cellOf(r.startContainer); if (!c) return; e.preventDefault();
+      const all = [...c.closest("table").querySelectorAll("td,th")], i = all.indexOf(c) + (e.shiftKey ? -1 : 1);
+      if (i >= all.length) tableOp("rowAdd"); else if (i >= 0) edCaret(all[i], false);
+    }
+  });
+  host.addEventListener("paste", e => {
+    const cd = e.clipboardData; if (!cd) return;
+    const it = [...(cd.items || [])].find(x => x.kind === "file" && /^image\//.test(x.type));
+    e.preventDefault();
+    if (it) { addImg(it.getAsFile()); return; }
+    const t = cd.getData("text/plain"); if (t) exec("insertText", t.replace(/\r\n?/g, "\n"));
+  });
+  host.addEventListener("drop", e => { const f = e.dataTransfer && [...(e.dataTransfer.files || [])].find(x => /^image\//.test(x.type)); if (f) { e.preventDefault(); addImg(f); } });
+  host.addEventListener("input", () => { if (!host.firstChild) host.appendChild(edEmptyDiv()); state(); });
+  host.addEventListener("keyup", state); host.addEventListener("mouseup", state); host.addEventListener("focus", () => setTimeout(state, 0));
   file.addEventListener("change", () => { const f = file.files && file.files[0]; file.value = ""; if (f) addImg(f); });
-  ta.addEventListener("paste", e => { const it = [...((e.clipboardData && e.clipboardData.items) || [])].find(x => x.kind === "file" && /^image\//.test(x.type)); if (it) { e.preventDefault(); addImg(it.getAsFile()); } });
-  ta.addEventListener("input", upd);
-  prev.addEventListener("click", e => { const im = e.target.closest("img"); if (im) openImgZoom(im.src); });
-  upd();
+  set(initial);
 }
+document.addEventListener("selectionchange", () => { const s = getSelection(); const n = s.rangeCount && s.anchorNode; const h = n && (n.nodeType === 1 ? n : n.parentNode); const ed = h && h.closest && h.closest(".ed-area"); if (ed && ed._state) ed._state(); });
 const MIN = 6e4, DAY = 864e5;
 const dayKey = (t = Date.now()) => { const d = new Date(t); return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0"); };
 const plural = (n, one, many) => n + " " + (n === 1 ? one : many);
@@ -1294,7 +1543,7 @@ function fixBottomGap(){
   document.documentElement.classList.toggle("ios-standalone", isIOS && (navigator.standalone === true || matchMedia("(display-mode: standalone)").matches));
   let g = 0;
   const standalone = navigator.standalone === true || matchMedia("(display-mode: standalone)").matches;
-  const typing = /INPUT|TEXTAREA|SELECT/.test((document.activeElement || {}).tagName || "");
+  const typing = /INPUT|TEXTAREA|SELECT/.test((document.activeElement || {}).tagName || "") || !!(document.activeElement && document.activeElement.isContentEditable);
   if (isIOS && standalone && !typing) {
     const probe = document.createElement("div");
     probe.style.cssText = "position:fixed;top:0;bottom:0;left:0;width:0;visibility:hidden;pointer-events:none;padding-top:env(safe-area-inset-top,0px)";
@@ -2950,7 +3199,7 @@ function folderStatsSheet(fid){
 function openSheet(html, mount){
   const el = $("#sheet"); el.innerHTML = `<div class="sheet" role="dialog" aria-modal="true"><div class="grab"></div>${html}</div>`; el.hidden = false;
   document.documentElement.style.overflow = "hidden"; mount && mount(el.firstChild);
-  const first = el.querySelector("input:not([type=file]),textarea"); if (first && matchMedia("(hover:hover)").matches) first.focus();
+  const first = el.querySelector("input:not([type=file]),textarea,.ed-area"); if (first && matchMedia("(hover:hover)").matches) first.focus();
 }
 function closeSheet(){
   const el = $("#sheet"); if (el.hidden) return; document.documentElement.style.overflow = "";
@@ -3026,14 +3275,14 @@ function cardSheet(fid, id){
   const ex = id && S.decks[fid] ? S.decks[fid][id] : null;
   if (!Object.keys(S.folders).length) { toast("Leg zuerst einen Ordner an."); return; }
   openSheet(`${head(ex ? "Karte bearbeiten" : "Neue Karte")}
-    <div class="field"><label for="cf">Vorderseite</label>${edBarHTML("cf")}<textarea class="in" id="cf" placeholder="Frage oder Begriff">${esc(ex ? ex.f : "")}</textarea><div class="ed-prev" id="cfp" hidden></div></div>
-    <div class="field"><label for="cb">Rückseite</label>${edBarHTML("cb")}<textarea class="in" id="cb" placeholder="Antwort">${esc(ex ? ex.b : "")}</textarea><div class="ed-prev" id="cbp" hidden></div></div>
+    ${edHTML("cf", "Frage oder Begriff", "Vorderseite")}
+    ${edHTML("cb", "Antwort", "Rückseite")}
     <div class="field"><label for="cfo">Ordner</label><select class="in" id="cfo">${folderOptions(fid)}</select></div>
     ${ex ? `<div class="muted" style="font-size:14.5px;margin-bottom:14px">${ex.reps ? `${plural(ex.reps, 'Wiederholung', 'Wiederholungen')} · nächste ${isDue(ex) ? 'jetzt' : 'in ' + fmtIvl(ex.due - Date.now()).replace('< ','')}` : 'Noch nicht gelernt'}</div>` : ''}
     ${ex ? `<div class="sheet-foot"><button class="btn danger" id="cdel">Löschen</button><div class="r"><button class="btn" data-act="close">Abbrechen</button><button class="btn primary" id="csave">Speichern</button></div></div>`
       : `<div class="sheet-foot new-card-foot"><button class="btn-quiet" id="csave">Speichern &amp; schließen</button><button class="btn primary" id="cnext">Nächste Karte →</button></div>`}`,
   root => {
-    mountEditor(root, $("#cf", root), $("#cfp", root)); mountEditor(root, $("#cb", root), $("#cbp", root));
+    mountRichEditor(root, $("#cf", root), ex ? ex.f : ""); mountRichEditor(root, $("#cb", root), ex ? ex.b : "");
     const save = () => {
       const f = $("#cf", root).value.trim(), b = $("#cb", root).value.trim(), to = $("#cfo", root).value;
       if (!f || !b) { toast("Fülle Vorder- und Rückseite aus."); return false; }
@@ -3044,7 +3293,7 @@ function cardSheet(fid, id){
     $("#csave", root).addEventListener("click", () => {
       if (!ex && !$("#cf", root).value.trim() && !$("#cb", root).value.trim()) { closeSheet(); return; } // leere neue Karte: einfach schließen
       if (save()) { closeSheet(); toast(ex ? "Gespeichert" : "Karte angelegt"); } });
-    const nx = $("#cnext", root); if (nx) nx.addEventListener("click", () => { if (save()) { ["#cf", "#cb"].forEach(q => { const t = $(q, root); t.value = ""; t.dispatchEvent(new Event("input")); }); $("#cf", root).focus(); toast("Karte angelegt"); } });
+    const nx = $("#cnext", root); if (nx) nx.addEventListener("click", () => { if (save()) { ["#cf", "#cb"].forEach(q => { $(q, root).value = ""; }); $("#cf", root).focus(); toast("Karte angelegt"); } });
     const del = $("#cdel", root); if (del) del.addEventListener("click", () => armDelete(del, () => { delCard(fid, ex.id); closeSheet(); toast("Karte gelöscht"); }));
     const cp = $("#ccopy", root); if (cp) cp.addEventListener("click", () => {
       const f = $("#cf", root).value.trim() || ex.f, b = $("#cb", root).value.trim() || ex.b;
@@ -3344,7 +3593,7 @@ document.addEventListener("keydown", e => { if ((e.metaKey || e.ctrlKey) && ["+"
   const sheetEl = () => host.querySelector(".sheet");
   host.addEventListener("touchstart", e => {
     d = null; const sh = sheetEl(); if (!sh || e.touches.length !== 1 || host.classList.contains("closing")) return;
-    if (e.target.closest("input,textarea,select")) return;
+    if (e.target.closest("input,textarea,select,.ed-area,.ed-bar,.ed-tbar")) return;
     const t = e.touches[0];
     d = { y: t.clientY, x: t.clientX, ly: t.clientY, lt: Date.now(), v: 0, drag: false, sh, top: sh.scrollTop };
   }, { passive: true });
@@ -3467,7 +3716,7 @@ document.addEventListener("touchstart", e => {
   sw = null; if (e.touches.length !== 1) return;
   if (animating) settleSwipe();
   if (animating || !canSwipe() || RD.on) return;
-  if (e.target.closest("input,textarea,select,#czoom,[data-noswipe]")) return;
+  if (e.target.closest("input,textarea,select,#czoom,#mathed,.ed-area,[data-noswipe]")) return;
   const t = e.touches[0]; if (t.clientX < 18 || t.clientX > innerWidth - 18) return; // leave system edge gestures alone
   if (peekGen !== S.gen) prerender();
   $("#main").style.willChange = "transform"; // Ebene schon beim Aufsetzen anlegen, damit der Start des Wischens nicht ruckelt
@@ -3692,7 +3941,7 @@ document.addEventListener("keydown", e => {
   if ((e.key === "Enter" || e.key === " ") && document.activeElement && document.activeElement.matches(".zoomable")) { e.preventDefault(); chartZoom(document.activeElement.dataset.id || null); return; }
   if (e.key === "Escape" && !$("#menu").hidden) { closeMenu(); return; }
   if (e.key === "Escape" && !$("#sheet").hidden) { closeSheet(); return; }
-  if (S.view !== "study" || !$("#sheet").hidden || /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) return;
+  if (S.view !== "study" || !$("#sheet").hidden || /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) || document.activeElement.isContentEditable || $("#mathed")) return;
   if ((e.key === " " || e.key === "Enter") && S.study && !S.study.flipped) { e.preventDefault(); S.study.flipped = true; S.study.justFlipped = true; render(); }
   else if (/^[1-4]$/.test(e.key) && S.study && S.study.flipped && +e.key <= curGrades().length) { e.preventDefault(); grade(+e.key - 1); }
   else if ((e.key === "e" || e.key === "E") && !e.metaKey && !e.ctrlKey) { const c = curCard(); if (c && !S.study.busy) { e.preventDefault(); cardSheet(c.fid, c.id); } }
