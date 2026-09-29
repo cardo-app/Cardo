@@ -1387,12 +1387,11 @@ function mountRichEditor(root, host, initial){
     const last = host.lastChild; return last ? edCaret(last.nodeType === 1 && last.lastChild && last.lastChild.tagName === "BR" ? last : last, false) : edCaret(host, false);
   };
   const cellOf = n => { const e = n && (n.nodeType === 1 ? n : n.parentNode); const c = e && e.closest && e.closest("td,th"); return c && host.contains(c) ? c : null; };
-  const inMark = n => { const e = n && (n.nodeType === 1 ? n : n.parentNode); const m = e && e.closest && e.closest("mark"); return m && host.contains(m) ? m : null; };
   function state(){
     host.classList.toggle("empty", edIsEmpty(host));
     const r = cur(); if (!r) return; saved = r.cloneRange();
     const q = c => { try { return document.queryCommandState(c); } catch { return false; } };
-    const on = { b: q("bold"), i: q("italic"), mark: !!inMark(r.startContainer), ul: q("insertUnorderedList"), ol: q("insertOrderedList") };
+    const on = { b: !!fmtAnc(r.startContainer, "b") || q("bold"), i: !!fmtAnc(r.startContainer, "i") || q("italic"), mark: !!inMark(r.startContainer), ul: q("insertUnorderedList"), ol: q("insertOrderedList") };
     bar.querySelectorAll("[data-ed]").forEach(b => b.classList.toggle("on", !!on[b.dataset.ed]));
     const c = cellOf(r.startContainer); tbar.hidden = !c;
     host.querySelectorAll(".cur").forEach(x => x !== c && x.classList.remove("cur")); if (c) c.classList.add("cur");
@@ -1401,10 +1400,26 @@ function mountRichEditor(root, host, initial){
   host._state = state;
   const exec = (c, v) => { try { document.execCommand(c, false, v); } catch {} };
   try { document.execCommand("defaultParagraphSeparator", false, "div"); document.execCommand("styleWithCSS", false, false); } catch {}
-  function toggleMark(){
-    const r = restore(), m = inMark(r.startContainer) || inMark(r.endContainer);
+  const FMT = { b: { tag: "b", sel: "b,strong,span[style*='font-weight']" }, i: { tag: "i", sel: "i,em,span[style*='italic']" }, mark: { tag: "mark", sel: "mark" } };
+  const fmtAnc = (n, k) => { const e = n && (n.nodeType === 1 ? n : n.parentNode); const m = e && e.closest && e.closest(FMT[k].sel); return m && host.contains(m) && m !== host ? m : null; };
+  const inMark = n => fmtAnc(n, "mark");
+  // Ohne Auswahl: ab hier formatiert weiterschreiben bzw. die Formatierung an dieser Stelle beenden
+  function typeToggle(k, r){
+    const s = getSelection(), m0 = fmtAnc(r.startContainer, k), z = document.createTextNode("\u200B");
+    if (m0) {
+      const tail = document.createRange(); tail.setStart(r.startContainer, r.startOffset); tail.setEndAfter(m0);
+      const rest = tail.extractContents();
+      m0.after(z); if ((rest.textContent || "").replace(/\u200B/g, "")) z.after(rest);
+      if (!(m0.textContent || "").replace(/\u200B/g, "") && !m0.querySelector(".mchip,img")) m0.remove();
+    } else { const el = document.createElement(FMT[k].tag); el.appendChild(z); r.insertNode(el); }
+    const nr = document.createRange(); nr.setStart(z, 1); nr.collapse(true); s.removeAllRanges(); s.addRange(nr);
+  }
+  function toggleFmt(k){
+    const r = restore();
+    if (r.collapsed) { typeToggle(k, r); return; }
+    if (k !== "mark") { exec(k === "b" ? "bold" : "italic"); return; }
+    const m = inMark(r.startContainer) || inMark(r.endContainer);
     if (m) { const p = m.parentNode; const first = m.firstChild, last = m.lastChild; while (m.firstChild) p.insertBefore(m.firstChild, m); m.remove(); if (first && last) { const nr = document.createRange(); nr.setStartBefore(first); nr.setEndAfter(last); const s = getSelection(); s.removeAllRanges(); s.addRange(nr); } return; }
-    if (r.collapsed) { toast("Wähle zuerst den Text aus, den du markieren willst."); return; }
     const frag = r.extractContents(); frag.querySelectorAll("mark").forEach(x => x.replaceWith(...x.childNodes));
     const mk = document.createElement("mark"); mk.appendChild(frag); r.insertNode(mk);
     const nr = document.createRange(); nr.selectNodeContents(mk); const s = getSelection(); s.removeAllRanges(); s.addRange(nr);
@@ -1471,9 +1486,7 @@ function mountRichEditor(root, host, initial){
   bar.addEventListener("click", e => {
     const b = e.target.closest("[data-ed]"); if (!b) return; e.preventDefault(); const k = b.dataset.ed;
     const r = restore(), inCell = !!cellOf(r.startContainer);
-    if (k === "b") exec("bold");
-    else if (k === "i") exec("italic");
-    else if (k === "mark") toggleMark();
+    if (k === "b" || k === "i" || k === "mark") toggleFmt(k);
     else if (k === "ul" || k === "ol") { if (inCell) { toast("In einer Tabelle gehen keine Listen."); return; } exec(k === "ul" ? "insertUnorderedList" : "insertOrderedList"); }
     else if (k === "table") { if (inCell) { toast("Du bist schon in einer Tabelle – nutze die Knöpfe darunter."); return; } newTable(); }
     else if (k === "frac") { addMath("\\frac{#0}{#?}"); return; }
@@ -1487,7 +1500,7 @@ function mountRichEditor(root, host, initial){
     const im = e.target.closest("img.cimg"); if (im) { const r = document.createRange(); r.selectNode(im); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
   });
   host.addEventListener("keydown", e => {
-    if ((e.metaKey || e.ctrlKey) && !e.altKey && ["b", "i"].includes(e.key.toLowerCase())) { e.preventDefault(); exec(e.key.toLowerCase() === "b" ? "bold" : "italic"); state(); return; }
+    if ((e.metaKey || e.ctrlKey) && !e.altKey && ["b", "i"].includes(e.key.toLowerCase())) { e.preventDefault(); toggleFmt(e.key.toLowerCase()); state(); return; }
     if (e.key === "Tab") {
       const r = cur(), c = r && cellOf(r.startContainer); if (!c) return; e.preventDefault();
       const all = [...c.closest("table").querySelectorAll("td,th")], i = all.indexOf(c) + (e.shiftKey ? -1 : 1);
