@@ -4157,7 +4157,12 @@ document.addEventListener("keydown", e => { if ((e.metaKey || e.ctrlKey) && ["+"
 const PAGES = ["lib", "stats", "settings"];
 const EASE = "cubic-bezier(.2,.8,.25,1)";
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
-const canSwipe = () => S.view !== "study" && $("#sheet").hidden && $("#menu").hidden && !S.sel;
+// Vor der Anmeldung (Startanimation, Intro, Anmeldeseite) kein Seitenwischen – sonst schauen Teile der App hervor
+const inApp = () => (S.mode === "cloud" || S.mode === "local") && !document.body.classList.contains("authing") && !document.body.classList.contains("splashing") && !document.getElementById("intro");
+// Geste, die auf Startanimation/Intro begann (Antippen überspringt sie), darf nicht in ein Seitenwischen übergehen
+let gestPre = false;
+document.addEventListener("pointerdown", () => { gestPre = !inApp(); }, true);
+const canSwipe = () => inApp() && !gestPre && S.view !== "study" && $("#sheet").hidden && $("#menu").hidden && !S.sel;
 const neighbour = dir => { const i = PAGES.indexOf(S.view), j = i + (dir === "left" ? 1 : -1); return i < 0 || j < 0 || j >= PAGES.length ? null : PAGES[j]; };
 const libTarget = () => (S.libFid && S.folders[S.libFid] ? S.libFid : null);
 function pageHTML(view){
