@@ -1905,7 +1905,35 @@ function mountRichEditor(root, host, initial){
     const ch = chipNear(back ? -1 : 1); if (!ch) return false;
     e.preventDefault(); dropChip(ch); return true;
   };
-  host.addEventListener("beforeinput", e => { delChip(e); });
+  // Bilder lassen sich nicht mit der Löschtaste entfernen (nur über den Papierkorb am Bild)
+  const keepImg = e => {
+    const t = e.inputType || "", sel = getSelection();
+    const replacing = /^insert/.test(t) && sel.rangeCount && !sel.isCollapsed;
+    if (!/^delete/.test(t) && !replacing) return false;
+    let rs = []; try { rs = (e.getTargetRanges ? e.getTargetRanges() : []).map(x => { const r = document.createRange(); r.setStart(x.startContainer, x.startOffset); r.setEnd(x.endContainer, x.endOffset); return r; }); } catch { rs = []; }
+    if (!rs.length && sel.rangeCount) rs = [sel.getRangeAt(0)];
+    const imgs = [...host.querySelectorAll("img.cimg")];
+    const hit = rs.some(r => imgs.some(im => r.intersectsNode(im)));
+    if (!hit) return false;
+    e.preventDefault(); hideImg();
+    if (!sel.isCollapsed && sel.rangeCount) {
+      // markierter Bereich mit Bild: nur den Text löschen, Bilder bleiben
+      const r = sel.getRangeAt(0), tw = document.createTreeWalker(r.commonAncestorContainer.nodeType === 3 ? r.commonAncestorContainer.parentNode : r.commonAncestorContainer, NodeFilter.SHOW_TEXT), txt = [];
+      while (tw.nextNode()) if (r.intersectsNode(tw.currentNode)) txt.push(tw.currentNode);
+      const sc = r.startContainer, so = r.startOffset, ec = r.endContainer, eo = r.endOffset;
+      let caret = null;
+      txt.forEach(n => { const a = n === sc ? so : 0, z = n === ec ? eo : n.nodeValue.length; if (z > a) n.deleteData(a, z - a); if (!caret) caret = [n, a]; });
+      const nr = document.createRange(); if (caret) nr.setStart(caret[0], caret[1]); else nr.setStart(sc, so); nr.collapse(true); sel.removeAllRanges(); sel.addRange(nr);
+      if (t === "insertText" && e.data) document.execCommand("insertText", false, e.data);
+      host.dispatchEvent(new Event("input", { bubbles: true }));
+    } else if (/Backward/.test(t)) {
+      // leere Zeile direkt unter einem Bild: nur die leere Zeile entfernen (wenn danach noch etwas kommt)
+      const blk = sel.rangeCount && edTopBlock(host, sel.anchorNode);
+      if (blk && blk !== host && blk.nextSibling && edIsEmpty(blk)) { const nx = blk.nextSibling; blk.remove(); edCaret(nx, true); host.dispatchEvent(new Event("input", { bubbles: true })); }
+    }
+    state(); return true;
+  };
+  host.addEventListener("beforeinput", e => { if (!delChip(e)) keepImg(e); });
   // Leeres Feld: Cursor immer ganz oben am Anfang
   const toStart = () => { if (edIsEmpty(host) && host.firstChild) edCaret(host.firstChild, true); };
   host.addEventListener("focus", () => setTimeout(toStart, 0));
