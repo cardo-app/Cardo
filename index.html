@@ -964,6 +964,107 @@ html.android .flash,html.android #tabs,html.android button,html.android .tile,ht
 html.ios-standalone body{min-height:100lvh}
 /* Tab-Leiste auf dem iPhone tiefer: weniger Abstand zum Home-Balken (nur schmale Bildschirme, Leiste über volle Breite) */
 @media (max-width:699px){html.ios-standalone #tabs{padding-bottom:max(4px,calc(env(safe-area-inset-bottom,0px) - 18px))}}
+/* ---------- Liquid Glass: schwebende Tab-Leiste, durchscheinend (Test) ---------- */
+body{--gl-bg:color-mix(in srgb,var(--surface) 38%,transparent);--gl-edge:rgba(255,255,255,.75);--gl-rim:rgba(255,255,255,.55);--gl-pill:rgba(255,255,255,.28);--gl-spec:.85;--gl-caus:.45;--gl-deep:.10;--gl-drop:0 10px 30px rgba(20,22,30,.16),0 2px 6px rgba(20,22,30,.08)}
+@media (prefers-color-scheme:dark){body:not(.m-light){--gl-bg:color-mix(in srgb,var(--surface) 42%,transparent);--gl-edge:rgba(255,255,255,.22);--gl-rim:rgba(255,255,255,.14);--gl-pill:rgba(255,255,255,.07);--gl-spec:.30;--gl-caus:.20;--gl-deep:.35;--gl-drop:0 10px 30px rgba(0,0,0,.45),0 2px 6px rgba(0,0,0,.3)}}
+body.m-dark{--gl-bg:color-mix(in srgb,var(--surface) 42%,transparent);--gl-edge:rgba(255,255,255,.22);--gl-rim:rgba(255,255,255,.14);--gl-pill:rgba(255,255,255,.07);--gl-spec:.30;--gl-caus:.20;--gl-deep:.35;--gl-drop:0 10px 30px rgba(0,0,0,.45),0 2px 6px rgba(0,0,0,.3)}
+#tabs{left:14px;right:14px;bottom:calc(max(10px,env(safe-area-inset-bottom,0px) - 14px) - var(--vgap,0px));padding:4px;border:0;border-radius:999px;
+  background:var(--gl-bg);-webkit-backdrop-filter:blur(var(--gl-blur,8px)) saturate(190%) brightness(1.04);backdrop-filter:blur(var(--gl-blur,8px)) saturate(190%) brightness(1.04);
+  box-shadow:inset 0 0 0 .5px var(--gl-rim),inset 1.5px 1.5px 1px -1px var(--gl-edge),inset -1.5px -1.5px 1px -1px var(--gl-edge),inset 0 0 10px rgba(255,255,255,.07),var(--gl-drop)}
+/* Glas-Pille: Position über --pill (0/1/2); beim Seitenwischen setzt place() den Wert direkt, damit sie mit dem Finger mitläuft */
+@property --pill{syntax:"<number>";inherits:true;initial-value:0}
+@property --sq{syntax:"<number>";inherits:true;initial-value:0}
+#tabs{--pill:0;transition:--pill .45s cubic-bezier(.34,1.35,.55,1)}
+#tabs:has(button.on:nth-child(2)){--pill:1}
+#tabs:has(button.on:nth-child(3)){--pill:2}
+/* Wasserblase: klarer Kern, Glanzpunkt oben, Lichtsaum unten */
+#tabs::before{content:"";position:absolute;top:4px;bottom:4px;left:4px;width:calc((100% - 8px) / 3);border-radius:999px;
+  background:radial-gradient(ellipse 55% 38% at 32% 16%,rgba(255,255,255,var(--gl-spec)),transparent 72%),radial-gradient(ellipse 85% 55% at 50% 118%,rgba(255,255,255,var(--gl-caus)),transparent 70%),var(--gl-pill);
+  box-shadow:inset 0 0 0 .5px var(--gl-rim),inset 0 1.5px 1px -.5px var(--gl-edge),inset 0 -2px 3px -1px rgba(255,255,255,var(--gl-caus)),inset 0 -8px 12px -8px rgba(0,0,0,var(--gl-deep)),0 4px 12px rgba(0,0,0,.10);
+  -webkit-backdrop-filter:saturate(1.8) brightness(1.08);backdrop-filter:saturate(1.8) brightness(1.08);
+  /* Nachfedern über ein Ende hinaus: statt hinauszuragen wird die Blase an der Wand zusammengedrückt (Verschiebung hält sie bündig an der Wand) */
+  --ov:max(0, var(--pill) - 2, 0 - var(--pill));
+  transform:translateX(calc(clamp(0, var(--pill), 2) * 100% + (max(0, var(--pill) - 2) - max(0, 0 - var(--pill))) * 40%)) scaleX(calc(1 - (var(--sq) + var(--ov)) * .8));transform-origin:var(--so,center);}
+#tabs:not(:has(button.on))::before{opacity:0}
+#tabs button{z-index:1;padding:7px 0 6px;border-radius:999px}
+html.ios-standalone #tabs{padding-bottom:4px}
+@media (min-width:700px){#tabs{left:50%;right:auto;width:400px;bottom:calc(16px + env(safe-area-inset-bottom,0px) - var(--vgap,0px));border:0;padding:4px}}
+@media (prefers-reduced-motion:reduce){#tabs{transition:none}}
+/* ---------- Liquid Glass (Test): Untermenüs der Einstellungen, Stil wie die Tab-Leiste ---------- */
+body{--gl-card:rgba(255,255,255,.42);--gl-sheet:color-mix(in srgb,var(--surface) 55%,transparent)}
+@media (prefers-color-scheme:dark){body:not(.m-light){--gl-card:rgba(255,255,255,.06);--gl-sheet:color-mix(in srgb,var(--surface) 58%,transparent)}}
+body.m-dark{--gl-card:rgba(255,255,255,.06);--gl-sheet:color-mix(in srgb,var(--surface) 58%,transparent)}
+#sheet.glass{background:rgba(10,12,18,.16)}
+#sheet.glass .sheet{margin:0 10px calc(max(10px,env(safe-area-inset-bottom,0px) - 14px));width:calc(100% - 20px);border-radius:34px;padding-bottom:20px;
+  background:var(--gl-sheet);-webkit-backdrop-filter:blur(var(--gl-blur-s,22px)) saturate(190%) brightness(1.04);backdrop-filter:blur(var(--gl-blur-s,22px)) saturate(190%) brightness(1.04);
+  box-shadow:inset 0 0 0 .5px var(--gl-rim),inset 1.5px 1.5px 1px -1px var(--gl-edge),inset -1.5px -1.5px 1px -1px var(--gl-edge),inset 0 0 10px rgba(255,255,255,.07),var(--gl-drop)}
+@media (min-width:700px){#sheet.glass .sheet{margin:0;width:100%}}
+#sheet.glass .grab{background:var(--gl-rim)}
+/* Öffnen/Schließen ohne Durchsichtigkeits-Überblendung: sonst ist der Weichzeichner kurz schwächer. Nur Bewegung + Abdunkeln */
+@keyframes glDim{from{background:rgba(10,12,18,0)}}
+@keyframes glUndim{to{background:rgba(10,12,18,0)}}
+@keyframes glIn{from{transform:translateY(110%)}to{transform:none}}
+@keyframes glOut{to{transform:translateY(110%)}}
+#sheet.glass:not([hidden]){animation:glDim .25s ease}
+#sheet.glass:not([hidden]) .sheet{animation:glIn .45s cubic-bezier(.16,1,.3,1)}
+#sheet.glass.closing{animation:glUndim .24s ease forwards}
+#sheet.glass.closing .sheet{animation:glOut .24s ease-in forwards}
+@media (prefers-reduced-motion:reduce){#sheet.glass:not([hidden]),#sheet.glass:not([hidden]) .sheet{animation:none}}
+/* Diagramm-Vergrößerung (Statistik) im gleichen Glas-Stil; ohne Durchsichtigkeits-Überblendung, damit der Weichzeichner gleich stark bleibt */
+#czoom.in{background:rgba(10,12,18,.16)}
+.cz-panel{opacity:1;border-radius:34px;background:var(--gl-sheet);-webkit-backdrop-filter:blur(var(--gl-blur-s,22px)) saturate(190%) brightness(1.04);backdrop-filter:blur(var(--gl-blur-s,22px)) saturate(190%) brightness(1.04);
+  box-shadow:inset 0 0 0 .5px var(--gl-rim),inset 1.5px 1.5px 1px -1px var(--gl-edge),inset -1.5px -1.5px 1px -1px var(--gl-edge),inset 0 0 10px rgba(255,255,255,.07),var(--gl-drop);transform:translateY(110vh);transition:transform .18s ease-in}
+#czoom.in .cz-panel{transition:transform .45s cubic-bezier(.16,1,.3,1)}
+body[data-glass="2"] .cz-panel{-webkit-backdrop-filter:none;backdrop-filter:none}
+/* Drei-Punkte-Menüs (#menu) im gleichen Glas-Stil; Aufgehen nur mit Bewegung (ohne Überblendung, damit der Weichzeichner gleich stark bleibt) */
+#menu{border:0;border-radius:24px;padding:6px;background:var(--gl-sheet);-webkit-backdrop-filter:blur(var(--gl-blur-s,22px)) saturate(190%) brightness(1.04);backdrop-filter:blur(var(--gl-blur-s,22px)) saturate(190%) brightness(1.04);
+  box-shadow:inset 0 0 0 .5px var(--gl-rim),inset 1.5px 1.5px 1px -1px var(--gl-edge),inset -1.5px -1.5px 1px -1px var(--gl-edge),inset 0 0 10px rgba(255,255,255,.07),var(--gl-drop)}
+#menu button{border-radius:18px}
+#menu button:hover{background:var(--gl-card)}
+#menu hr{border-top-color:var(--gl-rim)}
+@keyframes glMenuIn{from{transform:translateY(-10px) scale(.4)}to{transform:none}}
+#menu:not([hidden]){animation:glMenuIn .38s cubic-bezier(.34,1.3,.55,1)}
+@media (prefers-reduced-motion:reduce){#menu:not([hidden]){animation:none}}
+/* Transparenz-Stufen (Einstellungen › Transparenz): 0 = sehr durchsichtig, 1 = leicht (Standard), 2 = deckend */
+body[data-glass="0"]{--gl-bg:color-mix(in srgb,var(--surface) 12%,transparent);--gl-sheet:color-mix(in srgb,var(--surface) 10%,transparent);--gl-blur:3px;--gl-blur-s:10px}
+body[data-glass="2"]{--gl-bg:var(--surface);--gl-sheet:var(--surface);--gl-card:var(--surface-2);--gl-spec:0;--gl-caus:0}
+body[data-glass="2"] :is(#tabs,#sheet.glass .sheet,.glp-bar,#menu){-webkit-backdrop-filter:none;backdrop-filter:none}
+/* Vorschaufenster */
+.glp{position:relative;height:150px;border-radius:22px;overflow:hidden;margin:4px 0 18px;box-shadow:inset 0 0 0 .5px var(--gl-rim)}
+.glp-bg{position:absolute;inset:0 -60% 0 0;display:flex;gap:10px;padding:14px;animation:glpMove 9s ease-in-out infinite alternate}
+.glp-bg i{flex:none;width:92px;border-radius:16px;background:var(--c)}
+.glp-bg i::after{content:"";display:block;margin:78px 12px 0;height:8px;border-radius:4px;background:rgba(255,255,255,.75);box-shadow:0 14px 0 rgba(255,255,255,.5)}
+@keyframes glpMove{to{transform:translateX(-36%)}}
+@media (prefers-reduced-motion:reduce){.glp-bg{animation:none}}
+.glp-bar{position:absolute;left:12px;right:12px;bottom:12px;height:50px;border-radius:999px;display:flex;align-items:center;justify-content:space-around;padding:4px;color:var(--muted);
+  background:var(--gl-bg);-webkit-backdrop-filter:blur(var(--gl-blur,8px)) saturate(190%) brightness(1.04);backdrop-filter:blur(var(--gl-blur,8px)) saturate(190%) brightness(1.04);
+  box-shadow:inset 0 0 0 .5px var(--gl-rim),inset 1.5px 1.5px 1px -1px var(--gl-edge),inset -1.5px -1.5px 1px -1px var(--gl-edge),inset 0 0 10px rgba(255,255,255,.07),var(--gl-drop)}
+.glp-bar span{flex:1;height:100%;display:grid;place-items:center;border-radius:999px}
+.glp-bar svg{width:22px;height:22px}
+.glp-bar span.on{color:var(--accent-text);background:radial-gradient(ellipse 55% 38% at 32% 16%,rgba(255,255,255,var(--gl-spec)),transparent 72%),radial-gradient(ellipse 85% 55% at 50% 118%,rgba(255,255,255,var(--gl-caus)),transparent 70%),var(--gl-pill);
+  box-shadow:inset 0 0 0 .5px var(--gl-rim),inset 0 1.5px 1px -.5px var(--gl-edge),inset 0 -2px 3px -1px rgba(255,255,255,var(--gl-caus)),inset 0 -8px 12px -8px rgba(0,0,0,var(--gl-deep)),0 4px 12px rgba(0,0,0,.10)}
+/* Regler mit drei Stufen */
+.glr{-webkit-appearance:none;appearance:none;width:100%;height:34px;background:transparent;margin:0;display:block}
+.glr::-webkit-slider-runnable-track{height:8px;border-radius:99px;background:var(--gl-card);box-shadow:inset 0 0 0 .5px var(--gl-rim),inset 0 1px 2px rgba(0,0,0,.12)}
+.glr::-moz-range-track{height:8px;border-radius:99px;background:var(--gl-card);box-shadow:inset 0 0 0 .5px var(--gl-rim)}
+.glr::-webkit-slider-thumb{-webkit-appearance:none;width:30px;height:30px;margin-top:-11px;border-radius:50%;border:0;background:radial-gradient(ellipse 55% 40% at 34% 22%,rgba(255,255,255,.95),transparent 72%),color-mix(in srgb,var(--surface) 80%,#fff);
+  box-shadow:inset 0 0 0 .5px var(--gl-rim),inset 0 -3px 5px -2px rgba(0,0,0,.18),0 3px 10px rgba(0,0,0,.2)}
+.glr::-moz-range-thumb{width:30px;height:30px;border-radius:50%;border:0;background:color-mix(in srgb,var(--surface) 80%,#fff);box-shadow:0 3px 10px rgba(0,0,0,.2)}
+.glr-l{display:flex;justify-content:space-between;margin-top:6px;font-size:14px;font-weight:600;color:var(--muted)}
+.glr-l span{flex:1}.glr-l span:nth-child(2){text-align:center}.glr-l span:last-child{text-align:right}
+.glr-l span.on{color:var(--ink);font-weight:800}
+/* Innere Flächen: kleine Glasblasen wie die Tab-Blase */
+#sheet.glass :is(.set-list,.gs-opt,.seg,.in,.set-group,.stat,.panel){background:var(--gl-card);border-color:transparent;
+  box-shadow:inset 0 0 0 .5px var(--gl-rim),inset 0 1.5px 1px -.5px var(--gl-edge),0 2px 8px rgba(0,0,0,.05)}
+#sheet.glass :is(.set-list,.panel){border-radius:22px}
+#sheet.glass .stat{border-radius:18px}
+#sheet.glass .set-item{border-top-color:var(--gl-rim)}
+#sheet.glass .gs-opt{border-radius:18px}
+#sheet.glass .gs-opt.on{border-color:var(--ink)}
+#sheet.glass .seg{border-radius:18px}
+#sheet.glass .seg button{border-radius:14px}
+#sheet.glass .seg button.on{background:radial-gradient(ellipse 55% 38% at 32% 16%,rgba(255,255,255,var(--gl-spec)),transparent 72%),radial-gradient(ellipse 85% 55% at 50% 118%,rgba(255,255,255,var(--gl-caus)),transparent 70%),var(--gl-pill);
+  box-shadow:inset 0 0 0 .5px var(--gl-rim),inset 0 1.5px 1px -.5px var(--gl-edge),inset 0 -2px 3px -1px rgba(255,255,255,var(--gl-caus)),inset 0 -8px 12px -8px rgba(0,0,0,var(--gl-deep)),0 4px 12px rgba(0,0,0,.10)}
 .loading{display:grid;place-items:center;min-height:50vh;color:var(--muted);font-weight:600}
 /* ---------- Karteninhalt: Formatierung, Formeln, Bilder ---------- */
 .rich{white-space:normal;width:100%;max-width:100%;min-width:0}
@@ -2304,17 +2405,17 @@ const THEMES = [
   { k:"aubergine", n:"Aubergine", base:"dark",  c:"#A04FD6", ink:"#FFFFFF" }
 ];
 const NEUTRAL = [["light","Hell"],["dark","Dunkel"],["auto","System"]];
-S.set = { look: "auto", layout: "grid", textSize: "m", fxMode: "full", gradeSet: "4", newPerDay: 20, splash: "daily" };
+S.set = { look: "auto", layout: "grid", textSize: "m", fxMode: "full", gradeSet: "4", newPerDay: 20, splash: "daily", glass: 1 };
 S.seen = {}; S.extraNew = {}; S.lastExport = 0; S.fdays = {}; S.prog = {}; // pro Tag und Hauptordner: heute gelernte Karten (IDs) / Zusatzkontingent
 const NEW_OPTS = [5, 10, 15, 20, 30, 50, 0]; // 0 = unbegrenzt
 const newLimit = () => (S.set.newPerDay ?? 20);
 const newLimitLabel = k => k === 0 ? "Unbegrenzt" : String(k);
 function normSet(v){ // accepts old {mode, theme} and new {look, layout}
   if (!v) return null;
-  const layout = v.layout === "list" ? "list" : "grid", textSize = ["s","m","l"].includes(v.textSize) ? v.textSize : "m", fxMode = ["full","color","off"].includes(v.fxMode) ? v.fxMode : (v.gradeFx === false ? "off" : "full"), gradeSet = ["4","3","2"].includes(String(v.gradeSet)) ? String(v.gradeSet) : "4", newPerDay = NEW_OPTS.includes(+v.newPerDay) ? +v.newPerDay : 20, splash = ["daily","always","never"].includes(v.splash) ? v.splash : "daily";
-  if (v.look) return { look: ["light","dark","auto"].includes(v.look) || THEMES.some(t => t.k === v.look) ? v.look : "auto", layout, textSize, fxMode, gradeSet, newPerDay, splash };
-  if (v.theme && v.theme !== "koralle" && THEMES.some(t => t.k === v.theme)) return { look: v.theme, layout, textSize, fxMode, gradeSet, newPerDay, splash };
-  return v.mode ? { look: v.mode, layout, textSize, fxMode, gradeSet, newPerDay, splash } : null;
+  const layout = v.layout === "list" ? "list" : "grid", textSize = ["s","m","l"].includes(v.textSize) ? v.textSize : "m", fxMode = ["full","color","off"].includes(v.fxMode) ? v.fxMode : (v.gradeFx === false ? "off" : "full"), gradeSet = ["4","3","2"].includes(String(v.gradeSet)) ? String(v.gradeSet) : "4", newPerDay = NEW_OPTS.includes(+v.newPerDay) ? +v.newPerDay : 20, splash = ["daily","always","never"].includes(v.splash) ? v.splash : "daily", glass = [0,1,2].includes(+v.glass) ? +v.glass : 1;
+  if (v.look) return { look: ["light","dark","auto"].includes(v.look) || THEMES.some(t => t.k === v.look) ? v.look : "auto", layout, textSize, fxMode, gradeSet, newPerDay, splash, glass };
+  if (v.theme && v.theme !== "koralle" && THEMES.some(t => t.k === v.theme)) return { look: v.theme, layout, textSize, fxMode, gradeSet, newPerDay, splash, glass };
+  return v.mode ? { look: v.mode, layout, textSize, fxMode, gradeSet, newPerDay, splash, glass } : null;
 }
 try { const c = normSet(JSON.parse(localStorage.getItem("kartenfach-settings") || "null")); if (c) S.set = c; } catch {}
 const darkMQ = matchMedia("(prefers-color-scheme: dark)");
@@ -2327,6 +2428,7 @@ function isDark(){
 }
 function applyTheme(){
   document.body.dataset.ts = S.set.textSize || "m";
+  document.body.dataset.glass = String(S.set.glass ?? 1); /* Transparenz: 0 stark · 1 leicht · 2 aus */
   const b = document.body, t = themeOf(), dark = isDark(), forced = !!t || S.set.look !== "auto";
   b.classList.toggle("tinted", !!t); b.classList.toggle("neutral", !t);
   b.classList.toggle("m-light", forced && !dark); b.classList.toggle("m-dark", forced && dark);
@@ -2352,7 +2454,7 @@ new MutationObserver(() => { if (!document.body.classList.contains("splashing") 
 function saveSettings(patch){
   S.set = { ...S.set, ...patch }; applyTheme(); render();
   try { localStorage.setItem("kartenfach-settings", JSON.stringify(S.set)); } catch {}
-  if (DB) enqueue("settings/main", () => DB.doc("settings/main").set({ look: S.set.look, layout: S.set.layout, textSize: S.set.textSize, fxMode: S.set.fxMode || "full", gradeSet: S.set.gradeSet || "4", newPerDay: newLimit(), splash: S.set.splash || "daily" }));
+  if (DB) enqueue("settings/main", () => DB.doc("settings/main").set({ look: S.set.look, layout: S.set.layout, textSize: S.set.textSize, fxMode: S.set.fxMode || "full", gradeSet: S.set.gradeSet || "4", newPerDay: newLimit(), splash: S.set.splash || "daily", glass: S.set.glass ?? 1 }));
 }
 darkMQ.addEventListener && darkMQ.addEventListener("change", applyTheme);
 new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
@@ -3429,6 +3531,19 @@ function splashPickerHTML(){
   return `<div class="gs-list" role="radiogroup" aria-label="Startanimation">${SPLASH_OPTS.map(([k, l, d]) => `<button class="gs-opt fx-opt ${cur === k ? 'on' : ''}" data-act="setSplash" data-v="${k}" role="radio" aria-checked="${cur === k}"><span class="fx-t"><b>${l}</b><span>${d}</span></span><span class="gs-ck" aria-hidden="true">${cur === k ? '✓' : ''}</span></button>`).join("")}</div>`;
 }
 function splashSheet(){ openSheet(`${head("Startanimation")}<p class="muted" style="margin:0 0 16px;font-size:15.5px">Die Animation beim Öffnen von Cardo. Antippen überspringt sie jederzeit.</p><div id="spPick">${splashPickerHTML()}</div><button class="btn block" style="margin-top:14px;justify-content:center" data-act="playIntro">Intro ansehen</button>`); }
+const GLASS_L = ["Stark", "Leicht", "Aus"];
+function glassLabelsHTML(){ const g = S.set.glass ?? 1; return ["Stark", "Leicht", "Keine"].map((l, i) => `<span class="${i === g ? 'on' : ''}">${l}</span>`).join(""); }
+function glassSheet(){
+  const cols = ["#FF6B6B", "#FFB84D", "#4DD599", "#4DA6FF", "#A77BFF", "#FF7AC6", "#FFD84D", "#3FD0D4"];
+  openSheet(`${head("Transparenz")}<p class="muted" style="margin:0 0 16px;font-size:15.5px">Wie stark die Tab-Leiste und die Menüs den Hintergrund durchscheinen lassen.</p>
+    <div class="glp" aria-hidden="true"><div class="glp-bg">${cols.map(c => `<i style="--c:${c}"></i>`).join("")}</div>
+      <div class="glp-bar"><span class="on">${ICONS.lib}</span><span>${ICONS.stats}</span><span>${ICONS.settings}</span></div></div>
+    <input class="glr" type="range" min="0" max="2" step="1" value="${S.set.glass ?? 1}" aria-label="Transparenz" aria-valuetext="${GLASS_L[S.set.glass ?? 1]}">
+    <div class="glr-l" id="glrL">${glassLabelsHTML()}</div>`, root => {
+    const r = root.querySelector(".glr");
+    r.addEventListener("input", () => { const v = +r.value; if (v === (S.set.glass ?? 1)) return; r.setAttribute("aria-valuetext", GLASS_L[v]); saveSettings({ glass: v }); const l = $("#glrL"); if (l) l.innerHTML = glassLabelsHTML(); });
+  });
+}
 function lookSheet(){
   openSheet(`${head("Thema")}<p class="muted" style="margin:0 0 16px;font-size:15.5px">Hell, Dunkel und System sind schlicht schwarz-weiß. Ein Farbthema färbt die ganze App ein. System folgt deinem Gerät.</p><div id="lookPick">${lookPickerHTML()}</div>`);
 }
@@ -3441,6 +3556,7 @@ function settingsHTML(){
   <div class="set-list">
     <button class="set-item" data-act="lookSheet"><span class="theme-ic sm" style="--tb:${cur.bg};--tf:${cur.fg}">${THEME_IC[S.set.look] || THEME_IC.auto}</span><span class="si-t">Thema</span><span class="si-v">${esc(cur.n)}</span><span class="si-ch" aria-hidden="true">›</span></button>
     <button class="set-item" data-act="splashSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)">${THEME_IC.sparkle}</span><span class="si-t">Startanimation</span><span class="si-v">${splashLabel()}</span><span class="si-ch" aria-hidden="true">›</span></button>
+    <button class="set-item" data-act="glassSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="13" height="13" rx="3.5"/><rect x="8" y="8" width="13" height="13" rx="3.5" fill="currentColor" fill-opacity=".25"/></svg></span><span class="si-t">Transparenz</span><span class="si-v">${["Stark", "Leicht", "Aus"][S.set.glass ?? 1]}</span><span class="si-ch" aria-hidden="true">›</span></button>
   </div>
   <div class="set-list">
     <button class="set-item" data-act="cardsSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)">${ICONS.learn}</span><span class="si-t">Karten</span><span class="si-v">${({s:"Klein",m:"Mittel",l:"Groß"})[S.set.textSize || "m"]} · ${gradeSet().length} Stufen</span><span class="si-ch" aria-hidden="true">›</span></button>
@@ -3825,6 +3941,7 @@ function folderStatsSheet(fid){
 /* ---------- Sheets ---------- */
 function openSheet(html, mount){
   const el = $("#sheet"); el.innerHTML = `<div class="sheet" role="dialog" aria-modal="true"><div class="grab"></div>${html}</div>`; el.hidden = false;
+  el.classList.toggle("glass", ["lib", "stats", "settings"].includes(S.view)); /* Liquid Glass für die Untermenüs von Bibliothek, Statistik und Einstellungen */
   document.documentElement.style.overflow = "hidden"; mount && mount(el.firstChild);
   const first = el.querySelector("input:not([type=file]),textarea,.ed-area"); if (first && matchMedia("(hover:hover)").matches) first.focus();
 }
@@ -4152,6 +4269,7 @@ document.addEventListener("click", e => {
   if (a === "setLook") { saveSettings({ look: b.dataset.v }); const lp = $("#lookPick"); if (lp) lp.innerHTML = lookPickerHTML(); return; }
   if (a === "lookSheet") { lookSheet(); return; }
   if (a === "splashSheet") { splashSheet(); return; }
+  if (a === "glassSheet") { glassSheet(); return; }
   if (a === "playIntro") { closeSheet(); setTimeout(() => playIntro({ center: true }), 250); return; }
   if (a === "setSplash") { saveSettings({ splash: b.dataset.v }); const sp = $("#spPick"); if (sp) sp.innerHTML = splashPickerHTML(); return; }
   if (a === "setTextSize") { saveSettings({ textSize: b.dataset.v }); const tp = $("#textPick"); if (tp) tp.innerHTML = textPickerHTML(); return; }
@@ -4308,7 +4426,15 @@ function tabStyle(v, a, dur, ease = EASE){ // a = 0 (inactive) … 1 (active)
   const lb = b.querySelector("span"); if (lb) lb.style.fontWeight = a >= .5 ? "800" : "600"; // Schriftzug wechselt zeitgleich mit dem Icon (ab halber Strecke)
   b.style.color = `color-mix(in oklab, var(--accent-text) ${Math.round(a * 100)}%, var(--muted))`;
 }
-function clearTabStyles(){ document.querySelectorAll("#tabs button, #tabs svg, #tabs span").forEach(el => { el.style.transition = ""; el.style.transform = ""; el.style.strokeWidth = ""; el.style.color = ""; el.style.fontWeight = ""; }); }
+function pillTo(from, to, p, dur, ease, off = 0){ /* Glas-Pille läuft zeitgleich mit dem Wischen */
+  const tb = $("#tabs"), bs = [...tb.querySelectorAll("button")], i0 = bs.findIndex(b => b.dataset.v === from), i1 = bs.findIndex(b => b.dataset.v === to);
+  if (i0 < 0 || i1 < 0) return;
+  /* Die Blase bleibt in der Leiste: Zug über den Rand hinaus drückt sie an der Wand zusammen */
+  const v = i0 + (i1 - i0) * p + off, n = bs.length - 1, pos = Math.max(0, Math.min(n, v)), ov = v - pos, sp = `${dur}ms cubic-bezier(.34,1.35,.55,1)`;
+  tb.style.transition = dur ? `--pill ${sp}, --sq ${sp}` : "none"; tb.style.setProperty("--pill", pos.toFixed(4)); tb.style.setProperty("--sq", Math.abs(ov).toFixed(4));
+  if (ov) tb.style.setProperty("--so", ov < 0 ? "left" : "right");
+}
+function clearTabStyles(){ const tb = $("#tabs"); tb.style.transition = ""; ["--pill", "--sq", "--so"].forEach(k => tb.style.removeProperty(k)); document.querySelectorAll("#tabs button, #tabs svg, #tabs span").forEach(el => { el.style.transition = ""; el.style.transform = ""; el.style.strokeWidth = ""; el.style.color = ""; el.style.fontWeight = ""; }); }
 let curX = 0;
 function place(x, dur, ease = EASE){
   const m = $("#main"), W = innerWidth, t = dur ? `transform ${dur}ms ${ease}` : "none"; curX = x;
@@ -4318,7 +4444,8 @@ function place(x, dur, ease = EASE){
     const pk = PK()[peekDir]; pk.style.transition = t;
     pk.style.transform = `translate3d(${x + (peekDir === "left" ? W : -W)}px,0,0)`;
     const p = Math.min(1, Math.abs(x) / W); tabStyle(S.view, 1 - p, dur, ease); tabStyle(neighbour(peekDir), p, dur, ease);
-  }
+    pillTo(S.view, neighbour(peekDir), p, dur, ease);
+  } else pillTo(S.view, S.view, 0, dur, ease, -x / W * 1.1); /* am Rand (keine Seite mehr): Blase gibt dem Gummiband-Zug etwas nach und federt zurück */
 }
 function hidePeek(){
   const W = innerWidth, pk = PK();
