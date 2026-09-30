@@ -968,7 +968,7 @@ html.ios-standalone body{min-height:100lvh}
 body{--gl-bg:color-mix(in srgb,var(--surface) 38%,transparent);--gl-edge:rgba(255,255,255,.75);--gl-rim:rgba(255,255,255,.55);--gl-pill:rgba(255,255,255,.28);--gl-spec:.85;--gl-caus:.45;--gl-deep:.10;--gl-drop:0 10px 30px rgba(20,22,30,.16),0 2px 6px rgba(20,22,30,.08)}
 @media (prefers-color-scheme:dark){body:not(.m-light){--gl-bg:color-mix(in srgb,var(--surface) 42%,transparent);--gl-edge:rgba(255,255,255,.22);--gl-rim:rgba(255,255,255,.14);--gl-pill:rgba(255,255,255,.07);--gl-spec:.30;--gl-caus:.20;--gl-deep:.35;--gl-drop:0 10px 30px rgba(0,0,0,.45),0 2px 6px rgba(0,0,0,.3)}}
 body.m-dark{--gl-bg:color-mix(in srgb,var(--surface) 42%,transparent);--gl-edge:rgba(255,255,255,.22);--gl-rim:rgba(255,255,255,.14);--gl-pill:rgba(255,255,255,.07);--gl-spec:.30;--gl-caus:.20;--gl-deep:.35;--gl-drop:0 10px 30px rgba(0,0,0,.45),0 2px 6px rgba(0,0,0,.3)}
-#tabs{left:14px;right:14px;bottom:calc(max(10px,env(safe-area-inset-bottom,0px) - 14px) - var(--vgap,0px));padding:4px;border:0;border-radius:999px;
+#tabs{left:10px;right:10px;bottom:calc(max(8px,env(safe-area-inset-bottom,0px) - 26px) - var(--vgap,0px));padding:4px;border:0;border-radius:999px;
   background:var(--gl-bg);-webkit-backdrop-filter:blur(var(--gl-blur,8px)) saturate(190%) brightness(1.04);backdrop-filter:blur(var(--gl-blur,8px)) saturate(190%) brightness(1.04);
   box-shadow:inset 0 0 0 .5px var(--gl-rim),inset 1.5px 1.5px 1px -1px var(--gl-edge),inset -1.5px -1.5px 1px -1px var(--gl-edge),inset 0 0 10px rgba(255,255,255,.07),var(--gl-drop)}
 /* Glas-Pille: Position über --pill (0/1/2); beim Seitenwischen setzt place() den Wert direkt, damit sie mit dem Finger mitläuft */
@@ -986,7 +986,8 @@ body.m-dark{--gl-bg:color-mix(in srgb,var(--surface) 42%,transparent);--gl-edge:
   --ov:max(0, var(--pill) - 2, 0 - var(--pill));
   transform:translateX(calc(clamp(0, var(--pill), 2) * 100% + (max(0, var(--pill) - 2) - max(0, 0 - var(--pill))) * 40%)) scaleX(calc(1 - (var(--sq) + var(--ov)) * .8));transform-origin:var(--so,center);}
 #tabs:not(:has(button.on))::before{opacity:0}
-#tabs button{z-index:1;padding:7px 0 6px;border-radius:999px}
+#tabs button{z-index:1;padding:10px 0 9px;border-radius:999px;font-size:12.5px}
+#tabs svg{width:26px;height:26px}
 html.ios-standalone #tabs{padding-bottom:4px}
 @media (min-width:700px){#tabs{left:50%;right:auto;width:400px;bottom:calc(16px + env(safe-area-inset-bottom,0px) - var(--vgap,0px));border:0;padding:4px}}
 @media (prefers-reduced-motion:reduce){#tabs{transition:none}}
