@@ -1794,6 +1794,8 @@ function mountRichEditor(root, host, initial){
     const AL = [["l", "Links, Text daneben", '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="8" height="8" rx="1.5"/><path d="M14 6h7M14 10h7M14 14h7M3 18h18"/></svg>'], ["", "Mittig", '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="7" y="4" width="10" height="9" rx="1.5"/><path d="M3 17h18M6 21h12"/></svg>'], ["r", "Rechts, Text daneben", '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="13" y="5" width="8" height="8" rx="1.5"/><path d="M3 6h7M3 10h7M3 14h7M3 18h18"/></svg>']];
     imgBar.innerHTML = AL.map(([k, t, ic]) => `<button type="button" data-al="${k}" title="${t}" aria-label="${t}" class="${(im.dataset.al || "") === k ? "on" : ""}">${ic}</button>`).join("") + `<span class="sep"></span><button type="button" data-im="crop">${CROP_IC}Zuschneiden</button><button type="button" data-im="del" class="del" aria-label="Entfernen" title="Entfernen">${DEL_IC}</button>`;
     field.append(imgBox, imgBar); placeImg();
+    // Ecken/Bild ziehen: Seite darf nicht mitscrollen (iOS)
+    imgBox.addEventListener("touchmove", e => { if (e.cancelable) e.preventDefault(); }, { passive: false });
     // Ecken ziehen: Breite ändern, Seitenverhältnis bleibt (Höhe automatisch)
     imgBox.addEventListener("pointerdown", e => {
       const h = e.target.closest(".h"); if (!h) return; e.preventDefault(); e.stopPropagation();
@@ -4074,7 +4076,7 @@ document.addEventListener("keydown", e => { if ((e.metaKey || e.ctrlKey) && ["+"
   const sheetEl = () => host.querySelector(".sheet");
   host.addEventListener("touchstart", e => {
     d = null; const sh = sheetEl(); if (!sh || e.touches.length !== 1 || host.classList.contains("closing")) return;
-    if (e.target.closest("input,textarea,select,.ed-area,.ed-bar,.ed-tbar")) return;
+    if (e.target.closest("input,textarea,select,.ed-area,.ed-bar,.ed-tbar,.ed-imgbox,.ed-imgbar")) return; // Bild vergrößern/verschieben bewegt das Blatt nicht
     const t = e.touches[0];
     d = { y: t.clientY, x: t.clientX, ly: t.clientY, lt: Date.now(), v: 0, drag: false, sh, top: sh.scrollTop };
   }, { passive: true });
@@ -4197,7 +4199,7 @@ document.addEventListener("touchstart", e => {
   sw = null; if (e.touches.length !== 1) return;
   if (animating) settleSwipe();
   if (animating || !canSwipe() || RD.on) return;
-  if (e.target.closest("input,textarea,select,#czoom,#mathsheet,.ed-area,[data-noswipe]")) return;
+  if (e.target.closest("input,textarea,select,#czoom,#mathsheet,.ed-area,.ed-imgbox,.ed-imgbar,[data-noswipe]")) return;
   const t = e.touches[0]; if (t.clientX < 18 || t.clientX > innerWidth - 18) return; // leave system edge gestures alone
   if (peekGen !== S.gen) prerender();
   $("#main").style.willChange = "transform"; // Ebene schon beim Aufsetzen anlegen, damit der Start des Wischens nicht ruckelt
