@@ -1630,12 +1630,15 @@ function mountRichEditor(root, host, initial){
   Object.defineProperty(host, "value", { get: () => edSer(host), set, configurable: true });
   const inHost = r => r && host.contains(r.commonAncestorContainer);
   const cur = () => { const s = getSelection(); return s.rangeCount && inHost(s.getRangeAt(0)) ? s.getRangeAt(0) : null; };
-  const restore = () => {
+  const restore = noFocus => {
     if (cur()) return cur();
+    if (noFocus) { if (saved && host.contains(saved.startContainer)) return saved.cloneRange(); const r = document.createRange(); r.selectNodeContents(host.lastChild || host); r.collapse(false); return r; }
     host.focus({ preventScroll: true });
     if (saved && host.contains(saved.startContainer)) { const s = getSelection(); s.removeAllRanges(); s.addRange(saved); return saved; }
     const last = host.lastChild; return last ? edCaret(last.nodeType === 1 && last.lastChild && last.lastChild.tagName === "BR" ? last : last, false) : edCaret(host, false);
   };
+  // Tastatur schließen (Bild einfügen / bearbeiten)
+  const dropKb = () => { const a = document.activeElement; if (a && a !== document.body && (host.contains(a) || a === host) && a.blur) a.blur(); const s = getSelection(); if (s.rangeCount && inHost(s.getRangeAt(0))) s.removeAllRanges(); };
   const cellOf = n => { const e = n && (n.nodeType === 1 ? n : n.parentNode); const c = e && e.closest && e.closest("td,th"); return c && host.contains(c) ? c : null; };
   function state(){
     host.classList.toggle("empty", edIsEmpty(host));
@@ -1681,15 +1684,16 @@ function mountRichEditor(root, host, initial){
     const mk = document.createElement("mark"); mk.appendChild(frag); r.insertNode(mk);
     const nr = document.createRange(); nr.selectNodeContents(mk); const s = getSelection(); s.removeAllRanges(); s.addRange(nr);
   }
-  function insertBlock(el, caretIn){
-    const r = restore(); const c = cellOf(r.startContainer);
+  function insertBlock(el, caretIn, noFocus){
+    const r = restore(noFocus); const c = cellOf(r.startContainer);
     let blk = c ? c.closest("table") : edTopBlock(host, r.startContainer);
     if (blk && blk.parentNode !== host) blk = edTopBlock(host, blk);
     if (!blk || blk === host) host.appendChild(el);
     else if (!c && blk.nodeType === 1 && ED_BLOCK.test(blk.tagName) && edIsEmpty(blk)) host.replaceChild(el, blk);
     else blk.after(el);
     if (!el.nextSibling || !(el.nextSibling.nodeType === 1 && ED_BLOCK.test(el.nextSibling.tagName))) el.after(edEmptyDiv());
-    edCaret(caretIn || el.nextSibling, true); host.dispatchEvent(new Event("input", { bubbles: true }));
+    if (!noFocus) edCaret(caretIn || el.nextSibling, true);
+    host.dispatchEvent(new Event("input", { bubbles: true }));
   }
   function newTable(){
     const t = document.createElement("table");
@@ -1728,13 +1732,16 @@ function mountRichEditor(root, host, initial){
     host.dispatchEvent(new Event("input", { bubbles: true })); state();
   }
   const addImg = async f => {
-    if (busy) return; busy = true; bar.classList.add("busy"); restore();
+    if (busy) return; busy = true; bar.classList.add("busy"); dropKb();
     try {
       toast("Bild wird hinzugefügt …");
       const tok = await uploadCardImage(f), src = tok.slice(4, -1);
       const d = document.createElement("div"), im = document.createElement("img");
       im.className = "cimg"; im.src = imgSrc(src); im.dataset.src = src; im.alt = ""; im.draggable = false; im.setAttribute("crossorigin", "anonymous"); d.appendChild(im);
-      insertBlock(d);
+      insertBlock(d, null, true); dropKb();
+      // eingefügtes Bild gleich auswählen (Tastatur bleibt zu), damit man es platzieren kann
+      const show = () => { if (!im.isConnected) return; imgTools(im); im.scrollIntoView({ block: "nearest", behavior: "smooth" }); };
+      im.complete && im.naturalWidth ? requestAnimationFrame(show) : im.addEventListener("load", show, { once: true });
     } catch (err) { toast(err && err.message && !/fetch|network/i.test(err.message) ? "Bild: " + err.message : "Bild konnte nicht hochgeladen werden."); }
     busy = false; bar.classList.remove("busy");
   };
@@ -1755,7 +1762,7 @@ function mountRichEditor(root, host, initial){
     else if (k === "ul" || k === "ol") { if (inCell) { toast("In einer Tabelle gehen keine Listen."); return; } const off = caretOffset(); exec(k === "ul" ? "insertUnorderedList" : "insertOrderedList"); if (off != null) setCaretOffset(off); }
     else if (k === "table") { if (inCell) { toast("Du bist schon in einer Tabelle – nutze die Knöpfe darunter."); return; } newTable(); }
     else if (k === "tex") { addMath(null); return; }
-    else if (k === "img") { if (!busy) file.click(); return; }
+    else if (k === "img") { if (!busy) { state(); dropKb(); file.click(); } return; }
     host.dispatchEvent(new Event("input", { bubbles: true })); state();
   });
   tbar.addEventListener("click", e => { const b = e.target.closest("[data-tb]"); if (b) { e.preventDefault(); tableOp(b.dataset.tb); } });
@@ -1781,7 +1788,7 @@ function mountRichEditor(root, host, initial){
   }
   function imgTools(im){
     hideImg(); imgSel = im;
-    const s = getSelection(); s.removeAllRanges();
+    dropKb(); if (!im.complete) im.addEventListener("load", () => imgSel === im && placeImg(), { once: true });
     imgBox = document.createElement("div"); imgBox.className = "ed-imgbox"; imgBox.innerHTML = '<i class="mv"></i><i class="h tl" data-c="tl"></i><i class="h tr" data-c="tr"></i><i class="h bl" data-c="bl"></i><i class="h br" data-c="br"></i><span class="pct"></span>';
     imgBar = document.createElement("div"); imgBar.className = "ed-imgbar";
     const AL = [["l", "Links, Text daneben", '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="8" height="8" rx="1.5"/><path d="M14 6h7M14 10h7M14 14h7M3 18h18"/></svg>'], ["", "Mittig", '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="7" y="4" width="10" height="9" rx="1.5"/><path d="M3 17h18M6 21h12"/></svg>'], ["r", "Rechts, Text daneben", '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="13" y="5" width="8" height="8" rx="1.5"/><path d="M3 6h7M3 10h7M3 14h7M3 18h18"/></svg>']];
@@ -1843,6 +1850,15 @@ function mountRichEditor(root, host, initial){
   host.addEventListener("keydown", () => { if (imgSel) hideImg(); });
   const sheetEl = host.closest(".sheet"); if (sheetEl) sheetEl.addEventListener("scroll", () => imgSel && placeImg(), { passive: true });
   addEventListener("resize", () => imgSel && placeImg());
+  const tapImg = e => { const im = e.target.closest && e.target.closest("img.cimg"); return im && host.contains(im) ? im : null; };
+  ["pointerdown", "mousedown"].forEach(ev => host.addEventListener(ev, e => { if (tapImg(e) && e.pointerType !== "touch") e.preventDefault(); }));
+  let imgT0 = null;
+  host.addEventListener("touchstart", e => { const t = e.touches[0]; imgT0 = e.touches.length === 1 && tapImg(e) ? { x: t.clientX, y: t.clientY } : null; }, { passive: true });
+  host.addEventListener("touchend", e => {
+    const im = imgT0 && tapImg(e), t = e.changedTouches[0]; if (!im) return;
+    if (Math.hypot(t.clientX - imgT0.x, t.clientY - imgT0.y) > 10) return; // war Scrollen
+    e.preventDefault(); imgTools(im); // kein Fokus → keine Tastatur
+  });
   host.addEventListener("click", e => {
     const ch = e.target.closest(".mchip"); if (ch && host.contains(ch)) { e.preventDefault(); addMath(null, ch); return; }
     const im = e.target.closest("img.cimg"); if (im && host.contains(im)) { e.preventDefault(); imgTools(im); }
