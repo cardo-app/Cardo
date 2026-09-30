@@ -883,6 +883,8 @@ body:not(.intro-day):not(.splash-quick) #splash{animation:splashNightEdge .9s cu
 html[style*="--spcy"] #splash{place-items:start center}
 /* iOS schiebt die Web-Ansicht beim allerersten Öffnen kurz um die Statusleistenhöhe nach unten und gleitet dann hoch (~0,25 s).
    Das Logo gleicht das aus (startet um genau diesen Betrag höher und gleitet mit), damit es wie im Startbild ruhig stehen bleibt. */
+html.sp-hold body{visibility:hidden}
+html.sp-hold #splash,html.sp-hold #splash *,html.sp-hold #splash::before,html.sp-hold #splash::after,html.sp-hold #splash *::after{animation-play-state:paused!important}
 html.sp-lift #splash{transform:translateY(calc(-1 * var(--splift,0px)))}
 html.sp-settle #splash{transition:transform .24s cubic-bezier(.45,0,.4,1),opacity .35s ease,visibility .35s}
 html[style*="--spcy"] #splash .sp-stage{margin-top:calc(var(--spcy) - 56px)}
@@ -1143,7 +1145,7 @@ sup .ms-bx,sub .ms-bx{width:.8em;height:.9em}
 </head>
 <body>
 
-<div id="edgeTop" aria-hidden="true"></div><div id="splash" aria-hidden="true"><script>document.body.classList.add("splashing");document.documentElement.style.colorScheme="light";try{var ua=navigator.userAgent,sa=navigator.standalone===true||matchMedia("(display-mode: standalone)").matches;if(/iPhone|iPod/.test(ua)&&sa){var SH=Math.max(screen.width,screen.height),dd=SH-innerHeight,sb=dd>=0&&dd<=70?dd:(SH>=852?62:SH>=812?47:20);document.documentElement.style.setProperty("--spcy",Math.round((SH-sb)/2)+"px");if(dd-sb>=40&&dd-sb<=80){var de=document.documentElement;de.style.setProperty("--splift",(dd-sb)+"px");de.classList.add("sp-lift");requestAnimationFrame(function(){requestAnimationFrame(function(){de.classList.add("sp-settle");de.classList.remove("sp-lift")})})}var bd=[[0,innerHeight,SH,dd,sb]],t0=performance.now(),vv=window.visualViewport;(function tk(){bd.push([Math.round(performance.now()-t0),innerHeight,vv?Math.round(vv.height):0,vv?Math.round(vv.offsetTop):0]);if(bd.length<45)requestAnimationFrame(tk);else try{localStorage.setItem("cardo-boot-diag",JSON.stringify(bd))}catch(e){}})()}}catch(e){}try{if(!localStorage.getItem("cardo-intro-seen")&&!localStorage.getItem("sb-rormgkvthvisrctcsjrg-auth-token"))document.body.classList.add("intro-day");var cs=JSON.parse(localStorage.getItem("kartenfach-settings")||"{}")||{},cm=cs.splash||"daily",cd=new Date(),ck=cd.getFullYear()+"-"+(cd.getMonth()+1)+"-"+cd.getDate();if(cm==="never"||(cm==="daily"&&localStorage.getItem("cardo-splash-day")===ck))document.body.classList.add("splash-quick");else localStorage.setItem("cardo-splash-day",ck)}catch(e){}</script><div class="sp-stage"><div class="sp-l sp-arc"><svg viewBox="0 0 512 512"><path d="M320 165A116 116 0 1 0 320 347" fill="none" stroke="#1B1D23" stroke-width="60" stroke-linecap="round"/></svg></div><div class="sp-l sp-dot"><svg viewBox="0 0 512 512"><circle cx="350" cy="256" r="29" fill="#FF5A36"/></svg></div></div><div class="sp-ball"></div></div>
+<div id="edgeTop" aria-hidden="true"></div><div id="splash" aria-hidden="true"><script>document.body.classList.add("splashing");document.documentElement.style.colorScheme="light";try{var ua=navigator.userAgent,sa=navigator.standalone===true||matchMedia("(display-mode: standalone)").matches;if(/iPhone|iPod/.test(ua)&&sa){var de=document.documentElement,SH=Math.max(screen.width,screen.height),dd=SH-innerHeight,sb=dd>=0&&dd<=70?dd:(SH>=852?62:SH>=812?47:20);de.style.setProperty("--spcy",Math.round((SH-sb)/2)+"px");var first=false;try{first=!localStorage.getItem("cardo-intro-seen")&&!localStorage.getItem("sb-rormgkvthvisrctcsjrg-auth-token")}catch(e){}var go=function(t,h){var lf=SH-h-sb;de.classList.remove("sp-hold");bd[0].push("go",Math.round(t),h);if(lf>=40&&lf<=80){de.style.setProperty("--splift",lf+"px");de.classList.add("sp-lift");requestAnimationFrame(function(){requestAnimationFrame(function(){de.classList.add("sp-settle");de.classList.remove("sp-lift")})})}window.__spT0=performance.now();try{dispatchEvent(new Event("cardo-splash-go"))}catch(e){}};var bd=[[0,innerHeight,SH,dd,sb,first?1:0]],t0=performance.now(),vv=window.visualViewport,last=-1,same=0;if(first)de.classList.add("sp-hold");else go(0,innerHeight);(function tk(){var t=performance.now()-t0,h=innerHeight;bd.push([Math.round(t),h,vv?Math.round(vv.height):0,vv?Math.round(vv.offsetTop):0]);same=h===last?same+1:0;last=h;if(de.classList.contains("sp-hold")&&((t>=300&&same>=3&&SH-h-sb<20)||t>=800))go(t,h);if(bd.length<70)requestAnimationFrame(tk);else try{localStorage.setItem("cardo-boot-diag",JSON.stringify(bd))}catch(e){}})()}}catch(e){}try{if(!localStorage.getItem("cardo-intro-seen")&&!localStorage.getItem("sb-rormgkvthvisrctcsjrg-auth-token"))document.body.classList.add("intro-day");var cs=JSON.parse(localStorage.getItem("kartenfach-settings")||"{}")||{},cm=cs.splash||"daily",cd=new Date(),ck=cd.getFullYear()+"-"+(cd.getMonth()+1)+"-"+cd.getDate();if(cm==="never"||(cm==="daily"&&localStorage.getItem("cardo-splash-day")===ck))document.body.classList.add("splash-quick");else localStorage.setItem("cardo-splash-day",ck)}catch(e){}</script><div class="sp-stage"><div class="sp-l sp-arc"><svg viewBox="0 0 512 512"><path d="M320 165A116 116 0 1 0 320 347" fill="none" stroke="#1B1D23" stroke-width="60" stroke-linecap="round"/></svg></div><div class="sp-l sp-dot"><svg viewBox="0 0 512 512"><circle cx="350" cy="256" r="29" fill="#FF5A36"/></svg></div></div><div class="sp-ball"></div></div>
 <div id="app">
   <main id="main"><div class="loading">Cardo lädt …</div></main>
 </div>
@@ -2111,10 +2113,14 @@ if (isAndroid) {
   });
 }
 /* ---------- Startbildschirm ausblenden, sobald alles geladen ist (mind. ~1 s sichtbar) ---------- */
-const splashStart = performance.now();
+let splashStart = window.__spT0 || performance.now();
+addEventListener("cardo-splash-go", () => { splashStart = performance.now(); if (splashWait) { const f = splashWait; splashWait = null; f(); } });
+let splashWait = null; // hideSplash() wartet, solange die Seite beim ersten Start noch unsichtbar ist (html.sp-hold)
 let splashGone = false;
 function hideSplash(){
-  if (splashGone) return; splashGone = true;
+  if (splashGone) return;
+  if (document.documentElement.classList.contains("sp-hold")) { splashWait = hideSplash; return; }
+  splashGone = true;
   const el = document.getElementById("splash"); if (!el) { document.body.classList.remove("splashing"); return; }
   let quick = document.body.classList.contains("splash-quick");
   if (S.mode === "auth" && wantIntro()) { // erstes Anmelden nach der Installation: Intro
