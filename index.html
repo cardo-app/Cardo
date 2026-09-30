@@ -1042,6 +1042,11 @@ html.ios-standalone body{min-height:100lvh}
 .rich p:has(img.fl-l),.rich p:has(img.fl-r){text-align:left}
 .ed-area::after,.rich::after{content:"";display:block;clear:both}
 .ed-imgbox .mv{position:absolute;inset:14px;pointer-events:auto;cursor:grab;touch-action:none;border-radius:8px}
+.ed-ghost{position:fixed;z-index:600;margin:0;max-width:none;max-height:none;pointer-events:none;border-radius:10px;object-fit:cover;transform-origin:0 0;will-change:transform;box-shadow:0 2px 6px rgba(0,0,0,.12);transition:box-shadow .18s ease}
+.ed-ghost.up{box-shadow:0 18px 40px rgba(0,0,0,.30),0 4px 10px rgba(0,0,0,.18)}
+.ed-ghost.drop{transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .22s ease}
+.ed-area .ed-mvsrc img.cimg{opacity:.28;outline:2.5px dashed var(--accent);outline-offset:3px;border-radius:10px;transition:opacity .15s}
+.ed-area.ed-moving{cursor:grabbing;-webkit-user-select:none;user-select:none}
 .ed-drop{position:absolute;z-index:6;height:3px;border-radius:2px;background:var(--accent);pointer-events:none;box-shadow:0 0 0 2px color-mix(in oklab,var(--surface) 70%,transparent)}
 .ed-imgbar button.on{background:var(--accent-soft);color:var(--accent-text)}
 .ed-imgbar .sep{width:1px;background:var(--line);margin:4px 2px}
@@ -1810,34 +1815,71 @@ function mountRichEditor(root, host, initial){
       h.addEventListener("pointermove", mv); h.addEventListener("pointerup", up); h.addEventListener("pointercancel", up);
     });
     ["pointerdown", "mousedown"].forEach(ev => imgBar.addEventListener(ev, e => e.preventDefault()));
-    // Bild ziehen: nach oben/unten zwischen die Zeilen, nach links/Mitte/rechts
+    // Bild ziehen: Bild hebt sich ab und folgt dem Finger, die Zeilen weichen weich aus (Platzhalter zeigt den Zielplatz)
     imgBox.querySelector(".mv").addEventListener("pointerdown", e => {
       e.preventDefault(); e.stopPropagation();
-      const mvEl = e.currentTarget, blk = edTopBlock(host, im), x0 = e.clientX, y0 = e.clientY; let moved = false, before, al = im.dataset.al || "";
+      const mvEl = e.currentTarget, blk = edTopBlock(host, im), x0 = e.clientX, y0 = e.clientY;
+      if (!blk || blk.parentNode !== host) return;
+      const sc = host.closest(".sheet"), calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      let moved = false, ghost = null, r0 = null, lx = x0, ly = y0, raf = 0;
       try { mvEl.setPointerCapture(e.pointerId); } catch {}
-      const line = document.createElement("div"); line.className = "ed-drop";
-      const mv = ev => {
-        if (!moved && Math.hypot(ev.clientX - x0, ev.clientY - y0) < 8) return;
-        if (!moved) { moved = true; field.appendChild(line); imgBar.style.visibility = "hidden"; }
-        const hr = host.getBoundingClientRect(), f = field.getBoundingClientRect();
+      // FLIP: Zeilen gleiten an ihren neuen Platz statt zu springen
+      const flip = fn => {
+        const kids = [...host.children].filter(k => k !== blk), a = new Map(kids.map(k => [k, k.getBoundingClientRect()]));
+        fn();
+        kids.forEach(k => {
+          const o = a.get(k), n = k.getBoundingClientRect(), dx = o.left - n.left, dy = o.top - n.top;
+          if (calm || (!dx && !dy)) return;
+          k.style.transition = "none"; k.style.transform = `translate(${dx}px,${dy}px)`; k.offsetWidth;
+          k.style.transition = "transform .26s cubic-bezier(.2,.8,.2,1)"; k.style.transform = "";
+        });
+      };
+      const frame = () => {
+        raf = requestAnimationFrame(frame);
+        const hr = host.getBoundingClientRect();
+        // Kopie folgt dem Finger (senkrecht frei, waagrecht innerhalb der Karte)
+        const gx = Math.max(hr.left - r0.left, Math.min(hr.right - r0.right, lx - x0)), gy = ly - y0;
+        ghost.style.transform = `translate3d(${gx}px,${gy}px,0) scale(1.03)`;
         // waagrecht: Drittel → links / mittig / rechts
-        const rel = (ev.clientX - hr.left) / hr.width; al = rel < .36 ? "l" : rel > .64 ? "r" : "";
-        if ((im.dataset.al || "") !== al) setAlign(im, al, true);
-        // senkrecht: vor welche Zeile?
-        const kids = [...host.children].filter(k => k !== blk && k.getBoundingClientRect().height > 0);
-        before = kids.find(k => { const r = k.getBoundingClientRect(); return ev.clientY < r.top + r.height / 2; }) || null;
-        const ref = before ? before.getBoundingClientRect().top : (kids.length ? kids[kids.length - 1].getBoundingClientRect().bottom : hr.top + 14);
-        Object.assign(line.style, { left: (hr.left - f.left + 12) + "px", width: (hr.width - 24) + "px", top: (ref - f.top - 2) + "px" });
+        const cx = r0.left + gx + r0.width / 2, rel = (cx - hr.left) / hr.width, al = rel < .36 ? "l" : rel > .64 ? "r" : "";
+        if ((im.dataset.al || "") !== al) flip(() => setAlign(im, al, true));
+        // senkrecht: an der Mitte der Nachbarzeile vorbei → Platz tauschen (mit Abstand, damit nichts hin- und herspringt)
+        const cy = r0.top + gy + r0.height / 2 - hr.top;
+        const nx = blk.nextElementSibling, pv = blk.previousElementSibling;
+        if (nx && nx.offsetHeight && cy > nx.offsetTop + nx.offsetHeight / 2) flip(() => nx.after(blk));
+        else if (pv && pv.offsetHeight && cy < pv.offsetTop + pv.offsetHeight / 2) flip(() => pv.before(blk));
+        // am Rand des Blatts automatisch weiterscrollen
+        if (sc) { const sr = sc.getBoundingClientRect(), edge = 70; if (ly < sr.top + edge) sc.scrollTop -= Math.ceil((sr.top + edge - ly) / 6); else if (ly > sr.bottom - edge) sc.scrollTop += Math.ceil((ly - sr.bottom + edge) / 6); }
+      };
+      const mv = ev => {
+        lx = ev.clientX; ly = ev.clientY;
+        if (moved || Math.hypot(lx - x0, ly - y0) < 6) return;
+        moved = true; r0 = im.getBoundingClientRect();
+        ghost = im.cloneNode(false); ghost.className = "ed-ghost"; ghost.removeAttribute("style");
+        Object.assign(ghost.style, { left: r0.left + "px", top: r0.top + "px", width: r0.width + "px", height: r0.height + "px" });
+        document.body.appendChild(ghost);
+        blk.classList.add("ed-mvsrc"); host.classList.add("ed-moving");
+        imgBox.style.opacity = "0"; imgBar.style.visibility = "hidden";
+        requestAnimationFrame(() => ghost.classList.add("up"));
+        raf = requestAnimationFrame(frame);
       };
       const up = () => {
         mvEl.removeEventListener("pointermove", mv); mvEl.removeEventListener("pointerup", up); mvEl.removeEventListener("pointercancel", up);
-        line.remove(); if (imgBar) imgBar.style.visibility = "";
-        if (moved && blk && blk.parentNode === host) {
-          if (before !== blk) host.insertBefore(blk, before);
-          if (!blk.nextSibling) host.appendChild(edEmptyDiv()); // unter einem Bild muss man weiterschreiben können
-          host.dispatchEvent(new Event("input", { bubbles: true }));
-        }
-        placeImg();
+        if (!moved) return;
+        cancelAnimationFrame(raf);
+        if (!blk.nextSibling) host.appendChild(edEmptyDiv()); // unter einem Bild muss man weiterschreiben können
+        // Kopie gleitet an den neuen Platz, dann wird das Bild wieder sichtbar
+        const t = im.getBoundingClientRect();
+        const done = () => {
+          ghost.remove(); blk.classList.remove("ed-mvsrc"); host.classList.remove("ed-moving");
+          [...host.children].forEach(k => { k.style.transition = ""; k.style.transform = ""; });
+          if (imgBox) imgBox.style.opacity = ""; if (imgBar) imgBar.style.visibility = "";
+          host.dispatchEvent(new Event("input", { bubbles: true })); placeImg();
+        };
+        if (calm) { done(); return; }
+        ghost.classList.remove("up"); ghost.classList.add("drop");
+        ghost.style.transform = `translate3d(${t.left - r0.left}px,${t.top - r0.top}px,0) scale(${t.width / r0.width})`;
+        setTimeout(done, 240);
       };
       mvEl.addEventListener("pointermove", mv); mvEl.addEventListener("pointerup", up); mvEl.addEventListener("pointercancel", up);
     });
