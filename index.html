@@ -800,6 +800,7 @@ button.set-item:hover{background:color-mix(in oklab,var(--ink) 4%,transparent)}
 .learn-done{font-size:15.5px;color:var(--muted);padding:12px 14px;border-radius:14px;background:var(--surface-2)}
 .learn-done span{font-weight:900;margin-right:4px}
 .learn-done .more-new{display:flex;margin-top:10px;font-size:14.5px}
+.learn-done .ld-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.learn-done .ld-acts .more-new{margin-top:0}
 /* Login */
 body.authing #tabs{display:none}
 .auth{max-width:420px;margin:0 auto;padding-top:6vh}
@@ -2491,7 +2492,7 @@ function makeStore(sb, uid){
     doc: path => ({ set: d => write(path, JSON.parse(JSON.stringify(d))), delete: () => write(path, null),
       onSnapshot: cb => { subs.push({ path, cb }); cb(docSnap(path)); return () => {}; } }),
     collection: col => ({ onSnapshot: cb => { subs.push({ col, cb }); cb(colSnap(col)); return () => {}; } }),
-    load, flush, pendingCount: () => Object.keys(pending).length, cached: () => rows.size > 0,
+    load, flush, pendingCount: () => Object.keys(pending).length, cached: () => rows.size > 0, has: path => rows.has(path),
     bulk: entries => { entries.forEach(([p, d]) => { rows.set(p, d); pending[p] = d; }); savePending(); saveCache(); emit(); return flush(); }
   };
   return api;
@@ -2501,7 +2502,7 @@ function makeStore(sb, uid){
 async function bootClaude(){
   let db = null;
   try { db = await window.claude.use("db"); } catch {}
-  if (!db) { S.mode = "local"; loadLocal(); S.loaded = { f: true, c: true, s: true }; render(); return; }
+  if (!db) { S.mode = "local"; loadLocal(); S.loaded = { f: true, c: true, s: true }; render(); startDeck(); return; }
   DB = db; AS = null; S.mode = "cloud"; USER = { id: "vorschau", email: "Vorschau in Claude" };
   DB.doc("settings/main").onSnapshot(d => { if (!d.exists) return; const v = normSet(d.data()); if (!v) return; S.set = v; applyTheme(); render(); });
   DB.collection("sections").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = d.data(); }); S.sections = o; render(); });
@@ -2546,7 +2547,7 @@ function startApp(){
   DB.collection("folders").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = d.data(); }); S.folders = o; S.loaded.f = true; render(); });
   DB.collection("cards").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = { ...((d.data()||{}).cards || {}) }; }); S.decks = o; S.loaded.c = true; render(); });
   DB.doc("stats/main").onSnapshot(d => { const x = d.exists ? (d.data()||{}) : {}; S.days = { ...(x.days || {}) }; S.seen = { ...(x.seen || {}) }; S.lastExport = x.lastExport || 0; S.extraNew = { ...(x.extraNew || {}) }; S.fdays = { ...(x.fdays || {}) }; S.prog = { ...(x.prog || {}) }; S.loaded.s = true; render(); });
-  DB.load().then(() => DB.flush()).catch(e => { console.warn(e); toast(navigator.onLine ? "Laden fehlgeschlagen. Versuch es gleich noch einmal." : "Offline: Du siehst den zuletzt gespeicherten Stand."); })
+  DB.load().then(() => { DB.flush(); setTimeout(startDeck, 60); }).catch(e => { console.warn(e); toast(navigator.onLine ? "Laden fehlgeschlagen. Versuch es gleich noch einmal." : "Offline: Du siehst den zuletzt gespeicherten Stand."); })
     .finally(() => { S.mode = "cloud"; render(); runPendingDeck(); });
 }
 
@@ -2689,6 +2690,32 @@ async function addSharedDeck(id, btn){
 }
 function runPendingDeck(){ let id = null; try { id = localStorage.getItem("cardo-pending-deck"); } catch {} if (id && !$("#deckview")) addSharedDeck(id); }
 
+/* ---------- Beispiel-Ordner „So geht Cardo“ für neue Nutzer ----------
+   Wird einmal pro Konto angelegt (Merker flags/start), nur wenn das Konto noch ganz leer ist. Gelöscht bleibt gelöscht. */
+const START_DECK = [
+  ["Willkommen bei Cardo! Was ist das hier?", "Dein erster Ordner. Jede Karte erklärt dir eine Sache in Cardo.\n\nTippe auf die Karte, um die Rückseite zu sehen – und bewerte dann, wie gut du es wusstest."],
+  ["Was bedeuten die Knöpfe unter der Karte?", "- **Nochmal** – wusste ich nicht, kommt gleich wieder\n- **Schwer** – nur knapp gewusst\n- **Gut** – gewusst\n- **Einfach** – sofort gewusst, kommt erst viel später wieder"],
+  ["Warum kommt eine Karte erst in ein paar Tagen wieder?", "Cardo zeigt dir jede Karte kurz bevor du sie vergessen würdest. Je besser du sie kannst, desto größer wird der Abstand.\n\nSo lernst du mit wenig Zeit ==dauerhaft==."],
+  ["Wie lege ich eigene Karten an?", "In der **Bibliothek** über **⋯ → Neuer Ordner**.\n\nIm Ordner dann über **⋯ → Neue Karte**. Unterordner gehen genauso."],
+  ["Kann ich Karten aus Anki, Quizlet oder Excel übernehmen?", "Ja: im Ordner **⋯ → Karten importieren**.\n\nEine Karte pro Zeile, Vorder- und Rückseite getrennt durch Tabulator, Semikolon oder Komma."],
+  ["Was kann ich alles auf eine Karte schreiben?", "**Fett**, *kursiv*, ==markiert==, Listen, Tabellen, Bilder – und Formeln wie $a^2 + b^2 = c^2$."],
+  ["Ich habe bald eine Prüfung – was nun?", "Tippe im Ordner oben auf den Knopf mit der Tagesmenge (z. B. **20 / Tag**) → **Lernmenge pro Tag** und stell einen Prüfungsplan mit Datum ein. Cardo verteilt die Karten so, dass du rechtzeitig durch bist.\n\nMit **Prüfen** testest du dich wie in einer echten Prüfung."],
+  ["Kann ich auch von der Rückseite aus lernen?", "Ja: im Ordner oben auf **20 / Tag → Lernrichtung**. Wähle Rückseite zuerst oder beidseitig – praktisch z. B. für Vokabeln."],
+  ["Wie gestalte ich einen Ordner?", "**⋯ → Ordner gestalten**: Name, Farbe, Emoji oder ein eigenes Titelbild."],
+  ["Wie teile ich einen Ordner mit anderen?", "Tippe im Ordner oben auf das **Teilen-Symbol**. Du bekommst einen Link – wer ihn öffnet, kann sich eine eigene Kopie holen."],
+  ["Sind meine Karten auf allen Geräten?", "Ja. Mit deinem Konto sind sie auf iPhone, iPad und Mac gleich.\n\nOhne Internet kannst du trotzdem lernen – abgeglichen wird, sobald du wieder online bist."],
+  ["Und was mache ich mit diesem Ordner?", "Wenn du alles kennst, kannst du ihn löschen: **⋯ → Ordner gestalten → Ordner löschen**.\n\nViel Spaß beim Lernen! 🎓"]
+];
+async function startDeck(){
+  const local = !DB, key = "cardo-start-" + (USER ? USER.id : "local");
+  try { if (local ? localStorage.getItem(key) : DB.has && DB.has("flags/start")) return; } catch { return; }
+  const mark = () => { if (local) { try { localStorage.setItem(key, "1"); } catch {} } else DB.doc("flags/start").set({ at: Date.now() }); };
+  let pend = null; try { pend = localStorage.getItem("cardo-pending-deck"); } catch {}
+  if (Object.keys(S.folders).length || Object.keys(S.sections).length || Object.keys(S.days || {}).length || pend) { mark(); return; }
+  mark();
+  await importSharedDeck({ id: "cardo-start", data: { v: 1, folders: [{ k: 0, p: -1, n: "So geht Cardo", e: "👋", c: "#FF5A36" }], cards: START_DECK.map(([f, b]) => [0, f, b]) } });
+}
+
 /* ---------- Login ---------- */
 function authErr(e){
   const m = String((e && e.message) || e || "");
@@ -2819,6 +2846,15 @@ function cardsIn(fid, deep){
 const isDue = (c, now = Date.now()) => (c.due || 0) <= now;
 /* ---------- Tageslimit: Karten pro Tag (pro Hauptordner) ---------- */
 const isNewCard = c => !c.reps;
+/* Wann ist in diesem Ordner die nächste Karte wieder dran? (für „Alle Karten sind für heute durch“) */
+function nextDueText(fid){
+  const now = Date.now(); let t = Infinity;
+  cardsIn(fid, true).forEach(x => { if (x.c.reps) { const d = capForExam(x.fid, x.c).due || 0; if (d > now && d < t) t = d; } });
+  if (t === Infinity) return "neue Karten kannst du jederzeit hinzufügen.";
+  const min = Math.ceil((t - now) / 60000), dd = Math.round((dayStart(t) - dayStart()) / DAY);
+  const when = min < 60 ? `in ${min} Min.` : dd === 0 ? `heute um ${new Date(t).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })} Uhr` : dd === 1 ? "morgen" : dd === 2 ? "übermorgen" : `am ${new Date(t).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "long" })}`;
+  return `die nächste ist ${when} wieder dran.`;
+}
 function topOf(fid){ let f = S.folders[fid], g = 0; while (f && f.parentId && S.folders[f.parentId] && g++ < 40) f = S.folders[f.parentId]; return f ? f.id : fid; }
 /* Lernmenge pro Tag gilt pro Ordner: der nächste Ordner nach oben mit eigener Einstellung (f.daily) bildet eine Gruppe,
    sonst der Hauptordner mit dem Standardwert. f.daily = { mode: "fixed", n } (n = 0: unbegrenzt) oder { mode: "exam", date: "JJJJ-MM-TT" }. */
@@ -3018,7 +3054,7 @@ function folderHTML(fid){
       <button class="icon-btn" data-act="folderMenu" data-id="${fid}" aria-haspopup="menu" aria-expanded="false" aria-label="${f.parentId ? 'Unterordner' : 'Ordner'}-Menü" title="${f.parentId ? 'Unterordner' : 'Ordner'}">${IC.dots}</button>
       <button class="icon-btn share-btn ${f.share ? 'live' : ''}" data-act="shareSheet" data-id="${fid}" aria-label="Teilen${f.share ? ' (Link aktiv)' : ''}" title="Teilen${f.share ? ' – Link aktiv' : ''}">${IC.share}</button></div></div>
       ${n.total ? (n.due ? `<button class="learn-btn" data-act="study" data-id="${fid}"><span class="lb-play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.9l10.2-6.5a1 1 0 0 0 0-1.8L9.5 4.6A1 1 0 0 0 8 5.5z"/></svg></span><span class="lb-t"><b>Lernen</b><span>${learnSub(n)}</span></span></button>`
-        : (n.newLeft ? `<div class="learn-done"><span aria-hidden="true">✓</span> Heute alles gelernt – dein Tageslimit ist erreicht.<button class="btn more-new" data-act="moreNew" data-id="${fid}">＋ 10 weitere Karten</button></div>` : `<div class="learn-done"><span aria-hidden="true">✓</span> Heute alles gelernt. Neue Karten kommen, sobald sie fällig sind.</div>`)) : ''}
+        : (n.newLeft ? `<div class="learn-done"><span aria-hidden="true">✓</span> Heute alles gelernt – dein Tageslimit ist erreicht.<div class="ld-acts"><button class="btn more-new" data-act="moreNew" data-id="${fid}">＋ 10 weitere Karten</button><button class="btn more-new" data-act="examSheet" data-pr="1" data-id="${fid}">↻ Nochmal üben</button></div></div>` : `<div class="learn-done"><span aria-hidden="true">✓</span> Alle Karten sind für heute durch – ${nextDueText(fid)}<div class="ld-acts"><button class="btn more-new" data-act="examSheet" data-pr="1" data-id="${fid}">↻ Nochmal üben</button></div></div>`)) : ''}
       ${n.total ? (() => { const m = mastery(fid); return `<button class="exam-btn lv${m.lv}" data-act="examSheet" data-id="${fid}" title="${m.pct} % der Karten sitzen sicher">${IC_EXAM}Prüfen<span class="ex-pct num">· ${m.pct} % sicher</span></button>`; })() : ''}
     </div></section>
   ${subs.length ? `<div class="sec-h"><h2>Unterordner</h2></div>${foldersHTML(subs)}` : ''}
@@ -3428,9 +3464,9 @@ function curCard(){ const st = S.study; while (st && st.queue.length) { const q 
 function studyHTML(){
   const st = S.study; if (!st) return libHTML();
   const cur = curCard(), left = st.queue.length, pct = st.done + left ? Math.round(st.done / (st.done + left) * 100) : 100;
-  const top = `<div class="study-top"><button class="xbtn" data-act="endStudy" aria-label="Lernen beenden">${IC.close}</button>${st.exam ? '<span class="exam-tag">Prüfung</span>' : ''}${cur ? `<button class="xbtn" data-act="studyEdit" aria-label="Karte bearbeiten" title="Karte bearbeiten (E)">${IC.edit}</button>` : ""}${st.hist && st.hist.length ? `<button class="xbtn undo" data-act="undoGrade" aria-label="Letzte Bewertung rückgängig" title="Rückgängig (Z)">${IC.undo}</button>` : ""}<div class="bar"><i style="width:${pct}%"></i></div><div class="study-count num">${left} übrig</div></div>`;
+  const top = `<div class="study-top"><button class="xbtn" data-act="endStudy" aria-label="Lernen beenden">${IC.close}</button>${st.exam ? `<span class="exam-tag">${st.prac ? "Üben" : "Prüfung"}</span>` : ''}${cur ? `<button class="xbtn" data-act="studyEdit" aria-label="Karte bearbeiten" title="Karte bearbeiten (E)">${IC.edit}</button>` : ""}${st.hist && st.hist.length ? `<button class="xbtn undo" data-act="undoGrade" aria-label="Letzte Bewertung rückgängig" title="Rückgängig (Z)">${IC.undo}</button>` : ""}<div class="bar"><i style="width:${pct}%"></i></div><div class="study-count num">${left} übrig</div></div>`;
   if (!cur && st.exam) return top + examDoneHTML(st);
-  if (!cur) return top + `<div class="done"><div class="big">🎉</div><h1>Geschafft!</h1><p class="muted">${plural(st.done, 'Karte', 'Karten')} wiederholt · ${plural(streak(), 'Tag', 'Tage')} Serie</p><div class="actions" style="justify-content:center;margin-top:18px">${(() => { const tc = st.fid ? todayCards(st.fid) : null; return tc && tc.rev.length + tc.nw.length ? `<button class="btn primary" data-act="studyAgain" data-id="${st.fid}">Weiterlernen · ${tc.rev.length + tc.nw.length}</button>` : ""; })()}${st.fid && todayCards(st.fid).newLeft ? `<button class="btn" data-act="moreNew" data-id="${st.fid}">＋ 10 weitere Karten</button>` : ''}<button class="btn primary" data-act="endStudy">Zurück</button></div></div>`;
+  if (!cur) return top + `<div class="done"><div class="big">🎉</div><h1>Geschafft!</h1><p class="muted">${plural(st.done, 'Karte', 'Karten')} wiederholt · ${plural(streak(), 'Tag', 'Tage')} Serie</p><div class="actions" style="justify-content:center;margin-top:18px">${(() => { const tc = st.fid ? todayCards(st.fid) : null; return tc && tc.rev.length + tc.nw.length ? `<button class="btn primary" data-act="studyAgain" data-id="${st.fid}">Weiterlernen · ${tc.rev.length + tc.nw.length}</button>` : ""; })()}${st.fid && todayCards(st.fid).newLeft ? `<button class="btn" data-act="moreNew" data-id="${st.fid}">＋ 10 weitere Karten</button>` : ''}${st.fid ? `<button class="btn" data-act="examSheet" data-pr="1" data-id="${st.fid}">↻ Nochmal üben</button>` : ''}<button class="btn primary" data-act="endStudy">Zurück</button></div></div>`;
   const f = S.folders[cur.fid], now = Date.now();
   const opts = curGrades();
   const fresh = st.shown !== cur.id + ":" + st.done; st.shown = cur.id + ":" + st.done; const jf = st.justFlipped; st.justFlipped = false;
@@ -3536,12 +3572,12 @@ function examBodyHTML(){
     <div class="field"><span class="lbl">Reihenfolge</span>${seg("exOrder", EX.order, [["mix", "Gemischt"], ["seq", "Der Reihe nach"]])}</div>
     ${rows.length > 1 ? `<div class="field"><span class="lbl">Unterordner</span><div class="set-list ex-list">${rows.map(r => `<button class="ex-row ${EX.sel.has(r.id) ? 'on' : ''}" data-act="exSel" data-id="${r.id}" ${r.self ? 'data-self="1"' : ''} role="checkbox" aria-checked="${EX.sel.has(r.id)}" style="padding-left:${14 + r.d * 22}px"><span class="ex-box" aria-hidden="true">✓</span><span class="ex-name">${r.emoji ? esc(r.emoji) + ' ' : ''}${esc(r.name)}</span><span class="ex-n num">${r.n}</span></button>`).join("")}</div></div>` : ''}
     <div class="set-list" style="margin-bottom:18px"><button class="set-item ex-sw" data-act="exResched" role="switch" aria-checked="${EX.resched}"><span class="si-t">Nicht gewusste früher wiederholen<small>Gelernte Karten, die du hier nicht weißt, kommen im normalen Lernplan gleich wieder dran.</small></span><span class="switch ${EX.resched ? 'on' : ''}" aria-hidden="true"><i></i></span></button></div>
-    <button class="learn-btn" data-act="examStart" ${pool.length ? '' : 'disabled'}><span class="lb-play" aria-hidden="true">${IC_EXAM}</span><span class="lb-t"><b>Prüfung starten</b><span>${pool.length ? plural(pool.length, 'Karte', 'Karten') : 'Keine passenden Karten'}</span></span></button>`;
+    <button class="learn-btn" data-act="examStart" ${pool.length ? '' : 'disabled'}><span class="lb-play" aria-hidden="true">${IC_EXAM}</span><span class="lb-t"><b>${EX.prac ? "Üben starten" : "Prüfung starten"}</b><span>${pool.length ? plural(pool.length, 'Karte', 'Karten') : 'Keine passenden Karten'}</span></span></button>`;
 }
-function examSheet(fid){
+function examSheet(fid, prac){
   if (!S.folders[fid]) return;
-  EX = { fid, which: ["all", "hard", "new"].includes(EX_PREF.which) ? EX_PREF.which : "all", order: EX_PREF.order === "seq" ? "seq" : "mix", resched: !!EX_PREF.resched, sel: new Set([fid, ...descendants(fid)]) };
-  openSheet(`${head("Prüfen")}<p class="muted" style="margin:0 0 16px;font-size:15.5px">Geh Karten durch, ohne deinen Lernplan zu verändern. Nicht gewusste Karten kommen am Ende der Runde noch einmal.</p><div id="exBody">${examBodyHTML()}</div>`);
+  EX = { fid, which: ["all", "hard", "new"].includes(EX_PREF.which) ? EX_PREF.which : "all", order: EX_PREF.order === "seq" ? "seq" : "mix", resched: !!EX_PREF.resched, sel: new Set([fid, ...descendants(fid)]), prac: !!prac };
+  openSheet(`${head(prac ? "Nochmal üben" : "Prüfen")}<p class="muted" style="margin:0 0 16px;font-size:15.5px">Geh Karten nochmal durch, ohne deinen Lernplan zu verändern. Nicht gewusste Karten kommen am Ende der Runde noch einmal.</p><div id="exBody">${examBodyHTML()}</div>`);
 }
 const exRefresh = () => { const b = $("#exBody"); if (b) b.innerHTML = examBodyHTML(); };
 function exToggle(id, self){
@@ -3552,7 +3588,7 @@ function exToggle(id, self){
 function startExam(list, opts){
   if (!list.length) { toast("Keine Karten zum Prüfen."); return; }
   const prev = S.study;
-  S.study = { exam: true, fid: opts.fid, resched: !!opts.resched, moved: (prev && prev.exam && prev.moved) || {},
+  S.study = { exam: true, prac: !!opts.prac, fid: opts.fid, resched: !!opts.resched, moved: (prev && prev.exam && prev.moved) || {},
     queue: list.map(x => ({ fid: x.fid, id: x.c.id, rev: pickSide(x.fid) })), total: list.length, first: {}, done: 0, flipped: false,
     back: prev ? prev.back : (S.view === "stats" ? "stats" : "lib"), backFid: prev ? prev.backFid : S.fid };
   S.view = "study"; S.anim = null; closeSheet(); render(); window.scrollTo(0, 0);
@@ -3572,9 +3608,9 @@ function examApply(g, cur){
 function examDoneHTML(st){
   const keys = Object.keys(st.first), n = keys.length, ok = keys.filter(k => st.first[k]).length, pct = n ? Math.round(ok / n * 100) : 0;
   const miss = keys.filter(k => !st.first[k]).map(k => { const i = k.indexOf("/"), fid = k.slice(0, i), id = k.slice(i + 1), c = S.decks[fid] && S.decks[fid][id]; return c ? { fid, c } : null; }).filter(Boolean);
-  return `<div class="done"><div class="big">${pct >= 90 ? '🏆' : pct >= 60 ? '💪' : '📚'}</div><h1>Prüfung beendet</h1>
+  return `<div class="done"><div class="big">${pct >= 90 ? '🏆' : pct >= 60 ? '💪' : '📚'}</div><h1>${st.prac ? "Runde beendet" : "Prüfung beendet"}</h1>
     <p class="muted" style="font-size:17px">${ok} von ${n} beim ersten Versuch gewusst · <b style="color:var(--ink)">${pct} %</b></p>
-    <div class="actions" style="justify-content:center;margin-top:18px">${miss.length ? `<button class="btn" data-act="examRetry">Nicht gewusste erneut prüfen</button>` : ''}<button class="btn primary" data-act="endStudy">Zurück</button></div>
+    <div class="actions" style="justify-content:center;margin-top:18px">${miss.length ? `<button class="btn" data-act="examRetry">Nicht gewusste ${st.prac ? "nochmal üben" : "erneut prüfen"}</button>` : ''}<button class="btn primary" data-act="endStudy">Zurück</button></div>
     ${miss.length ? `<div class="exam-sum"><div class="exam-miss"><h2>Nicht gewusst (${miss.length})</h2>${miss.map(x => `<div>${richLine(x.c.f)}<small>${richLine(x.c.b)}</small></div>`).join("")}</div></div>` : ''}</div>`;
 }
 function endStudy(){ const st = S.study; S.study = null; go(st ? st.back : "lib", st ? st.backFid : null); }
@@ -4066,13 +4102,13 @@ document.addEventListener("click", e => {
   const a = b.dataset.act, id = b.dataset.id || null;
   if (isMenuBtn) { if (!$("#menu").hidden) { closeMenu(); return; } a === "sectMenu" ? openSectMenu(b, id) : a === "cardSortMenu" ? openCardSortMenu(b, id) : a === "learnMenu" ? openLearnMenu(b, id) : openMenu(b, a === "folderMenu" ? id : null); return; }
   if (a === "installApp") { const ev = installEvt; if (ev) { ev.prompt(); ev.userChoice.then(r => { if (r && r.outcome === "accepted") { installEvt = null; render(); } }).catch(() => {}); } return; }
-  if (a === "examSheet") { examSheet(id); return; }
+  if (a === "examSheet") { examSheet(id, !!b.dataset.pr); return; }
   if (a === "exWhich" && EX) { EX.which = b.dataset.v; saveExPref(); exRefresh(); return; }
   if (a === "exOrder" && EX) { EX.order = b.dataset.v; saveExPref(); exRefresh(); return; }
   if (a === "exResched" && EX) { EX.resched = !EX.resched; saveExPref(); exRefresh(); return; }
   if (a === "exSel" && EX) { exToggle(id, !!b.dataset.self); return; }
-  if (a === "examStart" && EX) { const p = examPool(); if (p.length) startExam(p, { fid: EX.fid, resched: EX.resched }); return; }
-  if (a === "examRetry" && S.study && S.study.exam) { const st = S.study; const list = Object.keys(st.first).filter(k => !st.first[k]).map(k => { const i = k.indexOf("/"), fid = k.slice(0, i), c = S.decks[fid] && S.decks[fid][k.slice(i + 1)]; return c ? { fid, c } : null; }).filter(Boolean); for (let i = list.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [list[i], list[j]] = [list[j], list[i]]; } startExam(list, { fid: st.fid, resched: st.resched }); return; }
+  if (a === "examStart" && EX) { const p = examPool(); if (p.length) startExam(p, { fid: EX.fid, resched: EX.resched, prac: EX.prac }); return; }
+  if (a === "examRetry" && S.study && S.study.exam) { const st = S.study; const list = Object.keys(st.first).filter(k => !st.first[k]).map(k => { const i = k.indexOf("/"), fid = k.slice(0, i), c = S.decks[fid] && S.decks[fid][k.slice(i + 1)]; return c ? { fid, c } : null; }).filter(Boolean); for (let i = list.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [list[i], list[j]] = [list[j], list[i]]; } startExam(list, { fid: st.fid, resched: st.resched, prac: st.prac }); return; }
   if (a === "newSect") { sectSheet(null); return; }
   if (a === "editSect") { sectSheet(id); return; }
   if (a === "sectUp" || a === "sectDown") { moveSection(id, a === "sectUp" ? -1 : 1); return; }
