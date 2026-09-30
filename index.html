@@ -2111,7 +2111,7 @@ function hideSplash(){
   if (S.mode === "auth" && wantIntro()) { // erstes Anmelden nach der Installation: Intro
     let start = splashStart;
     if (quick) { document.body.classList.remove("splash-quick"); start = performance.now(); } // volle Startanimation als Auftakt
-    splashT = setTimeout(() => { playIntro({ from: el.querySelector(".sp-ball") }); setTimeout(() => { el.remove(); document.body.classList.remove("splashing"); }, 450); }, Math.max(0, 1850 - (performance.now() - start)));
+    splashT = setTimeout(() => { playIntro({ from: el.querySelector(".sp-ball"), noSkip: true }); setTimeout(() => { el.remove(); document.body.classList.remove("splashing"); }, 450); }, Math.max(0, 1850 - (performance.now() - start)));
     return;
   }
   const wait = quick ? 0 : Math.max(0, 1850 - (performance.now() - splashStart)); // Drehen + Hochfliegen + Dunkelwerden abwarten
@@ -2132,7 +2132,7 @@ function playIntro(opts = {}){
   const CW = Math.round(Math.min(W * .42, 180)), CH = Math.round(CW * .64), TS = Math.round(Math.min(W * .3, 120)), BD = 22;
   const N = 5, ANG = [-26, -13, 0, 13, 26];
   const ov = document.createElement("div"); ov.id = "intro"; ov.setAttribute("aria-hidden", "true");
-  ov.innerHTML = `<div class="in-sky"></div>${ANG.map(() => `<div class="in-card"><i></i><i></i><i></i></div>`).join("")}<div class="in-mark"><svg viewBox="0 0 512 512"><path d="M320 165A116 116 0 1 0 320 347" fill="none" stroke="#1B1D23" stroke-width="60" stroke-linecap="round"/><circle cx="350" cy="256" r="29" fill="#FF5A36" opacity="0"/></svg></div><div class="in-ball"></div><div class="in-skip">Tippen zum Überspringen</div>`;
+  ov.innerHTML = `<div class="in-sky"></div>${ANG.map(() => `<div class="in-card"><i></i><i></i><i></i></div>`).join("")}<div class="in-mark"><svg viewBox="0 0 512 512"><path d="M320 165A116 116 0 1 0 320 347" fill="none" stroke="#1B1D23" stroke-width="60" stroke-linecap="round"/><circle cx="350" cy="256" r="29" fill="#FF5A36" opacity="0"/></svg></div><div class="in-ball"></div>${opts.noSkip ? "" : `<div class="in-skip">Tippen zum Überspringen</div>`}`;
   document.body.appendChild(ov);
   const cards = [...ov.querySelectorAll(".in-card")], mk = ov.querySelector(".in-mark"), arc = mk.querySelector("path"), dotEl = mk.querySelector("circle"), ball = ov.querySelector(".in-ball");
   let done = false; const anims = [], timers = [];
@@ -2144,8 +2144,8 @@ function playIntro(opts = {}){
     if (!opts.center) document.querySelectorAll(".auth-logo h1,.auth-logo p,.auth-seg,.auth-form").forEach((e, i) => { try { e.animate([{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "none" }], { duration: 560, delay: (fast ? 0 : 80) + i * 80, easing: "cubic-bezier(.2,.8,.2,1)", fill: "backwards" }); } catch {} });
     opts.onEnd && opts.onEnd();
   };
-  introSkip = () => end(true);
-  ov.addEventListener("pointerdown", () => end(true));
+  // Erster Start nach der Installation: Intro läuft immer ganz durch (nicht überspringbar)
+  if (!opts.noSkip) { introSkip = () => end(true); ov.addEventListener("pointerdown", () => end(true)); }
   if (!ov.animate) { end(true); return; }
   const A = (el, kf, o) => { const a = el.animate(kf, Object.assign({ fill: "both" }, o)); anims.push(a); return a; };
   const place = (el, w, h) => Object.assign(el.style, { left: cx - w / 2 + "px", top: cy - h / 2 + "px", width: w + "px", height: h + "px" });
@@ -2208,8 +2208,8 @@ function playIntro(opts = {}){
   timers.push(setTimeout(() => end(false), 2600));
 }
 
-// Antippen überspringt die Startanimation
-(() => { const el = document.getElementById("splash"); if (el) el.addEventListener("pointerdown", () => { if (!el.isConnected || el.classList.contains("out")) return; clearTimeout(splashT); splashGone = true; if (S.mode === "auth") try { localStorage.setItem(INTRO_KEY, "1"); } catch {} document.body.classList.add("splash-quick"); fadeSplash(el); }); })();
+// Antippen überspringt die Startanimation (nicht beim ersten Start nach der Installation)
+(() => { const el = document.getElementById("splash"); if (el) el.addEventListener("pointerdown", () => { if (!el.isConnected || el.classList.contains("out") || document.body.classList.contains("intro-day")) return; /* erster Start: nicht überspringbar */ clearTimeout(splashT); splashGone = true; if (S.mode === "auth") try { localStorage.setItem(INTRO_KEY, "1"); } catch {} document.body.classList.add("splash-quick"); fadeSplash(el); }); })();
 function morphSplash(el){
   const ball = el.querySelector(".sp-ball"), tabs = $("#tabs");
   const tabsShown = tabs && getComputedStyle(tabs).display !== "none" && tabs.children.length;
