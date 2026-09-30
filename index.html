@@ -878,6 +878,10 @@ body:not(.intro-day):not(.splash-quick) #splash{animation:splashNightEdge .9s cu
 @keyframes spNightOut{from{opacity:1}to{opacity:0}}
 @keyframes spStarsOut{from{opacity:.85}to{opacity:0}}
 /* Die Drehung läuft auf dem ganzen Icon-Element (nicht im SVG), damit sie auch während des Ladens weich bleibt */
+/* iPhone-App: Logo an fester Stelle ab oben (genau wie im iOS-Startbild), damit es nicht springt, falls iOS die Fensterhöhe beim Start nachträglich anpasst */
+html[style*="--spcy"] #splash{place-items:start center}
+html[style*="--spcy"] #splash .sp-stage{margin-top:calc(var(--spcy) - 56px)}
+html[style*="--spcy"] #splash .sp-ball{top:calc(var(--spcy) - 28.45px)}
 .sp-stage{position:relative;z-index:1;width:112px;height:112px;will-change:transform;transform-origin:48.63% 50%;animation:spRot .85s cubic-bezier(.42,0,.2,1) .05s forwards}
 .sp-stage svg{width:112px;height:112px;display:block;overflow:visible}
 .sp-l{position:absolute;inset:0;will-change:transform,opacity}
@@ -1134,7 +1138,7 @@ sup .ms-bx,sub .ms-bx{width:.8em;height:.9em}
 </head>
 <body>
 
-<div id="edgeTop" aria-hidden="true"></div><div id="splash" aria-hidden="true"><script>document.body.classList.add("splashing");try{if(!localStorage.getItem("cardo-intro-seen")&&!localStorage.getItem("sb-rormgkvthvisrctcsjrg-auth-token"))document.body.classList.add("intro-day");var cs=JSON.parse(localStorage.getItem("kartenfach-settings")||"{}")||{},cm=cs.splash||"daily",cd=new Date(),ck=cd.getFullYear()+"-"+(cd.getMonth()+1)+"-"+cd.getDate();if(cm==="never"||(cm==="daily"&&localStorage.getItem("cardo-splash-day")===ck))document.body.classList.add("splash-quick");else localStorage.setItem("cardo-splash-day",ck)}catch(e){}</script><div class="sp-stage"><div class="sp-l sp-arc"><svg viewBox="0 0 512 512"><path d="M320 165A116 116 0 1 0 320 347" fill="none" stroke="#1B1D23" stroke-width="60" stroke-linecap="round"/></svg></div><div class="sp-l sp-dot"><svg viewBox="0 0 512 512"><circle cx="350" cy="256" r="29" fill="#FF5A36"/></svg></div></div><div class="sp-ball"></div></div>
+<div id="edgeTop" aria-hidden="true"></div><div id="splash" aria-hidden="true"><script>document.body.classList.add("splashing");try{var ua=navigator.userAgent,sa=navigator.standalone===true||matchMedia("(display-mode: standalone)").matches;if(/iPhone|iPod/.test(ua)&&sa){var SH=Math.max(screen.width,screen.height),dd=SH-innerHeight,sb=dd>=0&&dd<=70?dd:(SH>=852?62:SH>=812?47:20);document.documentElement.style.setProperty("--spcy",Math.round((SH-sb)/2)+"px")}}catch(e){}try{if(!localStorage.getItem("cardo-intro-seen")&&!localStorage.getItem("sb-rormgkvthvisrctcsjrg-auth-token"))document.body.classList.add("intro-day");var cs=JSON.parse(localStorage.getItem("kartenfach-settings")||"{}")||{},cm=cs.splash||"daily",cd=new Date(),ck=cd.getFullYear()+"-"+(cd.getMonth()+1)+"-"+cd.getDate();if(cm==="never"||(cm==="daily"&&localStorage.getItem("cardo-splash-day")===ck))document.body.classList.add("splash-quick");else localStorage.setItem("cardo-splash-day",ck)}catch(e){}</script><div class="sp-stage"><div class="sp-l sp-arc"><svg viewBox="0 0 512 512"><path d="M320 165A116 116 0 1 0 320 347" fill="none" stroke="#1B1D23" stroke-width="60" stroke-linecap="round"/></svg></div><div class="sp-l sp-dot"><svg viewBox="0 0 512 512"><circle cx="350" cy="256" r="29" fill="#FF5A36"/></svg></div></div><div class="sp-ball"></div></div>
 <div id="app">
   <main id="main"><div class="loading">Cardo lädt …</div></main>
 </div>
