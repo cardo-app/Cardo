@@ -2821,8 +2821,43 @@ function changePasswordSheet(){
 function accountSheet(){
   openSheet(`${head("Konto")}<div class="set-list" style="margin:0"><div class="set-item static"><span class="si-t">Angemeldet als</span><span class="si-v">${esc(USER && USER.email || "")}</span></div></div>
     <button class="btn block" style="margin-top:14px" data-act="changePw">Passwort ändern</button>
-    <button class="btn danger block" style="margin-top:8px" id="logout">Abmelden</button>`, root => {
+    <button class="btn danger block" style="margin-top:8px" id="logout">Abmelden</button>
+    <button class="pw-forgot" style="display:block;margin:18px auto 0;color:var(--again)" data-act="deleteAccount" type="button">Konto löschen</button>`, root => {
     $("#logout", root).addEventListener("click", async () => { if (!SB) { toast("In der Vorschau gibt es kein Konto."); return; } try { localStorage.removeItem("cardo-cache-" + USER.id); } catch {} await SB.auth.signOut(); location.reload(); });
+  });
+}
+/* Konto löschen: Bilder (Storage) → Datenbank-Funktion delete_my_account (löscht Karten, geteilte Decks und das Konto) → Gerät aufräumen */
+function deleteAccountSheet(){
+  if (!SB || !USER) { toast("In der Vorschau gibt es kein Konto."); return; }
+  const WORD = "LÖSCHEN";
+  openSheet(`${headBack("Konto löschen", "accountSheet")}
+    <p style="margin:0 0 12px;font-size:15.5px">Damit werden <b>alle deine Ordner, Karten, Bilder, Statistiken und geteilten Links</b> endgültig gelöscht – auf allen Geräten. Das lässt sich nicht rückgängig machen.</p>
+    <p class="muted" style="margin:0 0 10px;font-size:14.5px">Tipp: Lade vorher eine Sicherung herunter, wenn du deine Karten behalten willst.</p><button class="btn block" style="margin-bottom:18px" data-act="dataSheet">Daten sichern</button>
+    <div class="field"><label for="delWord">Zum Bestätigen <b>${WORD}</b> eingeben</label><input class="in" id="delWord" autocomplete="off" autocapitalize="characters" spellcheck="false"></div>
+    <p class="auth-msg" id="delMsg" style="color:var(--again)"></p>
+    <button class="btn danger block" id="delGo" disabled>Konto endgültig löschen</button>`, root => {
+    const inp = $("#delWord", root), go = $("#delGo", root), msg = $("#delMsg", root);
+    inp.addEventListener("input", () => { go.disabled = inp.value.trim().toUpperCase() !== WORD; });
+    go.addEventListener("click", async () => {
+      if (!navigator.onLine) { msg.textContent = "Zum Löschen brauchst du Internet."; return; }
+      go.disabled = true; inp.disabled = true; go.textContent = "Wird gelöscht …"; msg.textContent = "";
+      const id = USER.id;
+      try {
+        try { /* Bilder zuerst – die Datenbank darf Storage-Dateien nicht direkt löschen */
+          for (let k = 0; k < 50; k++) { const l = await SB.storage.from(IMG_BUCKET).list(id, { limit: 1000 }); const names = (l.data || []).map(x => id + "/" + x.name); if (l.error || !names.length) break; const r = await SB.storage.from(IMG_BUCKET).remove(names); if (r.error) break; }
+        } catch (e) { console.warn("bilder", e); }
+        const r = await SB.rpc("delete_my_account"); if (r.error) throw r.error;
+        try { Object.keys(localStorage).forEach(k => { if (k.includes(id) || k.startsWith("kartenfach-") || k.startsWith("cardo-pending-deck")) localStorage.removeItem(k); }); } catch {}
+        try { (await bkList()).forEach(b => bkDel(b.id)); } catch {}
+        try { await SB.auth.signOut({ scope: "local" }); } catch {}
+        closeSheet(); toast("Dein Konto wurde gelöscht."); setTimeout(() => location.reload(), 1400);
+      } catch (e) {
+        console.warn(e); const m = String((e && (e.code || e.message)) || "");
+        msg.textContent = /PGRST202|42883|delete_my_account/.test(m) ? "Konto löschen ist auf dem Server noch nicht eingerichtet." : "Löschen hat nicht geklappt. Versuch es gleich noch einmal.";
+        go.textContent = "Konto endgültig löschen"; go.disabled = false; inp.disabled = false;
+      }
+    });
+    setTimeout(() => inp.focus(), 60);
   });
 }
 
@@ -4133,6 +4168,7 @@ document.addEventListener("click", e => {
   if (a === "dataSheet") { dataSheet(); return; }
   if (a === "remindLater") { try { localStorage.setItem("cardo-remind-snooze", String(Date.now() + 7 * DAY)); } catch {} render(); return; }
   if (a === "accountSheet") { accountSheet(); return; }
+  if (a === "deleteAccount") { deleteAccountSheet(); return; }
   if (a === "changePw") { changePasswordSheet(); return; }
   if (a === "authMode") { showAuth(b.dataset.v); return; }
   if (a === "exportData") { exportData(); return; }
