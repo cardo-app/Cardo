@@ -4180,8 +4180,10 @@ function placeMenu(m, btn){
   if (r.bottom + 6 + h <= maxBot) top = r.bottom + 6;
   else if (r.top - 6 - h >= minTop) { top = r.top - 6 - h; up = true; }
   else { top = Math.max(minTop, maxBot - h); up = r.top > (minTop + maxBot) / 2; }
-  m.style.top = top + "px"; m.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.right - w)) + "px";
-  m.style.transformOrigin = up ? "bottom right" : "top right";
+  /* breite Menüs (über 70 % der Bildschirmbreite) mittig, kleine bleiben seitlich am Knopf */
+  const wide = w > innerWidth * .7;
+  m.style.top = top + "px"; m.style.left = (wide ? Math.round((innerWidth - w) / 2) : Math.max(8, Math.min(innerWidth - w - 8, r.right - w))) + "px";
+  m.style.transformOrigin = (up ? "bottom " : "top ") + (wide ? "center" : "right");
 }
 function openMenu(btn, fid){
   const m = $("#menu"), sorts = [["custom","Eigene Reihenfolge <span class=\"sub\" style=\"color:var(--muted);font-weight:600\">lange drücken &amp; ziehen</span>"],["name","Name (A–Z)"],["new","Zuletzt erstellt"],["due","Meiste fällige Karten"]];
