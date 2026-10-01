@@ -883,15 +883,15 @@ body:not(.intro-day):not(.splash-quick) #splash{animation:splashNightEdge .9s cu
 /* iPhone-App: Logo an fester Stelle ab oben (genau wie im iOS-Startbild), damit es nicht springt, falls iOS die Fensterhöhe beim Start nachträglich anpasst */
 html[style*="--spcy"] #splash{place-items:start center}
 html[style*="--spcy"] #splash .sp-stage{margin-top:calc(var(--spcy) - 56px)}
-html[style*="--spcy"] #splash .sp-ball{top:calc(var(--spcy) - 28.45px)}
-.sp-stage{position:relative;z-index:1;width:112px;height:112px;will-change:transform;transform-origin:48.63% 50%;animation:spRot .85s cubic-bezier(.42,0,.2,1) .05s forwards}
+html[style*="--spcy"] #splash .sp-ball{top:calc(var(--spcy) - 7.875px)}
+.sp-stage{position:relative;z-index:1;width:112px;height:112px;will-change:transform;transform-origin:50% 50%;animation:spRot .85s cubic-bezier(.42,0,.2,1) .05s forwards}
 .sp-stage svg{width:112px;height:112px;display:block;overflow:visible}
 .sp-l{position:absolute;inset:0;will-change:transform,opacity}
-.sp-arc{transform-origin:48.63% 50%;animation:spArcOut .55s ease 1s forwards}
+.sp-arc{transform-origin:50% 50%;animation:spArcOut .55s ease 1s forwards}
 .sp-dot{animation:spHide 0s linear .9s forwards}
 .sp-pill{position:absolute;z-index:2;will-change:transform,opacity;overflow:hidden}
 .sp-pill i{position:absolute;inset:0;background:#FF5A36;will-change:opacity}
-.sp-ball{position:absolute;z-index:2;left:calc(50% - 7.85px);top:calc(50% - 28.45px);width:12.7px;height:12.7px;border-radius:50%;background:#FF5A36;opacity:0;will-change:transform;animation:spLaunch .85s cubic-bezier(.22,.72,.2,1) .9s forwards}
+.sp-ball{position:absolute;z-index:2;left:calc(50% - 7.875px);top:calc(50% - 7.875px);width:15.75px;height:15.75px;border-radius:50%;background:radial-gradient(75% 75% at 38% 32%,#FF7A55,#F2491F);opacity:0;will-change:transform;animation:spLaunch .85s cubic-bezier(.22,.72,.2,1) .9s forwards}
 .sp-ball::after{content:"";position:absolute;inset:-9px;border-radius:50%;background:radial-gradient(circle,rgba(255,90,54,.55) 0,rgba(255,90,54,.18) 45%,transparent 70%);opacity:0;animation:spGlow .6s ease 1.2s forwards}
 .sp-ball.landed::after{display:none}
 .sp-ball.morph{z-index:3;animation:none;opacity:1;transform-origin:0 0}
@@ -911,7 +911,7 @@ body.intro-day #splash::before,body.intro-day #splash::after{display:none} /* er
 #intro .in-card i:nth-child(3){width:54%;background:#FF5A36}
 #intro .in-mark{position:absolute;z-index:6;background:#fff;opacity:0;will-change:transform,opacity} /* ohne Rand/Schatten: auf Weiß kein dunkler Rahmen */
 #intro .in-mark svg{width:100%;height:100%;display:block}
-#intro .in-ball{position:absolute;z-index:7;border-radius:50%;background:#FF5A36;will-change:transform}
+#intro .in-ball{position:absolute;z-index:7;border-radius:50%;background:radial-gradient(75% 75% at 38% 32%,#FF7A55,#F2491F);will-change:transform}
 #intro .in-skip{position:absolute;left:0;right:0;bottom:calc(22px + env(safe-area-inset-bottom,0px));text-align:center;font-size:13px;color:rgba(27,29,35,.4);animation:inIn 1s ease 1.2s both}
 #intro.out{transition:background-color .55s ease,box-shadow .55s ease;background-color:transparent;box-shadow:0 260px 0 transparent}
 #intro.out .in-sky,#intro.out .in-card,#intro.out .in-skip{transition:opacity .55s ease;opacity:0!important}
@@ -928,7 +928,7 @@ body.splash-quick #splash{transition:opacity .28s ease,visibility .28s}
 @keyframes spArcOut{to{opacity:0;transform:scale(.88)}} /* verblasst an Ort und Stelle (um die Kreismitte des C) */
 @keyframes spHide{to{opacity:0}}
 @keyframes spGlow{to{opacity:1}}
-@keyframes spLaunch{0%{opacity:1;transform:translate3d(0,0,0) scale(1)}100%{opacity:1;transform:translate3d(0,calc(28.45px - 38vh),0) scale(.8)}}
+@keyframes spLaunch{0%{opacity:1;transform:translate3d(0,0,0) scale(1)}100%{opacity:1;transform:translate3d(0,calc(7.875px - 38vh),0) scale(.65)}}
 @keyframes tabIn{from{opacity:0;transform:translateY(8px) scale(.6)}to{opacity:1;transform:none}}
 #tabs.tabs-in button{animation:tabIn .42s cubic-bezier(.34,1.5,.55,1) both}
 #tabs.tabs-in button:nth-child(2){animation-delay:.05s}
@@ -1245,7 +1245,7 @@ sup .ms-bx,sub .ms-bx{width:.8em;height:.9em}
 </head>
 <body>
 
-<div id="edgeTop" aria-hidden="true"></div><div id="splash" aria-hidden="true"><script>document.body.classList.add("splashing");document.documentElement.style.colorScheme="light";try{var ua=navigator.userAgent,sa=navigator.standalone===true||matchMedia("(display-mode: standalone)").matches;if(/iPhone|iPod/.test(ua)&&sa){var SH=Math.max(screen.width,screen.height),dd=SH-innerHeight,sb=dd>=0&&dd<=70?dd:(SH>=852?62:SH>=812?47:20);document.documentElement.style.setProperty("--spcy",Math.round((SH-sb)/2)+"px")}}catch(e){}try{if(!localStorage.getItem("cardo-intro-seen")&&!localStorage.getItem("sb-rormgkvthvisrctcsjrg-auth-token"))document.body.classList.add("intro-day");var cs=JSON.parse(localStorage.getItem("kartenfach-settings")||"{}")||{},cm=cs.splash||"daily",cd=new Date(),ck=cd.getFullYear()+"-"+(cd.getMonth()+1)+"-"+cd.getDate();if(cm==="never"||(cm==="daily"&&localStorage.getItem("cardo-splash-day")===ck))document.body.classList.add("splash-quick");else localStorage.setItem("cardo-splash-day",ck)}catch(e){}</script><div class="sp-stage"><div class="sp-l sp-arc"><svg viewBox="0 0 512 512"><path d="M320 165A116 116 0 1 0 320 347" fill="none" stroke="#1B1D23" stroke-width="60" stroke-linecap="round"/></svg></div><div class="sp-l sp-dot"><svg viewBox="0 0 512 512"><circle cx="350" cy="256" r="29" fill="#FF5A36"/></svg></div></div><div class="sp-ball"></div></div>
+<div id="edgeTop" aria-hidden="true"></div><div id="splash" aria-hidden="true"><script>document.body.classList.add("splashing");document.documentElement.style.colorScheme="light";try{var ua=navigator.userAgent,sa=navigator.standalone===true||matchMedia("(display-mode: standalone)").matches;if(/iPhone|iPod/.test(ua)&&sa){var SH=Math.max(screen.width,screen.height),dd=SH-innerHeight,sb=dd>=0&&dd<=70?dd:(SH>=852?62:SH>=812?47:20);document.documentElement.style.setProperty("--spcy",Math.round((SH-sb)/2)+"px")}}catch(e){}try{if(!localStorage.getItem("cardo-intro-seen")&&!localStorage.getItem("sb-rormgkvthvisrctcsjrg-auth-token"))document.body.classList.add("intro-day");var cs=JSON.parse(localStorage.getItem("kartenfach-settings")||"{}")||{},cm=cs.splash||"daily",cd=new Date(),ck=cd.getFullYear()+"-"+(cd.getMonth()+1)+"-"+cd.getDate();if(cm==="never"||(cm==="daily"&&localStorage.getItem("cardo-splash-day")===ck))document.body.classList.add("splash-quick");else localStorage.setItem("cardo-splash-day",ck)}catch(e){}</script><div class="sp-stage"><div class="sp-l sp-arc"><svg viewBox="0 0 512 512"><defs><filter id="csa" filterUnits="userSpaceOnUse" x="0" y="0" width="512" height="512"><feDropShadow dx="0" dy="7" stdDeviation="9" flood-color="#1B1D23" flood-opacity=".22"/></filter></defs><g transform="translate(256 256) scale(1.24) translate(-256 -256)"><g filter="url(#csa)"><path d="M332.17 165.22A118.5 118.5 0 1 0 332.17 346.78" fill="none" stroke="#1E1F24" stroke-width="55" stroke-linecap="round"/></g></g></svg></div><div class="sp-l sp-dot"><svg viewBox="0 0 512 512"><defs><filter id="csb" filterUnits="userSpaceOnUse" x="0" y="0" width="512" height="512"><feDropShadow dx="0" dy="7" stdDeviation="9" flood-color="#1B1D23" flood-opacity=".22"/></filter><radialGradient id="cdb" cx=".38" cy=".32" r=".75"><stop offset="0" stop-color="#FF7A55"/><stop offset="1" stop-color="#F2491F"/></radialGradient></defs><g transform="translate(256 256) scale(1.24) translate(-256 -256)"><g filter="url(#csb)"><circle cx="256" cy="256" r="29" fill="url(#cdb)"/></g></g></svg></div></div><div class="sp-ball"></div></div>
 <div id="app">
   <main id="main"><div class="loading">Cardo lädt …</div></main>
 </div>
@@ -2266,7 +2266,7 @@ function playIntro(opts = {}){
   const CW = Math.round(Math.min(W * .42, 180)), CH = Math.round(CW * .64), TS = Math.round(Math.min(W * .3, 120)), BD = 22;
   const N = 5, ANG = [-26, -13, 0, 13, 26];
   const ov = document.createElement("div"); ov.id = "intro"; ov.setAttribute("aria-hidden", "true");
-  ov.innerHTML = `<div class="in-sky"></div>${ANG.map(() => `<div class="in-card"><i></i><i></i><i></i></div>`).join("")}<div class="in-mark"><svg viewBox="0 0 512 512"><path d="M320 165A116 116 0 1 0 320 347" fill="none" stroke="#1B1D23" stroke-width="60" stroke-linecap="round"/><circle cx="350" cy="256" r="29" fill="#FF5A36" opacity="0"/></svg></div><div class="in-ball"></div>${opts.noSkip ? "" : `<div class="in-skip">Tippen zum Überspringen</div>`}`;
+  ov.innerHTML = `<div class="in-sky"></div>${ANG.map(() => `<div class="in-card"><i></i><i></i><i></i></div>`).join("")}<div class="in-mark"><svg viewBox="0 0 512 512"><defs><filter id="csc" filterUnits="userSpaceOnUse" x="0" y="0" width="512" height="512"><feDropShadow dx="0" dy="7" stdDeviation="9" flood-color="#1B1D23" flood-opacity=".22"/></filter><radialGradient id="cdc" cx=".38" cy=".32" r=".75"><stop offset="0" stop-color="#FF7A55"/><stop offset="1" stop-color="#F2491F"/></radialGradient></defs><g transform="translate(256 256) scale(1.24) translate(-256 -256)"><g filter="url(#csc)"><path d="M332.17 165.22A118.5 118.5 0 1 0 332.17 346.78" fill="none" stroke="#1E1F24" stroke-width="55" stroke-linecap="round"/><circle cx="256" cy="256" r="29" fill="url(#cdc)" opacity="0"/></g></g></svg></div><div class="in-ball"></div>${opts.noSkip ? "" : `<div class="in-skip">Tippen zum Überspringen</div>`}`;
   document.body.appendChild(ov);
   const cards = [...ov.querySelectorAll(".in-card")], mk = ov.querySelector(".in-mark"), arc = mk.querySelector("path"), dotEl = mk.querySelector("circle"), ball = ov.querySelector(".in-ball");
   let done = false; const anims = [], timers = [];
@@ -2324,7 +2324,7 @@ function playIntro(opts = {}){
     { opacity: 1, transform: "scale(1)" }
   ], { delay: 1480, duration: 360 });
   // 5) Die Kugel hüpft in die Kachel und wird zum Punkt, das C zeichnet sich
-  const dx = TS * (350 / 512 - .5), dy = TS * (256 / 512 - .5), kd = TS * 58 / 512 / BD;
+  const dx = 0, dy = 0, kd = TS * 72 / 512 / BD; /* Punkt sitzt mittig im C */
   A(ball, [
     { transform: T(0, -CH * .82, 1, 1), easing: "cubic-bezier(.3,0,.4,1)" },
     { offset: .55, transform: T(dx * .6, -CH * 1.05, 1, 1), easing: "cubic-bezier(.6,0,.8,.6)" },
@@ -2837,7 +2837,7 @@ function showAuth(mode = "in"){
   S.mode = "auth"; document.body.classList.add("authing"); hideSplash();
   $("#tabs").innerHTML = "";
   $("#main").innerHTML = `<div class="auth">
-    <div class="auth-logo"><div class="auth-mark" aria-hidden="true"><svg viewBox="0 0 512 512"><path d="M320 165A116 116 0 1 0 320 347" fill="none" stroke="#1B1D23" stroke-width="60" stroke-linecap="round"/><circle cx="350" cy="256" r="29" fill="#FF5A36"/></svg></div><h1>Cardo</h1><p class="muted">Karteikarten, synchron auf all deinen Geräten.</p></div>
+    <div class="auth-logo"><div class="auth-mark" aria-hidden="true"><svg viewBox="0 0 512 512"><defs><filter id="cse" filterUnits="userSpaceOnUse" x="0" y="0" width="512" height="512"><feDropShadow dx="0" dy="7" stdDeviation="9" flood-color="#1B1D23" flood-opacity=".22"/></filter><radialGradient id="cde" cx=".38" cy=".32" r=".75"><stop offset="0" stop-color="#FF7A55"/><stop offset="1" stop-color="#F2491F"/></radialGradient></defs><g transform="translate(256 256) scale(1.24) translate(-256 -256)"><g filter="url(#cse)"><path d="M332.17 165.22A118.5 118.5 0 1 0 332.17 346.78" fill="none" stroke="#1E1F24" stroke-width="55" stroke-linecap="round"/><circle cx="256" cy="256" r="29" fill="url(#cde)"/></g></g></svg></div><h1>Cardo</h1><p class="muted">Karteikarten, synchron auf all deinen Geräten.</p></div>
     <div class="seg auth-seg" role="tablist"><button class="${mode === 'in' ? 'on' : ''}" data-act="authMode" data-v="in">Anmelden</button><button class="${mode === 'up' ? 'on' : ''}" data-act="authMode" data-v="up">Registrieren</button><button class="${mode === 'reset' ? 'on' : ''}" data-act="authMode" data-v="reset">Passwort vergessen</button></div>
     <form id="authForm" class="auth-form" novalidate>
       <div class="field"><label for="aEmail">E-Mail</label><input class="in" id="aEmail" type="email" autocomplete="email" inputmode="email" required></div>
