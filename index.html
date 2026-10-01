@@ -996,12 +996,13 @@ body{--gl-card:rgba(255,255,255,.42);--gl-sheet:color-mix(in srgb,var(--surface)
 @media (prefers-color-scheme:dark){body:not(.m-light){--gl-card:rgba(255,255,255,.06);--gl-sheet:color-mix(in srgb,var(--surface) 58%,transparent)}}
 body.m-dark{--gl-card:rgba(255,255,255,.06);--gl-sheet:color-mix(in srgb,var(--surface) 58%,transparent)}
 #sheet.glass{background:rgba(10,12,18,.16)}
-#sheet.glass .sheet{margin:0 10px calc(max(10px,env(safe-area-inset-bottom,0px) - 14px));width:calc(100% - 20px);border-radius:34px;padding-bottom:20px;
+#sheet.glass .sheet{margin:0 10px max(8px,env(safe-area-inset-bottom,0px) - 26px); /* Unterkante bündig mit der Tab-Leiste (gleicher Abstand nach unten und zur Seite) */
+  width:calc(100% - 20px);border-radius:34px;padding-bottom:20px;
   background:var(--gl-sheet);-webkit-backdrop-filter:blur(var(--gl-blur-s,22px)) saturate(190%) brightness(1.04);backdrop-filter:blur(var(--gl-blur-s,22px)) saturate(190%) brightness(1.04);
   box-shadow:inset 0 0 0 .5px var(--gl-rim),inset 1.5px 1.5px 1px -1px var(--gl-edge),inset -1.5px -1.5px 1px -1px var(--gl-edge),inset 0 0 10px rgba(255,255,255,.07),var(--gl-drop)}
 /* Untermenü immer ganz sichtbar: nie unter die Statusleiste, zu lange Inhalte scrollen im Menü */
 #sheet.glass{padding-top:calc(env(safe-area-inset-top,0px) + var(--tc) + 10px)}
-#sheet.glass .sheet{max-height:calc(100% - max(10px,env(safe-area-inset-bottom,0px) - 14px));overscroll-behavior:contain}
+#sheet.glass .sheet{max-height:calc(100% - max(8px,env(safe-area-inset-bottom,0px) - 26px));overscroll-behavior:contain}
 @media (min-width:700px){#sheet.glass .sheet{margin:0;width:100%;max-height:calc(100% - 20px)}}
 #sheet.glass .grab{background:var(--gl-rim)}
 /* Öffnen/Schließen ohne Durchsichtigkeits-Überblendung: sonst ist der Weichzeichner kurz schwächer. Nur Bewegung + Abdunkeln */
