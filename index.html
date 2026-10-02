@@ -1002,13 +1002,14 @@ body.m-dark{--gl-bg:color-mix(in srgb,var(--surface) 42%,transparent);--gl-edge:
 #tabs:has(button.on:nth-child(3)){--pill:2}
 /* Wasserblase: klarer Kern, Glanzpunkt oben, Lichtsaum unten */
 #tabs::before{content:"";position:absolute;top:0;bottom:0; /* Blase oben, unten und in den Endstellungen seitlich bündig mit der Leiste */left:0;width:calc(100% / 3);border-radius:999px;
-  background:radial-gradient(ellipse 55% 38% at calc((32 + clamp(0, var(--pill), 2) * 18) * 1%) 16%,rgba(255,255,255,var(--gl-spec)),transparent 72%),radial-gradient(ellipse 85% 55% at 50% 118%,rgba(255,255,255,var(--gl-caus)),transparent 70%),var(--gl-pill);
+  background:radial-gradient(ellipse 55% 38% at 50% 16%,rgba(255,255,255,var(--gl-spec)),transparent 72%),radial-gradient(ellipse 85% 55% at 50% 118%,rgba(255,255,255,var(--gl-caus)),transparent 70%),var(--gl-pill);
   box-shadow:inset 0 0 0 .5px var(--gl-rim),inset 0 1.5px 1px -.5px var(--gl-edge),inset 0 -2px 3px -1px rgba(255,255,255,var(--gl-caus)),inset 0 -8px 12px -8px rgba(0,0,0,var(--gl-deep)),0 4px 12px rgba(0,0,0,.10);
   -webkit-backdrop-filter:saturate(1.8) brightness(1.08);backdrop-filter:saturate(1.8) brightness(1.08);
   /* Nachfedern über ein Ende hinaus: statt hinauszuragen wird die Blase an der Wand zusammengedrückt (Verschiebung hält sie bündig an der Wand) */
   --ov:max(0, var(--pill) - 2, 0 - var(--pill));
   transform:translateX(calc(clamp(0, var(--pill), 2) * 100% + (max(0, var(--pill) - 2) - max(0, 0 - var(--pill))) * 40%)) scaleX(calc(1 - (var(--sq) + var(--ov)) * .8));transform-origin:var(--so,center);}
 #tabs:not(:has(button.on))::before{opacity:0}
+#tabs::before{will-change:transform} /* eigene Ebene: Mitlaufen beim Wischen ohne Neuzeichnen */
 #tabs button{z-index:1;padding:10px 0 9px;border-radius:999px;font-size:12.5px}
 #tabs svg{width:26px;height:26px}
 html.ios-standalone #tabs{padding-bottom:4px}
@@ -4736,9 +4737,10 @@ function tabStyle(v, a, dur, ease = EASE){ // a = 0 (inactive) … 1 (active)
   const svg = b.querySelector("svg"), t = dur ? `transform ${dur}ms ${ease}, stroke-width ${dur}ms ${ease}` : "none";
   svg.style.transition = t; b.style.transition = dur ? `color ${dur}ms ${ease}` : "none";
   svg.style.transform = `scale(${(.84 + .16 * a).toFixed(3)})`;
-  svg.style.strokeWidth = (1.6 + 1.3 * a).toFixed(2);
+  const q = Math.round(a * 4) / 4; /* in 5 Stufen statt in jedem Bild → viel weniger Neuzeichnen beim Wischen */
+  svg.style.strokeWidth = (1.6 + 1.3 * q).toFixed(2);
   const lb = b.querySelector("span"); if (lb) lb.style.fontWeight = a >= .5 ? "800" : "600"; // Schriftzug wechselt zeitgleich mit dem Icon (ab halber Strecke)
-  b.style.color = `color-mix(in oklab, var(--accent-text) ${Math.round(a * 100)}%, var(--muted))`;
+  b.style.color = `color-mix(in oklab, var(--accent-text) ${q * 100}%, var(--muted))`;
 }
 function pillTo(from, to, p, dur, ease, off = 0){ /* Glas-Pille läuft zeitgleich mit dem Wischen */
   const tb = $("#tabs"), bs = [...tb.querySelectorAll("button")], i0 = bs.findIndex(b => b.dataset.v === from), i1 = bs.findIndex(b => b.dataset.v === to);
@@ -4783,7 +4785,7 @@ function finish(commit, dir, v = 0){
       draw(); if (raf) { cancelAnimationFrame(raf); raf = 0; } // nur einmal zeichnen
     }
     place(0, 0); hidePeek(); clearTabStyles(); $("#main").style.willChange = ""; document.body.classList.remove("swiping"); animating = false;
-    if (commit) { clearTimeout(prT); prerender(); } // Nachbarseiten sofort bereitlegen – das nächste Wischen startet ohne Wartezeit
+    if (commit) { clearTimeout(prT); prT = setTimeout(() => { if (sw || animating) return; (window.requestIdleCallback || (f => f()))(() => { if (!sw && !animating) prerender(); }, { timeout: 300 }); }, 60); } // Nachbarseiten gleich danach im Leerlauf bereitlegen (nicht im selben Moment wie der Wechsel)
   };
   finT = setTimeout(() => { const f = finCb; finCb = null; f && f(); }, dur + 16);
 }
