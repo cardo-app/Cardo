@@ -1291,6 +1291,22 @@ function texFill(el){
 const texFix = t => String(t || "").replace(/\\euro(?![a-zA-Z])\s*(\{\})?/g, "€").replace(/\\pounds(?![a-zA-Z])\s*(\{\})?/g, "£").replace(/\\yen(?![a-zA-Z])\s*(\{\})?/g, "¥")
   .replace(/\\degree(?![a-zA-Z])\s*(\{\})?/g, "^{\\circ}").replace(/\\differentialD(?![a-zA-Z])/g, "\\mathrm{d}").replace(/\\exponentialE(?![a-zA-Z])/g, "e").replace(/\\imaginaryI(?![a-zA-Z])/g, "i").replace(/\\placeholder\{\}/g, "")
   .replace(/\\text\{([€£¥₹₽₩₺₿¢‰])\}/g, "$1").replace(/[€£¥₹₽₩₺₿¢‰]/g, "\\text{$&}"); // Währungen aufrecht wie im Text
+// Runde Klammern um Brüche, Summen, Integrale usw. mitwachsen lassen: ( … ) → \left( … \right)
+const TALL = /\\(d|t|c)?frac(?![a-zA-Z])|\\binom|\\sum|\\prod|\\int|\\iint|\\oint|\\lim(?![a-zA-Z])|\\begin/;
+function growParens(t){
+  const st = [], pairs = []; let dep = 0;
+  for (let i = 0; i < t.length; i++) {
+    const c = t[i];
+    if (c === "\\") { const m = t.slice(i).match(/^\\([a-zA-Z]+|[\s\S])/); if (!m) break; i += m[0].length - 1; if (/^\\(left|right|middle|[bB]ig+[lrm]?)$/.test(m[0])) { while (t[i + 1] === " ") i++; if (t[i + 1] !== "\\") i++; } continue; }
+    if (c === "{") dep++; else if (c === "}") { dep--; while (st.length && st[st.length - 1].d > dep) st.pop(); }
+    else if (c === "(") st.push({ i, d: dep });
+    else if (c === ")" && st.length && st[st.length - 1].d === dep) { const o = st.pop(); if (TALL.test(t.slice(o.i + 1, i))) pairs.push(o.i, i); }
+  }
+  if (!pairs.length) return t;
+  const set = new Set(pairs); let out = "";
+  for (let i = 0; i < t.length; i++) out += set.has(i) ? (t[i] === "(" ? "\\left(" : "\\right)") : t[i];
+  return out;
+}
 const curSpan = h => h.replace(/(<span class="katex-html"[\s\S]*)$/, m => m.replace(/[€£¥₹₽₩₺₿¢]/g, "<span class=\"tex-cur\">$&</span>").replace(/[%‰]/g, "<span class=\"tex-pct\">$&</span>"));
 // Hoch- und Tiefzahlen kleiner setzen (KaTeX rechnet die Position selbst → nichts ragt heraus): 1. Ebene 60 %, tiefer 50 %
 function smallScripts(t, d = 0){
@@ -1317,7 +1333,7 @@ function smallScripts(t, d = 0){
 }
 function katexCss(){ if (!document.getElementById("katexcss")) { const l = document.createElement("link"); l.id = "katexcss"; l.rel = "stylesheet"; l.href = KATEX_URL + "katex.min.css"; document.head.appendChild(l); } }
 function texHTML(src, display){
-  src = smallScripts(texFix(src));
+  src = smallScripts(growParens(texFix(src)));
   const cls = "tex" + (display ? " d" : "");
   if (window.katex) { katexCss(); try { return `<span class="${cls}">${curSpan(window.katex.renderToString(src, { throwOnError: false, displayMode: display, strict: "ignore", trust: false, maxSize: 20, maxExpand: 200 }))}</span>`; } catch {} }
   loadKatex();
@@ -1617,6 +1633,10 @@ async function mathEditor(opts){
     } } catch {}
     document.body.appendChild(el);
     const val = () => { try { return texFix(mf.getValue("latex")).trim(); } catch { return ""; } };
+    // Klammer um einen Bruch o. ä. geschlossen → mitwachsende Klammer \left( … \right), Cursor bleibt dahinter
+    let growing = false;
+    const grow = () => { if (growing) return; try { const p = mf.position, b = mf.getValue(0, p, "latex"), a = mf.getValue(p, mf.lastOffset, "latex"), g = growParens(b); if (g === b) return; growing = true; mf.value = g; const q = mf.lastOffset; mf.value = g + a; mf.position = q; } catch {} finally { growing = false; } };
+    mf.addEventListener("input", grow);
     const finish = v => {
       if (done) return; done = true;
       try { window.mathVirtualKeyboard && window.mathVirtualKeyboard.hide(); } catch {}
@@ -1659,7 +1679,7 @@ async function mathEditor(opts){
       const k = e.target.closest("[data-ins]"), c = e.target.closest("[data-cmd]"), t = e.target.closest("[data-tab]"), a = e.target.closest("[data-ms]");
       if (skipClick && e.target.closest(".ms-k.cur")) { skipClick = false; return; }
       skipClick = false;
-      if (k) { mf.focus(); mf.executeCommand(["insert", k.dataset.ins]); closeAlt(); if (shift) { shift = false; el.querySelector(".ms-pads").innerHTML = msPadHTML("a", false); } return; }
+      if (k) { mf.focus(); mf.executeCommand(["insert", k.dataset.ins]); grow(); closeAlt(); if (shift) { shift = false; el.querySelector(".ms-pads").innerHTML = msPadHTML("a", false); } return; }
       if (e.target.closest("[data-shift]")) { shift = !shift; el.querySelector(".ms-pads").innerHTML = msPadHTML("a", shift); return; }
       if (c) { mf.focus(); mf.executeCommand(c.dataset.cmd); return; }
       if (t) { tab = t.dataset.tab; shift = false; el.querySelectorAll(".ms-tabs button").forEach(b => b.classList.toggle("on", b === t)); el.querySelector(".ms-pads").innerHTML = msPadHTML(tab, false); mf.focus(); return; }
