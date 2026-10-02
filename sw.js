@@ -1,7 +1,7 @@
 // Cardo service worker: app works offline after the first visit.
 // Pages: network first (so updates arrive right away), cache as fallback.
 // Scripts, icons, fonts: cache first, refreshed in the background.
-const CACHE = "cardo-v134", IMG_CACHE = "cardo-img";
+const CACHE = "cardo-v135", IMG_CACHE = "cardo-img";
 const CORE = ["./", "index.html", "manifest.webmanifest", "icons/icon.svg", "icons/icon-1024.png", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png",
   "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js",
   "https://cdn.jsdelivr.net/npm/katex@0.18.9/dist/katex.min.js", "https://cdn.jsdelivr.net/npm/katex@0.18.9/dist/katex.min.css"];
