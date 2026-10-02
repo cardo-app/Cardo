@@ -4746,7 +4746,7 @@ function pillTo(from, to, p, dur, ease, off = 0){ /* Glas-Pille läuft zeitgleic
   const tb = $("#tabs"), bs = [...tb.querySelectorAll("button")], i0 = bs.findIndex(b => b.dataset.v === from), i1 = bs.findIndex(b => b.dataset.v === to);
   if (i0 < 0 || i1 < 0) return;
   /* Die Blase bleibt in der Leiste: Zug über den Rand hinaus drückt sie an der Wand zusammen */
-  const v = i0 + (i1 - i0) * p + off, n = bs.length - 1, pos = Math.max(0, Math.min(n, v)), ov = v - pos, sp = `${dur}ms cubic-bezier(.34,1.35,.55,1)`;
+  const v = i0 + (i1 - i0) * p + off, n = bs.length - 1, pos = Math.max(0, Math.min(n, v)), ov = v - pos, sp = `${dur}ms cubic-bezier(.3,1.12,.5,1)`; /* Blase: nur ein Hauch Nachfedern */
   tb.style.transition = dur ? `--pill ${sp}, --sq ${sp}` : "none"; tb.style.setProperty("--pill", pos.toFixed(4)); tb.style.setProperty("--sq", Math.abs(ov).toFixed(4));
   if (ov) tb.style.setProperty("--so", ov < 0 ? "left" : "right");
 }
@@ -4772,10 +4772,11 @@ function finish(commit, dir, v = 0){
   const W = innerWidth, target = commit ? (dir === "left" ? -W : W) : 0, dist = Math.abs(target - curX);
   // Sanftes Auslaufen: Die Kurve startet genau mit der Fingergeschwindigkeit (kein Knick beim Loslassen)
   // und bremst dann weich ab. Langsames Ziehen gleitet ruhig aus, schnelles Wischen endet zügig.
-  const ease = "cubic-bezier(.25,1,.4,1)", slope = 1 / .25;
+  /* entspannt: ruhiges, langes Ausgleiten ohne Nachschwingen */
+  const ease = "cubic-bezier(.2,.8,.25,1)", slope = 1 / .2 * .8;
   const toward = Math.sign(target - curX) === Math.sign(v) && Math.abs(v) > .05;
-  let dur = toward ? slope * dist / Math.abs(v) : 320 + dist * .6; /* ohne Schwung: Dauer nach Restweg */
-  dur = Math.round(Math.max(commit ? 380 : 340, Math.min(commit ? 620 : 520, dur))); /* etwas länger und weicher einrasten */
+  let dur = toward ? slope * dist / Math.abs(v) : 420 + dist * .6; /* ohne Schwung: Dauer nach Restweg */
+  dur = Math.round(Math.max(commit ? 480 : 420, Math.min(commit ? 760 : 620, dur)));
   animating = true; cancelAnimationFrame(raf2); place(target, dur, ease);
   finCb = () => {
     if (commit) {
