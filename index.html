@@ -250,6 +250,21 @@ body.reordering,body.reordering *{cursor:grabbing!important}
 /* Folder banner */
 .banner{border-radius:22px;overflow:hidden;background:var(--surface);box-shadow:var(--shadow);margin-bottom:24px}
 .banner .art{aspect-ratio:auto;height:150px}
+/* Titelbild über die ganze Kachel/das ganze Banner. Zwei getrennte Ebenen, die sich nicht überlappen:
+   oben (::after) das scharfe Bild, unten (::before) eine weichgezeichnete Kopie – so blitzen unten und in den Ecken keine scharfen Pixel durch.
+   Darüber im unteren Teil ein Farbschleier je nach Transparenz: stark = deutlich durchscheinend, leicht = etwas, keine = deckend */
+.cvw{position:relative;isolation:isolate;overflow:hidden;--cvo:80%;--cvb:18px}
+body[data-glass="0"] .cvw{--cvo:46%;--cvb:12px}
+body[data-glass="2"] .cvw{--cvo:100%;--cvb:0px}
+.tile-main.cvw{container-type:inline-size;--arth:calc(100cqw * 11 / 16)}
+.banner.cvw{--arth:150px}
+@media (min-width:700px){.banner.cvw{--arth:190px}}
+.cvw::before,.cvw::after{content:"";position:absolute;z-index:-1;background-image:var(--cvu);background-position:var(--cvp,50% 50%);background-size:cover;background-repeat:no-repeat;pointer-events:none}
+.cvw::after{inset:0;-webkit-mask-image:linear-gradient(#000 var(--arth),transparent var(--arth));mask-image:linear-gradient(#000 var(--arth),transparent var(--arth))}
+.cvw::before{inset:calc(var(--cvb) * -2);filter:blur(var(--cvb)) saturate(150%);-webkit-mask-image:linear-gradient(transparent calc(var(--arth) + var(--cvb) * 2),#000 calc(var(--arth) + var(--cvb) * 2));mask-image:linear-gradient(transparent calc(var(--arth) + var(--cvb) * 2),#000 calc(var(--arth) + var(--cvb) * 2))}
+body[data-glass="2"] .cvw::before{display:none}
+.cvw>.tile-body,.cvw>.banner-body{position:relative;background:color-mix(in srgb,var(--surface) var(--cvo),transparent)}
+.cvw>.art{background-color:transparent}
 @media (min-width:700px){.banner .art{height:190px}}
 .banner .art-emoji{font-size:50.5px;left:18px;bottom:14px}
 .banner.has-cover .art-emoji{font-size:35px}
@@ -489,6 +504,23 @@ textarea.in{min-height:92px;resize:vertical;line-height:1.4}
 .colorin{width:40px;height:36px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);padding:2px}
 .preview{display:grid;grid-template-columns:150px 1fr;gap:14px;align-items:center;margin-bottom:18px}
 .preview .tile{pointer-events:none}
+#pv{touch-action:none}
+#pv .cvw{cursor:grab}#pv.dragging .cvw{cursor:grabbing}
+.ft-btn{display:flex;align-items:center;gap:10px;text-align:left;cursor:pointer}
+.ft-btn .ft-l{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ft-chev{width:20px;height:20px;color:var(--muted);transition:transform .2s ease;flex:none}
+.ft-btn[aria-expanded="true"] .ft-chev{transform:rotate(180deg)}
+.ft-dot{width:28px;height:28px;border-radius:8px;font-size:15px}
+.ftree{display:flex;flex-direction:column;gap:2px;margin-top:6px;padding:4px;border-radius:14px;background:var(--surface-2);max-height:min(46vh,420px);overflow:auto;overscroll-behavior:contain}
+.ft-row{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:8px 10px 8px calc(6px + var(--d,0) * 22px);border-radius:11px;color:var(--ink);font-weight:600;font-size:16px;background:transparent}
+.ft-row:active,.ft-row:hover{background:color-mix(in oklab,var(--ink) 7%,transparent)}
+.ft-row.on{background:color-mix(in oklab,var(--accent) 14%,transparent)}
+.ft-row .ft-l{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ft-tw{width:18px;height:18px;flex:none;color:var(--muted);transition:transform .2s ease}
+.ft-tw svg,.ft-chev svg{width:100%;height:100%;display:block}
+#sheet.glass .ftree{background:var(--gl-card)}
+.ft-tw.no{visibility:hidden}.ft-tw.op{transform:rotate(90deg)}
+.ft-ck .mi{width:22px;height:22px;display:grid;place-items:center;color:var(--accent-text)}.ft-ck svg{width:20px;height:20px}
 .row2{display:flex;gap:8px;flex-wrap:wrap}
 .sheet-foot{display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;margin-top:6px}
 .sheet-foot .r{display:flex;gap:8px;margin-left:auto}
@@ -822,6 +854,9 @@ body.authing #tabs{display:none}
 #menu button{display:flex;width:100%;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;text-align:left;font-weight:600;font-size:15.5px}
 #menu button:hover{background:var(--surface-2)}
 #menu button .ck{margin-left:auto;color:var(--accent-text);font-weight:800}
+#menu .mi{width:22px;height:22px;flex:none;display:grid;place-items:center;color:var(--muted)}
+#menu .mi svg{width:20px;height:20px}
+#menu [aria-checked="true"] .mi{color:var(--accent-text)}
 #menu .mh{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;padding:8px 12px 4px}
 #menu .mcount{font-size:14.5px;color:var(--muted);padding:0 12px 6px}
 #menu hr{border:0;border-top:1px solid var(--line);margin:6px 4px}
@@ -2141,7 +2176,7 @@ const MIN = 6e4, DAY = 864e5;
 const dayKey = (t = Date.now()) => { const d = new Date(t); return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0"); };
 const plural = (n, one, many) => n + " " + (n === 1 ? one : many);
 const COLORS = ["#FF5A36","#F59E0B","#E2B203","#22A06B","#0E9F9A","#2F80ED","#5B5BD6","#9B51E0","#E0487D","#64748B","#2B2F38","#8B5E3C"];
-const EMOJIS = ["📚","🧠","💼","📊","💶","🧮","⚖️","📈","🏛️","🌍","🇬🇧","🇫🇷","🇪🇸","🇮🇹","🧪","🧬","💻","📐","🩺","🎨","🎵","✏️","🗂️","🚀","⭐","🔥","🍀","🎯","☕","🌙"];
+const EMOJIS = ["📕","📙","📒","📗","📘","📓","📔","📚","📖"]; /* Bücher in verschiedenen Farben */
 const IC_EXAM = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2.5"/><path d="M9 4.5V3.5h6v1M9 12.5l2 2 4-4"/></svg>`;
 const IC_LEARN = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>`;
 const IC = {
@@ -2158,6 +2193,26 @@ const IC = {
   edit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>',
   pen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>'
 };
+/* Einheitliche Symbole für Menüeinträge (gleiche Größe und Strichstärke, feste Breite → Text beginnt überall an derselben Stelle) */
+const MI_P = d => `<span class="mi" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg></span>`;
+const MI = {
+  plus: MI_P('<path d="M12 5v14M5 12h14"/>'),
+  folderPlus: MI_P('<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 10.5v5M9.5 13h5"/>'),
+  sectPlus: MI_P('<path d="M4 6h16M4 12h9M4 18h7M18 14v6M15 17h6"/>'),
+  import: MI_P('<path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 20h14"/>'),
+  edit: MI_P('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>'),
+  move: MI_P('<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 13h6M12.5 10.5 15 13l-2.5 2.5"/>'),
+  select: MI_P('<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8.5 12.2l2.4 2.4 4.6-4.8"/>'),
+  clock: MI_P('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'),
+  up: MI_P('<path d="M12 19V5M6 11l6-6 6 6"/>'),
+  down: MI_P('<path d="M12 5v14M6 13l6 6 6-6"/>'),
+  grid: MI_P('<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>'),
+  list: MI_P('<path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" stroke-width="2.4"/>'),
+  check: MI_P('<path d="M5 12.5l4.5 4.5L19 7.5" stroke-width="2.4"/>'),
+  none: '<span class="mi" aria-hidden="true"></span>'
+};
+/* Auswahl-Einträge: Häkchen links im Symbolplatz (wie bei iOS), sonst leerer Platz → Text bleibt bündig */
+const miRadio = on => on ? MI.check : MI.none;
 const ICONS = {
   lib:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
   learn:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="14" height="14" rx="2"/><path d="M7 3h12a2 2 0 0 1 2 2v12"/></svg>',
@@ -2691,7 +2746,7 @@ const safeCover = c => typeof c === "string" && c.length < 400000 && (/^data:ima
 function deckSnapshot(fid){
   const folders = [], cards = [], idx = {};
   const walk = (id, parent) => { const f = S.folders[id]; if (!f) return; const k = folders.length; idx[id] = k;
-    const o = { k, p: parent, n: f.name, e: f.emoji ?? "", c: safeColor(f.color) }; const cv = safeCover(f.cover); if (cv) o.cv = cv; if (f.side) o.sd = f.side; if (f.csort) o.cs = f.csort;
+    const o = { k, p: parent, n: f.name, e: f.emoji ?? "", c: safeColor(f.color) }; const cv = safeCover(f.cover); if (cv) { o.cv = cv; if (f.cpos) o.cp = cposOf(f); } if (f.side) o.sd = f.side; if (f.csort) o.cs = f.csort;
     folders.push(o);
     Object.values(S.decks[id] || {}).sort((a, b) => (a.created || 0) - (b.created || 0)).forEach(c => cards.push([k, c.f, c.b]));
     children(id).forEach(ch => walk(ch.id, k)); };
@@ -2796,7 +2851,7 @@ async function importSharedDeck(d){
     const parentId = x.p >= 0 ? map[x.p] : null;
     const order = x.p >= 0 ? (kidsOrder[x.p] = (kidsOrder[x.p] ?? -1) + 1) : tops.reduce((m, f) => Math.max(m, f.order || 0), -1) + 1;
     const f = { id, name: x.p >= 0 ? String(x.n || "Ordner") : name, emoji: String(x.e ?? ""), color: safeColor(x.c), parentId, order, created: now + n, from: d.id };
-    const cv = safeCover(x.cv); if (cv) f.cover = cv; if (["front","both","back"].includes(x.sd)) f.side = x.sd; if (typeof x.cs === "string") f.csort = x.cs;
+    const cv = safeCover(x.cv); if (cv) { f.cover = cv; if (Array.isArray(x.cp)) f.cpos = cposOf({ cpos: x.cp }); } if (["front","both","back"].includes(x.sd)) f.side = x.sd; if (typeof x.cs === "string") f.csort = x.cs;
     entries.push(["folders/" + id, f]);
   });
   const deckOf = {}; (snap.cards || []).forEach((c, n) => { const fid = map[c[0]]; if (!fid) return; const id = uid() + "c" + n.toString(36);
@@ -3097,6 +3152,8 @@ function counts(fid){ const all = cardsIn(fid, true), t = todayCards(fid); retur
 function mastery(fid){ const cs = cardsIn(fid, true), ok = cs.filter(x => (x.c.ivl || 0) >= 7).length, pct = cs.length ? Math.round(ok / cs.length * 100) : 0; return { pct, lv: pct >= 70 ? 2 : pct >= 35 ? 1 : 0 }; }
 function cardState(c){ if (!c.reps) return "new"; if (!c.ivl) return "learn"; return c.ivl >= 21 ? "mature" : "young"; }
 function streak(){ let n = 0, t = Date.now(); if (!S.days[dayKey(t)]) t -= DAY; while (S.days[dayKey(t)]) { n++; t -= DAY; } return n; }
+const cposOf = f => { const p = f && f.cpos; return Array.isArray(p) && p.length === 2 ? p.map(v => Math.max(0, Math.min(100, Math.round(+v || 0)))) : [50, 50]; };
+const cposCss = f => cposOf(f).map(v => v + "%").join(" ");
 const coverUrl = f => !f || !f.cover ? "" : f.cover.startsWith("asset:") ? "/_blob/" + f.cover.slice(6) : f.cover;
 const colorOf = f => (f && f.color) || "#FF5A36";
 
@@ -3161,7 +3218,7 @@ function syncPill(){ return S.mode === "cloud" ? '<span class="pill-sync"><i></i
 const emo = f => (f && f.emoji != null) ? f.emoji : "📁";
 function dotHTML(f, cls = "dot"){
   const u = coverUrl(f);
-  return `<span class="${cls}" style="background-color:${esc(colorOf(f))};${u ? `background-image:url('${esc(u)}')` : ''}">${u ? '' : esc(emo(f))}</span>`;
+  return `<span class="${cls}" style="background-color:${esc(colorOf(f))};${u ? `background-image:url('${esc(u)}');background-position:${cposCss(f)}` : ''}">${u ? '' : esc(emo(f))}</span>`;
 }
 function tabsHTML(){
   const t = (v, label) => `<button class="${S.view === v ? 'on' : ''}" data-act="nav" data-v="${v}" ${S.view === v ? 'aria-current="page"' : ''}>${ICONS[v]}<span>${label}</span></button>`;
@@ -3169,21 +3226,23 @@ function tabsHTML(){
 }
 function artHTML(f, extra = ""){
   const u = coverUrl(f);
-  const style = u ? `--c:${esc(colorOf(f))};background-image:linear-gradient(to top,rgba(0,0,0,.28),transparent 55%),url('${esc(u)}')` : `--c:${esc(colorOf(f))}`;
+  const style = u ? `--c:${esc(colorOf(f))};background:linear-gradient(to top,rgba(0,0,0,.22),transparent 55%)` : `--c:${esc(colorOf(f))}`;
   return `<div class="art ${u ? 'has-cover' : 'col'}" style="${style}">${extra}${emo(f) ? `<span class="art-emoji">${esc(emo(f))}</span>` : ''}</div>`;
 }
+/* Titelbild über die ganze Kachel bzw. das ganze Banner – unten scheint es je nach Transparenz-Einstellung durch */
+const cvwStyle = f => { const u = coverUrl(f); return u ? ` style="background-color:${esc(colorOf(f))};--cvu:url('${esc(u)}');--cvp:${cposCss(f)}"` : ''; };
 function learnSub(n){ return [n.rev ? plural(n.rev, 'Wiederholung', 'Wiederholungen') : '', n.nw ? n.nw + ' neu' : ''].filter(Boolean).join(' · '); }
 function tileHTML(f){
   const n = counts(f.id), subs = children(f.id).length;
   const meta = [plural(n.total, "Karte", "Karten"), subs ? plural(subs, "Ordner", "Ordner") : ""].filter(Boolean).join(" · ");
-  return `<div class="tile"><button class="tile-main" data-act="open" data-id="${f.id}">
+  return `<div class="tile"><button class="tile-main${coverUrl(f) ? ' cvw' : ''}" data-act="open" data-id="${f.id}"${cvwStyle(f)}>
     ${artHTML(f, n.due ? `<span class="due-badge">${n.due} fällig</span>` : '')}
     <div class="tile-body"><div class="tile-name">${esc(f.name)}</div><div class="tile-meta">${meta}</div></div></button></div>`;
 }
 function frowHTML(f){
   const n = counts(f.id), subs = children(f.id).length, u = coverUrl(f);
   const meta = [plural(n.total, "Karte", "Karten"), subs ? plural(subs, "Ordner", "Ordner") : ""].filter(Boolean).join(" · ");
-  return `<button class="frow" data-act="open" data-id="${f.id}"><span class="frow-ic" style="background-color:${esc(colorOf(f))};${u ? `background-image:url('${esc(u)}')` : ''}">${u ? '' : esc(emo(f))}</span>
+  return `<button class="frow" data-act="open" data-id="${f.id}"><span class="frow-ic" style="background-color:${esc(colorOf(f))};${u ? `background-image:url('${esc(u)}');background-position:${cposCss(f)}` : ''}">${u ? '' : esc(emo(f))}</span>
     <span class="frow-t"><b>${esc(f.name)}</b><span>${meta}</span></span>${n.due ? `<span class="frow-due">${n.due} fällig</span>` : ''}<span class="frow-ch" aria-hidden="true">›</span></button>`;
 }
 function foldersHTML(list){ return S.set.layout === "list" ? `<div class="flist">${list.map(frowHTML).join("")}</div>` : `<div class="grid">${list.map(tileHTML).join("")}</div>`; }
@@ -3210,7 +3269,7 @@ function folderHTML(fid){
   const f = S.folders[fid]; if (!f) return libHTML();
   const n = counts(fid), subs = children(fid), deepOnly = n.total - n.own;
   return `${crumbsHTML(fid)}
-  <section class="banner ${coverUrl(f) ? 'has-cover' : ''}">${artHTML(f)}
+  <section class="banner ${coverUrl(f) ? 'has-cover cvw' : ''}"${cvwStyle(f)}>${artHTML(f)}
     <div class="banner-body"><div class="banner-row"><div><h1>${esc(f.name)}</h1><div class="muted banner-meta">${plural(n.total, 'Karte', 'Karten')} · ${n.due} fällig${subs.length ? ' · ' + plural(subs.length, 'Unterordner', 'Unterordner') : ''}${sideOf(fid) !== 'front' ? ` · ${sideOf(fid) === 'both' ? '⇄ beidseitig' : '↺ Rückseite zuerst'}` : ''}</div></div>
       <div class="banner-acts"><button class="lset-btn" style="--c:${esc(colorOf(f))}" data-act="learnMenu" data-id="${fid}" aria-haspopup="menu" aria-expanded="false" aria-label="Lerneinstellungen: ${esc(dailyLabel(fid))}" title="Lerneinstellungen">${IC_LEARN}<span>${esc(learnShort(fid))}</span></button>
       <button class="icon-btn" data-act="folderMenu" data-id="${fid}" aria-haspopup="menu" aria-expanded="false" aria-label="${f.parentId ? 'Unterordner' : 'Ordner'}-Menü" title="${f.parentId ? 'Unterordner' : 'Ordner'}">${IC.dots}</button>
@@ -3621,7 +3680,7 @@ function cardSorter(fid){
 }
 function openCardSortMenu(btn, fid){
   const m = $("#menu"), cur = csortOf(fid);
-  m.innerHTML = `<div class="mh">Karten sortieren</div>` + CSORTS.map(([k, l]) => `<button data-act="setCsort" data-id="${fid}" data-v="${k}" role="menuitemradio" aria-checked="${cur === k}">${l}${cur === k ? '<span class="ck">✓</span>' : ''}</button>`).join("");
+  m.innerHTML = `<div class="mh">Karten sortieren</div>` + CSORTS.map(([k, l]) => `<button data-act="setCsort" data-id="${fid}" data-v="${k}" role="menuitemradio" aria-checked="${cur === k}">${miRadio(cur === k)}${l}</button>`).join("");
   m.hidden = false; btn.setAttribute("aria-expanded", "true");
   placeMenu(m, btn);
 }
@@ -3995,14 +4054,46 @@ function folderSheet(id, parentId, sect){
     <div class="field"><span class="lbl">Farbe</span><div class="swatches" id="sws">${COLORS.map(c => `<button class="sw ${c === d.color ? 'on' : ''}" style="--c:${c}" data-c="${c}" aria-label="Farbe ${c}"></button>`).join("")}<input type="color" class="colorin" id="fc" value="${esc(d.color)}" aria-label="Eigene Farbe"></div></div>
     <div class="field"><span class="lbl">Emoji</span><div class="emojis" id="ems"><button class="none ${d.emoji === '' ? 'on' : ''}" data-e="" aria-label="Kein Emoji" title="Kein Emoji">Kein</button>${EMOJIS.map(e => `<button class="${e === d.emoji ? 'on' : ''}" data-e="${e}">${e}</button>`).join("")}</div>
       <input class="in" id="fe" maxlength="8" placeholder="Eigenes Emoji eintippen" value="${EMOJIS.includes(d.emoji) || !d.emoji ? '' : esc(d.emoji)}" style="margin-top:6px"></div>
-    <div class="field"><span class="lbl">Titelbild</span><div class="row2"><label class="btn" for="fi">Bild wählen</label><input id="fi" type="file" accept="image/*" hidden><button class="btn" id="fr" ${d.cover ? '' : 'hidden'}>Bild entfernen</button><span class="muted" id="fst" style="align-self:center;font-size:14.5px"></span></div></div>
-    <div class="field"><label for="fp">Liegt in</label><select class="in" id="fp"><option value="">Bibliothek (oberste Ebene)</option>${folderOptions(d.parentId, exclude)}</select></div>
+    <div class="field"><span class="lbl">Titelbild</span><div class="row2"><label class="btn" for="fi">Bild wählen</label><input id="fi" type="file" accept="image/*" hidden><button class="btn" id="fr" ${d.cover ? '' : 'hidden'}>Bild entfernen</button><span class="muted" id="fst" style="align-self:center;font-size:14.5px"></span></div>
+      <div class="muted cv-hint" id="fch" style="font-size:14.5px;margin-top:8px" ${d.cover ? '' : 'hidden'}>Zieh das Bild in der Vorschau oben, um den sichtbaren Ausschnitt festzulegen.</div></div>
+    <div class="field"><span class="lbl">Liegt in</span><input type="hidden" id="fp" value="${esc(d.parentId || '')}"><button type="button" class="in ft-btn" id="fpb" aria-expanded="false"></button><div class="ftree" id="ftr" hidden></div></div>
     <div class="field" id="fsw" ${d.parentId ? 'hidden' : ''}><label for="fs">Bereich</label><select class="in" id="fs"><option value="">Kein Bereich (Weitere Ordner)</option>${sectionList().map(x => `<option value="${x.id}" ${x.id === d.section ? 'selected' : ''}>${esc(x.name)}</option>`).join("")}<option value="__new">＋ Neuer Bereich …</option></select>
       <input class="in" id="fsn" maxlength="60" placeholder="Name des neuen Bereichs, z. B. Uni" hidden></div>
     <div class="sheet-foot">${ex ? `<button class="btn danger" id="fdel">Ordner löschen</button>` : ''}<div class="r"><button class="btn" data-act="close">Abbrechen</button><button class="btn primary" id="fsave">Speichern</button></div></div>`,
   root => {
     const pv = () => { $("#pv", root).innerHTML = tileHTML({ ...d, name: d.name || "Neuer Ordner", id: "__pv" }); };
     pv();
+    /* Bildausschnitt: in der Vorschau-Kachel ziehen */
+    let cvImg = null;
+    const cvLoad = () => { cvImg = null; const u = coverUrl(d); if (!u) return; const i = new Image(); i.onload = () => { cvImg = i; }; i.src = u; };
+    cvLoad();
+    const pvEl = $("#pv", root);
+    pvEl.addEventListener("pointerdown", e => {
+      if (!d.cover) return; const t = pvEl.querySelector(".tile-main"); if (!t) return;
+      e.preventDefault(); const r = t.getBoundingClientRect(), p0 = cposOf(d), x0 = e.clientX, y0 = e.clientY;
+      const iw = cvImg ? cvImg.naturalWidth : r.width, ih = cvImg ? cvImg.naturalHeight : r.height, k = Math.max(r.width / iw, r.height / ih);
+      const ox = iw * k - r.width, oy = ih * k - r.height; /* so weit lässt sich das Bild verschieben (px) */
+      try { pvEl.setPointerCapture(e.pointerId); } catch {}
+      pvEl.classList.add("dragging");
+      const mv = ev => { d.cpos = [ox > 1 ? p0[0] - (ev.clientX - x0) / ox * 100 : 50, oy > 1 ? p0[1] - (ev.clientY - y0) / oy * 100 : 50]; d.cpos = cposOf(d); const tm = pvEl.querySelector(".tile-main"); if (tm) tm.style.setProperty("--cvp", cposCss(d)); };
+      const up = () => { pvEl.removeEventListener("pointermove", mv); pvEl.removeEventListener("pointerup", up); pvEl.removeEventListener("pointercancel", up); pvEl.classList.remove("dragging"); };
+      pvEl.addEventListener("pointermove", mv); pvEl.addEventListener("pointerup", up); pvEl.addEventListener("pointercancel", up);
+    });
+    /* „Liegt in“: Baum – Unterordner erscheinen erst, wenn man den Hauptordner antippt */
+    const fpIn = $("#fp", root), fpb = $("#fpb", root), ftr = $("#ftr", root), exSet = new Set(exclude), openT = new Set();
+    if (d.parentId) pathOf(d.parentId).slice(0, -1).forEach(f => openT.add(f.id));
+    const kids = pid => children(pid).filter(f => !exSet.has(f.id));
+    const fpLabel = () => { const v = fpIn.value, f = v && S.folders[v];
+      fpb.innerHTML = `${f ? dotHTML(f, "pk-dot ft-dot") : `<span class="pk-dot pk-ic ft-dot">${IC.lib}</span>`}<span class="ft-l">${f ? esc(f.name) : "Bibliothek (oberste Ebene)"}</span><span class="ft-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10l5 5 5-5"/></svg></span>`; };
+    const ftRow = (f, dep) => { const has = kids(f.id).length > 0, op = openT.has(f.id), on = fpIn.value === f.id;
+      return `<button type="button" class="ft-row${on ? ' on' : ''}" data-fid="${f.id}" style="--d:${dep}"${has ? ` aria-expanded="${op}"` : ''}><span class="ft-tw${has ? '' : ' no'}${op ? ' op' : ''}" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>${dotHTML(f, "pk-dot ft-dot")}<span class="ft-l">${esc(f.name)}</span>${on ? `<span class="ft-ck">${MI.check}</span>` : ''}</button>`
+        + (has && op ? kids(f.id).map(c => ftRow(c, dep + 1)).join("") : ""); };
+    const ftDraw = () => { ftr.innerHTML = `<button type="button" class="ft-row${fpIn.value ? '' : ' on'}" data-fid="" style="--d:0"><span class="ft-tw no" aria-hidden="true"></span><span class="pk-dot pk-ic ft-dot">${IC.lib}</span><span class="ft-l">Bibliothek (oberste Ebene)</span>${fpIn.value ? '' : `<span class="ft-ck">${MI.check}</span>`}</button>` + kids(null).map(f => ftRow(f, 0)).join(""); };
+    fpLabel();
+    fpb.addEventListener("click", () => { const show = ftr.hidden; ftr.hidden = !show; fpb.setAttribute("aria-expanded", String(show)); if (show) { ftDraw(); ftr.scrollIntoView({ block: "nearest", behavior: "smooth" }); } });
+    ftr.addEventListener("click", e => { const b = e.target.closest(".ft-row"); if (!b) return; const id = b.dataset.fid;
+      if (id && kids(id).length) { if (openT.has(id) && fpIn.value === id) openT.delete(id); else openT.add(id); }
+      fpIn.value = id; fpIn.dispatchEvent(new Event("change")); fpLabel(); ftDraw(); });
     $("#fn", root).addEventListener("input", e => { d.name = e.target.value; pv(); });
     $("#sws", root).addEventListener("click", e => { const b = e.target.closest("[data-c]"); if (!b) return; d.color = b.dataset.c; $("#fc", root).value = d.color; root.querySelectorAll(".sw").forEach(x => x.classList.toggle("on", x === b)); pv(); });
     $("#fc", root).addEventListener("input", e => { d.color = e.target.value; root.querySelectorAll(".sw").forEach(x => x.classList.remove("on")); pv(); });
@@ -4011,11 +4102,11 @@ function folderSheet(id, parentId, sect){
     $("#fi", root).addEventListener("change", async e => {
       const file = e.target.files && e.target.files[0]; if (!file) return;
       $("#fst", root).textContent = "Lädt hoch …";
-      try { d.cover = await makeCover(file); $("#fr", root).hidden = false; $("#fst", root).textContent = ""; pv(); }
+      try { d.cover = await makeCover(file); d.cpos = null; $("#fr", root).hidden = false; $("#fch", root).hidden = false; $("#fst", root).textContent = ""; cvLoad(); pv(); }
       catch (err) { console.warn(err); $("#fst", root).textContent = "Bild konnte nicht geladen werden. Probier JPG oder PNG."; }
       e.target.value = "";
     });
-    $("#fr", root).addEventListener("click", () => { d.cover = null; $("#fr", root).hidden = true; pv(); });
+    $("#fr", root).addEventListener("click", () => { d.cover = null; d.cpos = null; $("#fr", root).hidden = true; $("#fch", root).hidden = true; pv(); });
     $("#fp", root).addEventListener("change", e => { $("#fsw", root).hidden = !!e.target.value; });
     $("#fs", root).addEventListener("change", e => { const nw = e.target.value === "__new"; $("#fsn", root).hidden = !nw; if (nw) $("#fsn", root).focus(); });
     $("#fsave", root).addEventListener("click", () => {
@@ -4213,17 +4304,17 @@ function openMenu(btn, fid){
   const fo = fid && S.folders[fid];
   const title = fo ? `<div class="mt">${dotHTML(fo)}<span>${fo.parentId ? 'Unterordner' : 'Ordner'}</span><b>${esc(fo.name)}</b></div><hr>` : `<div class="mt">${IC.lib.replace('<svg', '<svg width="16" height="16"')}<b>Bibliothek</b></div><hr>`;
   m.innerHTML = title + (fid ? `
-    <button data-act="newCard"${d} role="menuitem">＋ Neue Karte</button>
-    <button data-act="newFolder"${d} role="menuitem">＋ Neuer Unterordner</button>
-    <button data-act="import"${d} role="menuitem">⇣ Karten importieren</button>
-    <button data-act="editFolder"${d} role="menuitem">✎ Ordner gestalten</button>
-    <button data-act="moveFolder"${d} role="menuitem">↪ ${fo.parentId ? 'Unterordner' : 'Ordner'} verschieben</button>` + (n.own ? `
-    <button data-act="pickStart"${d} role="menuitem">☑ Karten auswählen<span class="sub" style="color:var(--muted)">kopieren, verschieben, löschen</span></button>` : '')
-    : `<button data-act="newFolder" role="menuitem">＋ Neuer Ordner</button>
-    <button data-act="newSect" role="menuitem">＋ Neuer Bereich (Überschrift)</button>
-    <button data-act="import" role="menuitem">⇣ Karten importieren</button>`) + (sortBlock ? `<hr><div class="mh">${fid ? 'Unterordner sortieren nach' : 'Sortieren nach'}</div>
-    ${sorts.map(([k, l]) => `<button data-act="sort" data-v="${k}" role="menuitemradio" aria-checked="${S.sort === k}">${l}${S.sort === k ? '<span class="ck">✓</span>' : ''}</button>`).join("")}` : '')
-    + (!fid ? `<hr><div class="mh">Ansicht</div>${[["grid","▦ Kacheln"],["list","☰ Liste"]].map(([k, l]) => `<button data-act="setLayout" data-v="${k}" role="menuitemradio" aria-checked="${S.set.layout === k}">${l}${S.set.layout === k ? '<span class="ck">✓</span>' : ''}</button>`).join("")}` : '');
+    <button data-act="newCard"${d} role="menuitem">${MI.plus}Neue Karte</button>
+    <button data-act="newFolder"${d} role="menuitem">${MI.folderPlus}Neuer Unterordner</button>
+    <button data-act="import"${d} role="menuitem">${MI.import}Karten importieren</button>
+    <button data-act="editFolder"${d} role="menuitem">${MI.edit}Ordner gestalten</button>
+    <button data-act="moveFolder"${d} role="menuitem">${MI.move}${fo.parentId ? 'Unterordner' : 'Ordner'} verschieben</button>` + (n.own ? `
+    <button data-act="pickStart"${d} role="menuitem">${MI.select}Karten auswählen<span class="sub" style="color:var(--muted)">kopieren, verschieben, löschen</span></button>` : '')
+    : `<button data-act="newFolder" role="menuitem">${MI.folderPlus}Neuer Ordner</button>
+    <button data-act="newSect" role="menuitem">${MI.sectPlus}Neuer Bereich (Überschrift)</button>
+    <button data-act="import" role="menuitem">${MI.import}Karten importieren</button>`) + (sortBlock ? `<hr><div class="mh">${fid ? 'Unterordner sortieren nach' : 'Sortieren nach'}</div>
+    ${sorts.map(([k, l]) => `<button data-act="sort" data-v="${k}" role="menuitemradio" aria-checked="${S.sort === k}">${miRadio(S.sort === k)}${l}</button>`).join("")}` : '')
+    + (!fid ? `<hr><div class="mh">Ansicht</div>${[["grid","Kacheln"],["list","Liste"]].map(([k, l]) => `<button data-act="setLayout" data-v="${k}" role="menuitemradio" aria-checked="${S.set.layout === k}">${MI[k]}${l}${S.set.layout === k ? '<span class="ck">✓</span>' : ''}</button>`).join("")}` : '');
   m.hidden = false; btn.setAttribute("aria-expanded", "true");
   placeMenu(m, btn);
 }
@@ -4236,18 +4327,18 @@ function openLearnMenu(btn, fid){
   const m = $("#menu"), fo = S.folders[fid]; if (!fo) return;
   const d = ` data-id="${fid}"`, side = sideOf(fid);
   m.innerHTML = `<div class="mt">${IC_LEARN.replace('<svg', '<svg width="16" height="16"')}<span>Lernen</span><b>${esc(fo.name)}</b></div><hr>
-    <button data-act="dailySheet"${d} role="menuitem">◷ Lernmenge pro Tag<span class="sub" style="color:var(--muted)">${dailyLabel(fid)}</span></button>
-    <hr><div class="mh">Lernrichtung</div>${SIDES.map(([k, l]) => `<button data-act="setSide"${d} data-v="${k}" role="menuitemradio" aria-checked="${side === k}">${l}${side === k ? '<span class="ck">✓</span>' : ''}</button>`).join("")}`;
+    <button data-act="dailySheet"${d} role="menuitem">${MI.clock}Lernmenge pro Tag<span class="sub" style="color:var(--muted)">${dailyLabel(fid)}</span></button>
+    <hr><div class="mh">Lernrichtung</div>${SIDES.map(([k, l]) => `<button data-act="setSide"${d} data-v="${k}" role="menuitemradio" aria-checked="${side === k}">${miRadio(side === k)}${l}</button>`).join("")}`;
   m.hidden = false; btn.setAttribute("aria-expanded", "true");
   placeMenu(m, btn);
 }
 function openSectMenu(btn, sid){
   const m = $("#menu"), list = sectionList(), i = list.findIndex(x => x.id === sid);
   m.innerHTML = `<div class="mt">${IC.sect.replace('<svg', '<svg width="16" height="16"')}<span>Bereich</span><b>${esc((S.sections[sid] || {}).name || '')}</b></div>
-    <div class="mcount num">${(() => { const fl = topIn(sid), c = fl.reduce((n, f) => n + counts(f.id).total, 0); return plural(fl.length, 'Ordner', 'Ordner') + ' · ' + plural(c, 'Karte', 'Karten'); })()}</div><hr><button data-act="newFolder" data-sect="${sid}" role="menuitem">＋ Neuer Ordner hier</button>
-    <button data-act="editSect" data-id="${sid}" role="menuitem">✎ Umbenennen oder löschen</button><hr>
-    <button data-act="sectUp" data-id="${sid}" role="menuitem" ${i > 0 ? '' : 'disabled'}>↑ Nach oben</button>
-    <button data-act="sectDown" data-id="${sid}" role="menuitem" ${i < list.length - 1 ? '' : 'disabled'}>↓ Nach unten</button>`;
+    <div class="mcount num">${(() => { const fl = topIn(sid), c = fl.reduce((n, f) => n + counts(f.id).total, 0); return plural(fl.length, 'Ordner', 'Ordner') + ' · ' + plural(c, 'Karte', 'Karten'); })()}</div><hr><button data-act="newFolder" data-sect="${sid}" role="menuitem">${MI.folderPlus}Neuer Ordner hier</button>
+    <button data-act="editSect" data-id="${sid}" role="menuitem">${MI.edit}Umbenennen oder löschen</button><hr>
+    <button data-act="sectUp" data-id="${sid}" role="menuitem" ${i > 0 ? '' : 'disabled'}>${MI.up}Nach oben</button>
+    <button data-act="sectDown" data-id="${sid}" role="menuitem" ${i < list.length - 1 ? '' : 'disabled'}>${MI.down}Nach unten</button>`;
   m.hidden = false; btn.setAttribute("aria-expanded", "true");
   placeMenu(m, btn);
 }
