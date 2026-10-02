@@ -698,22 +698,18 @@ button.set-item:hover{background:color-mix(in oklab,var(--ink) 4%,transparent)}
 .theme{display:flex;flex-direction:column;align-items:center;gap:8px;padding:4px 0;border-radius:14px;color:var(--muted);font-size:14.5px;font-weight:600}
 .theme-ic{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:var(--tb);color:var(--tf);box-shadow:inset 0 0 0 1px rgba(128,128,128,.22);transition:transform .15s ease,box-shadow .15s ease}
 .theme-ic svg{width:24px;height:24px}
-/* 3D-Look der Themen-Buttons */
-.themes{gap:18px 8px;padding-top:4px}
-.theme .theme-ic{width:56px;height:56px;position:relative;
-  background:radial-gradient(circle at 35% 25%,rgba(255,255,255,.55) 0,rgba(255,255,255,.2) 25%,rgba(255,255,255,0) 60%),linear-gradient(to bottom,rgba(255,255,255,.1),rgba(0,0,0,.22)),var(--tb);
-  box-shadow:inset 0 1.5px 1px rgba(255,255,255,.6),inset 0 -4px 8px rgba(0,0,0,.28),inset 0 0 0 1px rgba(0,0,0,.08),0 5px 0 -1px rgba(0,0,0,.22),0 12px 18px -6px rgba(0,0,0,.4);
-  transform:translateY(-2px);transition:transform .22s cubic-bezier(.34,1.45,.55,1),box-shadow .22s ease}
-.theme .theme-ic svg{width:25px;height:25px;filter:drop-shadow(0 1.5px 1px rgba(0,0,0,.3))}
-.theme[data-v="light"] .theme-ic{background:radial-gradient(circle at 35% 25%,#FFFFFF 0,#FFFFFF 45%,#F3F4F6 100%);color:#000}
-.theme[data-v="light"] .theme-ic svg{filter:none;stroke-width:2.2}
-.theme.on[data-v="light"] .theme-ic{box-shadow:inset 0 1px 2px rgba(0,0,0,.08),0 1px 0 rgba(0,0,0,.12),0 0 0 3px var(--surface),0 0 0 5.5px var(--ink)}
-.theme[data-v="light"]:active .theme-ic{box-shadow:inset 0 1px 3px rgba(0,0,0,.1),0 1px 0 rgba(0,0,0,.15)}
-.theme:hover .theme-ic{transform:translateY(-4px) scale(1.04);box-shadow:inset 0 1.5px 1px rgba(255,255,255,.6),inset 0 -4px 8px rgba(0,0,0,.28),inset 0 0 0 1px rgba(0,0,0,.08),0 7px 0 -1px rgba(0,0,0,.2),0 18px 24px -8px rgba(0,0,0,.42)}
-.theme:active .theme-ic,.theme.on .theme-ic{transform:translateY(2px);transition-duration:.08s}
-.theme:active .theme-ic{box-shadow:inset 0 3px 7px rgba(0,0,0,.35),inset 0 -1px 1px rgba(255,255,255,.3),0 1px 0 rgba(0,0,0,.2)}
+/* Thema-Knöpfe: flache, leuchtende Kugeln (Farbverlauf + farbiges Leuchten), Auswahl mit Ring in Themenfarbe */
+.themes{grid-template-columns:repeat(4,1fr);gap:18px 6px;padding-top:4px}
+.theme .theme-ic{width:58px;height:58px;position:relative;color:var(--tf);
+  background:radial-gradient(120% 120% at 30% 20%,color-mix(in oklab,var(--tb) 55%,white) 0,var(--tb) 45%,color-mix(in oklab,var(--tb) 70%,black) 100%);
+  box-shadow:0 8px 22px -8px color-mix(in oklab,var(--tb) 85%,transparent),inset 0 1px 0 rgba(255,255,255,.35);
+  transition:transform .25s cubic-bezier(.34,1.45,.55,1),box-shadow .2s ease}
+.theme .theme-ic svg{width:24px;height:24px}
+.theme:is([data-v="light"],[data-v="dark"],[data-v="auto"]) .theme-ic{background:var(--tb);box-shadow:0 6px 18px -8px rgba(0,0,0,.45),inset 0 0 0 1px rgba(128,128,128,.22)}
+.theme.on .theme-ic{transform:scale(1.06);box-shadow:0 0 0 3px var(--surface),0 0 0 5.5px color-mix(in oklab,var(--tb) 72%,var(--ink)),0 10px 26px -6px color-mix(in oklab,var(--tb) 90%,transparent)}
+.theme.on:is([data-v="light"],[data-v="dark"],[data-v="auto"]) .theme-ic{box-shadow:0 0 0 3px var(--surface),0 0 0 5.5px var(--ink),0 6px 18px -8px rgba(0,0,0,.45)}
+.theme:active .theme-ic{transform:scale(.92);transition-duration:.08s}
 .theme.on{color:var(--ink);font-weight:700}
-.theme.on .theme-ic{box-shadow:inset 0 3px 7px rgba(0,0,0,.32),inset 0 -1px 1px rgba(255,255,255,.35),0 1px 0 rgba(0,0,0,.15),0 0 0 3px var(--surface),0 0 0 5.5px var(--ink)}
 .theme:active{transform:none}
 @media (prefers-reduced-motion:reduce){.theme-ic,.theme .theme-ic{transition:none}}
 .set-row{display:flex;align-items:center;gap:10px;font-size:15.5px}
@@ -2479,7 +2475,7 @@ const THEMES = [
   { k:"lagoon",    n:"Lagoon",    base:"light", c:"#00C2D1", ink:"#002A2E" },
   { k:"ocean",     n:"Ocean",     base:"light", c:"#2962FF", ink:"#FFFFFF" },
   { k:"lavender",  n:"Lavender",  base:"light", c:"#8C3DFF", ink:"#FFFFFF" },
-  { k:"barbie",    n:"Barbie",    base:"light", c:"#FF2DB4", ink:"#FFFFFF", hearts:true },
+  { k:"barbie",    n:"Barbie",    base:"light", c:"#FF2DB4", ink:"#FFFFFF" }, /* ohne Herzchen-Hintergrund, nur rosa */
   { k:"evergreen", n:"Evergreen", base:"dark",  c:"#4F9B72", ink:"#FFFFFF",
     bases:{ "b-paper":"#11291E", "b-surface":"#18382A", "b-surface-2":"#1E4132", "b-line":"#2E5443", "b-muted":"#9AB5A6", "b-ink":"#EAF2ED", "b-ink-2":"#C7D8CE" }, flat:true, firs:true, icBg:"#18382A", icFg:"#8FCFA8" },
   { k:"navy",      n:"Navy",      base:"dark",  c:"#F4C95D", ink:"#1A1405",
@@ -3336,12 +3332,13 @@ const NEUTRAL_IC = { light: ["#FFFFFF", "#1B1D23"], dark: ["#16181D", "#ECEEF3"]
 function lookInfo(k){ const t = THEMES.find(x => x.k === k); if (t) return { n: t.n, bg: t.icBg || t.c, fg: t.icFg || t.ink }; const n = (NEUTRAL.find(x => x[0] === k) || NEUTRAL[2]); const c = NEUTRAL_IC[n[0]]; return { n: n[1], bg: c[0], fg: c[1] }; }
 function lookPickerHTML(){
   const card = k => { const on = S.set.look === k, i = lookInfo(k);
-    return `<button class="theme ${on ? 'on' : ''}" data-act="setLook" data-v="${k}" role="radio" aria-checked="${on}"><span class="theme-ic" style="--tb:${i.bg};--tf:${i.fg}">${THEME_IC[k]}</span>${i.n}</button>`; };
+    const t = THEMES.find(x => x.k === k), bg = t ? t.c : i.bg, fg = t ? t.ink : i.fg; /* Kugel in Themenfarbe */
+    return `<button class="theme ${on ? 'on' : ''}" data-act="setLook" data-v="${k}" role="radio" aria-checked="${on}"><span class="theme-ic" style="--tb:${bg};--tf:${fg}">${THEME_IC[k]}</span>${i.n}</button>`; };
   return `<div role="radiogroup" aria-label="Thema">
       <div class="themes">${NEUTRAL.map(([k]) => card(k)).join("")}</div>
       <div class="lbl" style="margin:20px 0 12px">Farbthemen</div>
       <div class="themes">${THEMES.filter(t => t.base === "light").map(t => card(t.k)).join("")}</div>
-      <div class="lbl" style="margin:20px 0 12px">Dunkle Farbthemen</div>
+      <div class="lbl" style="margin:20px 0 12px">Designs</div>
       <div class="themes">${THEMES.filter(t => t.base === "dark").map(t => card(t.k)).join("")}</div></div>`;
 }
 const TS = [["s","Klein",14],["m","Mittel",18],["l","Groß",23]];
