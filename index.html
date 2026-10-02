@@ -235,8 +235,8 @@ body.reordering,body.reordering *{cursor:grabbing!important}
 /* Folder banner */
 .banner{border-radius:22px;overflow:hidden;background:var(--surface);box-shadow:var(--shadow);margin-bottom:24px}
 .banner .art{aspect-ratio:auto;height:150px}
-/* Titelbild über die ganze Kachel/das ganze Banner. Zwei getrennte Ebenen, die sich nicht überlappen:
-   oben (::after) das scharfe Bild, unten (::before) eine weichgezeichnete Kopie – so blitzen unten und in den Ecken keine scharfen Pixel durch.
+/* Titelbild: oben scharf (::after, nur im Bildbereich). Unten (::before) läuft genau dieses sichtbare Bild gespiegelt und
+   weichgezeichnet weiter – man sieht unten also das Titelbild verschwommen, keinen anderen Bildteil und keinen Hintergrund.
    Darüber im unteren Teil ein Farbschleier je nach Transparenz: stark = deutlich durchscheinend, leicht = etwas, keine = deckend */
 .cvw{position:relative;isolation:isolate;overflow:hidden;overflow:clip; /* clip: nur abschneiden, nicht verschiebbar (sonst rutscht der Inhalt beim Antippen hoch) */--cvo:80%;--cvb:18px}
 body[data-glass="0"] .cvw{--cvo:46%;--cvb:12px}
@@ -244,9 +244,9 @@ body[data-glass="2"] .cvw{--cvo:100%;--cvb:0px}
 .tile-main.cvw{container-type:inline-size;--arth:calc(100cqw * 11 / 16)}
 .banner.cvw{--arth:150px}
 @media (min-width:700px){.banner.cvw{--arth:190px}}
-.cvw::before,.cvw::after{content:"";position:absolute;z-index:-1;background-image:var(--cvu);background-position:var(--cvp,50% 50%);background-size:cover;background-repeat:no-repeat;pointer-events:none}
-.cvw::after{inset:0;-webkit-mask-image:linear-gradient(#000 var(--arth),transparent var(--arth));mask-image:linear-gradient(#000 var(--arth),transparent var(--arth))}
-.cvw::before{inset:calc(var(--cvb) * -2);filter:blur(var(--cvb)) saturate(150%);-webkit-mask-image:linear-gradient(transparent calc(var(--arth) + var(--cvb) * 2),#000 calc(var(--arth) + var(--cvb) * 2));mask-image:linear-gradient(transparent calc(var(--arth) + var(--cvb) * 2),#000 calc(var(--arth) + var(--cvb) * 2))}
+.cvw::before,.cvw::after{content:"";position:absolute;z-index:-1;top:0;height:var(--arth);background-image:var(--cvu);background-position:var(--cvp,50% 50%);background-size:cover;background-repeat:no-repeat;pointer-events:none}
+.cvw::after{left:0;right:0}
+.cvw::before{left:calc(var(--cvb) * -2);right:calc(var(--cvb) * -2);transform-origin:50% 100%;transform:scaleY(-4);filter:blur(var(--cvb)) saturate(150%)}
 body[data-glass="2"] .cvw::before{display:none}
 .cvw>.tile-body,.cvw>.banner-body{position:relative;background:color-mix(in srgb,var(--surface) var(--cvo),transparent)}
 .cvw>.art{background-color:transparent}
@@ -4082,7 +4082,7 @@ function folderSheet(id, parentId, sect){
     const pvEl = $("#pv", root);
     pvEl.addEventListener("pointerdown", e => {
       if (!d.cover) return; const t = pvEl.querySelector(".tile-main"); if (!t) return;
-      e.preventDefault(); const r = t.getBoundingClientRect(), p0 = cposOf(d), x0 = e.clientX, y0 = e.clientY;
+      e.preventDefault(); const r = (t.querySelector(".art") || t).getBoundingClientRect(), p0 = cposOf(d), x0 = e.clientX, y0 = e.clientY;
       const iw = cvImg ? cvImg.naturalWidth : r.width, ih = cvImg ? cvImg.naturalHeight : r.height, k = Math.max(r.width / iw, r.height / ih);
       const ox = iw * k - r.width, oy = ih * k - r.height; /* so weit lässt sich das Bild verschieben (px) */
       try { pvEl.setPointerCapture(e.pointerId); } catch {}
