@@ -4819,10 +4819,10 @@ function endSwipe(e){
   const x = cx - s0.x - s0.off; if (peekDir || x) place(peekDir ? x : curX, 0);
   const a = s0.pts[0], b = s0.pts[s0.pts.length - 1], v = (b[0] - a[0]) / Math.max(1, b[1] - a[1]);
   const dir = x < 0 ? "left" : "right";
-  /* Entscheidung wie bei iOS: wohin würde die Seite mit dem jetzigen Schwung noch gleiten? Nur wenn dieser Punkt über der
-     Bildschirmmitte liegt, wird gewechselt – ein kurzer, schwacher Schubs federt zurück, ein bewusster Wisch wechselt */
+  /* Entscheidung wie bei iOS: wohin würde die Seite mit dem jetzigen Schwung noch gleiten? Nur wenn dieser Punkt über 40 % der
+     Bildschirmbreite liegt, wird gewechselt – ein kurzer, schwacher Schubs federt zurück, ein bewusster Wisch wechselt */
   const proj = x + v * 200;
-  const commit = !!neighbour(dir) && Math.sign(proj) === Math.sign(x) && Math.abs(proj) > innerWidth * .5 && Math.abs(x) > 40;
+  const commit = !!neighbour(dir) && Math.sign(proj) === Math.sign(x) && Math.abs(proj) > innerWidth * .4 && Math.abs(x) > 30;
   finish(commit, dir, v);
 }
 document.addEventListener("touchend", endSwipe, { passive: true });
