@@ -242,7 +242,12 @@ body[data-glass="2"] .cvw{--cvo:100%;--cvb:0px}
 .cvw::after{left:0;right:0}
 .cvw::before{left:calc(var(--cvb) * -2);right:calc(var(--cvb) * -2);transform-origin:50% 100%;transform:scaleY(-4);filter:blur(var(--cvb)) saturate(150%)}
 body[data-glass="2"] .cvw::before{display:none}
-.cvw>.tile-body,.cvw>.banner-body{position:relative;background:color-mix(in srgb,var(--surface) var(--cvo),transparent)}
+/* Schleier neutral (weiß bzw. schwarz statt Themenfarbe) → unten scheint nur das Titelbild durch, nicht das Thema */
+.cvw{--cvn:#FFFFFF}
+body.m-dark .cvw{--cvn:#0B0C0F}
+@media (prefers-color-scheme:dark){body:not(.m-light) .cvw{--cvn:#0B0C0F}}
+.cvw>.tile-body,.cvw>.banner-body{position:relative;background:color-mix(in srgb,var(--cvn) var(--cvo),transparent)}
+body[data-glass="2"] .cvw>:is(.tile-body,.banner-body){background:var(--surface)}
 .cvw>.art{background-color:transparent}
 @media (min-width:700px){.banner .art{height:190px}}
 .banner .art-emoji{font-size:50.5px;left:18px;bottom:14px}
