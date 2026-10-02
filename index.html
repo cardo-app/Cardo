@@ -173,7 +173,7 @@ body.studying #main{max-width:760px;padding-bottom:24px}
 
 /* Summary strip */
 .strip{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
-.stat{background:var(--surface);border-radius:14px;padding:12px 14px;border:1px solid var(--line)}
+.stat{background:var(--surface);border-radius:var(--r);padding:12px 14px;box-shadow:var(--shadow)} /* wie die anderen Kacheln: ohne Rahmen, mit Schatten */
 .stat b{display:block;font:800 26.5px/1.1 var(--display);font-variant-numeric:tabular-nums}
 .stat span{font-size:13px;color:var(--muted);font-weight:600}
 .cta{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;background:var(--ink);color:var(--paper);border-radius:var(--r);padding:16px 18px;margin-bottom:26px;text-align:left}
@@ -1086,7 +1086,7 @@ body[data-glass="2"] :is(#tabs,#sheet.glass .sheet,.glp-bar,#menu){-webkit-backd
 #sheet.glass :is(.set-list,.gs-opt,.seg,.in,.set-group,.stat,.panel){background:var(--gl-card);border-color:transparent;
   box-shadow:inset 0 0 0 .5px var(--gl-rim),inset 0 1.5px 1px -.5px var(--gl-edge),0 2px 8px rgba(0,0,0,.05)}
 #sheet.glass :is(.set-list,.panel){border-radius:22px}
-#sheet.glass .stat{border-radius:18px}
+#sheet.glass .stat{border-radius:18px;box-shadow:none}
 #sheet.glass .set-item{border-top-color:var(--gl-rim)}
 #sheet.glass .gs-opt{border-radius:18px}
 #sheet.glass .gs-opt.on{border-color:var(--ink)}
