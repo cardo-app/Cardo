@@ -2513,88 +2513,62 @@ function paintStars(g, w, h, rnd, glow){
   for (let i = 0; i < n * .9; i++) { const t = rnd(), o = (rnd() + rnd() + rnd() - 1.5) * band * .55; star(bx(t) + o * .7, by(t) + o, .2 + rnd() * .35, .2 + rnd() * .45, "#EAF0FF"); }
   for (let i = 0; i < Math.round(w * h / 26000); i++) { const x = rnd() * w, y = rnd() * h, c = COLS[rnd() * COLS.length | 0]; glow(x, y, 5 + rnd() * 5, "rgba(200,215,255,.22)"); star(x, y, 1.1 + rnd() * .6, .95, c); }
 }
-/* Christmas: dunkles Tannengrün, hängende Christbaumkugeln, Lebkuchenmännchen, Schnee wie Zuckerguss */
+/* Christmas: flacher, ruhiger Illustrationsstil – wenige Farben (Tannengrün, Dunkelrot, Cremeweiß, Lebkuchenbraun),
+   keine Glanzverläufe, gleiche Linienstärke für alles: Eiszapfen oben, Kugeln an Bändern, zwei Lebkuchenmännchen, Schnee unten */
 function paintXmas(g, w, h, rnd, glow){
   const top = 80; /* die Ebene beginnt 80 px über dem Bildschirm */
-  const bg = g.createLinearGradient(0, 0, 0, h); bg.addColorStop(0, "#0C2B1B"); bg.addColorStop(.55, "#071C11"); bg.addColorStop(1, "#030E08");
+  const RED = "#8E1D2A", RED2 = "#6E1520", CREAM = "#F2ECE1", CREAM2 = "#D9D1C2", BROWN = "#A4653C", GOLD = "#C8A866", LINE = 1.6;
+  const bg = g.createLinearGradient(0, 0, 0, h); bg.addColorStop(0, "#0E2A1C"); bg.addColorStop(1, "#071810");
   g.fillStyle = bg; g.fillRect(0, 0, w, h);
-  glow(w * .85, top + h * .05, Math.max(w, h) * .5, "rgba(255,190,90,.07)"); /* warmes Kerzenlicht */
-  glow(w * .05, h * .6, Math.max(w, h) * .45, "rgba(40,120,70,.12)");
-  const S = Math.min(1.25, Math.max(.8, w / 400)); /* Größe der Motive */
-  /* Christbaumkugel mit Glanz, Kappe und Öse */
-  const bauble = (x, y, r, col) => {
-    const [c0, c1, c2] = col;
-    g.save(); g.shadowColor = "rgba(0,0,0,.45)"; g.shadowBlur = r * .6; g.shadowOffsetY = r * .25;
-    const q = g.createRadialGradient(x - r * .38, y - r * .4, r * .05, x, y, r); q.addColorStop(0, c0); q.addColorStop(.45, c1); q.addColorStop(1, c2);
-    g.fillStyle = q; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill(); g.restore();
-    g.save(); g.globalAlpha = .55; g.strokeStyle = "#fff"; g.lineWidth = r * .09; g.lineCap = "round"; g.beginPath(); g.arc(x, y, r * .72, Math.PI * 1.08, Math.PI * 1.38); g.stroke();
-    g.globalAlpha = .8; g.fillStyle = "#fff"; g.beginPath(); g.ellipse(x - r * .42, y - r * .45, r * .16, r * .1, -.7, 0, Math.PI * 2); g.fill(); g.restore();
-    const cw = r * .5, ch = r * .3, cy = y - r - ch * .55;
-    const cg = g.createLinearGradient(x - cw / 2, 0, x + cw / 2, 0); cg.addColorStop(0, "#8A6A1E"); cg.addColorStop(.5, "#F2D27A"); cg.addColorStop(1, "#8A6A1E");
-    g.fillStyle = cg; g.beginPath(); g.roundRect(x - cw / 2, cy, cw, ch, ch * .25); g.fill();
-    g.strokeStyle = "#C9A64A"; g.lineWidth = Math.max(1, r * .07); g.beginPath(); g.arc(x, cy - r * .1, r * .13, Math.PI, 0); g.stroke();
-    return cy - r * .23;
+  const S = Math.min(1.2, Math.max(.85, w / 400));
+  /* Schneeflocken: wenige, kleine, ruhige Punkte */
+  for (let i = 0; i < Math.round(w * h / 9000); i++) { g.globalAlpha = .18 + rnd() * .3; g.fillStyle = CREAM; g.beginPath(); g.arc(rnd() * w, top + rnd() * (h - top * 2), .8 + rnd() * 1.2, 0, Math.PI * 2); g.fill(); }
+  g.globalAlpha = 1;
+  /* Kugel: flache Scheibe, eine helle Sichel als Glanz, schlichte Kappe */
+  const bauble = (x, y, r, red) => {
+    g.fillStyle = red ? RED : CREAM; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+    g.fillStyle = red ? RED2 : CREAM2; g.beginPath(); g.arc(x, y, r, Math.PI * .1, Math.PI * .9); g.arc(x, y + r * .25, r * .85, Math.PI * .85, Math.PI * .15, true); g.fill();
+    g.strokeStyle = red ? "rgba(242,236,225,.55)" : "rgba(142,29,42,.35)"; g.lineWidth = LINE; g.lineCap = "round";
+    g.beginPath(); g.arc(x, y, r * .62, Math.PI * 1.12, Math.PI * 1.42); g.stroke();
+    const cw = r * .46, ch = r * .26; g.fillStyle = GOLD; g.fillRect(x - cw / 2, y - r - ch + 1, cw, ch);
+    return y - r - ch;
   };
-  const BAUBLES = [["#FF8A8A", "#D11A2A", "#5E0610"], ["#FFF1B8", "#E0B22E", "#7A5208"], ["#FFFFFF", "#C9D1D9", "#59626C"], ["#FF8A8A", "#C8102E", "#4E0510"], ["#B9F0C9", "#1F9A55", "#0A3D20"]];
-  /* hängende Kugeln an Bändern – ganz am Rand (halb angeschnitten), damit Überschriften und Text frei bleiben */
-  const hang = [[5, 210, 17], [3, 330, 13], [-5, 150, 19], [-3, 280, 14]];
-  hang.forEach(([dx, len, r], i) => {
-    const x = dx > 0 ? dx : w + dx, y = top + len * S, rr = r * S, col = BAUBLES[i % BAUBLES.length];
-    g.save(); g.strokeStyle = "rgba(230,200,120,.55)"; g.lineWidth = 1; g.beginPath(); g.moveTo(x, 0); g.lineTo(x, y - rr - rr * .55); g.stroke(); g.restore();
-    bauble(x, y, rr, col);
+  /* Bänder mit Kugeln an den Rändern (halb angeschnitten, Text bleibt frei) */
+  [[6, 200, 17, 1], [-6, 150, 19, 0], [-4, 300, 13, 1], [4, 330, 12, 0]].forEach(([dx, len, r, red]) => {
+    const x = dx > 0 ? dx : w + dx, y = top + len * S, rr = r * S;
+    g.strokeStyle = "rgba(242,236,225,.45)"; g.lineWidth = 1; g.beginPath(); g.moveTo(x, 0); g.lineTo(x, y - rr - rr * .26); g.stroke();
+    bauble(x, y, rr, red);
   });
-  /* Lebkuchenmännchen mit Zuckerguss */
+  /* Lebkuchenmännchen im selben flachen Stil: Silhouette in Braun, Zuckerguss als dünne Cremelinien */
   const man = (x, y, s, rot) => {
-    g.save(); g.translate(x, y); g.rotate(rot);
-    g.shadowColor = "rgba(0,0,0,.45)"; g.shadowBlur = s * .12; g.shadowOffsetY = s * .05;
-    const dough = g.createLinearGradient(0, -s * .5, 0, s * .5); dough.addColorStop(0, "#C67A3C"); dough.addColorStop(1, "#8E4F22");
-    g.fillStyle = dough; g.strokeStyle = dough; g.lineCap = "round";
-    g.beginPath(); g.arc(0, -s * .3, s * .17, 0, Math.PI * 2); g.fill();
-    g.lineWidth = s * .17; g.beginPath(); g.moveTo(-s * .3, -s * .1); g.lineTo(s * .3, -s * .1); g.stroke();
-    g.lineWidth = s * .19; g.beginPath(); g.moveTo(-s * .06, s * .08); g.lineTo(-s * .2, s * .4); g.moveTo(s * .06, s * .08); g.lineTo(s * .2, s * .4); g.stroke();
-    g.beginPath(); g.ellipse(0, 0, s * .17, s * .22, 0, 0, Math.PI * 2); g.fill();
-    g.shadowColor = "transparent";
-    /* Zuckerguss: Zickzack an Armen und Beinen, Augen, Mund */
-    g.strokeStyle = "#FFFDF8"; g.fillStyle = "#FFFDF8"; g.lineWidth = Math.max(1.2, s * .03); g.lineJoin = "round";
-    const zig = (x0, y0, dx, dy) => { g.beginPath(); for (let k = 0; k <= 4; k++) { const t = k / 4; g.lineTo(x0 + dx * (t - .5) * 2 + (k % 2 ? dy : -dy) * .5, y0 + dy * (t - .5) * 2 + (k % 2 ? -dx : dx) * .5); } g.stroke(); };
-    zig(-s * .37, -s * .1, 0, s * .07); zig(s * .37, -s * .1, 0, s * .07);
-    zig(-s * .23, s * .42, s * .07, 0); zig(s * .23, s * .42, s * .07, 0);
-    g.beginPath(); g.arc(-s * .06, -s * .33, s * .025, 0, Math.PI * 2); g.arc(s * .06, -s * .33, s * .025, 0, Math.PI * 2); g.fill();
-    g.beginPath(); g.arc(0, -s * .29, s * .07, Math.PI * .15, Math.PI * .85); g.stroke();
-    /* Knöpfe aus bunten Zuckerperlen */
-    [["#E0353D", -.06], ["#2FB36A", .03], ["#E0353D", .12]].forEach(([c, dy]) => { g.fillStyle = c; g.beginPath(); g.arc(0, s * dy, s * .032, 0, Math.PI * 2); g.fill(); });
+    g.save(); g.translate(x, y); g.rotate(rot); g.fillStyle = BROWN; g.strokeStyle = BROWN; g.lineCap = "round"; g.lineJoin = "round";
+    g.beginPath(); g.arc(0, -s * .3, s * .16, 0, Math.PI * 2); g.fill();
+    g.lineWidth = s * .16; g.beginPath(); g.moveTo(-s * .28, -s * .1); g.lineTo(s * .28, -s * .1); g.stroke();
+    g.lineWidth = s * .18; g.beginPath(); g.moveTo(-s * .06, s * .08); g.lineTo(-s * .19, s * .4); g.moveTo(s * .06, s * .08); g.lineTo(s * .19, s * .4); g.stroke();
+    g.beginPath(); g.ellipse(0, 0, s * .16, s * .21, 0, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = CREAM; g.fillStyle = CREAM; g.lineWidth = LINE;
+    const wave = (x0, y0, vert) => { g.beginPath(); for (let k = 0; k <= 8; k++) { const t = (k / 8 - .5) * s * .14, o = Math.sin(k * Math.PI / 2) * s * .025; vert ? g.lineTo(x0 + o, y0 + t) : g.lineTo(x0 + t, y0 + o); } g.stroke(); };
+    wave(-s * .33, -s * .1, true); wave(s * .33, -s * .1, true); wave(-s * .2, s * .36, false); wave(s * .2, s * .36, false);
+    g.beginPath(); g.arc(-s * .055, -s * .33, s * .022, 0, Math.PI * 2); g.arc(s * .055, -s * .33, s * .022, 0, Math.PI * 2); g.fill();
+    g.beginPath(); g.arc(0, -s * .3, s * .065, Math.PI * .2, Math.PI * .8); g.stroke();
+    [-.06, .05].forEach(dy => { g.fillStyle = RED; g.beginPath(); g.arc(0, s * dy, s * .03, 0, Math.PI * 2); g.fill(); });
     g.restore();
   };
-  const men = [[.12, .42, 1, -.18], [.9, .5, .9, .2], [.2, .7, .85, .12], [.8, .74, 1.05, -.15], [.5, .58, .75, .05]];
-  men.forEach(([fx, fy, sc, rot]) => man(w * fx + (rnd() - .5) * 20, top + (h - 2 * top) * fy, 64 * S * sc, rot + (rnd() - .5) * .1));
-  /* kleine Kugeln verstreut */
-  [[.35, .3, 8], [.66, .4, 9], [.1, .84, 10], [.62, .82, 8]].forEach(([fx, fy, r], i) => bauble(w * fx, top + (h - 2 * top) * fy, r * S, BAUBLES[(i + 1) % BAUBLES.length]));
-  /* sanft fallender Schnee */
-  for (let i = 0; i < Math.round(w * h / 4200); i++) { const x = rnd() * w, y = rnd() * h * .85, r = .6 + rnd() * 1.6; g.globalAlpha = .25 + rnd() * .5; g.fillStyle = "#FFFFFF"; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill(); }
-  g.globalAlpha = 1;
-  /* Schnee wie Zuckerguss: oben tropfend, unten ein glänzender Hügel */
-  const icing = (pts, close) => {
-    g.save(); g.shadowColor = "rgba(0,0,0,.35)"; g.shadowBlur = 10; g.shadowOffsetY = 4;
-    const ig = g.createLinearGradient(0, close[0], 0, close[1]); ig.addColorStop(0, "#FFFFFF"); ig.addColorStop(1, "#E4EDF3");
-    g.fillStyle = ig; g.beginPath(); pts(); g.fill(); g.restore();
-  };
-  /* oben: Guss mit Tropfen (liegt hinter der Statusleiste, Tropfen reichen ein Stück herein) */
-  const drips = []; for (let x = 0; x < w + 30; x += 22 + rnd() * 30) drips.push([x, 3 + rnd() * (rnd() < .3 ? 18 : 7), 4 + rnd() * 5]);
-  icing(() => {
-    g.moveTo(0, 0); g.lineTo(0, top + 4);
-    drips.forEach(([x, len, r]) => { g.lineTo(x - r, top + 4); g.lineTo(x - r, top + 4 + len); g.arc(x, top + 4 + len, r, Math.PI, 0, true); g.lineTo(x + r, top + 4); });
-    g.lineTo(w, top + 4); g.lineTo(w, 0); g.closePath();
-  }, [0, top + 50]);
-  /* unten: weicher, glänzender Schneehügel */
-  const base = h - top - 16; /* nur ein schmaler Streifen ganz unten (unter der Tab-Leiste), damit deren Schrift gut lesbar bleibt */
-  icing(() => {
-    g.moveTo(0, h); g.lineTo(0, base + 10);
-    for (let x = 0; x <= w; x += 6) g.lineTo(x, base + Math.sin(x / 47) * 5 + Math.sin(x / 19 + 1.3) * 2.5 + Math.sin(x / 101 + 2) * 4);
-    g.lineTo(w, h); g.closePath();
-  }, [base - 20, h]);
-  g.save(); g.globalAlpha = .9; g.strokeStyle = "#FFFFFF"; g.lineWidth = 2.2; g.lineCap = "round";
-  for (let x = 14; x < w - 30; x += 70 + rnd() * 50) { g.beginPath(); for (let k = 0; k <= 22; k += 2) { const xx = x + k; g.lineTo(xx, base + 4 + Math.sin(xx / 47) * 5 + Math.sin(xx / 19 + 1.3) * 2.5 + Math.sin(xx / 101 + 2) * 4); } g.stroke(); }
-  g.restore();
+  man(w * .16, top + (h - 2 * top) * .62, 66 * S, -.14);
+  man(w * .82, top + (h - 2 * top) * .8, 58 * S, .16);
+  /* zwei kleine Kugeln liegen verstreut */
+  bauble(w * .58, top + (h - 2 * top) * .7, 8 * S, 1); bauble(w * .38, top + (h - 2 * top) * .88, 7 * S, 0);
+  /* Eiszapfen oben: unregelmäßige, flache Zapfen in Creme mit einer helleren Kante */
+  const yb = top + 2; g.fillStyle = CREAM; g.fillRect(0, 0, w, yb + 3);
+  for (let x = -4; x < w + 10; ) {
+    const bw = 7 + rnd() * 9, len = rnd() < .25 ? 22 + rnd() * 22 : 6 + rnd() * 12;
+    g.fillStyle = CREAM; g.beginPath(); g.moveTo(x, yb); g.lineTo(x + bw, yb); g.quadraticCurveTo(x + bw * .62, yb + len * .5, x + bw * .48, yb + len); g.quadraticCurveTo(x + bw * .3, yb + len * .45, x, yb); g.fill();
+    g.fillStyle = "rgba(255,255,255,.9)"; g.beginPath(); g.moveTo(x + bw * .2, yb); g.lineTo(x + bw * .34, yb); g.lineTo(x + bw * .46, yb + len * .8); g.fill();
+    x += bw - 1 + (rnd() < .3 ? rnd() * 6 : 0);
+  }
+  /* Schnee unten: flacher, sanft gewellter Streifen (unter der Tab-Leiste) */
+  const base = h - top - 16, wv = x => base + Math.sin(x / 47) * 5 + Math.sin(x / 19 + 1.3) * 2.5 + Math.sin(x / 101 + 2) * 4;
+  g.fillStyle = CREAM; g.beginPath(); g.moveTo(0, h); for (let x = 0; x <= w; x += 6) g.lineTo(x, wv(x)); g.lineTo(w, h); g.closePath(); g.fill();
 }
 addEventListener("resize", () => { clearTimeout(drawSky.t); drawSky.t = setTimeout(drawSky, 150); });
 function applyTheme(){
