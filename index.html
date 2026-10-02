@@ -4310,14 +4310,14 @@ function openMenu(btn, fid){
     <button data-act="newCard"${d} role="menuitem">${MI.plus}Neue Karte</button>
     <button data-act="newFolder"${d} role="menuitem">${MI.folderPlus}Neuer Unterordner</button>
     <button data-act="import"${d} role="menuitem">${MI.import}Karten importieren</button>
-    <button data-act="editFolder"${d} role="menuitem">${MI.edit}Ordner gestalten</button>
     <button data-act="moveFolder"${d} role="menuitem">${MI.move}${fo.parentId ? 'Unterordner' : 'Ordner'} verschieben</button>` + (n.own ? `
     <button data-act="pickStart"${d} role="menuitem">${MI.select}Karten auswählen<span class="sub" style="color:var(--muted)">kopieren, verschieben, löschen</span></button>` : '')
     : `<button data-act="newFolder" role="menuitem">${MI.folderPlus}Neuer Ordner</button>
     <button data-act="newSect" role="menuitem">${MI.sectPlus}Neuer Bereich (Überschrift)</button>
     <button data-act="import" role="menuitem">${MI.import}Karten importieren</button>`) + (sortBlock ? `<hr><div class="mh">${fid ? 'Unterordner sortieren nach' : 'Sortieren nach'}</div>
     ${sorts.map(([k, l]) => `<button data-act="sort" data-v="${k}" role="menuitemradio" aria-checked="${S.sort === k}">${miRadio(S.sort === k)}${l}</button>`).join("")}` : '')
-    + (!fid ? `<hr><div class="mh">Ansicht</div>${[["grid","Kacheln"],["list","Liste"]].map(([k, l]) => `<button data-act="setLayout" data-v="${k}" role="menuitemradio" aria-checked="${S.set.layout === k}">${MI[k]}${l}${S.set.layout === k ? '<span class="ck">✓</span>' : ''}</button>`).join("")}` : '');
+    + (!fid ? `<hr><div class="mh">Ansicht</div>${[["grid","Kacheln"],["list","Liste"]].map(([k, l]) => `<button data-act="setLayout" data-v="${k}" role="menuitemradio" aria-checked="${S.set.layout === k}">${MI[k]}${l}${S.set.layout === k ? '<span class="ck">✓</span>' : ''}</button>`).join("")}` : '')
+    + (fid ? `<hr><button data-act="editFolder"${d} role="menuitem">${MI.edit}Ordner gestalten</button>` : ''); /* „Ordner gestalten“ immer ganz unten */
   m.hidden = false; btn.setAttribute("aria-expanded", "true");
   placeMenu(m, btn);
 }
