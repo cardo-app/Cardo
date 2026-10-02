@@ -253,7 +253,7 @@ body.reordering,body.reordering *{cursor:grabbing!important}
 /* Titelbild über die ganze Kachel/das ganze Banner. Zwei getrennte Ebenen, die sich nicht überlappen:
    oben (::after) das scharfe Bild, unten (::before) eine weichgezeichnete Kopie – so blitzen unten und in den Ecken keine scharfen Pixel durch.
    Darüber im unteren Teil ein Farbschleier je nach Transparenz: stark = deutlich durchscheinend, leicht = etwas, keine = deckend */
-.cvw{position:relative;isolation:isolate;overflow:hidden;--cvo:80%;--cvb:18px}
+.cvw{position:relative;isolation:isolate;overflow:hidden;overflow:clip; /* clip: nur abschneiden, nicht verschiebbar (sonst rutscht der Inhalt beim Antippen hoch) */--cvo:80%;--cvb:18px}
 body[data-glass="0"] .cvw{--cvo:46%;--cvb:12px}
 body[data-glass="2"] .cvw{--cvo:100%;--cvb:0px}
 .tile-main.cvw{container-type:inline-size;--arth:calc(100cqw * 11 / 16)}
@@ -501,7 +501,10 @@ textarea.in{min-height:92px;resize:vertical;line-height:1.4}
 .swatches{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .sw{width:34px;height:34px;border-radius:50%;background:var(--c);border:3px solid var(--surface);box-shadow:0 0 0 1px var(--line)}
 .sw.on{box-shadow:0 0 0 2px var(--ink)}
-.colorin{width:40px;height:36px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);padding:2px}
+/* Eigene Farbe: mehrfarbiger Kreis wie die anderen Farbtupfer; nach der Wahl zeigt er die gewählte Farbe */
+.sw-any{position:relative;display:inline-block;flex:none;cursor:pointer;background:conic-gradient(from 0deg,#ff3b30,#ff9500,#ffcc00,#34c759,#00c7be,#007aff,#5856d6,#af52de,#ff2d55,#ff3b30)}
+.sw-any.cust{background:var(--c)}
+.colorin{position:absolute;inset:0;width:100%;height:100%;opacity:0;border:0;padding:0;margin:0;cursor:pointer}
 .preview{display:grid;grid-template-columns:150px 1fr;gap:14px;align-items:center;margin-bottom:18px}
 .preview .tile{pointer-events:none}
 #pv{touch-action:none}
@@ -4051,7 +4054,7 @@ function folderSheet(id, parentId, sect){
   openSheet(`${head(ex ? "Ordner gestalten" : parentId ? "Neuer Unterordner" : "Neuer Ordner")}
     <div class="preview"><div id="pv"></div><div class="muted" style="font-size:14.5px">So sieht dein Ordner in der Bibliothek aus. Wähle Farbe, Emoji oder ein eigenes Titelbild.</div></div>
     <div class="field"><label for="fn">Name</label><input class="in" id="fn" maxlength="80" placeholder="z. B. Financial Accounting" value="${esc(d.name)}"></div>
-    <div class="field"><span class="lbl">Farbe</span><div class="swatches" id="sws">${COLORS.map(c => `<button class="sw ${c === d.color ? 'on' : ''}" style="--c:${c}" data-c="${c}" aria-label="Farbe ${c}"></button>`).join("")}<input type="color" class="colorin" id="fc" value="${esc(d.color)}" aria-label="Eigene Farbe"></div></div>
+    <div class="field"><span class="lbl">Farbe</span><div class="swatches" id="sws">${COLORS.map(c => `<button class="sw ${c === d.color ? 'on' : ''}" style="--c:${c}" data-c="${c}" aria-label="Farbe ${c}"></button>`).join("")}<label class="sw sw-any ${COLORS.includes(d.color) ? '' : 'on cust'}" id="fcl" style="--c:${esc(safeColor(d.color))}" title="Eigene Farbe"><input type="color" class="colorin" id="fc" value="${esc(d.color)}" aria-label="Eigene Farbe"></label></div></div>
     <div class="field"><span class="lbl">Emoji</span><div class="emojis" id="ems"><button class="none ${d.emoji === '' ? 'on' : ''}" data-e="" aria-label="Kein Emoji" title="Kein Emoji">Kein</button>${EMOJIS.map(e => `<button class="${e === d.emoji ? 'on' : ''}" data-e="${e}">${e}</button>`).join("")}</div>
       <input class="in" id="fe" maxlength="8" placeholder="Eigenes Emoji eintippen" value="${EMOJIS.includes(d.emoji) || !d.emoji ? '' : esc(d.emoji)}" style="margin-top:6px"></div>
     <div class="field"><span class="lbl">Titelbild</span><div class="row2"><label class="btn" for="fi">Bild wählen</label><input id="fi" type="file" accept="image/*" hidden><button class="btn" id="fr" ${d.cover ? '' : 'hidden'}>Bild entfernen</button><span class="muted" id="fst" style="align-self:center;font-size:14.5px"></span></div>
@@ -4095,8 +4098,8 @@ function folderSheet(id, parentId, sect){
       if (id && kids(id).length) { if (openT.has(id) && fpIn.value === id) openT.delete(id); else openT.add(id); }
       fpIn.value = id; fpIn.dispatchEvent(new Event("change")); fpLabel(); ftDraw(); });
     $("#fn", root).addEventListener("input", e => { d.name = e.target.value; pv(); });
-    $("#sws", root).addEventListener("click", e => { const b = e.target.closest("[data-c]"); if (!b) return; d.color = b.dataset.c; $("#fc", root).value = d.color; root.querySelectorAll(".sw").forEach(x => x.classList.toggle("on", x === b)); pv(); });
-    $("#fc", root).addEventListener("input", e => { d.color = e.target.value; root.querySelectorAll(".sw").forEach(x => x.classList.remove("on")); pv(); });
+    $("#sws", root).addEventListener("click", e => { const b = e.target.closest("[data-c]"); if (!b) return; d.color = b.dataset.c; $("#fc", root).value = d.color; root.querySelectorAll(".sw").forEach(x => x.classList.toggle("on", x === b)); $("#fcl", root).classList.remove("cust"); pv(); });
+    $("#fc", root).addEventListener("input", e => { d.color = e.target.value; root.querySelectorAll(".sw").forEach(x => x.classList.remove("on")); const l = $("#fcl", root); l.style.setProperty("--c", d.color); l.classList.add("on", "cust"); pv(); });
     $("#ems", root).addEventListener("click", e => { const b = e.target.closest("[data-e]"); if (!b) return; d.emoji = b.dataset.e; $("#fe", root).value = ""; root.querySelectorAll("#ems button").forEach(x => x.classList.toggle("on", x === b)); pv(); });
     $("#fe", root).addEventListener("input", e => { const v = e.target.value.trim(); if (v) { d.emoji = v; root.querySelectorAll("#ems button").forEach(x => x.classList.remove("on")); pv(); } });
     $("#fi", root).addEventListener("change", async e => {
