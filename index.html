@@ -694,7 +694,7 @@ button.set-item:hover{background:color-mix(in oklab,var(--ink) 4%,transparent)}
 .theme:not([data-v="light"]):not([data-v="dark"]):not([data-v="auto"]):not(.deco) .theme-ic svg{filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.28))} /* weißes Symbol bleibt auch auf hellen Farben (z. B. Sunshine) lesbar */
 .theme.deco .theme-ic{background:var(--orb);box-shadow:0 8px 22px -8px color-mix(in oklab,var(--tb) 85%,transparent),inset 0 1px 0 rgba(255,255,255,.4),inset 0 0 0 1px rgba(255,255,255,.12)}
 .theme.deco .theme-ic::after{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(90% 60% at 32% 18%,rgba(255,255,255,.35),transparent 60%);pointer-events:none}
-.theme.deco .theme-ic svg{position:relative;z-index:1;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.45))}
+.theme.deco .theme-ic svg{position:relative;z-index:1;stroke-width:2.3;filter:drop-shadow(0 0 1.5px rgba(255,255,255,.55)) drop-shadow(0 1px 1px rgba(0,0,0,.35))} /* bunte Symbole mit hellem Saum → heben sich vom Szenen-Hintergrund ab */
 .theme.deco.on .theme-ic{box-shadow:0 0 0 3px var(--surface),0 0 0 5.5px color-mix(in oklab,var(--tb) 72%,var(--ink)),0 10px 26px -6px color-mix(in oklab,var(--tb) 90%,transparent)}
 .theme.on:is([data-v="light"],[data-v="dark"],[data-v="auto"]) .theme-ic{box-shadow:0 0 0 3px var(--surface),0 0 0 5.5px var(--ink),0 6px 18px -8px rgba(0,0,0,.45)}
 .theme:active .theme-ic{transform:scale(.92);transition-duration:.08s}
@@ -3514,9 +3514,9 @@ function lookInfo(k){ const t = THEMES.find(x => x.k === k); if (t) return { n: 
 const STARS_ORB = "radial-gradient(1.4px 1.4px at 28% 30%,#fff 50%,transparent 55%),radial-gradient(1px 1px at 72% 22%,#fff 50%,transparent 55%),radial-gradient(1.2px 1.2px at 64% 72%,#fff 50%,transparent 55%),radial-gradient(1px 1px at 22% 68%,#fff 50%,transparent 55%),radial-gradient(1px 1px at 46% 14%,#fff 50%,transparent 55%)";
 const DESIGN_ORB = {
   navy: [`${STARS_ORB},radial-gradient(circle at 70% 20%,rgba(120,140,255,.55),transparent 55%),linear-gradient(165deg,#2C3E9E,#0B1338 72%)`, "#F4C95D"],
-  aubergine: [`${STARS_ORB},linear-gradient(170deg,transparent 0 26%,rgba(140,100,255,.75) 34%,rgba(43,200,210,.85) 46%,rgba(61,230,151,.95) 56%,transparent 66%),linear-gradient(180deg,#0A1630,#122A44 70%,#1C3A5A)`, "#FFFFFF"],
-  autumn: ["radial-gradient(circle at 72% 26%,#FFE7A8 0 11%,transparent 12%),radial-gradient(120% 60% at 30% 100%,#C9342A 0 45%,transparent 46%),radial-gradient(130% 70% at 85% 100%,#E8792F 0 55%,transparent 56%),linear-gradient(180deg,#F6B76B,#FBD9A6)", "#FFFFFF"],
-  beach: ["radial-gradient(circle at 74% 22%,#FFE48A 0 10%,transparent 11%),linear-gradient(180deg,#3DB8F2 0 42%,#18C9CF 42% 66%,#F6D79A 66%)", "#FFFFFF"]
+  aubergine: [`${STARS_ORB},linear-gradient(170deg,transparent 0 26%,rgba(140,100,255,.75) 34%,rgba(43,200,210,.85) 46%,rgba(61,230,151,.95) 56%,transparent 66%),linear-gradient(180deg,#0A1630,#122A44 70%,#1C3A5A)`, "#FF8AD8"], /* Pink zu Grün/Blau */
+  autumn: ["radial-gradient(circle at 72% 26%,#FFE7A8 0 11%,transparent 12%),radial-gradient(120% 60% at 30% 100%,#C9342A 0 45%,transparent 46%),radial-gradient(130% 70% at 85% 100%,#E8792F 0 55%,transparent 56%),linear-gradient(180deg,#F6B76B,#FBD9A6)", "#1E6B3A"], /* Tannengrün zu Orange/Rot */
+  beach: ["radial-gradient(circle at 74% 22%,#FFE48A 0 10%,transparent 11%),linear-gradient(180deg,#3DB8F2 0 42%,#18C9CF 42% 66%,#F6D79A 66%)", "#FF5E57"] /* Koralle zu Blau/Türkis/Sand */
 };
 function lookPickerHTML(){
   const card = k => { const on = S.set.look === k, i = lookInfo(k);
