@@ -4772,10 +4772,10 @@ function finish(commit, dir, v = 0){
   const W = innerWidth, target = commit ? (dir === "left" ? -W : W) : 0, dist = Math.abs(target - curX);
   // Sanftes Auslaufen: Die Kurve startet genau mit der Fingergeschwindigkeit (kein Knick beim Loslassen)
   // und bremst dann weich ab. Langsames Ziehen gleitet ruhig aus, schnelles Wischen endet zügig.
-  const ease = "cubic-bezier(.22,1,.36,1)", slope = 1 / .22;
+  const ease = "cubic-bezier(.25,1,.4,1)", slope = 1 / .25;
   const toward = Math.sign(target - curX) === Math.sign(v) && Math.abs(v) > .05;
-  let dur = toward ? slope * dist / Math.abs(v) : (commit ? 480 : 400);
-  dur = Math.round(Math.max(commit ? 300 : 260, Math.min(commit ? 540 : 440, dur)));
+  let dur = toward ? slope * dist / Math.abs(v) : 320 + dist * .6; /* ohne Schwung: Dauer nach Restweg */
+  dur = Math.round(Math.max(commit ? 380 : 340, Math.min(commit ? 620 : 520, dur))); /* etwas länger und weicher einrasten */
   animating = true; cancelAnimationFrame(raf2); place(target, dur, ease);
   finCb = () => {
     if (commit) {
@@ -4819,8 +4819,10 @@ function endSwipe(e){
   const x = cx - s0.x - s0.off; if (peekDir || x) place(peekDir ? x : curX, 0);
   const a = s0.pts[0], b = s0.pts[s0.pts.length - 1], v = (b[0] - a[0]) / Math.max(1, b[1] - a[1]);
   const dir = x < 0 ? "left" : "right";
-  const flick = Math.abs(v) > .35 && Math.sign(v) === Math.sign(x);
-  const commit = !!neighbour(dir) && (Math.abs(x) > innerWidth * .4 || (flick && Math.abs(x) > 20));
+  /* Entscheidung wie bei iOS: wohin würde die Seite mit dem jetzigen Schwung noch gleiten? Nur wenn dieser Punkt über der
+     Bildschirmmitte liegt, wird gewechselt – ein kurzer, schwacher Schubs federt zurück, ein bewusster Wisch wechselt */
+  const proj = x + v * 200;
+  const commit = !!neighbour(dir) && Math.sign(proj) === Math.sign(x) && Math.abs(proj) > innerWidth * .5 && Math.abs(x) > 40;
   finish(commit, dir, v);
 }
 document.addEventListener("touchend", endSwipe, { passive: true });
