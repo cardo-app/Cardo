@@ -2577,92 +2577,61 @@ function paintXmas(g, w, h, rnd, glow){
   const base = h - top - 16, wv = x => base + Math.sin(x / 47) * 5 + Math.sin(x / 19 + 1.3) * 2.5 + Math.sin(x / 101 + 2) * 4;
   g.fillStyle = CREAM; g.beginPath(); g.moveTo(0, h); for (let x = 0; x <= w; x += 6) g.lineTo(x, wv(x)); g.lineTo(w, h); g.closePath(); g.fill();
 }
-/* Beach – möglichst realistisch gemalt: Himmel mit Quellwolken, Meer in Perspektive mit Sonnenglitzern,
-   flaches Türkis mit Lichtmustern, Schaumkante, nasser und trockener Sand mit Körnung, zwei Kokospalmen mit Schatten */
+/* Beach: sonniger Himmel, türkises Meer mit Wellen, Sandstrand, zwei Palmen mit Kokosnüssen – flacher, freundlicher Stil */
 function paintBeach(g, w, h, rnd, glow){
-  const top = 80, H = h - top * 2, Y = f => top + H * f;
-  const hz = Y(.5), shore = Y(.79), sunX = w * .66, sunY = Y(.03);
-  const R = (a, b) => a + rnd() * (b - a);
-  /* Himmel */
-  const sky = g.createLinearGradient(0, 0, 0, hz); sky.addColorStop(0, "#2E8FE0"); sky.addColorStop(.55, "#6EC0F2"); sky.addColorStop(.9, "#BFE6F8"); sky.addColorStop(1, "#E4F4F8");
+  const top = 80, H = h - top * 2, Y = f => top + H * f; /* Y(0) = oberer, Y(1) = unterer Bildschirmrand */
+  const hz = Y(.5), shore = Y(.8);
+  /* Himmel + Sonne + Wolken */
+  const sky = g.createLinearGradient(0, 0, 0, hz); sky.addColorStop(0, "#38B6F2"); sky.addColorStop(.6, "#8FDcF8"); sky.addColorStop(1, "#D2F4FC");
   g.fillStyle = sky; g.fillRect(0, 0, w, hz + 2);
-  glow(sunX, sunY, 260, "rgba(255,247,215,.55)"); glow(sunX, sunY, 70, "rgba(255,255,240,.9)");
-  g.fillStyle = "#FFFDF2"; g.beginPath(); g.arc(sunX, sunY, 17, 0, Math.PI * 2); g.fill();
-  /* Quellwolken: viele weiche Ballen, unten leicht grau schattiert */
-  const cloud = (cx, cy, cw, chh) => {
-    for (let i = 0; i < 70; i++) { const a = rnd() * Math.PI, d = Math.sqrt(rnd()), x = cx + Math.cos(a) * cw * d * (rnd() < .5 ? -1 : 1) * .9, y = cy - Math.sin(a) * chh * d * .9, r = R(.35, .6) * chh;
-      glow(x, y, r * 1.5, `rgba(255,255,255,${R(.18, .32)})`); }
-    glow(cx, cy + chh * .1, cw * .9, "rgba(200,215,230,.07)");
-  };
-  cloud(w * .2, Y(.17), w * .2, 34); cloud(w * .78, Y(.27), w * .16, 24); cloud(w * .45, Y(.4), w * .12, 14); cloud(w * .05, Y(.43), w * .1, 11);
-  /* Dunst über dem Horizont */
-  const haze = g.createLinearGradient(0, hz - 30, 0, hz); haze.addColorStop(0, "rgba(235,248,252,0)"); haze.addColorStop(1, "rgba(235,248,252,.8)"); g.fillStyle = haze; g.fillRect(0, hz - 30, w, 30);
-  /* Meer */
-  const sea = g.createLinearGradient(0, hz, 0, shore); sea.addColorStop(0, "#155E9C"); sea.addColorStop(.25, "#1A7DB5"); sea.addColorStop(.55, "#17A3C3"); sea.addColorStop(.8, "#2DC6CC"); sea.addColorStop(1, "#7EE2D6");
-  g.fillStyle = sea; g.fillRect(0, hz, w, shore - hz + 40);
-  /* Wellen in Perspektive: am Horizont fein und dicht, zum Ufer hin länger und kräftiger */
-  for (let i = 0; i < Math.round(w * 3.2); i++) {
-    const t = Math.pow(rnd(), 1.6), y = hz + 2 + t * (shore - hz - 10), x = rnd() * w, len = (4 + t * 34) * R(.6, 1.4), th = .5 + t * 1.6;
-    const near = Math.abs(x - sunX) < 20 + t * 60, light = rnd() < (near ? .8 : .45);
-    g.fillStyle = light ? `rgba(255,255,255,${near ? R(.4, .85) : R(.08, .28)})` : `rgba(8,60,100,${R(.08, .22)})`;
-    g.beginPath(); g.ellipse(x, y, len / 2, th / 2, 0, 0, Math.PI * 2); g.fill();
-  }
-  g.fillStyle = "rgba(255,255,255,.6)"; g.fillRect(0, hz, w, 1);
-  /* flaches Wasser: Sandgrund scheint durch, Lichtmuster (Kaustik) */
-  const sh = g.createLinearGradient(0, shore - H * .09, 0, shore + 10); sh.addColorStop(0, "rgba(120,230,215,0)"); sh.addColorStop(1, "rgba(190,240,220,.75)");
-  g.fillStyle = sh; g.fillRect(0, shore - H * .09, w, H * .09 + 12);
-  g.strokeStyle = "rgba(255,255,255,.22)"; g.lineWidth = 1;
-  for (let i = 0; i < Math.round(w / 3); i++) { const y = shore - R(2, H * .07), x = rnd() * w, l = R(8, 22); g.beginPath(); g.moveTo(x, y); g.bezierCurveTo(x + l * .3, y - R(1, 3), x + l * .6, y + R(1, 3), x + l, y); g.stroke(); }
-  /* Uferlinie, nasser Sand, Schaum */
-  const sw = x => shore + Math.sin(x / 41) * 7 + Math.sin(x / 13 + 1) * 2.2 + Math.sin(x / 97 + 2) * 5;
-  const wet = g.createLinearGradient(0, shore - 6, 0, shore + 22); wet.addColorStop(0, "#BFA373"); wet.addColorStop(1, "#D7BD8A");
-  g.fillStyle = wet; g.beginPath(); g.moveTo(0, h); for (let x = 0; x <= w; x += 4) g.lineTo(x, sw(x)); g.lineTo(w, h); g.fill();
-  g.fillStyle = "rgba(180,225,245,.22)"; g.beginPath(); for (let x = 0; x <= w; x += 4) g.lineTo(x, sw(x) + 1); for (let x = w; x >= 0; x -= 4) g.lineTo(x, sw(x) + 12); g.fill(); /* Himmel spiegelt sich im nassen Sand */
-  for (let i = 0; i < Math.round(w * 1.4); i++) { const x = rnd() * w, y = sw(x) - R(-1, 7); g.fillStyle = `rgba(255,255,255,${R(.35, .9)})`; g.beginPath(); g.ellipse(x, y, R(1.5, 6), R(.6, 1.8), 0, 0, Math.PI * 2); g.fill(); }
-  g.strokeStyle = "rgba(255,255,255,.5)"; g.lineWidth = .8;
-  for (let k = 0; k < 2; k++) { g.beginPath(); for (let x = 0; x <= w; x += 3) g.lineTo(x, sw(x) - 9 - k * 6 + Math.sin(x / 7 + k * 3) * 1.5); g.stroke(); }
-  /* trockener Sand mit Körnung und Rippeln */
-  const dryTop = x => sw(x) + 16 + Math.sin(x / 60) * 4;
-  const sand = g.createLinearGradient(0, shore + 10, 0, h); sand.addColorStop(0, "#E6CD98"); sand.addColorStop(.4, "#EFDAAB"); sand.addColorStop(1, "#F6E6C2");
-  g.fillStyle = sand; g.beginPath(); g.moveTo(0, h); for (let x = 0; x <= w; x += 4) g.lineTo(x, dryTop(x)); g.lineTo(w, h); g.fill();
-  const blend = g.createLinearGradient(0, shore + 8, 0, shore + 30); blend.addColorStop(0, "rgba(215,189,138,.0)"); blend.addColorStop(1, "rgba(215,189,138,0)");
-  for (let i = 0; i < Math.round(w * (h - shore) / 9); i++) { const x = rnd() * w, y = R(shore + 14, h); g.fillStyle = rnd() < .5 ? `rgba(160,120,60,${R(.08, .22)})` : `rgba(255,255,255,${R(.15, .45)})`; g.fillRect(x, y, R(.6, 1.6), R(.6, 1.6)); }
-  g.strokeStyle = "rgba(170,130,70,.12)"; g.lineWidth = 2;
-  for (let i = 0; i < 9; i++) { const y = R(shore + 40, h - 10), x = R(-40, w), l = R(60, 140); g.beginPath(); g.moveTo(x, y); g.bezierCurveTo(x + l * .3, y - 4, x + l * .6, y + 4, x + l, y); g.stroke(); }
-  /* Kokospalme: runder Stamm mit Ringnarben, Fiederwedel, Kokosnüsse */
+  const sx = w * .66, sy = Y(.03);
+  glow(sx, sy, 120, "rgba(255,240,180,.5)");
+  g.fillStyle = "#FFE48A"; g.beginPath(); g.arc(sx, sy, 26, 0, Math.PI * 2); g.fill();
+  g.fillStyle = "#FFF3C4"; g.beginPath(); g.arc(sx, sy, 19, 0, Math.PI * 2); g.fill();
+  const cloud = (x, y, s) => { g.fillStyle = "rgba(255,255,255,.92)"; g.beginPath(); [[0, 0, 1], [-.9, .25, .7], [.9, .25, .75], [-.4, -.35, .75], [.45, -.3, .7]].forEach(([dx, dy, r]) => { g.moveTo(x + dx * s + r * s, y + dy * s); g.arc(x + dx * s, y + dy * s, r * s, 0, Math.PI * 2); }); g.fill(); g.fillRect(x - 1.4 * s, y + .2 * s, 2.8 * s, .75 * s); };
+  cloud(w * .22, Y(.2), 15); cloud(w * .6, Y(.32), 11); cloud(w * .92, Y(.38), 9);
+  /* Meer: tiefblau am Horizont → türkis → hell am Ufer */
+  const sea = g.createLinearGradient(0, hz, 0, shore); sea.addColorStop(0, "#1689C4"); sea.addColorStop(.35, "#18B6CF"); sea.addColorStop(.8, "#41D8D2"); sea.addColorStop(1, "#8FEBE0");
+  g.fillStyle = sea; g.fillRect(0, hz, w, shore - hz + 30);
+  g.fillStyle = "rgba(255,255,255,.55)"; g.fillRect(0, hz, w, 1.5);
+  /* kleine Wellen */
+  g.strokeStyle = "rgba(255,255,255,.55)"; g.lineWidth = 1.6; g.lineCap = "round";
+  for (let i = 0; i < Math.round(w * (shore - hz) / 2600); i++) { const t = rnd(), y = hz + 8 + t * t * (shore - hz - 24), x = rnd() * w, ww = 6 + t * 14; g.beginPath(); g.moveTo(x - ww, y); g.quadraticCurveTo(x - ww / 2, y - 3 - t * 2, x, y); g.quadraticCurveTo(x + ww / 2, y - 3 - t * 2, x + ww, y); g.stroke(); }
+  /* Strand mit Schaumkante */
+  const sw = x => shore + Math.sin(x / 38) * 6 + Math.sin(x / 15 + 1) * 2.5;
+  g.fillStyle = "rgba(255,255,255,.9)"; g.beginPath(); g.moveTo(0, h); for (let x = 0; x <= w; x += 5) g.lineTo(x, sw(x) - 5); g.lineTo(w, h); g.fill();
+  g.fillStyle = "#E3C98F"; g.beginPath(); g.moveTo(0, h); for (let x = 0; x <= w; x += 5) g.lineTo(x, sw(x)); g.lineTo(w, h); g.fill();
+  const sand = g.createLinearGradient(0, shore, 0, h); sand.addColorStop(0, "#F3DCA6"); sand.addColorStop(1, "#F8E7BF");
+  g.fillStyle = sand; g.beginPath(); g.moveTo(0, h); for (let x = 0; x <= w; x += 5) g.lineTo(x, sw(x) + 7); g.lineTo(w, h); g.fill();
+  for (let i = 0; i < Math.round(w * 1.2); i++) { g.fillStyle = rnd() < .5 ? "rgba(190,150,80,.25)" : "rgba(255,255,255,.4)"; g.fillRect(rnd() * w, shore + 12 + rnd() * (h - shore), 1.2, 1.2); }
+  /* Seestern */
+  const star = (x, y, r, rot) => { g.save(); g.translate(x, y); g.rotate(rot); g.fillStyle = "#F28C5B"; g.beginPath(); for (let k = 0; k < 10; k++) { const a = k * Math.PI / 5 - Math.PI / 2, rr = k % 2 ? r * .42 : r; g.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); } g.closePath(); g.fill(); g.restore(); };
+  star(w * .64, Y(.9), 9, .3);
+  /* Palme: geschwungener Stamm mit Ringen, Wedel, Kokosnüsse */
   const palm = (bx, by, ph, lean) => {
-    const tx = bx + lean * ph * .4, ty = by - ph, cx = bx + lean * ph * .02, cy = by - ph * .55;
+    const tx = bx + lean * ph * .38, ty = by - ph, cx = bx + lean * ph * .02, cy = by - ph * .55;
     const P = t => [(1 - t) * (1 - t) * bx + 2 * (1 - t) * t * cx + t * t * tx, (1 - t) * (1 - t) * by + 2 * (1 - t) * t * cy + t * t * ty];
-    const W = t => ph * (.036 - .016 * t);
-    /* Schatten auf dem Sand */
-    g.fillStyle = "rgba(90,70,40,.16)"; g.beginPath(); g.ellipse(bx + lean * ph * .35, by + 4, ph * .38, ph * .045, 0, 0, Math.PI * 2); g.fill();
-    for (let i = 0; i <= 160; i++) { const t = i / 160, [x, y] = P(t), r = W(t);
-      const q = g.createLinearGradient(x - r, y, x + r, y); q.addColorStop(0, "#5E4128"); q.addColorStop(.35, "#8E6A45"); q.addColorStop(.7, "#A7865E"); q.addColorStop(1, "#6E4E30");
-      g.fillStyle = q; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill(); }
-    for (let i = 1; i < 44; i++) { const t = i / 44 + R(-.004, .004), [x, y] = P(t), [x2, y2] = P(Math.min(1, t + .01)), dx = x2 - x, dy = y2 - y, l = Math.hypot(dx, dy) || 1, r = W(t) * .95;
-      g.strokeStyle = `rgba(60,40,22,${R(.25, .45)})`; g.lineWidth = R(.8, 1.4); g.beginPath(); g.moveTo(x - dy / l * r, y + dx / l * r); g.quadraticCurveTo(x + dx / l * 2.5, y + dy / l * 2.5, x + dy / l * r, y - dx / l * r); g.stroke(); }
-    const frond = (ang, L, droop, dark) => {
-      const ex = tx + Math.cos(ang) * L, ey = ty + Math.sin(ang) * L * .55 + droop, mx = tx + Math.cos(ang) * L * .5, my = ty + Math.sin(ang) * L * .3 - L * .18;
-      const F = t => [(1 - t) * (1 - t) * tx + 2 * (1 - t) * t * mx + t * t * ex, (1 - t) * (1 - t) * ty + 2 * (1 - t) * t * my + t * t * ey];
-      g.strokeStyle = dark ? "#2C5420" : "#5C7F2E"; g.lineWidth = 1.8; g.beginPath(); g.moveTo(tx, ty); g.quadraticCurveTo(mx, my, ex, ey); g.stroke();
-      for (let i = 2; i < 36; i++) { const t = i / 36, [x, y] = F(t), [x2, y2] = F(Math.min(1, t + .02)), dx = x2 - x, dy = y2 - y, l = Math.hypot(dx, dy) || 1, ll = L * .28 * Math.sin(Math.PI * Math.min(1, t * 1.15)) * R(.85, 1.1);
-        [-1, 1].forEach(sd => { const nx = -dy / l * sd, ny = dx / l * sd, lx = x + (nx * .88 + dx / l * .3) * ll, ly = y + (ny * .88 + dy / l * .3) * ll + ll * .16;
-          const v = R(0, 1); g.strokeStyle = dark ? `rgb(${30 + v * 15 | 0},${70 + v * 20 | 0},${30 + v * 10 | 0})` : `rgb(${55 + v * 35 | 0},${110 + v * 40 | 0},${40 + v * 20 | 0})`;
-          g.lineWidth = R(1.2, 2); g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + nx * ll * .55, y + ny * ll * .55 - ll * .08, lx, ly); g.stroke(); });
-      }
-    };
-    const L = ph * .55;
-    [-2.9, -2.2, -1.4, -.6, .1].forEach(a => frond(a + lean * .1, L * R(.8, 1), L * R(.35, .55), true));
-    g.fillStyle = "#4E3B22";
-    [[-.05, .055], [.045, .06], [0, .1], [.02, .03]].forEach(([dx, dy]) => { const x = tx + dx * ph, y = ty + dy * ph, r = ph * .036, q = g.createRadialGradient(x - r * .4, y - r * .4, r * .1, x, y, r); q.addColorStop(0, "#9A7A3A"); q.addColorStop(.6, "#6B5326"); q.addColorStop(1, "#3E2E15"); g.fillStyle = q; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill(); });
-    [-3.05, -2.55, -1.85, -1.05, -.3, .35, -3.4].forEach(a => frond(a + lean * .1, L * R(.85, 1.05), L * R(.45, .75), false));
+    /* glatter, sich verjüngender Stamm (dicht gesetzte Kreise) mit feinen Ringen */
+    g.fillStyle = "#9C6B3D"; for (let i = 0; i <= 120; i++) { const t = i / 120, [x, y] = P(t); g.beginPath(); g.arc(x, y, ph * (.034 - .014 * t), 0, Math.PI * 2); g.fill(); }
+    g.fillStyle = "rgba(255,230,190,.18)"; for (let i = 0; i <= 120; i++) { const t = i / 120, [x, y] = P(t); g.beginPath(); g.arc(x - lean * ph * .012, y, ph * (.012 - .005 * t), 0, Math.PI * 2); g.fill(); }
+    g.strokeStyle = "rgba(90,55,25,.35)"; g.lineWidth = 1.2; g.lineCap = "round";
+    for (let i = 1; i < 16; i++) { const t = i / 16, [x, y] = P(t), [x2, y2] = P(t + .01), dx = x2 - x, dy = y2 - y, l = Math.hypot(dx, dy) || 1, r = ph * (.034 - .014 * t) * .85; g.beginPath(); g.moveTo(x - dy / l * r, y + dx / l * r); g.lineTo(x + dy / l * r, y - dx / l * r); g.stroke(); }
+    const L = ph * .5;
+    [[-2.75, 1], [-2.25, .95], [-1.75, .85], [-1.05, .9], [-.55, 1], [-.05, .8], [.6, .7], [-3.3, .7]].forEach(([a, k], i) => {
+      const ang = a + lean * .15, ex = tx + Math.cos(ang) * L * k, ey = ty + Math.sin(ang) * L * k + L * k * .35, mx = tx + Math.cos(ang) * L * k * .55, my = ty + Math.sin(ang) * L * k * .55 - L * .12;
+      const nx = -(ey - ty), ny = ex - tx, nl = Math.hypot(nx, ny) || 1, wd = L * k * .2;
+      g.fillStyle = i % 2 ? "#2A9A57" : "#1E7D46"; g.beginPath(); g.moveTo(tx, ty);
+      g.quadraticCurveTo(mx + nx / nl * wd, my + ny / nl * wd, ex, ey); g.quadraticCurveTo(mx - nx / nl * wd * .35, my - ny / nl * wd * .35, tx, ty); g.fill();
+      g.strokeStyle = "rgba(10,60,30,.45)"; g.lineWidth = 1.2; g.beginPath(); g.moveTo(tx, ty); g.quadraticCurveTo(mx, my, ex, ey); g.stroke();
+    });
+    g.fillStyle = "#6B4423"; [[-.05, .06], [.05, .07], [0, .11]].forEach(([dx, dy]) => { g.beginPath(); g.arc(tx + dx * ph, ty + dy * ph, ph * .04, 0, Math.PI * 2); g.fill(); });
+    g.fillStyle = "rgba(255,255,255,.25)"; g.beginPath(); g.arc(tx - .05 * ph - ph * .012, ty + .06 * ph - ph * .012, ph * .012, 0, Math.PI * 2); g.fill();
   };
-  palm(w * .02, Y(.99), Math.min(H * .44, 300), 1);
-  palm(w * 1.01, Y(.95), Math.min(H * .31, 210), -1);
+  palm(w * .02, Y(.98), Math.min(H * .42, 290), 1);
+  palm(w * 1.0, Y(.95), Math.min(H * .3, 200), -1);
   /* Kokosnuss im Sand */
-  const kx = w * .3, ky = Y(.92), kq = g.createRadialGradient(kx - 3, ky - 3, 1, kx, ky, 10); kq.addColorStop(0, "#9A7A3A"); kq.addColorStop(1, "#3E2E15");
-  g.fillStyle = "rgba(90,70,40,.2)"; g.beginPath(); g.ellipse(kx + 4, ky + 8, 12, 3, 0, 0, Math.PI * 2); g.fill();
-  g.fillStyle = kq; g.beginPath(); g.ellipse(kx, ky, 10, 9, -.3, 0, Math.PI * 2); g.fill();
+  g.fillStyle = "#6B4423"; g.beginPath(); g.ellipse(w * .3, Y(.92), 9, 8, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = "rgba(0,0,0,.08)"; g.beginPath(); g.ellipse(w * .3 + 3, Y(.92) + 8, 11, 2.5, 0, 0, Math.PI * 2); g.fill();
 }
 addEventListener("resize", () => { clearTimeout(drawSky.t); drawSky.t = setTimeout(drawSky, 150); });
 function applyTheme(){
