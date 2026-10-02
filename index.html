@@ -82,16 +82,16 @@ body.neutral .st.due{background:var(--surface-2)}
 body.tinted.m-light{ --accent-text:color-mix(in oklab,var(--accent) 62%,var(--b-ink)); --tp:48%; --ts:16%; --ts2:28%; --tl:50%; --ti:38%;
   --muted:color-mix(in oklab,var(--accent) 50%,var(--b-ink)); --ink-2:color-mix(in oklab,var(--accent) 40%,var(--b-ink));
   --accent-soft:color-mix(in oklab,var(--accent) 40%,var(--surface)); }
-body:is(.xmas,.beach,.library,.aurora,.sakura,.autumn,.underwater){background-color:transparent}
+body:is(.beach,.aurora,.autumn){background-color:transparent}
 body.hearts{background-color:transparent}
 html:has(> body.hearts),body.hearts .peek{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22230%22%20height%3D%22230%22%20viewBox%3D%220%200%20230%20230%22%3E%3Cpath%20transform%3D%22translate%2834%2034%29%20rotate%28-12%29%20scale%281.333%29%20translate%28-12%20-14%29%22%20fill%3D%22%23FFFFFF%22%20fill-opacity%3D%220.6%22%20d%3D%22M12%2021s-7.5-4.6-7.5-10A4.3%204.3%200%200%201%2012%208.3%204.3%204.3%200%200%201%2019.5%2011c0%205.4-7.5%2010-7.5%2010z%22/%3E%3Cpath%20transform%3D%22translate%28125%2024%29%20rotate%2810%29%20scale%280.867%29%20translate%28-12%20-14%29%22%20fill%3D%22%23D0106F%22%20fill-opacity%3D%220.16%22%20d%3D%22M12%2021s-7.5-4.6-7.5-10A4.3%204.3%200%200%201%2012%208.3%204.3%204.3%200%200%201%2019.5%2011c0%205.4-7.5%2010-7.5%2010z%22/%3E%3Cpath%20transform%3D%22translate%28192%2078%29%20rotate%288%29%20scale%281.467%29%20translate%28-12%20-14%29%22%20fill%3D%22%23FFFFFF%22%20fill-opacity%3D%220.5%22%20d%3D%22M12%2021s-7.5-4.6-7.5-10A4.3%204.3%200%200%201%2012%208.3%204.3%204.3%200%200%201%2019.5%2011c0%205.4-7.5%2010-7.5%2010z%22/%3E%3Cpath%20transform%3D%22translate%2872%20104%29%20rotate%28-6%29%20scale%281.000%29%20translate%28-12%20-14%29%22%20fill%3D%22%23D0106F%22%20fill-opacity%3D%220.14%22%20d%3D%22M12%2021s-7.5-4.6-7.5-10A4.3%204.3%200%200%201%2012%208.3%204.3%204.3%200%200%201%2019.5%2011c0%205.4-7.5%2010-7.5%2010z%22/%3E%3Cpath%20transform%3D%22translate%28150%20146%29%20rotate%28-15%29%20scale%281.200%29%20translate%28-12%20-14%29%22%20fill%3D%22%23FFFFFF%22%20fill-opacity%3D%220.55%22%20d%3D%22M12%2021s-7.5-4.6-7.5-10A4.3%204.3%200%200%201%2012%208.3%204.3%204.3%200%200%201%2019.5%2011c0%205.4-7.5%2010-7.5%2010z%22/%3E%3Cpath%20transform%3D%22translate%2830%20176%29%20rotate%2814%29%20scale%280.867%29%20translate%28-12%20-14%29%22%20fill%3D%22%23FFFFFF%22%20fill-opacity%3D%220.45%22%20d%3D%22M12%2021s-7.5-4.6-7.5-10A4.3%204.3%200%200%201%2012%208.3%204.3%204.3%200%200%201%2019.5%2011c0%205.4-7.5%2010-7.5%2010z%22/%3E%3Cpath%20transform%3D%22translate%28204%20196%29%20rotate%280%29%20scale%280.800%29%20translate%28-12%20-14%29%22%20fill%3D%22%23D0106F%22%20fill-opacity%3D%220.14%22%20d%3D%22M12%2021s-7.5-4.6-7.5-10A4.3%204.3%200%200%201%2012%208.3%204.3%204.3%200%200%201%2019.5%2011c0%205.4-7.5%2010-7.5%2010z%22/%3E%3Cpath%20transform%3D%22translate%28102%20200%29%20rotate%286%29%20scale%281.200%29%20translate%28-12%20-14%29%22%20fill%3D%22%23FFFFFF%22%20fill-opacity%3D%220.4%22%20d%3D%22M12%2021s-7.5-4.6-7.5-10A4.3%204.3%200%200%201%2012%208.3%204.3%204.3%200%200%201%2019.5%2011c0%205.4-7.5%2010-7.5%2010z%22/%3E%3C/svg%3E");background-size:230px 230px;background-repeat:repeat}
 body.starry{background-color:transparent}
 /* Sternenhimmel (Night): eigene, feststehende Ebene hinter der ganzen App – beim Wischen gleiten nur die Seiten darüber */
 #sky{position:fixed;left:0;right:0;top:-80px;bottom:-80px;z-index:-1;pointer-events:none;display:none}
 #sky canvas{display:block;width:100%;height:100%}
-body:is(.starry,.xmas,.beach,.library,.aurora,.sakura,.autumn,.underwater) #sky{display:block}
-body:is(.starry,.xmas,.beach,.library,.aurora,.sakura,.autumn,.underwater) .peek{background:transparent}
-body:is(.starry,.xmas,.beach,.library,.aurora,.sakura,.autumn,.underwater) #crumbbar{background:color-mix(in srgb,var(--paper) 55%,transparent);-webkit-backdrop-filter:blur(16px) saturate(140%);backdrop-filter:blur(16px) saturate(140%)} /* Pfadleiste lässt den Design-Hintergrund durchscheinen */
+body:is(.starry,.beach,.aurora,.autumn) #sky{display:block}
+body:is(.starry,.beach,.aurora,.autumn) .peek{background:transparent}
+body:is(.starry,.beach,.aurora,.autumn) #crumbbar{background:color-mix(in srgb,var(--paper) 55%,transparent);-webkit-backdrop-filter:blur(16px) saturate(140%);backdrop-filter:blur(16px) saturate(140%)} /* Pfadleiste lässt den Design-Hintergrund durchscheinen */
 body.tinted.m-dark{ --accent-text:color-mix(in oklab,var(--accent) 62%,#FFFFFF); --tp:26%; --ts:30%; --ts2:36%; --tl:46%; --ti:14%;
   --muted:color-mix(in oklab,var(--accent) 50%,var(--b-ink)); --ink-2:color-mix(in oklab,var(--accent) 30%,var(--b-ink));
   --accent-soft:color-mix(in oklab,var(--accent) 35%,var(--surface)); }
@@ -2460,22 +2460,14 @@ const THEMES = [
   { k:"ocean",     n:"Ocean",     base:"light", c:"#2962FF", ink:"#FFFFFF" },
   { k:"lavender",  n:"Lavender",  base:"light", c:"#8C3DFF", ink:"#FFFFFF" },
   { k:"barbie",    n:"Barbie",    base:"light", c:"#FF2DB4", ink:"#FFFFFF" }, /* ohne Herzchen-Hintergrund, nur rosa */
-  { k:"evergreen", n:"Christmas", base:"dark",  c:"#E0353D", ink:"#FFFFFF", /* Schlüssel bleibt "evergreen" (gespeicherte Auswahl) */
-    bases:{ "b-paper":"#04130B", "b-surface":"#123A27", "b-surface-2":"#18452F", "b-line":"#2C6047", "b-muted":"#A9CBB7", "b-ink":"#F2F8F4", "b-ink-2":"#D2E5D9" }, flat:true, xmas:true },
   { k:"navy",      n:"Night",     base:"dark",  c:"#F4C95D", ink:"#1A1405", /* Schlüssel bleibt "navy" (gespeicherte Auswahl) */
     bases:{ "b-paper":"#03050E", "b-surface":"#18244F", "b-surface-2":"#202D5E", "b-line":"#35457F", "b-muted":"#AEBAE2", "b-ink":"#F3F6FF", "b-ink-2":"#D3DBF7" }, flat:true, stars:true, icBg:"#0F1B4A", icFg:"#F4C95D" },
-  { k:"mahogany",  n:"Library",   base:"dark",  c:"#D4A64A", ink:"#1F1405", /* Schlüssel bleibt "mahogany" (gespeicherte Auswahl) */
-    bases:{ "b-paper":"#140C07", "b-surface":"#2C1E15", "b-surface-2":"#36261A", "b-line":"#4E3A28", "b-muted":"#C9B49A", "b-ink":"#F7EFE4", "b-ink-2":"#E4D5C1" }, flat:true, library:true },
   { k:"aubergine", n:"Aurora",    base:"dark",  c:"#3DDC97", ink:"#04241A", /* Schlüssel bleibt "aubergine" (gespeicherte Auswahl) */
     bases:{ "b-paper":"#040A13", "b-surface":"#132235", "b-surface-2":"#192B40", "b-line":"#2A4058", "b-muted":"#A9BFD4", "b-ink":"#F0F6FB", "b-ink-2":"#CFDDEA" }, flat:true, aurora:true },
-  { k:"beach",     n:"Beach",     base:"light", design:true, c:"#0E9AA7", ink:"#FFFFFF",
-    bases:{ "b-paper":"#EAF8F8", "b-surface":"#FFFFFF", "b-surface-2":"#F1FAFA", "b-line":"#CDE6E6", "b-muted":"#4E7378", "b-ink":"#0E2E33", "b-ink-2":"#24484D" }, flat:true, beach:true },
-  { k:"sakura",    n:"Sakura",    base:"light", design:true, c:"#E0588A", ink:"#FFFFFF",
-    bases:{ "b-paper":"#FFF5F7", "b-surface":"#FFFFFF", "b-surface-2":"#FFF0F4", "b-line":"#F3D3DE", "b-muted":"#8A6672", "b-ink":"#3A2430", "b-ink-2":"#5B3D49" }, flat:true, sakura:true },
   { k:"autumn",    n:"Autumn",    base:"light", design:true, c:"#D9622B", ink:"#FFFFFF",
     bases:{ "b-paper":"#FFF6EC", "b-surface":"#FFFFFF", "b-surface-2":"#FFF1E2", "b-line":"#F0D9C2", "b-muted":"#8A6A55", "b-ink":"#3B2618", "b-ink-2":"#5C4030" }, flat:true, autumn:true },
-  { k:"underwater", n:"Underwater", base:"dark", design:true, c:"#FF8A65", ink:"#2A0F05",
-    bases:{ "b-paper":"#03182B", "b-surface":"#0D2C45", "b-surface-2":"#12364F", "b-line":"#22506E", "b-muted":"#9FC3D8", "b-ink":"#EEF8FF", "b-ink-2":"#CCE4F2" }, flat:true, underwater:true }
+  { k:"beach",     n:"Beach",     base:"light", design:true, c:"#0E9AA7", ink:"#FFFFFF",
+    bases:{ "b-paper":"#EAF8F8", "b-surface":"#FFFFFF", "b-surface-2":"#F1FAFA", "b-line":"#CDE6E6", "b-muted":"#4E7378", "b-ink":"#0E2E33", "b-ink-2":"#24484D" }, flat:true, beach:true }
 ];
 const NEUTRAL = [["light","Hell"],["dark","Dunkel"],["auto","System"]];
 S.set = { look: "auto", layout: "grid", textSize: "m", fxMode: "full", gradeSet: "4", newPerDay: 20, splash: "daily", glass: 1 };
@@ -2499,19 +2491,19 @@ function isDark(){
   const a = document.documentElement.getAttribute("data-theme");
   return a === "dark" || (a !== "light" && darkMQ.matches);
 }
-/* Feststehende Hintergrund-Ebene der Designs (Night: Sternenhimmel, Christmas: Weihnachten) – feste Zufallsfolge → immer dasselbe Bild */
+/* Feststehende Hintergrund-Ebene der Designs (Night, Aurora, Autumn, Beach) – feste Zufallsfolge → immer dasselbe Bild */
 let skyKey = "";
 function drawSky(){
-  const bd = document.body, mode = bd.classList.contains("starry") ? "stars" : bd.classList.contains("xmas") ? "xmas" : bd.classList.contains("beach") ? "beach" : bd.classList.contains("library") ? "library" : bd.classList.contains("aurora") ? "aurora" : ["sakura", "autumn", "underwater"].find(k => bd.classList.contains(k)) || "";
+  const bd = document.body, mode = bd.classList.contains("starry") ? "stars" : ["beach", "aurora", "autumn"].find(k => bd.classList.contains(k)) || "";
   if (!mode) return;
   let el = document.getElementById("sky"); if (!el) { el = document.createElement("div"); el.id = "sky"; el.setAttribute("aria-hidden", "true"); el.appendChild(document.createElement("canvas")); bd.prepend(el); }
   const w = el.clientWidth || innerWidth, h = el.clientHeight || innerHeight + 160, dpr = Math.min(3, devicePixelRatio || 1), key = `${mode}:${w}x${h}@${dpr}`;
   if (key === skyKey) return; skyKey = key;
   const cv = el.firstChild; cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
   const g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0);
-  let seed = { stars: 7, xmas: 12, beach: 31, library: 5, aurora: 19, sakura: 23, autumn: 41, underwater: 57 }[mode]; const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+  let seed = { stars: 7, beach: 31, aurora: 19, autumn: 41 }[mode]; const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
   const glow = (x, y, r, c) => { const q = g.createRadialGradient(x, y, 0, x, y, r); q.addColorStop(0, c); q.addColorStop(1, c.replace(/[\d.]+\)$/, "0)")); /* gleiche Farbe auslaufen lassen, sonst wird der Rand grau */ g.fillStyle = q; g.fillRect(x - r, y - r, r * 2, r * 2); };
-  ({ stars: paintStars, xmas: paintXmas, beach: paintBeach, library: paintLibrary, aurora: paintAurora, sakura: paintSakura, autumn: paintAutumn, underwater: paintUnderwater })[mode](g, w, h, rnd, glow);
+  ({ stars: paintStars, beach: paintBeach, aurora: paintAurora, autumn: paintAutumn })[mode](g, w, h, rnd, glow);
 }
 /* Night: tiefer Verlauf, Milchstraßen-Schleier, zufällige Sterne */
 function paintStars(g, w, h, rnd, glow){
@@ -2527,63 +2519,6 @@ function paintStars(g, w, h, rnd, glow){
   for (let i = 0; i < n; i++) { const r = rnd(); star(rnd() * w, rnd() * h, r < .85 ? .25 + rnd() * .45 : r < .97 ? .6 + rnd() * .5 : 1 + rnd() * .7, .25 + rnd() * .65, COLS[rnd() * COLS.length | 0]); }
   for (let i = 0; i < n * .9; i++) { const t = rnd(), o = (rnd() + rnd() + rnd() - 1.5) * band * .55; star(bx(t) + o * .7, by(t) + o, .2 + rnd() * .35, .2 + rnd() * .45, "#EAF0FF"); }
   for (let i = 0; i < Math.round(w * h / 26000); i++) { const x = rnd() * w, y = rnd() * h, c = COLS[rnd() * COLS.length | 0]; glow(x, y, 5 + rnd() * 5, "rgba(200,215,255,.22)"); star(x, y, 1.1 + rnd() * .6, .95, c); }
-}
-/* Christmas: flacher, ruhiger Illustrationsstil – wenige Farben (Tannengrün, Dunkelrot, Cremeweiß, Lebkuchenbraun),
-   keine Glanzverläufe, gleiche Linienstärke für alles: Eiszapfen oben, Kugeln an Bändern, zwei Lebkuchenmännchen, Schnee unten */
-function paintXmas(g, w, h, rnd, glow){
-  const top = 80; /* die Ebene beginnt 80 px über dem Bildschirm */
-  const RED = "#8E1D2A", RED2 = "#6E1520", CREAM = "#F2ECE1", CREAM2 = "#D9D1C2", BROWN = "#A4653C", GOLD = "#C8A866", LINE = 1.6;
-  const bg = g.createLinearGradient(0, 0, 0, h); bg.addColorStop(0, "#0E2A1C"); bg.addColorStop(1, "#071810");
-  g.fillStyle = bg; g.fillRect(0, 0, w, h);
-  const S = Math.min(1.2, Math.max(.85, w / 400));
-  /* Schneeflocken: wenige, kleine, ruhige Punkte */
-  for (let i = 0; i < Math.round(w * h / 9000); i++) { g.globalAlpha = .18 + rnd() * .3; g.fillStyle = CREAM; g.beginPath(); g.arc(rnd() * w, top + rnd() * (h - top * 2), .8 + rnd() * 1.2, 0, Math.PI * 2); g.fill(); }
-  g.globalAlpha = 1;
-  /* Kugel: flache Scheibe, eine helle Sichel als Glanz, schlichte Kappe */
-  const bauble = (x, y, r, red) => {
-    g.fillStyle = red ? RED : CREAM; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
-    g.fillStyle = red ? RED2 : CREAM2; g.beginPath(); g.arc(x, y, r, Math.PI * .1, Math.PI * .9); g.arc(x, y + r * .25, r * .85, Math.PI * .85, Math.PI * .15, true); g.fill();
-    g.strokeStyle = red ? "rgba(242,236,225,.55)" : "rgba(142,29,42,.35)"; g.lineWidth = LINE; g.lineCap = "round";
-    g.beginPath(); g.arc(x, y, r * .62, Math.PI * 1.12, Math.PI * 1.42); g.stroke();
-    const cw = r * .46, ch = r * .26; g.fillStyle = GOLD; g.fillRect(x - cw / 2, y - r - ch + 1, cw, ch);
-    return y - r - ch;
-  };
-  /* Bänder mit Kugeln an den Rändern (halb angeschnitten, Text bleibt frei) */
-  [[6, 200, 17, 1], [-6, 150, 19, 0], [-4, 300, 13, 1], [4, 330, 12, 0]].forEach(([dx, len, r, red]) => {
-    const x = dx > 0 ? dx : w + dx, y = top + len * S, rr = r * S;
-    g.strokeStyle = "rgba(242,236,225,.45)"; g.lineWidth = 1; g.beginPath(); g.moveTo(x, 0); g.lineTo(x, y - rr - rr * .26); g.stroke();
-    bauble(x, y, rr, red);
-  });
-  /* Lebkuchenmännchen im selben flachen Stil: Silhouette in Braun, Zuckerguss als dünne Cremelinien */
-  const man = (x, y, s, rot) => {
-    g.save(); g.translate(x, y); g.rotate(rot); g.fillStyle = BROWN; g.strokeStyle = BROWN; g.lineCap = "round"; g.lineJoin = "round";
-    g.beginPath(); g.arc(0, -s * .3, s * .16, 0, Math.PI * 2); g.fill();
-    g.lineWidth = s * .16; g.beginPath(); g.moveTo(-s * .28, -s * .1); g.lineTo(s * .28, -s * .1); g.stroke();
-    g.lineWidth = s * .18; g.beginPath(); g.moveTo(-s * .06, s * .08); g.lineTo(-s * .19, s * .4); g.moveTo(s * .06, s * .08); g.lineTo(s * .19, s * .4); g.stroke();
-    g.beginPath(); g.ellipse(0, 0, s * .16, s * .21, 0, 0, Math.PI * 2); g.fill();
-    g.strokeStyle = CREAM; g.fillStyle = CREAM; g.lineWidth = LINE;
-    const wave = (x0, y0, vert) => { g.beginPath(); for (let k = 0; k <= 8; k++) { const t = (k / 8 - .5) * s * .14, o = Math.sin(k * Math.PI / 2) * s * .025; vert ? g.lineTo(x0 + o, y0 + t) : g.lineTo(x0 + t, y0 + o); } g.stroke(); };
-    wave(-s * .33, -s * .1, true); wave(s * .33, -s * .1, true); wave(-s * .2, s * .36, false); wave(s * .2, s * .36, false);
-    g.beginPath(); g.arc(-s * .055, -s * .33, s * .022, 0, Math.PI * 2); g.arc(s * .055, -s * .33, s * .022, 0, Math.PI * 2); g.fill();
-    g.beginPath(); g.arc(0, -s * .3, s * .065, Math.PI * .2, Math.PI * .8); g.stroke();
-    [-.06, .05].forEach(dy => { g.fillStyle = RED; g.beginPath(); g.arc(0, s * dy, s * .03, 0, Math.PI * 2); g.fill(); });
-    g.restore();
-  };
-  man(w * .16, top + (h - 2 * top) * .62, 66 * S, -.14);
-  man(w * .82, top + (h - 2 * top) * .8, 58 * S, .16);
-  /* zwei kleine Kugeln liegen verstreut */
-  bauble(w * .58, top + (h - 2 * top) * .7, 8 * S, 1); bauble(w * .38, top + (h - 2 * top) * .88, 7 * S, 0);
-  /* Eiszapfen oben: unregelmäßige, flache Zapfen in Creme mit einer helleren Kante */
-  const yb = top + 2; g.fillStyle = CREAM; g.fillRect(0, 0, w, yb + 3);
-  for (let x = -4; x < w + 10; ) {
-    const bw = 7 + rnd() * 9, len = rnd() < .25 ? 22 + rnd() * 22 : 6 + rnd() * 12;
-    g.fillStyle = CREAM; g.beginPath(); g.moveTo(x, yb); g.lineTo(x + bw, yb); g.quadraticCurveTo(x + bw * .62, yb + len * .5, x + bw * .48, yb + len); g.quadraticCurveTo(x + bw * .3, yb + len * .45, x, yb); g.fill();
-    g.fillStyle = "rgba(255,255,255,.9)"; g.beginPath(); g.moveTo(x + bw * .2, yb); g.lineTo(x + bw * .34, yb); g.lineTo(x + bw * .46, yb + len * .8); g.fill();
-    x += bw - 1 + (rnd() < .3 ? rnd() * 6 : 0);
-  }
-  /* Schnee unten: flacher, sanft gewellter Streifen (unter der Tab-Leiste) */
-  const base = h - top - 16, wv = x => base + Math.sin(x / 47) * 5 + Math.sin(x / 19 + 1.3) * 2.5 + Math.sin(x / 101 + 2) * 4;
-  g.fillStyle = CREAM; g.beginPath(); g.moveTo(0, h); for (let x = 0; x <= w; x += 6) g.lineTo(x, wv(x)); g.lineTo(w, h); g.closePath(); g.fill();
 }
 /* Beach: sonniger Himmel, türkises Meer mit Wellen, Sandstrand, zwei Palmen mit Kokosnüssen – flacher, freundlicher Stil */
 function paintBeach(g, w, h, rnd, glow){
@@ -2675,85 +2610,6 @@ function paintBeach(g, w, h, rnd, glow){
   g.fillStyle = "#6B4423"; g.beginPath(); g.ellipse(w * .3, Y(.92), 9, 8, 0, 0, Math.PI * 2); g.fill();
   g.fillStyle = "rgba(0,0,0,.08)"; g.beginPath(); g.ellipse(w * .3 + 3, Y(.92) + 8, 11, 2.5, 0, 0, Math.PI * 2); g.fill();
 }
-/* Library: gemütliche Bibliothek am Abend – Holzregale mit Büchern, Messinglampe mit warmem Licht, Pflanze, Tee, Sanduhr (flacher Stil) */
-function paintLibrary(g, w, h, rnd, glow){
-  const top = 80, H = h - top * 2, Y = f => top + H * f, R = (a, b) => a + rnd() * (b - a);
-  const wall = g.createLinearGradient(0, 0, 0, h); wall.addColorStop(0, "#2B1B11"); wall.addColorStop(1, "#170E08");
-  g.fillStyle = wall; g.fillRect(0, 0, w, h);
-  const BOOKS = ["#7A1F2B", "#2F5A3E", "#B88B32", "#23395D", "#8B5A2B", "#5C2E4F", "#3E6B6B", "#A5532E", "#6B6F2F", "#3B2B4F"];
-  const shelves = [Y(.3), Y(.55), Y(.8), Y(1.05)], plank = 11, side = 9;
-  /* Gegenstände auf den Regalen: [Regal, x-Mitte, Breite, Art] */
-  const items = [[0, w * .8, 46, "tea"], [1, w * .14, 44, "plant"], [1, w * .8, 62, "lamp"], [2, w * .66, 30, "glass"]];
-  const book = (x, y, bw, bh, col, lean) => {
-    g.save(); g.translate(x, y); if (lean) g.rotate(lean);
-    g.fillStyle = col; g.fillRect(0, -bh, bw, bh);
-    g.fillStyle = "rgba(0,0,0,.22)"; g.fillRect(bw - Math.max(2, bw * .18), -bh, Math.max(2, bw * .18), bh);
-    g.fillStyle = "rgba(255,255,255,.07)"; g.fillRect(1, -bh, Math.max(1.5, bw * .15), bh);
-    g.fillStyle = "rgba(230,190,110,.55)"; g.fillRect(1, -bh + bh * .1, bw - 2, 1.5); g.fillRect(1, -bh * .14, bw - 2, 1.5);
-    if (bw > 13 && rnd() < .6) { g.fillStyle = "rgba(240,225,190,.75)"; g.fillRect(bw * .22, -bh * .62, bw * .56, bh * .16); }
-    g.restore();
-  };
-  shelves.forEach((sy, si) => {
-    const prev = si ? shelves[si - 1] + plank : Y(.06), gap = sy - prev;
-    const busy = items.filter(it => it[0] === si).map(it => [it[1] - it[2] / 2 - 6, it[1] + it[2] / 2 + 6]);
-    let x = side + 3;
-    while (x < w - side - 8) {
-      const hit = busy.find(([a, b]) => x + 4 > a && x < b); if (hit) { x = hit[1]; continue; }
-      const r = rnd();
-      if (r < .1) { /* liegender Stapel */
-        let yy = sy; const sw = R(30, 46); if (busy.some(([a, b]) => x + sw > a && x < b) || x + sw > w - side) { x += 6; continue; }
-        for (let k = 0; k < 2 + (rnd() * 3 | 0); k++) { const bh = R(7, 11), off = R(-3, 3); book(x + off, yy, sw, bh, BOOKS[rnd() * BOOKS.length | 0], 0); yy -= bh; }
-        x += sw + 4;
-      } else {
-        const bw = R(9, 20), bh = Math.min(gap - 10, gap * R(.55, .85));
-        if (busy.some(([a, b]) => x + bw > a && x < b) || x + bw > w - side) { x += 6; continue; }
-        const lean = r > .95 ? R(.12, .22) : 0;
-        book(x + (lean ? bh * Math.sin(lean) * .1 : 0), sy, bw, bh, BOOKS[rnd() * BOOKS.length | 0], lean);
-        x += bw + (lean ? bh * Math.sin(lean) + 2 : R(0, 1.5)) + (rnd() < .07 ? R(10, 24) : 0);
-      }
-    }
-    /* Regalbrett */
-    g.fillStyle = "#5C3B22"; g.fillRect(0, sy, w, plank);
-    g.fillStyle = "#7B5232"; g.fillRect(0, sy, w, 2.5);
-    g.fillStyle = "rgba(0,0,0,.35)"; g.fillRect(0, sy + plank, w, 5);
-  });
-  /* Seitenwände */
-  [0, w - side].forEach(x => { g.fillStyle = "#4A2F1B"; g.fillRect(x, 0, side, h); g.fillStyle = "rgba(255,255,255,.05)"; g.fillRect(x + (x ? 0 : side - 2), 0, 2, h); });
-  /* Gegenstände */
-  items.forEach(([si, cx, iw, kind]) => {
-    const sy = shelves[si];
-    if (kind === "plant") {
-      g.fillStyle = "#B4673F"; g.beginPath(); g.moveTo(cx - 14, sy - 26); g.lineTo(cx + 14, sy - 26); g.lineTo(cx + 10, sy); g.lineTo(cx - 10, sy); g.fill();
-      g.fillStyle = "#9A5634"; g.fillRect(cx - 15, sy - 30, 30, 6);
-      [[-1.9, 34], [-1.45, 40], [-1.1, 30], [-2.3, 26], [-.75, 26]].forEach(([a, l], k) => { const ex = cx + Math.cos(a) * l, ey = sy - 30 + Math.sin(a) * l; g.fillStyle = k % 2 ? "#4E8A4A" : "#3A6E3A"; g.beginPath(); g.moveTo(cx, sy - 30); g.quadraticCurveTo(cx + Math.cos(a - .5) * l * .6, sy - 30 + Math.sin(a - .5) * l * .6, ex, ey); g.quadraticCurveTo(cx + Math.cos(a + .5) * l * .6, sy - 30 + Math.sin(a + .5) * l * .6, cx, sy - 30); g.fill(); });
-    } else if (kind === "tea") {
-      g.fillStyle = "#EDE3D2"; g.beginPath(); g.ellipse(cx, sy - 2, 18, 3, 0, 0, Math.PI * 2); g.fill();
-      g.beginPath(); g.moveTo(cx - 12, sy - 20); g.lineTo(cx + 12, sy - 20); g.quadraticCurveTo(cx + 11, sy - 3, cx, sy - 3); g.quadraticCurveTo(cx - 11, sy - 3, cx - 12, sy - 20); g.fill();
-      g.strokeStyle = "#EDE3D2"; g.lineWidth = 2.5; g.beginPath(); g.arc(cx + 13, sy - 13, 4.5, -Math.PI / 2, Math.PI / 2); g.stroke();
-      g.fillStyle = "#8C5A2B"; g.beginPath(); g.ellipse(cx, sy - 20, 11, 2.2, 0, 0, Math.PI * 2); g.fill();
-      g.strokeStyle = "rgba(255,245,230,.35)"; g.lineWidth = 1.6; g.lineCap = "round";
-      [-4, 3].forEach((dx, k) => { g.beginPath(); g.moveTo(cx + dx, sy - 25); g.bezierCurveTo(cx + dx - 5, sy - 32, cx + dx + 5, sy - 38, cx + dx - 1, sy - 46 - k * 4); g.stroke(); });
-    } else if (kind === "glass") {
-      g.fillStyle = "#B88B32"; g.fillRect(cx - 11, sy - 4, 22, 4); g.fillRect(cx - 11, sy - 40, 22, 4);
-      g.strokeStyle = "#B88B32"; g.lineWidth = 2; [-9, 9].forEach(dx => { g.beginPath(); g.moveTo(cx + dx, sy - 36); g.lineTo(cx + dx, sy - 4); g.stroke(); });
-      g.fillStyle = "rgba(220,235,240,.25)"; g.beginPath(); g.moveTo(cx - 7, sy - 36); g.lineTo(cx + 7, sy - 36); g.lineTo(cx + 1.5, sy - 20); g.lineTo(cx + 7, sy - 4); g.lineTo(cx - 7, sy - 4); g.lineTo(cx - 1.5, sy - 20); g.fill();
-      g.fillStyle = "#E3C27A"; g.beginPath(); g.moveTo(cx - 6, sy - 4); g.lineTo(cx + 6, sy - 4); g.lineTo(cx, sy - 13); g.fill(); g.beginPath(); g.moveTo(cx - 4, sy - 32); g.lineTo(cx + 4, sy - 32); g.lineTo(cx, sy - 25); g.fill();
-    } else if (kind === "lamp") {
-      const hx = cx + 2, hy = sy - 62;
-      glow(hx, hy + 30, Math.max(w, h) * .42, "rgba(255,190,105,.20)");
-      glow(hx, hy + 14, 90, "rgba(255,214,150,.35)");
-      const cone = g.createLinearGradient(0, hy, 0, sy); cone.addColorStop(0, "rgba(255,215,150,.32)"); cone.addColorStop(1, "rgba(255,215,150,.04)");
-      g.fillStyle = cone; g.beginPath(); g.moveTo(hx - 12, hy + 6); g.lineTo(hx + 12, hy + 6); g.lineTo(hx + 44, sy); g.lineTo(hx - 44, sy); g.fill();
-      g.fillStyle = "#B98F45"; g.beginPath(); g.ellipse(cx, sy - 3, 15, 4, 0, 0, Math.PI * 2); g.fill();
-      g.strokeStyle = "#B98F45"; g.lineWidth = 3; g.lineCap = "round"; g.beginPath(); g.moveTo(cx, sy - 4); g.lineTo(cx - 8, sy - 38); g.lineTo(hx, hy); g.stroke();
-      g.fillStyle = "#2F5A3E"; g.beginPath(); g.moveTo(hx - 16, hy + 8); g.quadraticCurveTo(hx - 14, hy - 10, hx, hy - 11); g.quadraticCurveTo(hx + 14, hy - 10, hx + 16, hy + 8); g.fill();
-      g.fillStyle = "#FFF0C8"; g.beginPath(); g.ellipse(hx, hy + 8, 15, 3, 0, 0, Math.PI * 2); g.fill();
-    }
-  });
-  /* oben dunkler, damit Überschriften gut lesbar bleiben; Ränder sanft abgedunkelt */
-  const tg = g.createLinearGradient(0, 0, 0, Y(.22)); tg.addColorStop(0, "rgba(20,12,7,.85)"); tg.addColorStop(1, "rgba(20,12,7,0)"); g.fillStyle = tg; g.fillRect(0, 0, w, Y(.22));
-  const vg = g.createRadialGradient(w * .6, h * .55, Math.min(w, h) * .3, w * .5, h * .5, Math.max(w, h) * .8); vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(0,0,0,.45)"); g.fillStyle = vg; g.fillRect(0, 0, w, h);
-}
 /* Aurora: Nordlichter (grün → türkis → violett) über verschneiten Bergen, Sterne, Tannen-Silhouetten */
 function paintAurora(g, w, h, rnd, glow){
   const top = 80, H = h - top * 2, Y = f => top + H * f, R = (a, b) => a + rnd() * (b - a);
@@ -2797,44 +2653,6 @@ function paintAurora(g, w, h, rnd, glow){
     for (let k = 0; k < 4; k++) { const yy = by - th * .1 - k * th * .22, ww = th * (.36 - k * .07); g.beginPath(); g.moveTo(x, yy - th * .34); g.lineTo(x + ww, yy); g.lineTo(x - ww, yy); g.fill(); } };
   [[.04, 1.1], [.11, .8], [.17, .95], [.82, .9], [.89, 1.2], [.96, .85], [.62, .55], [.36, .5]].forEach(([fx, sc]) => tree(w * fx, Y(.87) + Math.sin(w * fx / 60) * 6, 70 * sc));
 }
-/* Sakura: Morgenrot, ferner Berg, kleine Pagode, Kirschblütenzweige, fallende Blüten, stiller See */
-function paintSakura(g, w, h, rnd, glow){
-  const top = 80, H = h - top * 2, Y = f => top + H * f, R = (a, b) => a + rnd() * (b - a);
-  const sky = g.createLinearGradient(0, 0, 0, Y(.8)); sky.addColorStop(0, "#F9D3E0"); sky.addColorStop(.6, "#FDE6E3"); sky.addColorStop(1, "#FFF2E4");
-  g.fillStyle = sky; g.fillRect(0, 0, w, h);
-  glow(w * .5, Y(.7), Math.max(w, h) * .5, "rgba(255,210,170,.35)");
-  g.fillStyle = "#F7C9A8"; g.beginPath(); g.arc(w * .5, Y(.62), 34, 0, Math.PI * 2); g.fill();
-  /* Berg mit Schnee */
-  const mb = Y(.8); g.fillStyle = "#D9C3DD"; g.beginPath(); g.moveTo(w * -.1, mb); g.lineTo(w * .3, Y(.5)); g.lineTo(w * .4, Y(.47)); g.lineTo(w * .5, Y(.5)); g.lineTo(w * 1.1, mb); g.fill();
-  g.fillStyle = "#FFFFFF"; g.beginPath(); g.moveTo(w * .3, Y(.5)); g.lineTo(w * .4, Y(.47)); g.lineTo(w * .5, Y(.5)); g.lineTo(w * .46, Y(.55)); g.lineTo(w * .42, Y(.53)); g.lineTo(w * .38, Y(.56)); g.lineTo(w * .34, Y(.54)); g.fill();
-  g.fillStyle = "#E8CFE0"; g.beginPath(); g.moveTo(0, mb); for (let x = 0; x <= w; x += 10) g.lineTo(x, Y(.74) + Math.sin(x / 50) * 8); g.lineTo(w, mb); g.fill();
-  /* Pagode */
-  const px = w * .78, pb = Y(.76); g.fillStyle = "#B88AA8";
-  for (let k = 0; k < 4; k++) { const yy = pb - k * 22, ww = 26 - k * 4; g.fillRect(px - ww * .55, yy - 14, ww * 1.1, 14); g.beginPath(); g.moveTo(px - ww - 6, yy - 12); g.quadraticCurveTo(px, yy - 26, px + ww + 6, yy - 12); g.lineTo(px + ww, yy - 16); g.quadraticCurveTo(px, yy - 26, px - ww, yy - 16); g.fill(); }
-  g.fillRect(px - 1.5, pb - 110, 3, 22);
-  /* See */
-  const lake = g.createLinearGradient(0, mb, 0, h); lake.addColorStop(0, "#F6CFDC"); lake.addColorStop(1, "#FBE3EA"); g.fillStyle = lake; g.fillRect(0, mb, w, h - mb);
-  g.strokeStyle = "rgba(255,255,255,.7)"; g.lineWidth = 1.4; g.lineCap = "round";
-  for (let i = 0; i < 26; i++) { const y = R(mb + 6, h - top + 10), x = R(0, w), l = R(10, 40); g.beginPath(); g.moveTo(x, y); g.lineTo(x + l, y); g.stroke(); }
-  /* Blüte */
-  const flower = (x, y, r, rot, light) => { g.save(); g.translate(x, y); g.rotate(rot); g.fillStyle = light ? "#FFD6E2" : "#F7A9C1";
-    for (let k = 0; k < 5; k++) { g.rotate(Math.PI * 2 / 5); g.beginPath(); g.ellipse(0, -r * .55, r * .38, r * .55, 0, 0, Math.PI * 2); g.fill(); }
-    g.fillStyle = "#E06A92"; g.beginPath(); g.arc(0, 0, r * .22, 0, Math.PI * 2); g.fill(); g.restore(); };
-  /* Zweig: geschwungene, sich verjüngende Linie mit Seitenästen und Blütentrauben */
-  const branch = (x0, y0, x1, y1, cx, cy, wd, depth) => {
-    const P = t => [(1 - t) * (1 - t) * x0 + 2 * (1 - t) * t * cx + t * t * x1, (1 - t) * (1 - t) * y0 + 2 * (1 - t) * t * cy + t * t * y1];
-    g.strokeStyle = "#5B3A3E"; g.lineCap = "round";
-    for (let i = 0; i < 24; i++) { const [a, b] = P(i / 24), [c, d] = P((i + 1) / 24); g.lineWidth = wd * (1 - i / 30); g.beginPath(); g.moveTo(a, b); g.lineTo(c, d); g.stroke(); }
-    if (depth) [.35, .6, .82].forEach(t => { const [a, b] = P(t), ang = Math.atan2(y1 - y0, x1 - x0) + (rnd() < .5 ? -1 : 1) * R(.5, .9), l = Math.hypot(x1 - x0, y1 - y0) * R(.25, .4);
-      branch(a, b, a + Math.cos(ang) * l, b + Math.sin(ang) * l, a + Math.cos(ang - .3) * l * .5, b + Math.sin(ang - .3) * l * .5, wd * .45, depth - 1); });
-    for (let i = 0; i < 9; i++) { const [a, b] = P(R(.25, 1)); flower(a + R(-10, 10), b + R(-10, 10), R(6, 10), R(0, 6), rnd() < .4); }
-  };
-  branch(w + 10, Y(.02), w * .45, Y(.17), w * .75, Y(.03), 9, 2);
-  branch(-10, Y(.36), w * .32, Y(.5), w * .12, Y(.36), 7, 1);
-  /* fallende Blütenblätter */
-  for (let i = 0; i < 46; i++) { g.save(); g.translate(R(0, w), R(top, h - top)); g.rotate(R(0, 6)); g.fillStyle = rnd() < .5 ? "#F7A9C1" : "#FFD0DE"; g.globalAlpha = R(.6, 1); g.beginPath(); g.ellipse(0, 0, R(2.5, 4.5), R(1.5, 2.5), 0, 0, Math.PI * 2); g.fill(); g.restore(); }
-  g.globalAlpha = 1;
-}
 /* Autumn: warmes Nachmittagslicht, Hügel, Laubbäume in Orange/Rot/Gelb, Waldweg, fallende Blätter */
 function paintAutumn(g, w, h, rnd, glow){
   const top = 80, H = h - top * 2, Y = f => top + H * f, R = (a, b) => a + rnd() * (b - a);
@@ -2861,42 +2679,6 @@ function paintAutumn(g, w, h, rnd, glow){
   for (let i = 0; i < 34; i++) leaf(R(0, w), R(top, Y(.95)), R(4, 8), R(0, 6), ["#E8582A", "#F2A03D", "#C9342A", "#F5C04A", "#B5532A"][rnd() * 5 | 0]);
   for (let i = 0; i < 30; i++) leaf(R(0, w), R(Y(.86), h), R(4, 7), R(0, 6), ["#E8792F", "#C9342A", "#F2A03D"][rnd() * 3 | 0]);
 }
-/* Underwater: Lichtstrahlen von oben, Luftblasen, Fischschwärme, Quallen, Korallen und Seegras am Grund */
-function paintUnderwater(g, w, h, rnd, glow){
-  const top = 80, H = h - top * 2, Y = f => top + H * f, R = (a, b) => a + rnd() * (b - a);
-  const sea = g.createLinearGradient(0, 0, 0, h); sea.addColorStop(0, "#1593B8"); sea.addColorStop(.35, "#0B5F87"); sea.addColorStop(.75, "#06375A"); sea.addColorStop(1, "#04213A");
-  g.fillStyle = sea; g.fillRect(0, 0, w, h);
-  g.save(); g.globalCompositeOperation = "lighter";
-  for (let i = 0; i < 7; i++) { const x = R(-.1, 1.1) * w, wd = R(20, 60), sk = R(-.25, .25) * h; const q = g.createLinearGradient(0, 0, 0, h * .8); q.addColorStop(0, "rgba(180,240,255,.16)"); q.addColorStop(1, "rgba(180,240,255,0)");
-    g.fillStyle = q; g.beginPath(); g.moveTo(x, 0); g.lineTo(x + wd, 0); g.lineTo(x + wd * 2.2 + sk, h * .8); g.lineTo(x + sk, h * .8); g.fill(); }
-  g.restore();
-  glow(w * .5, 0, Math.max(w, h) * .6, "rgba(160,235,255,.18)");
-  /* Fisch */
-  const fish = (x, y, s, dir, col, fin) => { g.save(); g.translate(x, y); g.scale(dir, 1); g.fillStyle = col;
-    g.beginPath(); g.ellipse(0, 0, s, s * .45, 0, 0, Math.PI * 2); g.fill(); g.beginPath(); g.moveTo(-s * .85, 0); g.lineTo(-s * 1.45, -s * .42); g.lineTo(-s * 1.45, s * .42); g.fill();
-    g.fillStyle = fin; g.beginPath(); g.moveTo(-s * .1, -s * .4); g.quadraticCurveTo(-s * .3, -s * .75, -s * .5, -s * .38); g.fill(); g.fillRect(s * .15, -s * .42, s * .12, s * .84);
-    g.fillStyle = "#08223A"; g.beginPath(); g.arc(s * .55, -s * .08, s * .09, 0, Math.PI * 2); g.fill(); g.restore(); };
-  for (let i = 0; i < 9; i++) fish(w * .6 + R(-50, 50), Y(.3) + R(-35, 35), R(6, 8), -1, "#FFC94A", "#F29A2E");
-  for (let i = 0; i < 7; i++) fish(w * .2 + R(-40, 40), Y(.6) + R(-25, 25), R(5, 7), 1, "#9EE7F5", "#5FC6DC");
-  fish(w * .82, Y(.5), 15, -1, "#FF8A65", "#FFFFFF"); fish(w * .15, Y(.42), 12, 1, "#FF8A65", "#FFFFFF");
-  /* Quallen */
-  const jelly = (x, y, s) => { g.save(); g.globalAlpha = .85; const q = g.createRadialGradient(x, y - s * .2, s * .1, x, y, s); q.addColorStop(0, "rgba(255,190,230,.9)"); q.addColorStop(1, "rgba(200,120,230,.5)");
-    g.fillStyle = q; g.beginPath(); g.arc(x, y, s, Math.PI, 0); g.quadraticCurveTo(x + s * .5, y + s * .25, x, y + s * .12); g.quadraticCurveTo(x - s * .5, y + s * .25, x - s, y); g.fill();
-    g.strokeStyle = "rgba(240,170,230,.6)"; g.lineWidth = 1.5; for (let k = -2; k <= 2; k++) { const tx = x + k * s * .3; g.beginPath(); g.moveTo(tx, y + s * .1); for (let j = 1; j <= 8; j++) g.lineTo(tx + Math.sin(j * .9 + k) * 3, y + s * .1 + j * s * .22); g.stroke(); } g.restore(); };
-  jelly(w * .3, Y(.17), 16); jelly(w * .88, Y(.24), 11);
-  /* Luftblasen */
-  g.strokeStyle = "rgba(220,250,255,.55)"; g.lineWidth = 1.2;
-  for (let i = 0; i < 40; i++) { const x = rnd() < .5 ? w * .1 + R(-12, 12) : w * .7 + R(-12, 12), y = R(top, Y(.9)), r = R(1.5, 5); g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.stroke(); }
-  /* Grund: Sand, Seegras, Korallen */
-  const fl = Y(.88); g.fillStyle = "#2F5E6B"; g.beginPath(); g.moveTo(0, h); for (let x = 0; x <= w; x += 8) g.lineTo(x, fl + Math.sin(x / 45) * 6); g.lineTo(w, h); g.fill();
-  g.fillStyle = "#3E7480"; g.beginPath(); g.moveTo(0, h); for (let x = 0; x <= w; x += 8) g.lineTo(x, fl + 14 + Math.sin(x / 33 + 1) * 5); g.lineTo(w, h); g.fill();
-  const weed = (x, hh, col) => { g.strokeStyle = col; g.lineWidth = 6; g.lineCap = "round"; g.beginPath(); g.moveTo(x, fl + 8); for (let j = 1; j <= 10; j++) g.lineTo(x + Math.sin(j * .7) * 7, fl + 8 - j * hh / 10); g.stroke(); };
-  [[.05, 120, "#2E9A6A"], [.09, 90, "#1F7F57"], [.93, 110, "#2E9A6A"], [.97, 80, "#1F7F57"], [.48, 60, "#2E9A6A"]].forEach(([fx, hh, c]) => weed(w * fx, hh, c));
-  const coral = (x, s, col) => { g.strokeStyle = col; g.lineCap = "round"; const br = (x0, y0, ang, l, wd, d) => { const x1 = x0 + Math.cos(ang) * l, y1 = y0 + Math.sin(ang) * l; g.lineWidth = wd; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); if (d) { br(x1, y1, ang - R(.3, .6), l * .72, wd * .72, d - 1); br(x1, y1, ang + R(.3, .6), l * .72, wd * .72, d - 1); } };
-    br(x, fl + 10, -Math.PI / 2, s, s * .22, 3); };
-  coral(w * .22, 34, "#FF7A6B"); coral(w * .33, 24, "#F2A93B"); coral(w * .7, 30, "#C76BD9"); coral(w * .8, 22, "#FF7A6B");
-  g.fillStyle = "#F2C14E"; [[.6, 1], [.4, -1]].forEach(([fx]) => { const x = w * fx, y = fl + 16; g.beginPath(); for (let k = 0; k < 10; k++) { const a = k * Math.PI / 5 - Math.PI / 2, rr = k % 2 ? 4 : 10; g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); } g.fill(); });
-}
 addEventListener("resize", () => { clearTimeout(drawSky.t); drawSky.t = setTimeout(drawSky, 150); });
 function applyTheme(){
   document.body.dataset.ts = S.set.textSize || "m";
@@ -2908,7 +2690,7 @@ function applyTheme(){
   b.style.setProperty("--accent-ink", t ? t.ink : dark ? BASE.id : BASE.il);
   ["b-paper","b-surface","b-surface-2","b-line","b-muted","b-ink","b-ink-2"].forEach(k => { if (t && t.bases && t.bases[k]) b.style.setProperty("--" + k, t.bases[k]); else b.style.removeProperty("--" + k); });
   b.classList.toggle("starry", !!(t && t.stars)); drawSky();
-  b.classList.toggle("xmas", !!(t && t.xmas)); b.classList.toggle("beach", !!(t && t.beach)); b.classList.toggle("library", !!(t && t.library)); b.classList.toggle("aurora", !!(t && t.aurora)); ["sakura", "autumn", "underwater"].forEach(k => b.classList.toggle(k, !!(t && t[k]))); drawSky();
+  ["beach", "aurora", "autumn"].forEach(k => b.classList.toggle(k, !!(t && t[k]))); drawSky();
   b.classList.toggle("hearts", !!(t && t.hearts));
   ["tp","ts","ts2","tl","ti"].forEach(k => { if (t && t.flat) b.style.setProperty("--" + k, "3%"); else b.style.removeProperty("--" + k); });
   const r = document.documentElement.style, paper = getComputedStyle(b).getPropertyValue("--paper").trim();
@@ -3704,14 +3486,10 @@ const MODE_IC = {
   auto:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v18" /><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg>'
 };
 const THEME_IC = {
-  sakura:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 10.5c-1.6-3-1-6 0-7 1 1 1.6 4 0 7zM13.4 11.5c2.4-2.3 5.4-2.6 6.6-2-.6 1.3-3.4 2.8-6.6 2zM12.9 13.2c2 2.7 2.1 5.7 1.3 6.8-1.2-.7-2.2-3.7-1.3-6.8zM11.1 13.2c-.9 3.1-3.3 5-4.6 5.1-.1-1.4 1.6-3.9 4.6-5.1zM10.6 11.5c-3.2.8-6-.7-6.6-2 1.2-.6 4.2-.3 6.6 2z"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg>',
   autumn:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21v-6"/><path d="M12 15l-6.5 1 1.5-2.5L3 10l3-.8-1-3 3.3 1.3L9 4l2 2.5L12 3l1 3.5L15 4l.7 3.5L19 6.2l-1 3 3 .8-4 3.5 1.5 2.5z"/></svg>',
-  underwater:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12c3-4.5 9-5.5 13 0-4 5.5-10 4.5-13 0z"/><path d="M16 12l5-3.5v7z"/><circle cx="7.5" cy="11.2" r=".6" fill="currentColor"/><circle cx="19" cy="4" r="1.2"/><circle cx="15.5" cy="3" r=".7"/></svg>',
   beach:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M13 21c0-5-1-9-3-12"/><path d="M10 9c-2.5-1.5-5.5-1-7 1 2.5 0 4.5 0 7-1zM10 9c-.5-2.8 1-5.3 3.5-6-.5 2.5-1.5 4.3-3.5 6zM10 9c2.8-1 5.8 0 7 2.3-2.6-.4-4.7-1-7-2.3zM10 9c1.8 1.6 2.4 4.3 1.5 6.5-1-2.2-1.6-4.3-1.5-6.5z"/><path d="M3 21h18"/></svg>',
   sparkle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/></svg>',
-  evergreen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 6.5 10h3L5.5 15.5h5V21h3v-5.5h5L14.5 10h3z"/></svg>',
   navy:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 17.5A7 7 0 1 1 10 5a5.5 5.5 0 0 0 5.5 12.5z"/><path d="M18 3.5l.7 1.6 1.6.7-1.6.7-.7 1.6-.7-1.6-1.6-.7 1.6-.7zM20 11l.5 1 1 .5-1 .5-.5 1-.5-1-1-.5 1-.5z" fill="currentColor"/></svg>',
-  mahogany:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M5 20V7h3v13M8 20V5h3v15"/><path d="M12.5 8.5l2.9-.8 3.3 12.1-2.9.8z"/></svg>',
   aubergine:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13c2-6 4-8 6-3s4 3 5-2 3-4 5-2"/><path d="M5 9.5V5M9 8V4M14 7V3.5M18.5 8V5" stroke-dasharray="1.5 2"/><path d="M2 20l5-5 3 3 4-5 4 4 4-2"/></svg>',
   light:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/></svg>',
   dark:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>',
