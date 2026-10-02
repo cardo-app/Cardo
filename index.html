@@ -82,16 +82,16 @@ body.neutral .st.due{background:var(--surface-2)}
 body.tinted.m-light{ --accent-text:color-mix(in oklab,var(--accent) 62%,var(--b-ink)); --tp:48%; --ts:16%; --ts2:28%; --tl:50%; --ti:38%;
   --muted:color-mix(in oklab,var(--accent) 50%,var(--b-ink)); --ink-2:color-mix(in oklab,var(--accent) 40%,var(--b-ink));
   --accent-soft:color-mix(in oklab,var(--accent) 40%,var(--surface)); }
-body.xmas{background-color:transparent}
+body.xmas,body.beach{background-color:transparent}
 body.hearts{background-color:transparent}
 html:has(> body.hearts),body.hearts .peek{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22230%22%20height%3D%22230%22%20viewBox%3D%220%200%20230%20230%22%3E%3Cpath%20transform%3D%22translate%2834%2034%29%20rotate%28-12%29%20scale%281.333%29%20translate%28-12%20-14%29%22%20fill%3D%22%23FFFFFF%22%20fill-opacity%3D%220.6%22%20d%3D%22M12%2021s-7.5-4.6-7.5-10A4.3%204.3%200%200%201%2012%208.3%204.3%204.3%200%200%201%2019.5%2011c0%205.4-7.5%2010-7.5%2010z%22/%3E%3Cpath%20transform%3D%22translate%28125%2024%29%20rotate%2810%29%20scale%280.867%29%20translate%28-12%20-14%29%22%20fill%3D%22%23D0106F%22%20fill-opacity%3D%220.16%22%20d%3D%22M12%2021s-7.5-4.6-7.5-10A4.3%204.3%200%200%201%2012%208.3%204.3%204.3%200%200%201%2019.5%2011c0%205.4-7.5%2010-7.5%2010z%22/%3E%3Cpath%20transform%3D%22translate%28192%2078%29%20rotate%288%29%20scale%281.467%29%20translate%28-12%20-14%29%22%20fill%3D%22%23FFFFFF%22%20fill-opacity%3D%220.5%22%20d%3D%22M12%2021s-7.5-4.6-7.5-10A4.3%204.3%200%200%201%2012%208.3%204.3%204.3%200%200%201%2019.5%2011c0%205.4-7.5%2010-7.5%2010z%22/%3E%3Cpath%20transform%3D%22translate%2872%20104%29%20rotate%28-6%29%20scale%281.000%29%20translate%28-12%20-14%29%22%20fill%3D%22%23D0106F%22%20fill-opacity%3D%220.14%22%20d%3D%22M12%2021s-7.5-4.6-7.5-10A4.3%204.3%200%200%201%2012%208.3%204.3%204.3%200%200%201%2019.5%2011c0%205.4-7.5%2010-7.5%2010z%22/%3E%3Cpath%20transform%3D%22translate%28150%20146%29%20rotate%28-15%29%20scale%281.200%29%20translate%28-12%20-14%29%22%20fill%3D%22%23FFFFFF%22%20fill-opacity%3D%220.55%22%20d%3D%22M12%2021s-7.5-4.6-7.5-10A4.3%204.3%200%200%201%2012%208.3%204.3%204.3%200%200%201%2019.5%2011c0%205.4-7.5%2010-7.5%2010z%22/%3E%3Cpath%20transform%3D%22translate%2830%20176%29%20rotate%2814%29%20scale%280.867%29%20translate%28-12%20-14%29%22%20fill%3D%22%23FFFFFF%22%20fill-opacity%3D%220.45%22%20d%3D%22M12%2021s-7.5-4.6-7.5-10A4.3%204.3%200%200%201%2012%208.3%204.3%204.3%200%200%201%2019.5%2011c0%205.4-7.5%2010-7.5%2010z%22/%3E%3Cpath%20transform%3D%22translate%28204%20196%29%20rotate%280%29%20scale%280.800%29%20translate%28-12%20-14%29%22%20fill%3D%22%23D0106F%22%20fill-opacity%3D%220.14%22%20d%3D%22M12%2021s-7.5-4.6-7.5-10A4.3%204.3%200%200%201%2012%208.3%204.3%204.3%200%200%201%2019.5%2011c0%205.4-7.5%2010-7.5%2010z%22/%3E%3Cpath%20transform%3D%22translate%28102%20200%29%20rotate%286%29%20scale%281.200%29%20translate%28-12%20-14%29%22%20fill%3D%22%23FFFFFF%22%20fill-opacity%3D%220.4%22%20d%3D%22M12%2021s-7.5-4.6-7.5-10A4.3%204.3%200%200%201%2012%208.3%204.3%204.3%200%200%201%2019.5%2011c0%205.4-7.5%2010-7.5%2010z%22/%3E%3C/svg%3E");background-size:230px 230px;background-repeat:repeat}
 body.starry{background-color:transparent}
 /* Sternenhimmel (Night): eigene, feststehende Ebene hinter der ganzen App – beim Wischen gleiten nur die Seiten darüber */
 #sky{position:fixed;left:0;right:0;top:-80px;bottom:-80px;z-index:-1;pointer-events:none;display:none}
 #sky canvas{display:block;width:100%;height:100%}
-body.starry #sky,body.xmas #sky{display:block}
-body.starry .peek,body.xmas .peek{background:transparent}
-body:is(.starry,.xmas) #crumbbar{background:color-mix(in srgb,var(--paper) 55%,transparent);-webkit-backdrop-filter:blur(16px) saturate(140%);backdrop-filter:blur(16px) saturate(140%)} /* Pfadleiste lässt den Design-Hintergrund durchscheinen */
+body:is(.starry,.xmas,.beach) #sky{display:block}
+body:is(.starry,.xmas,.beach) .peek{background:transparent}
+body:is(.starry,.xmas,.beach) #crumbbar{background:color-mix(in srgb,var(--paper) 55%,transparent);-webkit-backdrop-filter:blur(16px) saturate(140%);backdrop-filter:blur(16px) saturate(140%)} /* Pfadleiste lässt den Design-Hintergrund durchscheinen */
 body.tinted.m-dark{ --accent-text:color-mix(in oklab,var(--accent) 62%,#FFFFFF); --tp:26%; --ts:30%; --ts2:36%; --tl:46%; --ti:14%;
   --muted:color-mix(in oklab,var(--accent) 50%,var(--b-ink)); --ink-2:color-mix(in oklab,var(--accent) 30%,var(--b-ink));
   --accent-soft:color-mix(in oklab,var(--accent) 35%,var(--surface)); }
@@ -2465,7 +2465,9 @@ const THEMES = [
   { k:"navy",      n:"Night",     base:"dark",  c:"#F4C95D", ink:"#1A1405", /* Schlüssel bleibt "navy" (gespeicherte Auswahl) */
     bases:{ "b-paper":"#03050E", "b-surface":"#18244F", "b-surface-2":"#202D5E", "b-line":"#35457F", "b-muted":"#AEBAE2", "b-ink":"#F3F6FF", "b-ink-2":"#D3DBF7" }, flat:true, stars:true, icBg:"#0F1B4A", icFg:"#F4C95D" },
   { k:"mahogany",  n:"Mahogany",  base:"dark",  c:"#C2502F", ink:"#FFFFFF" },
-  { k:"aubergine", n:"Aubergine", base:"dark",  c:"#A04FD6", ink:"#FFFFFF" }
+  { k:"aubergine", n:"Aubergine", base:"dark",  c:"#A04FD6", ink:"#FFFFFF" },
+  { k:"beach",     n:"Beach",     base:"light", design:true, c:"#0E9AA7", ink:"#FFFFFF",
+    bases:{ "b-paper":"#EAF8F8", "b-surface":"#FFFFFF", "b-surface-2":"#F1FAFA", "b-line":"#CDE6E6", "b-muted":"#4E7378", "b-ink":"#0E2E33", "b-ink-2":"#24484D" }, flat:true, beach:true }
 ];
 const NEUTRAL = [["light","Hell"],["dark","Dunkel"],["auto","System"]];
 S.set = { look: "auto", layout: "grid", textSize: "m", fxMode: "full", gradeSet: "4", newPerDay: 20, splash: "daily", glass: 1 };
@@ -2492,16 +2494,16 @@ function isDark(){
 /* Feststehende Hintergrund-Ebene der Designs (Night: Sternenhimmel, Christmas: Weihnachten) – feste Zufallsfolge → immer dasselbe Bild */
 let skyKey = "";
 function drawSky(){
-  const bd = document.body, mode = bd.classList.contains("starry") ? "stars" : bd.classList.contains("xmas") ? "xmas" : "";
+  const bd = document.body, mode = bd.classList.contains("starry") ? "stars" : bd.classList.contains("xmas") ? "xmas" : bd.classList.contains("beach") ? "beach" : "";
   if (!mode) return;
   let el = document.getElementById("sky"); if (!el) { el = document.createElement("div"); el.id = "sky"; el.setAttribute("aria-hidden", "true"); el.appendChild(document.createElement("canvas")); bd.prepend(el); }
   const w = el.clientWidth || innerWidth, h = el.clientHeight || innerHeight + 160, dpr = Math.min(3, devicePixelRatio || 1), key = `${mode}:${w}x${h}@${dpr}`;
   if (key === skyKey) return; skyKey = key;
   const cv = el.firstChild; cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
   const g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0);
-  let seed = mode === "stars" ? 7 : 12; const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+  let seed = mode === "stars" ? 7 : mode === "xmas" ? 12 : 31; const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
   const glow = (x, y, r, c) => { const q = g.createRadialGradient(x, y, 0, x, y, r); q.addColorStop(0, c); q.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = q; g.fillRect(x - r, y - r, r * 2, r * 2); };
-  (mode === "stars" ? paintStars : paintXmas)(g, w, h, rnd, glow);
+  ({ stars: paintStars, xmas: paintXmas, beach: paintBeach })[mode](g, w, h, rnd, glow);
 }
 /* Night: tiefer Verlauf, Milchstraßen-Schleier, zufällige Sterne */
 function paintStars(g, w, h, rnd, glow){
@@ -2575,6 +2577,62 @@ function paintXmas(g, w, h, rnd, glow){
   const base = h - top - 16, wv = x => base + Math.sin(x / 47) * 5 + Math.sin(x / 19 + 1.3) * 2.5 + Math.sin(x / 101 + 2) * 4;
   g.fillStyle = CREAM; g.beginPath(); g.moveTo(0, h); for (let x = 0; x <= w; x += 6) g.lineTo(x, wv(x)); g.lineTo(w, h); g.closePath(); g.fill();
 }
+/* Beach: sonniger Himmel, türkises Meer mit Wellen, Sandstrand, zwei Palmen mit Kokosnüssen – flacher, freundlicher Stil */
+function paintBeach(g, w, h, rnd, glow){
+  const top = 80, H = h - top * 2, Y = f => top + H * f; /* Y(0) = oberer, Y(1) = unterer Bildschirmrand */
+  const hz = Y(.5), shore = Y(.8);
+  /* Himmel + Sonne + Wolken */
+  const sky = g.createLinearGradient(0, 0, 0, hz); sky.addColorStop(0, "#38B6F2"); sky.addColorStop(.6, "#8FDcF8"); sky.addColorStop(1, "#D2F4FC");
+  g.fillStyle = sky; g.fillRect(0, 0, w, hz + 2);
+  const sx = w * .66, sy = Y(.03);
+  glow(sx, sy, 120, "rgba(255,240,180,.5)");
+  g.fillStyle = "#FFE48A"; g.beginPath(); g.arc(sx, sy, 26, 0, Math.PI * 2); g.fill();
+  g.fillStyle = "#FFF3C4"; g.beginPath(); g.arc(sx, sy, 19, 0, Math.PI * 2); g.fill();
+  const cloud = (x, y, s) => { g.fillStyle = "rgba(255,255,255,.92)"; g.beginPath(); [[0, 0, 1], [-.9, .25, .7], [.9, .25, .75], [-.4, -.35, .75], [.45, -.3, .7]].forEach(([dx, dy, r]) => { g.moveTo(x + dx * s + r * s, y + dy * s); g.arc(x + dx * s, y + dy * s, r * s, 0, Math.PI * 2); }); g.fill(); g.fillRect(x - 1.4 * s, y + .2 * s, 2.8 * s, .75 * s); };
+  cloud(w * .22, Y(.2), 15); cloud(w * .6, Y(.32), 11); cloud(w * .92, Y(.38), 9);
+  /* Meer: tiefblau am Horizont → türkis → hell am Ufer */
+  const sea = g.createLinearGradient(0, hz, 0, shore); sea.addColorStop(0, "#1689C4"); sea.addColorStop(.35, "#18B6CF"); sea.addColorStop(.8, "#41D8D2"); sea.addColorStop(1, "#8FEBE0");
+  g.fillStyle = sea; g.fillRect(0, hz, w, shore - hz + 30);
+  g.fillStyle = "rgba(255,255,255,.55)"; g.fillRect(0, hz, w, 1.5);
+  /* kleine Wellen */
+  g.strokeStyle = "rgba(255,255,255,.55)"; g.lineWidth = 1.6; g.lineCap = "round";
+  for (let i = 0; i < Math.round(w * (shore - hz) / 2600); i++) { const t = rnd(), y = hz + 8 + t * t * (shore - hz - 24), x = rnd() * w, ww = 6 + t * 14; g.beginPath(); g.moveTo(x - ww, y); g.quadraticCurveTo(x - ww / 2, y - 3 - t * 2, x, y); g.quadraticCurveTo(x + ww / 2, y - 3 - t * 2, x + ww, y); g.stroke(); }
+  /* Strand mit Schaumkante */
+  const sw = x => shore + Math.sin(x / 38) * 6 + Math.sin(x / 15 + 1) * 2.5;
+  g.fillStyle = "rgba(255,255,255,.9)"; g.beginPath(); g.moveTo(0, h); for (let x = 0; x <= w; x += 5) g.lineTo(x, sw(x) - 5); g.lineTo(w, h); g.fill();
+  g.fillStyle = "#E3C98F"; g.beginPath(); g.moveTo(0, h); for (let x = 0; x <= w; x += 5) g.lineTo(x, sw(x)); g.lineTo(w, h); g.fill();
+  const sand = g.createLinearGradient(0, shore, 0, h); sand.addColorStop(0, "#F3DCA6"); sand.addColorStop(1, "#F8E7BF");
+  g.fillStyle = sand; g.beginPath(); g.moveTo(0, h); for (let x = 0; x <= w; x += 5) g.lineTo(x, sw(x) + 7); g.lineTo(w, h); g.fill();
+  for (let i = 0; i < Math.round(w * 1.2); i++) { g.fillStyle = rnd() < .5 ? "rgba(190,150,80,.25)" : "rgba(255,255,255,.4)"; g.fillRect(rnd() * w, shore + 12 + rnd() * (h - shore), 1.2, 1.2); }
+  /* Seestern */
+  const star = (x, y, r, rot) => { g.save(); g.translate(x, y); g.rotate(rot); g.fillStyle = "#F28C5B"; g.beginPath(); for (let k = 0; k < 10; k++) { const a = k * Math.PI / 5 - Math.PI / 2, rr = k % 2 ? r * .42 : r; g.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); } g.closePath(); g.fill(); g.restore(); };
+  star(w * .64, Y(.9), 9, .3);
+  /* Palme: geschwungener Stamm mit Ringen, Wedel, Kokosnüsse */
+  const palm = (bx, by, ph, lean) => {
+    const tx = bx + lean * ph * .38, ty = by - ph, cx = bx + lean * ph * .02, cy = by - ph * .55;
+    const P = t => [(1 - t) * (1 - t) * bx + 2 * (1 - t) * t * cx + t * t * tx, (1 - t) * (1 - t) * by + 2 * (1 - t) * t * cy + t * t * ty];
+    /* glatter, sich verjüngender Stamm (dicht gesetzte Kreise) mit feinen Ringen */
+    g.fillStyle = "#9C6B3D"; for (let i = 0; i <= 120; i++) { const t = i / 120, [x, y] = P(t); g.beginPath(); g.arc(x, y, ph * (.034 - .014 * t), 0, Math.PI * 2); g.fill(); }
+    g.fillStyle = "rgba(255,230,190,.18)"; for (let i = 0; i <= 120; i++) { const t = i / 120, [x, y] = P(t); g.beginPath(); g.arc(x - lean * ph * .012, y, ph * (.012 - .005 * t), 0, Math.PI * 2); g.fill(); }
+    g.strokeStyle = "rgba(90,55,25,.35)"; g.lineWidth = 1.2; g.lineCap = "round";
+    for (let i = 1; i < 16; i++) { const t = i / 16, [x, y] = P(t), [x2, y2] = P(t + .01), dx = x2 - x, dy = y2 - y, l = Math.hypot(dx, dy) || 1, r = ph * (.034 - .014 * t) * .85; g.beginPath(); g.moveTo(x - dy / l * r, y + dx / l * r); g.lineTo(x + dy / l * r, y - dx / l * r); g.stroke(); }
+    const L = ph * .5;
+    [[-2.75, 1], [-2.25, .95], [-1.75, .85], [-1.05, .9], [-.55, 1], [-.05, .8], [.6, .7], [-3.3, .7]].forEach(([a, k], i) => {
+      const ang = a + lean * .15, ex = tx + Math.cos(ang) * L * k, ey = ty + Math.sin(ang) * L * k + L * k * .35, mx = tx + Math.cos(ang) * L * k * .55, my = ty + Math.sin(ang) * L * k * .55 - L * .12;
+      const nx = -(ey - ty), ny = ex - tx, nl = Math.hypot(nx, ny) || 1, wd = L * k * .2;
+      g.fillStyle = i % 2 ? "#2A9A57" : "#1E7D46"; g.beginPath(); g.moveTo(tx, ty);
+      g.quadraticCurveTo(mx + nx / nl * wd, my + ny / nl * wd, ex, ey); g.quadraticCurveTo(mx - nx / nl * wd * .35, my - ny / nl * wd * .35, tx, ty); g.fill();
+      g.strokeStyle = "rgba(10,60,30,.45)"; g.lineWidth = 1.2; g.beginPath(); g.moveTo(tx, ty); g.quadraticCurveTo(mx, my, ex, ey); g.stroke();
+    });
+    g.fillStyle = "#6B4423"; [[-.05, .06], [.05, .07], [0, .11]].forEach(([dx, dy]) => { g.beginPath(); g.arc(tx + dx * ph, ty + dy * ph, ph * .04, 0, Math.PI * 2); g.fill(); });
+    g.fillStyle = "rgba(255,255,255,.25)"; g.beginPath(); g.arc(tx - .05 * ph - ph * .012, ty + .06 * ph - ph * .012, ph * .012, 0, Math.PI * 2); g.fill();
+  };
+  palm(w * .02, Y(.98), Math.min(H * .42, 290), 1);
+  palm(w * 1.0, Y(.95), Math.min(H * .3, 200), -1);
+  /* Kokosnuss im Sand */
+  g.fillStyle = "#6B4423"; g.beginPath(); g.ellipse(w * .3, Y(.92), 9, 8, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = "rgba(0,0,0,.08)"; g.beginPath(); g.ellipse(w * .3 + 3, Y(.92) + 8, 11, 2.5, 0, 0, Math.PI * 2); g.fill();
+}
 addEventListener("resize", () => { clearTimeout(drawSky.t); drawSky.t = setTimeout(drawSky, 150); });
 function applyTheme(){
   document.body.dataset.ts = S.set.textSize || "m";
@@ -2586,7 +2644,7 @@ function applyTheme(){
   b.style.setProperty("--accent-ink", t ? t.ink : dark ? BASE.id : BASE.il);
   ["b-paper","b-surface","b-surface-2","b-line","b-muted","b-ink","b-ink-2"].forEach(k => { if (t && t.bases && t.bases[k]) b.style.setProperty("--" + k, t.bases[k]); else b.style.removeProperty("--" + k); });
   b.classList.toggle("starry", !!(t && t.stars)); drawSky();
-  b.classList.toggle("xmas", !!(t && t.xmas)); drawSky();
+  b.classList.toggle("xmas", !!(t && t.xmas)); b.classList.toggle("beach", !!(t && t.beach)); drawSky();
   b.classList.toggle("hearts", !!(t && t.hearts));
   ["tp","ts","ts2","tl","ti"].forEach(k => { if (t && t.flat) b.style.setProperty("--" + k, "3%"); else b.style.removeProperty("--" + k); });
   const r = document.documentElement.style, paper = getComputedStyle(b).getPropertyValue("--paper").trim();
@@ -3382,6 +3440,7 @@ const MODE_IC = {
   auto:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v18" /><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg>'
 };
 const THEME_IC = {
+  beach:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M13 21c0-5-1-9-3-12"/><path d="M10 9c-2.5-1.5-5.5-1-7 1 2.5 0 4.5 0 7-1zM10 9c-.5-2.8 1-5.3 3.5-6-.5 2.5-1.5 4.3-3.5 6zM10 9c2.8-1 5.8 0 7 2.3-2.6-.4-4.7-1-7-2.3zM10 9c1.8 1.6 2.4 4.3 1.5 6.5-1-2.2-1.6-4.3-1.5-6.5z"/><path d="M3 21h18"/></svg>',
   sparkle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/></svg>',
   evergreen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 6.5 10h3L5.5 15.5h5V21h3v-5.5h5L14.5 10h3z"/></svg>',
   navy:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 17.5A7 7 0 1 1 10 5a5.5 5.5 0 0 0 5.5 12.5z"/><path d="M18 3.5l.7 1.6 1.6.7-1.6.7-.7 1.6-.7-1.6-1.6-.7 1.6-.7zM20 11l.5 1 1 .5-1 .5-.5 1-.5-1-1-.5 1-.5z" fill="currentColor"/></svg>',
@@ -3408,9 +3467,9 @@ function lookPickerHTML(){
   return `<div role="radiogroup" aria-label="Thema">
       <div class="themes">${NEUTRAL.map(([k]) => card(k)).join("")}</div>
       <div class="lbl" style="margin:20px 0 12px">Farbthemen</div>
-      <div class="themes">${THEMES.filter(t => t.base === "light").map(t => card(t.k)).join("")}</div>
+      <div class="themes">${THEMES.filter(t => t.base === "light" && !t.design).map(t => card(t.k)).join("")}</div>
       <div class="lbl" style="margin:20px 0 12px">Designs</div>
-      <div class="themes">${THEMES.filter(t => t.base === "dark").map(t => card(t.k)).join("")}</div></div>`;
+      <div class="themes">${THEMES.filter(t => t.base === "dark" || t.design).map(t => card(t.k)).join("")}</div></div>`;
 }
 const TS = [["s","Klein",14],["m","Mittel",18],["l","Groß",23]];
 function textPickerHTML(){
