@@ -2498,7 +2498,7 @@ function isDark(){
   return a === "dark" || (a !== "light" && darkMQ.matches);
 }
 /* Feststehende Hintergrund-Ebene der Designs (Night, Aurora, Autumn, Beach) – feste Zufallsfolge → immer dasselbe Bild */
-let skyKey = "";
+let skyKey = "", skyTop = "";
 function drawSky(){
   const bd = document.body, mode = bd.classList.contains("starry") ? "stars" : ["beach", "aurora", "autumn"].find(k => bd.classList.contains(k)) || "";
   if (!mode) return;
@@ -2510,6 +2510,10 @@ function drawSky(){
   let seed = { stars: 7, beach: 31, aurora: 19, autumn: 41 }[mode]; const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
   const glow = (x, y, r, c) => { const q = g.createRadialGradient(x, y, 0, x, y, r); q.addColorStop(0, c); q.addColorStop(1, c.replace(/[\d.]+\)$/, "0)")); /* gleiche Farbe auslaufen lassen, sonst wird der Rand grau */ g.fillStyle = q; g.fillRect(x - r, y - r, r * 2, r * 2); };
   ({ stars: paintStars, beach: paintBeach, aurora: paintAurora, autumn: paintAutumn })[mode](g, w, h, rnd, glow);
+  /* Farbe der obersten sichtbaren Bildzeile (Durchschnitt) → Statusleiste/oberer Rand passend zum Design */
+  try { const y = Math.round(80 * dpr), d = g.getImageData(0, y, cv.width, 1).data; let r = 0, gg = 0, b2 = 0; for (let i = 0; i < d.length; i += 4) { r += d[i]; gg += d[i + 1]; b2 += d[i + 2]; } const n = d.length / 4;
+    skyTop = "#" + [r, gg, b2].map(v => Math.round(v / n).toString(16).padStart(2, "0")).join(""); } catch { skyTop = ""; }
+  if (drawSky.ready) applyTop();
 }
 /* Night: tiefer Verlauf, Milchstraßen-Schleier, zufällige Sterne */
 function paintStars(g, w, h, rnd, glow){
@@ -2699,13 +2703,19 @@ function applyTheme(){
   ["beach", "aurora", "autumn"].forEach(k => b.classList.toggle(k, !!(t && t[k]))); drawSky();
   b.classList.toggle("hearts", !!(t && t.hearts));
   ["tp","ts","ts2","tl","ti"].forEach(k => { if (t && t.flat) b.style.setProperty("--" + k, "3%"); else b.style.removeProperty("--" + k); });
-  const r = document.documentElement.style, paper = getComputedStyle(b).getPropertyValue("--paper").trim();
+  drawSky.ready = true; applyTop();
+}
+/* Hintergrund von html, oberer Randstreifen und Statusleiste (theme-color); bei Designs in der Farbe des Bildes oben */
+function applyTop(){
+  const b = document.body, dark = isDark(), sky = b.matches(".starry,.beach,.aurora,.autumn") && skyTop;
+  const r = document.documentElement.style, paper = sky || getComputedStyle(b).getPropertyValue("--paper").trim();
   // Solange der Startbildschirm läuft, bleibt alles weiß wie das iOS-Startbild (sonst blitzt oben z. B. im Dunkelmodus Schwarz auf)
   const booting = document.body.classList.contains("splashing");
+  const et = document.getElementById("edgeTop"); if (et) et.style.background = !booting && sky || "";
   r.backgroundColor = booting ? "" : paper; // "" → CSS-Startfarbe (weiß bzw. Nacht wie der Startbildschirm)
   r.colorScheme = booting ? "light" : dark ? "dark" : "light"; // beim Start hell, sonst blitzt die Statusleiste im Dunkelmodus schwarz auf
   const cs = document.querySelector('meta[name="color-scheme"]'); if (cs) cs.setAttribute("content", booting ? "light" : dark ? "dark" : "light");
-  const tc = document.querySelector('meta[name="theme-color"]'); if (tc) { const c = getComputedStyle(b).backgroundColor; tc.setAttribute("content", booting ? "#FFFFFF" : c && c !== "rgba(0, 0, 0, 0)" ? hexColor(c) : (dark ? "#0F1115" : "#F5F6F8")); }
+  const tc = document.querySelector('meta[name="theme-color"]'); if (tc) { const c = getComputedStyle(b).backgroundColor; tc.setAttribute("content", booting ? "#FFFFFF" : sky ? sky : c && c !== "rgba(0, 0, 0, 0)" ? hexColor(c) : (dark ? "#0F1115" : "#F5F6F8")); }
 }
 // theme-color als #rrggbb (iOS versteht oklab()/color-mix() in der Statusleiste evtl. nicht)
 function hexColor(c){ try { const cv = hexColor.cv || (hexColor.cv = document.createElement("canvas")); cv.width = cv.height = 1; const x = cv.getContext("2d"); x.clearRect(0, 0, 1, 1); x.fillStyle = "#000"; x.fillStyle = c; x.fillRect(0, 0, 1, 1); const d = x.getImageData(0, 0, 1, 1).data; return "#" + [d[0], d[1], d[2]].map(v => v.toString(16).padStart(2, "0")).join(""); } catch { return c; } }
