@@ -2489,7 +2489,7 @@ const THEMES = [
   { k:"beach",     n:"Beach",     base:"light", design:true, c:"#0E9AA7", ink:"#FFFFFF",
     bases:{ "b-paper":"#EAF8F8", "b-surface":"#FFFFFF", "b-surface-2":"#F1FAFA", "b-line":"#CDE6E6", "b-muted":"#4E7378", "b-ink":"#0E2E33", "b-ink-2":"#24484D" }, flat:true, beach:true }
 ];
-const NEUTRAL = [["light","Hell"],["dark","Dunkel"],["auto","System"],["black","Dunkel +"]];
+const NEUTRAL = [["auto","System"],["light","Hell"],["dark","Dunkel"],["black","Dunkel +"]];
 S.set = { look: "auto", layout: "grid", textSize: "m", fxMode: "full", gradeSet: "4", newPerDay: 20, splash: "daily", glass: 1, retain: 90 };
 S.seen = {}; S.extraNew = {}; S.lastExport = 0; S.fdays = {}; S.prog = {}; // pro Tag und Hauptordner: heute gelernte Karten (IDs) / Zusatzkontingent
 const NEW_OPTS = [5, 10, 15, 20, 30, 50, 0]; // 0 = unbegrenzt
@@ -3650,7 +3650,7 @@ const THEME_IC = {
   lagoon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/><path d="M9 15a3 3 0 0 0 3 3"/></svg>'
 };
 const NEUTRAL_IC = { light: ["#FFFFFF", "#1B1D23"], dark: ["#16181D", "#ECEEF3"], black: ["#000000", "#FFFFFF"], auto: ["linear-gradient(135deg,#FFFFFF 0 50%,#16181D 50%)", "#8A8F9C"] };
-function lookInfo(k){ const t = THEMES.find(x => x.k === k); if (t) return { n: t.n, bg: t.icBg || t.c, fg: t.icFg || t.ink }; const n = (NEUTRAL.find(x => x[0] === k) || NEUTRAL[2]); const c = NEUTRAL_IC[n[0]]; return { n: n[1], bg: c[0], fg: c[1] }; }
+function lookInfo(k){ const t = THEMES.find(x => x.k === k); if (t) return { n: t.n, bg: t.icBg || t.c, fg: t.icFg || t.ink }; const n = (NEUTRAL.find(x => x[0] === k) || NEUTRAL[0]); const c = NEUTRAL_IC[n[0]]; return { n: n[1], bg: c[0], fg: c[1] }; }
 /* Design-Knöpfe: jeweils eine kleine Szene aus mehreren Farben (Hintergrund, Symbolfarbe) */
 const STARS_ORB = "radial-gradient(1.4px 1.4px at 28% 30%,#fff 50%,transparent 55%),radial-gradient(1px 1px at 72% 22%,#fff 50%,transparent 55%),radial-gradient(1.2px 1.2px at 64% 72%,#fff 50%,transparent 55%),radial-gradient(1px 1px at 22% 68%,#fff 50%,transparent 55%),radial-gradient(1px 1px at 46% 14%,#fff 50%,transparent 55%)";
 const DESIGN_ORB = {
