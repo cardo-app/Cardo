@@ -3710,6 +3710,16 @@ function mfScene(g, w, h, st, dt, t, kind){
     st.nx = (st.nx || 0) - dt; if (!st.sh && st.nx <= 0) { st.sh = { x: w * (.15 + Math.random() * .5), y: h * (.08 + Math.random() * .25), a: 0 }; st.nx = 8 + Math.random() * 8; }
     if (st.sh) { const s2 = st.sh; s2.a += dt / .7; if (s2.a >= 1) st.sh = null; else { const x = s2.x + s2.a * w * .45, y = s2.y + s2.a * h * .22, q = g.createLinearGradient(x - w * .2, y - h * .1, x, y);
       q.addColorStop(0, "rgba(255,255,255,0)"); q.addColorStop(1, `rgba(255,255,255,${(1 - s2.a) * .8})`); g.strokeStyle = q; g.lineWidth = X(.8); g.lineCap = "round"; g.beginPath(); g.moveTo(x - w * .2, y - h * .1); g.lineTo(x, y); g.stroke(); } }
+    /* Sichelmond: steht still (weit weg), sanfter Lichthof, ab und zu zieht eine dünne Wolke vorbei */
+    const mx = w * .66, my = h * .3, mr = w * .15;
+    glow(mx - mr * .3, my + mr * .2, mr * 2.6, "rgba(244,201,93,.16)");
+    g.fillStyle = "rgba(14,22,66,.92)"; g.beginPath(); g.arc(mx, my, mr * .98, 0, 6.283); g.fill(); /* unbeleuchteter Teil des Mondes */
+    if (!st.moon || st.moon.w !== w) { const c = document.createElement("canvas"), d = Math.min(3, devicePixelRatio || 1), S = Math.ceil(mr * 2.2 * d); c.width = c.height = S; const m = c.getContext("2d"); m.scale(d, d); const R = mr, o = mr * 1.1;
+      const q = m.createRadialGradient(o - R * .3, o - R * .3, 0, o, o, R); q.addColorStop(0, "#FFF0B8"); q.addColorStop(1, "#F4C95D"); m.fillStyle = q; m.beginPath(); m.arc(o, o, R, 0, 6.283); m.fill();
+      m.fillStyle = "rgba(200,150,60,.25)"; [[-.3, .2, .16], [.1, .45, .1], [-.05, -.25, .08]].forEach(([dx, dy, r]) => { m.beginPath(); m.arc(o + dx * R, o + dy * R, r * R, 0, 6.283); m.fill(); });
+      m.globalCompositeOperation = "destination-out"; m.fillStyle = "#000"; m.beginPath(); m.arc(o + R * .55, o - R * .3, R * .9, 0, 6.283); m.fill(); st.moon = { c, w, o }; }
+    g.drawImage(st.moon.c, mx - st.moon.o, my - st.moon.o, st.moon.c.width / Math.min(3, devicePixelRatio || 1), st.moon.c.height / Math.min(3, devicePixelRatio || 1));
+    { const span = w * 2.2, cx2 = ((w * 1.3 - t * X(2.2)) % span + span) % span - w * .5; g.fillStyle = "rgba(40,55,120,.55)"; g.beginPath(); g.ellipse(cx2, my + mr * .2, w * .24, h * .035, 0, 0, 6.283); g.ellipse(cx2 + w * .1, my - mr * .05, w * .14, h * .03, 0, 0, 6.283); g.fill(); }
     ridge(t * X(2), .8, .07, 7, 13, "#16205A"); ridge(t * X(4.5), .9, .06, 9, 17, "#0A1030");
   } else if (kind === "d-aurora") {
     g.fillStyle = lin([[0, "#071030"], [.6, "#0B2238"], [1, "#0E2E3E"]]); g.fillRect(0, 0, w, h);
@@ -3719,7 +3729,24 @@ function mfScene(g, w, h, st, dt, t, kind){
       const q = g.createLinearGradient(0, c - h * .3, 0, c + h * .06); q.addColorStop(0, "rgba(160,100,255,0)"); q.addColorStop(.45, `rgba(170,110,255,${.42 * int})`); q.addColorStop(.85, `rgba(80,255,180,${.85 * int})`); q.addColorStop(1, "rgba(80,255,180,0)");
       g.fillStyle = q; g.fillRect(x, c - h * .3, 1.6, h * .36); }
     g.globalCompositeOperation = "source-over";
-    ridge(t * X(2), .82, .07, 8, 15, "#0D2034"); ridge(t * X(4), .92, .05, 11, 19, "#06121F");
+    const hz = h * .7; ridge(t * X(1.5), .64, .06, 8, 15, "#0D2034"); /* ferne Berge */
+    g.fillStyle = lin([[0, "#0A2234"], [1, "#04101C"]], hz, h); g.fillRect(0, hz, w, h - hz); /* See */
+    g.save(); g.beginPath(); g.rect(0, hz, w, h - hz); g.clip(); g.globalCompositeOperation = "lighter";
+    for (let x = 0; x <= w; x += 2) { const u = x / w + t * .03, c = h * (.4 + .09 * Math.sin(u * 5.5 + t * .5) + .04 * Math.sin(u * 13 - t * .8)), int = .5 + .5 * Math.sin(u * 17 + t * 1.1) * Math.sin(u * 7 - t * .4), ry = 2 * hz - c, wob = Math.sin(x * .9 + t * 3) * X(.5);
+      const q = g.createLinearGradient(0, ry - h * .06, 0, ry + h * .3); q.addColorStop(0, "rgba(80,255,180,0)"); q.addColorStop(.15, `rgba(80,255,180,${.32 * int})`); q.addColorStop(.6, `rgba(170,110,255,${.14 * int})`); q.addColorStop(1, "rgba(170,110,255,0)");
+      g.fillStyle = q; g.fillRect(x + wob, ry - h * .06, 2.1, h * .36); }
+    g.restore(); g.globalCompositeOperation = "source-over";
+    g.fillStyle = "rgba(160,255,220,.25)"; g.fillRect(0, hz, w, X(.35)); /* Uferlinie glänzt */
+    /* vorderes Ufer mit Tannen und Hütte zieht vorbei */
+    const off = t * X(5), sh = x => h * (.9 + .025 * Math.sin((x + off) / w * 7));
+    g.fillStyle = "#030A12"; g.beginPath(); g.moveTo(0, h); for (let x = 0; x <= w + 2; x += 2) g.lineTo(x, sh(x)); g.lineTo(w, h); g.fill();
+    const sp = w * .23, i0 = Math.floor(off / sp);
+    for (let i = -1; i < 6; i++) { const id = i + i0, x = i * sp - (off % sp) + (((id * 37) % 7) - 3) * X(.6), y = sh(x) + X(.5);
+      if (((id % 9) + 9) % 9 === 4) { g.fillStyle = "#030A12"; g.fillRect(x - X(3), y - X(4), X(6), X(4)); g.beginPath(); g.moveTo(x - X(3.8), y - X(4)); g.lineTo(x, y - X(7)); g.lineTo(x + X(3.8), y - X(4)); g.fill();
+        g.fillStyle = "#FFD27A"; g.fillRect(x - X(1), y - X(2.8), X(1.6), X(1.4)); glow(x - X(.2), y - X(2.1), X(4), "rgba(255,200,110,.45)"); continue; }
+      const th = X(7 + ((id * 13) % 5)); g.fillStyle = "#030A12"; g.beginPath();
+      for (let k2 = 0; k2 < 3; k2++) { const yy = y - th * (k2 / 3), ww = X(2.6 - k2 * .6); g.moveTo(x - ww, yy); g.lineTo(x, yy - th * .45); g.lineTo(x + ww, yy); }
+      g.fill(); g.fillRect(x - X(.3), y - X(1), X(.6), X(1.2)); }
   } else if (kind === "d-autumn") {
     g.fillStyle = lin([[0, "#F6B76B"], [1, "#FBD9A6"]]); g.fillRect(0, 0, w, h);
     glow(w * .72, h * .26, w * .22, "rgba(255,236,170,.7)"); g.fillStyle = "#FFE7A8"; g.beginPath(); g.arc(w * .72, h * .26, w * .1, 0, 6.283); g.fill();
@@ -3786,7 +3813,7 @@ function lookPickerHTML(){
   const card = k => { const on = S.set.look === k, i = lookInfo(k);
     const t = THEMES.find(x => x.k === k), bg = t ? t.c : i.bg, fg = t ? (DESIGN_ORB[k] ? DESIGN_ORB[k][1] : "#FFFFFF") : i.fg; /* Farbthemen: Symbol immer weiß */ /* Kugel in Themenfarbe, Designs als kleine bunte Szene */
     const fire = t && !t.design && t.base === "light"; /* Farbthemen: feine Mikroflammen in der Kugel */
-    return `<button class="theme ${on ? 'on' : ''}${DESIGN_ORB[k] ? ' deco' : ''}${fire ? ' fire' : (NEUTRAL_FX[k] || DESIGN_FX[k]) ? ' fx' : ''}" data-act="setLook" data-v="${k}" role="radio" aria-checked="${on}"><span class="theme-ic" style="--tb:${bg};--tf:${fg}${DESIGN_ORB[k] ? `;--orb:${DESIGN_ORB[k][0]}` : ''}">${fire ? `<canvas class="mflm" data-c="${t.c}" aria-hidden="true"></canvas>` : (NEUTRAL_FX[k] || DESIGN_FX[k]) ? `<canvas class="mflm" data-m="${NEUTRAL_FX[k] || DESIGN_FX[k]}" aria-hidden="true"></canvas>` : ''}${THEME_IC[k]}</span>${i.n}</button>`; };
+    return `<button class="theme ${on ? 'on' : ''}${DESIGN_ORB[k] ? ' deco' : ''}${fire ? ' fire' : (NEUTRAL_FX[k] || DESIGN_FX[k]) ? ' fx' : ''}" data-act="setLook" data-v="${k}" role="radio" aria-checked="${on}"><span class="theme-ic" style="--tb:${bg};--tf:${fg}${DESIGN_ORB[k] ? `;--orb:${DESIGN_ORB[k][0]}` : ''}">${fire ? `<canvas class="mflm" data-c="${t.c}" aria-hidden="true"></canvas>` : (NEUTRAL_FX[k] || DESIGN_FX[k]) ? `<canvas class="mflm" data-m="${NEUTRAL_FX[k] || DESIGN_FX[k]}" aria-hidden="true"></canvas>` : ''}${DESIGN_FX[k] ? '' : THEME_IC[k]}</span>${i.n}</button>`; }; /* Designs ohne Symbol – die Landschaft spricht für sich */
   return `<div role="radiogroup" aria-label="Thema">
       <div class="themes">${NEUTRAL.map(([k]) => card(k)).join("")}</div>
       <div class="lbl" style="margin:20px 0 12px">Farbthemen</div>
