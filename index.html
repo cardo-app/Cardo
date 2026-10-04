@@ -712,6 +712,23 @@ button.set-item:hover{background:color-mix(in oklab,var(--ink) 4%,transparent)}
 .theme.deco.on .theme-ic{box-shadow:0 0 0 3px var(--surface),0 0 0 5.5px color-mix(in oklab,var(--tb) 72%,var(--ink)),0 10px 26px -6px color-mix(in oklab,var(--tb) 90%,transparent)}
 .theme.on:is([data-v="light"],[data-v="dark"],[data-v="black"],[data-v="auto"]) .theme-ic{box-shadow:0 0 0 3px var(--surface),0 0 0 5.5px var(--ink),0 6px 18px -8px rgba(0,0,0,.45)}
 .theme:active .theme-ic{transform:scale(.92);transition-duration:.08s}
+/* Farbthemen: Flammen in der Themenfarbe steigen im Knopf auf (Flammenform per Maske) */
+.theme .flm{position:absolute;inset:0;border-radius:50%;overflow:hidden;pointer-events:none}
+.theme .flm b{position:absolute;left:50%;bottom:-6%;width:40%;height:64%;margin-left:-20%;transform-origin:50% 100%;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 32'%3E%3Cpath d='M10 0c1.2 5.5 8 9.5 8 18.5A8 8 0 0 1 2 18.5c0-4.6 2.6-7.4 4.4-10.6.5 2.6 1.4 4 2.8 5C10.4 9 9.6 4.5 10 0z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 32'%3E%3Cpath d='M10 0c1.2 5.5 8 9.5 8 18.5A8 8 0 0 1 2 18.5c0-4.6 2.6-7.4 4.4-10.6.5 2.6 1.4 4 2.8 5C10.4 9 9.6 4.5 10 0z'/%3E%3C/svg%3E") center/contain no-repeat;
+  background:linear-gradient(to top,#FFF8D6 0,color-mix(in oklab,var(--tb) 35%,#FFF3B0) 30%,color-mix(in oklab,var(--tb) 70%,white) 62%,color-mix(in oklab,var(--tb) 80%,white 20%) 100%);
+  opacity:0;animation:flame 1.7s cubic-bezier(.35,.1,.55,1) infinite;animation-delay:var(--fd,0s);will-change:transform,opacity}
+.theme .flm b:nth-child(2){left:30%;width:30%;height:48%;margin-left:-15%;animation-duration:1.4s;animation-delay:calc(var(--fd,0s) - .55s)}
+.theme .flm b:nth-child(3){left:70%;width:28%;height:44%;margin-left:-14%;animation-duration:1.5s;animation-delay:calc(var(--fd,0s) - 1.05s)}
+.theme .flm b:nth-child(4){left:52%;width:18%;height:28%;margin-left:-9%;animation-duration:1.15s;animation-delay:calc(var(--fd,0s) - .3s)}
+@keyframes flame{
+  0%{transform:translate(0,20%) scale(.7,.6);opacity:0}
+  18%{opacity:.95}
+  45%{transform:translate(-7%,-12%) scale(1,1.08) skewX(-5deg)}
+  70%{transform:translate(6%,-38%) scale(.8,.95) skewX(5deg);opacity:.75}
+  100%{transform:translate(-3%,-70%) scale(.35,.5);opacity:0}}
+.theme .flm ~ svg{position:relative;z-index:1}
+@media (prefers-reduced-motion:reduce){.theme .flm{display:none}}
 .theme.on{color:var(--ink);font-weight:700}
 .theme:active{transform:none}
 @media (prefers-reduced-motion:reduce){.theme-ic,.theme .theme-ic{transition:none}}
@@ -3662,7 +3679,7 @@ const DESIGN_ORB = {
 function lookPickerHTML(){
   const card = k => { const on = S.set.look === k, i = lookInfo(k);
     const t = THEMES.find(x => x.k === k), bg = t ? t.c : i.bg, fg = t ? (DESIGN_ORB[k] ? DESIGN_ORB[k][1] : "#FFFFFF") : i.fg; /* Farbthemen: Symbol immer weiß */ /* Kugel in Themenfarbe, Designs als kleine bunte Szene */
-    return `<button class="theme ${on ? 'on' : ''}${DESIGN_ORB[k] ? ' deco' : ''}" data-act="setLook" data-v="${k}" role="radio" aria-checked="${on}"><span class="theme-ic" style="--tb:${bg};--tf:${fg}${DESIGN_ORB[k] ? `;--orb:${DESIGN_ORB[k][0]}` : ''}">${THEME_IC[k]}</span>${i.n}</button>`; };
+    return `<button class="theme ${on ? 'on' : ''}${DESIGN_ORB[k] ? ' deco' : ''}" data-act="setLook" data-v="${k}" role="radio" aria-checked="${on}"><span class="theme-ic" style="--tb:${bg};--tf:${fg}${DESIGN_ORB[k] ? `;--orb:${DESIGN_ORB[k][0]}` : ''}">${t && !t.design && t.base === "light" ? `<i class="flm" style="--fd:${-(THEMES.indexOf(t) * .37 % 1.6).toFixed(2)}s" aria-hidden="true"><b></b><b></b><b></b><b></b></i>` : ''}${THEME_IC[k]}</span>${i.n}</button>`; };
   return `<div role="radiogroup" aria-label="Thema">
       <div class="themes">${NEUTRAL.map(([k]) => card(k)).join("")}</div>
       <div class="lbl" style="margin:20px 0 12px">Farbthemen</div>
