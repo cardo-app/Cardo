@@ -346,6 +346,15 @@ body.studying #main{padding-bottom:130px}
 @media (min-width:700px){.tiles4{grid-template-columns:repeat(4,1fr)}}
 .panel{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:16px 16px 12px;margin-bottom:22px}
 .panel h3{font-size:17.5px;font-weight:800;margin-bottom:2px}
+.ret-top{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.ret-big{font:800 34px/1 var(--display)}
+.ret-bar{position:relative;height:10px;border-radius:99px;background:color-mix(in oklab,var(--ink) 10%,transparent);margin:2px 0 10px}
+.ret-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:var(--g-good)}
+.ret-bar s{position:absolute;top:-4px;bottom:-4px;width:2.5px;margin-left:-1.25px;border-radius:2px;background:var(--ink)}
+.ret-msg{display:block;font-size:14.5px;font-weight:650}
+.ret-msg.low{color:color-mix(in oklab,var(--g-again) 75%,var(--ink))}
+.ret-7{font-size:14px;margin-top:6px}
+.ret-wait{font-size:14.5px;padding:2px 0 6px}
 .chart-wrap{position:relative;overflow-x:auto}
 .chart-wrap svg{display:block;width:100%;height:auto;min-width:420px}
 .axis{fill:var(--muted);font-size:12px;font-family:var(--body)}
@@ -2841,6 +2850,51 @@ async function rlFlush(){
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") rlFlush(); });
 addEventListener("online", () => rlFlush());
 
+/* ---------- „x % gewusst“: echte Behaltensquote aus dem Bewertungsverlauf ----------
+   Zählt nur Wiederholungen (Art 1 = Karte war schon im Plan, keine Lernschritte); gewusst = Schwer/Gut/Einfach, nicht gewusst = Nochmal.
+   Die Tagesdokumente der letzten 30 Tage werden nur geholt, wenn die Statistik gezeichnet wird (höchstens alle 15 Min.);
+   die Einträge dieses Geräts kommen immer frisch aus dem lokalen Speicher. */
+const RET_DAYS = 30, RET_MIN = 20;
+let RETC = { at: 0, docs: {}, busy: false, owner: "" };
+function retFetch(){
+  if (!rlCloud()) return; const owner = USER.id;
+  if (RETC.busy || (RETC.owner === owner && Date.now() - RETC.at < 15 * MIN) || !navigator.onLine) return;
+  RETC.busy = true;
+  SB.from("docs").select("path,data").like("path", "revlog/%").gte("path", "revlog/" + dayKey(Date.now() - (RET_DAYS - 1) * DAY)).limit(1000)
+    .then(r => { if (r.error) throw r.error; const docs = {}; r.data.forEach(x => { docs[x.path.slice(7)] = (x.data && x.data.r) || []; }); RETC = { at: Date.now(), docs, busy: false, owner }; retRefresh(); })
+    .catch(e => { console.warn("retention", e); RETC.busy = false; RETC.at = Date.now() - 10 * MIN; });
+}
+function retEntries(){
+  const all = rlCloud() && RETC.owner === USER.id ? { ...RETC.docs } : {}, r = rlLoad();
+  Object.keys(r.days).forEach(d => { all[d + "/" + RL_DEV] = r.days[d]; });
+  const out = []; Object.values(all).forEach(a => out.push(...a)); return out;
+}
+function retStats(fid){
+  const now = Date.now() / 1000, c30 = now - RET_DAYS * 86400, c7 = now - 7 * 86400;
+  let ids = null; if (fid) { ids = new Set(); [fid, ...descendants(fid)].forEach(f => Object.keys(S.decks[f] || {}).forEach(id => ids.add(id))); }
+  const o = { n: 0, ok: 0, n7: 0, ok7: 0 };
+  retEntries().forEach(([id, t, g, type]) => { if (type !== 1 || t < c30 || (ids && !ids.has(id))) return; o.n++; if (g > 1) o.ok++; if (t >= c7) { o.n7++; if (g > 1) o.ok7++; } });
+  return o;
+}
+const retPct = (a, b) => b ? Math.round(a / b * 100) : 0;
+function retPanelHTML(fid){
+  const loading = rlCloud() && RETC.owner !== USER.id;
+  const o = retStats(fid), goal = (S.set && S.set.retain) || 90;
+  const inner = (() => {
+    if (o.n < RET_MIN) return loading ? `<div class="muted ret-wait">Wird geladen …</div>` : `<div class="muted ret-wait">Noch zu wenig Wiederholungen (${o.n} von ${RET_MIN}). Zählt nur Karten, die schon im Lernplan sind – neue Karten und Lernschritte nicht.</div>`;
+    const p = retPct(o.ok, o.n), d = p - goal;
+    const msg = d <= -4 ? `<span class="ret-msg low">Du vergisst etwas mehr als geplant (Ziel ${goal}&nbsp;%).</span>` : d >= 4 ? `<span class="ret-msg">Mehr als geplant (Ziel ${goal}&nbsp;%) – ein niedrigerer Wert im Lernplan würde Wiederholungen sparen.</span>` : `<span class="ret-msg ok">✓ Passt zu deinem Lernplan (Ziel ${goal}&nbsp;%).</span>`;
+    return `<div class="ret-top"><b class="ret-big num">${p}&nbsp;%</b><span class="muted">${o.ok} von ${o.n} Wiederholungen gewusst</span></div>
+      <div class="ret-bar" role="img" aria-label="${p} % gewusst, Ziel ${goal}&nbsp;%"><i style="width:${Math.max(2, p)}%"></i><s style="left:${goal}%"></s></div>
+      ${msg}${o.n7 ? `<div class="muted ret-7">Letzte 7 Tage: <b>${retPct(o.ok7, o.n7)}&nbsp;%</b> (${o.ok7} von ${o.n7})</div>` : ""}`;
+  })();
+  return `<div class="panel${fid ? " sub" : ""} ret-panel" id="retPanel" data-fid="${fid || ""}"><h3>Gewusst</h3><div class="muted" style="font-size:14.5px;margin-bottom:10px">Wiederholungen der letzten ${RET_DAYS} Tage</div>${inner}</div>`;
+}
+function retRefresh(){
+  const el = document.getElementById("retPanel"); if (el && el.isConnected) el.outerHTML = retPanelHTML(el.dataset.fid || null);
+  if (S.view === "stats") render();
+}
+
 /* ---------- Supabase sync (document store: path -> data, one row per document) ---------- */
 const SB_URL = "https://rormgkvthvisrctcsjrg.supabase.co", SB_KEY = "sb_publishable_aG1Q3hPbrrVUGAqTPA7jUA_h2ThEaur";
 let SB = null, USER = null;
@@ -4139,6 +4193,7 @@ function statsHTML(){
     <div class="stat"><b>${S.days[dayKey()] || 0}</b><span>Heute wiederholt</span></div>
     <div class="stat"><b>${all.total}</b><span>Karten gesamt</span></div>
     <div class="stat"><b>${all.firm}</b><span>Gefestigt</span></div></div>
+  ${(retFetch(), retPanelHTML(null))}
   <div class="panel"><h3>Wiederholungen pro Tag</h3><div class="muted" style="font-size:14.5px;margin-bottom:4px">Gesehene Karten · letzte 14 Tage und Vorschau</div>${dayChartHTML(null)}</div>
   <div class="panel"><h3>Fortschritt pro Ordner</h3>
     ${stageLegend()}
@@ -4293,6 +4348,7 @@ function folderStatsSheet(fid){
     <div class="fs-tiles">${STAGES.map(([k, l]) => `<div class="stat"><b>${n[k]}</b><span><i class="sg-${k}"></i>${l}</span></div>`).join("")}</div>
     ${stackHTML(n)}
     ${exam ? examChartHTML(key) : `<div class="panel sub fs-hint"><span>Trag ein Prüfungsdatum ein, dann siehst du hier, ob du im Plan liegst.</span><button class="btn" data-act="dailySheet" data-id="${fid}">Prüfung festlegen</button></div>`}
+    ${(retFetch(), retPanelHTML(fid))}
     <div class="panel sub"><h3>Wiederholungen pro Tag</h3>${dayChartHTML(fid)}</div>
     ${subs.length ? `<div class="panel sub"><h3>Unterordner</h3>${subs.map(c => `<button class="mrow" data-act="folderStats" data-id="${c.id}"><div class="nm">${dotHTML(c)}<span>${esc(c.name)}</span></div>${stackHTML(stageCounts(c.id))}<div class="n">${stageCounts(c.id).total}<span class="ch" aria-hidden="true">›</span></div></button>`).join("")}</div>` : ''}`);
 }
