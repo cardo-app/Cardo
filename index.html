@@ -3677,8 +3677,8 @@ function mfSprites(hex){
 const NEUTRAL_FX = { light: "sun", dark: "stars", black: "stars+", auto: "auto" };
 function mfSun(g, w, h, P, dt, now){ /* zarte Sonnenstrahlen, drehen sich langsam und pulsieren leicht */
   const cx = w / 2, cy = h / 2, R = w * .5, rot = now / 1000 * .12, n = 12;
-  for (let i = 0; i < n; i++) { const a = rot + i * 6.283 / n, wd = .085, pul = .5 + .5 * Math.sin(now / 1000 * 1.1 + i * 1.7), al = .05 + pul * .07;
-    const gr = g.createRadialGradient(cx, cy, w * .14, cx, cy, R); gr.addColorStop(0, `rgba(255,178,50,${al})`); gr.addColorStop(1, "rgba(255,178,50,0)");
+  for (let i = 0; i < n; i++) { const a = rot + i * 6.283 / n, wd = .085, pul = .5 + .5 * Math.sin(now / 1000 * 1.1 + i * 1.7), al = .16 + pul * .14;
+    const gr = g.createRadialGradient(cx, cy, w * .14, cx, cy, R); gr.addColorStop(0, `rgba(255,165,25,${al})`); gr.addColorStop(.7, `rgba(255,165,25,${al * .35})`); gr.addColorStop(1, "rgba(255,165,25,0)");
     g.fillStyle = gr; g.beginPath(); g.moveTo(cx + Math.cos(a) * w * .14, cy + Math.sin(a) * w * .14); g.arc(cx, cy, R, a - wd, a + wd); g.closePath(); g.fill(); }
 }
 function mfStars(g, w, h, st, dt, now, dense){
