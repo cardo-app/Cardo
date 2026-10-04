@@ -4252,12 +4252,16 @@ function sfxPlay(ac, ch, v){
   };
   /* Heller, sauberer Ton wie ein kleines Xylophon: Grundton + kurzer Anschlag-Oberton */
   const ding = (f, at, dur, vol) => { osc(f, at, dur, "sine", vol); osc(f, at, dur * 0.6, "triangle", vol * 0.35); osc(f * 3, at, 0.05, "sine", vol * 0.25); };
-  /* Dumpfer Ton für „falsch“: brummig, aber weich gefiltert */
-  const bonk = (f, at, dur, vol) => { osc(f, at, dur, "square", vol * 0.35, { lp: 900, to: f * 0.97 }); osc(f, at, dur, "sine", vol, { to: f * 0.97 }); };
-  if (v === 0) { bonk(330, 0, 0.13, 0.55); bonk(233, 0.11, 0.3, 0.6); }                  /* Nochmal: zwei tiefe Töne nach unten */
+  /* Weicher, dumpfer Ton für „falsch“ – sauber gestimmt, ohne Gleiten */
+  const bonk = (f, at, dur, vol) => { osc(f, at, dur, "triangle", vol * 0.5, { lp: 1200 }); osc(f, at, dur, "sine", vol); };
+  if (v === 0) { bonk(329.63, 0, 0.14, 0.55); bonk(261.63, 0.12, 0.32, 0.6); }           /* Nochmal: E4 → C4 (große Terz abwärts, klingt sauber) */
   else if (v === 1) { ding(659.3, 0, 0.22, 0.45); }                                        /* Schwer: ein neutraler Ton */
   else if (v === 2) { ding(1046.5, 0, 0.14, 0.45); ding(1318.5, 0.075, 0.35, 0.5); }       /* Gut: „ding-ding“ nach oben */
-  else { ding(1046.5, 0, 0.12, 0.4); ding(1318.5, 0.06, 0.12, 0.4); ding(1568, 0.12, 0.4, 0.45); ding(2093, 0.12, 0.4, 0.18); } /* Einfach: drei Töne nach oben */
+  else { /* Einfach: schnelles Dur-Arpeggio C–E–G–C nach oben, reine Sinustöne mit Oktave → klar und „belohnend“ */
+    const pure = (f, at, dur, vol) => { osc(f, at, dur, "sine", vol); osc(f * 2, at, dur * 0.4, "sine", vol * 0.18); };
+    [1046.5, 1318.51, 1567.98].forEach((f, i) => pure(f, i * 0.05, 0.13, 0.38));
+    pure(2093, 0.15, 0.5, 0.42); pure(1567.98, 0.15, 0.4, 0.12);
+  }
 }
 /* Töne beim Bewerten: in der App erzeugt (keine Dateien). Auf dem iPhone stumm, wenn der Lautlos-Schalter an ist. */
 function gradeSound(v){
