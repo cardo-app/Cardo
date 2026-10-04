@@ -2797,6 +2797,50 @@ function logReview(fid, cid, wasNew){
   saveStats();
 }
 
+/* ---------- Bewertungsverlauf (für eine spätere Anpassung von FSRS an die eigenen Bewertungen und ehrliche Statistik) ----------
+   Jede Bewertung beim Lernen: [Karten-ID, Zeitpunkt (s), Knopf 1–4, Art 0 neu/Lernschritt · 1 Wiederholung · 2 nach Vergessen].
+   Supabase: ein kleines Dokument pro Tag und Gerät „revlog/JJJJ-MM-TT/<Gerät>“ – wird nur geschrieben, beim Start NICHT geladen
+   (load/loadSince/Realtime überspringen „revlog/“) → kostet praktisch keinen Datenverkehr. Lokal bleibt nur, was noch hochgeladen werden muss
+   (ohne Konto: die letzten 400 Tage). Prüfungsmodus wird nicht mitgeschrieben. */
+const RL_DEV = (() => { try { let d = localStorage.getItem("cardo-dev"); if (!d) { d = Math.random().toString(36).slice(2, 8); localStorage.setItem("cardo-dev", d); } return d; } catch { return "x"; } })();
+let RL = null, rlT = 0, rlBusy = false;
+const rlCloud = () => !!(SB && USER && USER.id && S.mode === "cloud" && USER.id !== "vorschau");
+function rlLoad(){
+  const k = "cardo-revlog-" + ((USER && USER.id) || "lokal");
+  if (RL && RL.k === k) return RL;
+  let o = {}; try { o = JSON.parse(localStorage.getItem(k) || "{}") || {}; } catch {}
+  RL = { k, days: o.days || {}, dirty: o.dirty || {} }; return RL;
+}
+function rlSave(){ try { localStorage.setItem(RL.k, JSON.stringify({ days: RL.days, dirty: RL.dirty })); } catch {} }
+function rlAdd(c0, g, now = Date.now()){
+  try {
+    const r = rlLoad(), k = dayKey(now), type = !c0.reps ? 0 : c0.ivl ? 1 : c0.lapses ? 2 : 0;
+    (r.days[k] = r.days[k] || []).push([c0.id, Math.round(now / 1000), g + 1, type]); r.dirty[k] = (r.dirty[k] || 0) + 1;
+    if (!rlCloud()) { const min = dayKey(now - 400 * DAY); Object.keys(r.days).forEach(d => { if (d < min) delete r.days[d]; }); r.dirty = {}; }
+    rlSave(); rlSoon();
+  } catch (e) { console.warn("revlog", e); }
+}
+function rlUndo(id, k){
+  try { const r = rlLoad(), a = r.days[k]; if (!a) return; for (let i = a.length - 1; i >= 0; i--) if (a[i][0] === id) { a.splice(i, 1); if (rlCloud()) r.dirty[k] = (r.dirty[k] || 0) + 1; rlSave(); rlSoon(); return; } } catch {}
+}
+function rlSoon(){ if (!rlCloud()) return; clearTimeout(rlT); rlT = setTimeout(rlFlush, 20000); }
+async function rlFlush(){
+  if (!rlCloud() || rlBusy || !navigator.onLine) return; const r = rlLoad(); const days = Object.keys(r.dirty); if (!days.length) return;
+  rlBusy = true; clearTimeout(rlT);
+  try {
+    for (const d of days) {
+      const ver = r.dirty[d];
+      const res = await SB.from("docs").upsert({ user_id: USER.id, path: `revlog/${d}/${RL_DEV}`, data: { v: 1, dev: RL_DEV, day: d, r: r.days[d] || [] }, updated_at: new Date().toISOString() });
+      if (res.error) throw res.error; if (r.dirty[d] === ver) delete r.dirty[d];
+    }
+    const today = dayKey(); Object.keys(r.days).forEach(d => { if (d !== today && !r.dirty[d]) delete r.days[d]; });
+    rlSave(); if (Object.keys(r.dirty).length) rlSoon();
+  } catch (e) { console.warn("revlog sync", e); rlT = setTimeout(rlFlush, 60000); }
+  rlBusy = false;
+}
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") rlFlush(); });
+addEventListener("online", () => rlFlush());
+
 /* ---------- Supabase sync (document store: path -> data, one row per document) ---------- */
 const SB_URL = "https://rormgkvthvisrctcsjrg.supabase.co", SB_KEY = "sb_publishable_aG1Q3hPbrrVUGAqTPA7jUA_h2ThEaur";
 let SB = null, USER = null;
@@ -2830,7 +2874,7 @@ function makeStore(sb, uid){
   async function load(){
     const all = [], t0 = Date.now(); let from = 0;
     while (true) {
-      const r = await sb.from("docs").select("path,data").range(from, from + 999);
+      const r = await sb.from("docs").select("path,data").not("path", "like", "revlog/%").range(from, from + 999);
       if (r.error) throw r.error; all.push(...r.data); if (r.data.length < 1000) break; from += 1000;
     }
     rows = new Map(all.map(x => [x.path, x.data]));
@@ -2842,13 +2886,13 @@ function makeStore(sb, uid){
   let syncT = Date.now();
   async function loadSince(){
     const t0 = Date.now(), since = new Date(syncT - 120000).toISOString();
-    const r = await sb.from("docs").select("path,data").gt("updated_at", since).limit(1000);
+    const r = await sb.from("docs").select("path,data").not("path", "like", "revlog/%").gt("updated_at", since).limit(1000);
     if (r.error) throw r.error;
     let ch = 0; r.data.forEach(x => { if (x.path in pending) return; if (JSON.stringify(rows.get(x.path)) !== JSON.stringify(x.data)) { rows.set(x.path, x.data); ch++; } });
     syncT = t0; if (ch) { saveCache(); emit(); }
   }
   sb.channel("docs-" + uid).on("postgres_changes", { event: "*", schema: "public", table: "docs", filter: "user_id=eq." + uid }, ev => {
-    const path = (ev.new && ev.new.path) || (ev.old && ev.old.path); if (!path || path in pending) return;
+    const path = (ev.new && ev.new.path) || (ev.old && ev.old.path); if (!path || path in pending || path.startsWith("revlog/")) return;
     if (ev.eventType === "DELETE") rows.delete(path); else rows.set(path, ev.new.data);
     saveCache(); emit();
   }).subscribe();
@@ -2912,6 +2956,7 @@ function cachedUser(){
   } catch { return null; }
 }
 function startApp(){
+  setTimeout(rlFlush, 10000); /* Bewertungen, die noch nicht hochgeladen waren (z. B. offline gelernt) */
   document.body.classList.remove("authing");
   DB = makeStore(SB, USER.id); AS = null; S.mode = DB.cached() ? "cloud" : "loading";
   if (S.mode === "loading") $("#main").innerHTML = '<div class="loading">Deine Karten werden geladen …</div>';
@@ -3994,7 +4039,7 @@ function applyGrade(g, cur){
   const n = capForExam(cur.fid, schedule(cur.c, g));
   if (n.due - Date.now() < 20 * MIN) st.queue.splice(Math.min(st.queue.length, 3), 0, { fid: cur.fid, id: cur.id, rev: pickSide(cur.fid) });
   st.done++; st.flipped = false;
-  const wasSeen = seenToday(cur.fid, cur.id); putCard(cur.fid, n); logReview(cur.fid, cur.id, isNewCard(cur.c)); st.hist[st.hist.length - 1].wasSeen = wasSeen;
+  const wasSeen = seenToday(cur.fid, cur.id); putCard(cur.fid, n); logReview(cur.fid, cur.id, isNewCard(cur.c)); rlAdd(cur.c, g); st.hist[st.hist.length - 1].wasSeen = wasSeen;
 }
 function undoGrade(){
   const st = S.study; if (!st || st.busy || !st.hist || !st.hist.length) return;
@@ -4004,7 +4049,7 @@ function undoGrade(){
   if ((S.days[h.k] || 0) > 0) S.days = { ...S.days, [h.k]: S.days[h.k] - 1 };
   { const fd = { ...((S.fdays||{})[h.k] || {}) }; if (fd[h.fid] > 0) { fd[h.fid]--; S.fdays = { ...S.fdays, [h.k]: fd }; } }
   if (!h.wasSeen) { const t = quotaKey(h.fid), day = { ...((S.seen||{})[h.k] || {}) }; if (day[t]) { const ids = { ...day[t] }; delete ids[h.card.id]; day[t] = ids; S.seen = { ...S.seen, [h.k]: day }; } }
-  putCard(h.fid, h.card); snapProg(quotaKey(h.fid)); saveStats();
+  putCard(h.fid, h.card); rlUndo(h.card.id, h.k); snapProg(quotaKey(h.fid)); saveStats();
   toast("Bewertung rückgängig gemacht");
 }
 /* ---------- Prüfungsmodus: alle (ausgewählten) Karten, ohne Lernplan, Statistik und Tageslimit zu verändern ---------- */
