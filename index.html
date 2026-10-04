@@ -2493,7 +2493,7 @@ const THEMES = [
     bases:{ "b-paper":"#EAF8F8", "b-surface":"#FFFFFF", "b-surface-2":"#F1FAFA", "b-line":"#CDE6E6", "b-muted":"#4E7378", "b-ink":"#0E2E33", "b-ink-2":"#24484D" }, flat:true, beach:true }
 ];
 const NEUTRAL = [["auto","System"],["light","Hell"],["dark","Dunkel"],["black","Dunkel +"]];
-S.set = { look: "auto", layout: "grid", textSize: "m", fxMode: "full", gradeSet: "4", newPerDay: 20, splash: "daily", glass: 1, retain: 90 };
+S.set = { look: "auto", layout: "grid", textSize: "m", fxMode: "full", gradeSet: "4", newPerDay: 20, splash: "daily", glass: 1, retain: 90, sound: 1 };
 S.seen = {}; S.extraNew = {}; S.lastExport = 0; S.fdays = {}; S.prog = {}; // pro Tag und Hauptordner: heute gelernte Karten (IDs) / Zusatzkontingent
 const NEW_OPTS = [5, 10, 15, 20, 30, 50, 0]; // 0 = unbegrenzt
 const RETAIN_OPTS = [80, 85, 90, 95];
@@ -2501,10 +2501,10 @@ const newLimit = () => (S.set.newPerDay ?? 20);
 const newLimitLabel = k => k === 0 ? "Unbegrenzt" : String(k);
 function normSet(v){ // accepts old {mode, theme} and new {look, layout}
   if (!v) return null;
-  const layout = v.layout === "list" ? "list" : "grid", textSize = ["s","m","l"].includes(v.textSize) ? v.textSize : "m", fxMode = ["full","color","off"].includes(v.fxMode) ? v.fxMode : (v.gradeFx === false ? "off" : "full"), gradeSet = ["4","3","2"].includes(String(v.gradeSet)) ? String(v.gradeSet) : "4", newPerDay = NEW_OPTS.includes(+v.newPerDay) ? +v.newPerDay : 20, splash = ["daily","always","never"].includes(v.splash) ? v.splash : "daily", glass = [0,1,2].includes(+v.glass) ? +v.glass : 1, retain = RETAIN_OPTS.includes(+v.retain) ? +v.retain : 90;
-  if (v.look) return { look: ["light","dark","black","auto"].includes(v.look) || THEMES.some(t => t.k === v.look) ? v.look : "auto", layout, textSize, fxMode, gradeSet, newPerDay, splash, glass, retain };
-  if (v.theme && v.theme !== "koralle" && THEMES.some(t => t.k === v.theme)) return { look: v.theme, layout, textSize, fxMode, gradeSet, newPerDay, splash, glass, retain };
-  return v.mode ? { look: v.mode, layout, textSize, fxMode, gradeSet, newPerDay, splash, glass, retain } : null;
+  const layout = v.layout === "list" ? "list" : "grid", textSize = ["s","m","l"].includes(v.textSize) ? v.textSize : "m", fxMode = ["full","color","off"].includes(v.fxMode) ? v.fxMode : (v.gradeFx === false ? "off" : "full"), gradeSet = ["4","3","2"].includes(String(v.gradeSet)) ? String(v.gradeSet) : "4", newPerDay = NEW_OPTS.includes(+v.newPerDay) ? +v.newPerDay : 20, splash = ["daily","always","never"].includes(v.splash) ? v.splash : "daily", glass = [0,1,2].includes(+v.glass) ? +v.glass : 1, retain = RETAIN_OPTS.includes(+v.retain) ? +v.retain : 90, sound = v.sound === 0 ? 0 : 1;
+  if (v.look) return { look: ["light","dark","black","auto"].includes(v.look) || THEMES.some(t => t.k === v.look) ? v.look : "auto", layout, textSize, fxMode, gradeSet, newPerDay, splash, glass, retain, sound };
+  if (v.theme && v.theme !== "koralle" && THEMES.some(t => t.k === v.theme)) return { look: v.theme, layout, textSize, fxMode, gradeSet, newPerDay, splash, glass, retain, sound };
+  return v.mode ? { look: v.mode, layout, textSize, fxMode, gradeSet, newPerDay, splash, glass, retain, sound } : null;
 }
 try { const c = normSet(JSON.parse(localStorage.getItem("kartenfach-settings") || "null")); if (c) S.set = c; } catch {}
 const darkMQ = matchMedia("(prefers-color-scheme: dark)");
@@ -2742,7 +2742,7 @@ new MutationObserver(() => { if (!document.body.classList.contains("splashing") 
 function saveSettings(patch){
   S.set = { ...S.set, ...patch }; applyTheme(); render();
   try { localStorage.setItem("kartenfach-settings", JSON.stringify(S.set)); } catch {}
-  if (DB) enqueue("settings/main", () => DB.doc("settings/main").set({ look: S.set.look, layout: S.set.layout, textSize: S.set.textSize, fxMode: S.set.fxMode || "full", gradeSet: S.set.gradeSet || "4", newPerDay: newLimit(), splash: S.set.splash || "daily", glass: S.set.glass ?? 1, retain: S.set.retain || 90 }));
+  if (DB) enqueue("settings/main", () => DB.doc("settings/main").set({ look: S.set.look, layout: S.set.layout, textSize: S.set.textSize, fxMode: S.set.fxMode || "full", gradeSet: S.set.gradeSet || "4", newPerDay: newLimit(), splash: S.set.splash || "daily", glass: S.set.glass ?? 1, retain: S.set.retain || 90, sound: S.set.sound === 0 ? 0 : 1 }));
 }
 darkMQ.addEventListener && darkMQ.addEventListener("change", applyTheme);
 new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
@@ -3887,6 +3887,7 @@ function fxSheet(){
   openSheet(`${headBack("Kartenbewertung", "cardsSheet")}<div class="set-list" style="margin:0">
     <button class="set-item" data-act="gradeSetSheet"><span class="si-t">Bewertungsstufen</span><span class="si-v">${gradeSet().map(o => o.l).join(" · ")}</span><span class="si-ch" aria-hidden="true">›</span></button>
     <button class="set-item" data-act="animSheet"><span class="si-t">Animationen</span><span class="si-v">${fxName()}</span><span class="si-ch" aria-hidden="true">›</span></button>
+    <button class="set-item" data-act="toggleSound"><span class="si-t">Töne</span><span class="si-v" id="sndV">${S.set.sound === 0 ? "Aus" : "An"}</span></button>
   </div>`);
 }
 /* Lernmenge pro Tag für einen Ordner: feste Anzahl (Voreinstellung oder eigene Zahl) oder Prüfungsplan mit Datum */
@@ -3992,7 +3993,7 @@ function demoGrade(i){
   const opt = gradeSet()[i], card = $("#demoCard"); if (!opt || !card || card.dataset.busy) return;
   const m = fxMode(), reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const next = () => { card.classList.remove("out-g0", "out-g1", "out-g2", "out-g3", "tint"); card.style.visibility = ""; void card.offsetWidth; card.classList.add("card-in"); delete card.dataset.busy; };
-  card.dataset.busy = "1"; card.classList.remove("card-in"); void card.offsetWidth;
+  card.dataset.busy = "1"; card.classList.remove("card-in"); void card.offsetWidth; gradeSound(opt.v);
   if (m === "off") { card.style.visibility = "hidden"; setTimeout(next, 120); return; }
   if (m === "color" || reduce) { card.style.setProperty("--gc", `var(${GRADE_VARS[opt.v]})`); card.classList.add("tint"); setTimeout(() => { card.style.visibility = "hidden"; setTimeout(next, 90); }, 230); return; }
   card.classList.add("out-g" + opt.v); gradeFx(opt.v, opt.l, card);
@@ -4233,6 +4234,26 @@ const GRADE_FX = [
   { cls: "g2", icon: "✓", text: "Gut",     col: "--g-good" },
   { cls: "g3", icon: "✦", text: "Einfach", col: "--g-easy" }
 ];
+/* Töne beim Bewerten: mit Web Audio erzeugt (keine Dateien). Auf dem iPhone stumm, wenn der Lautlos-Schalter an ist. */
+let AC = null;
+function gradeSound(v){
+  if (S.set.sound === 0) return;
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    if (AC.state === "suspended") AC.resume();
+    const t0 = AC.currentTime + 0.01, out = AC.createGain(); out.gain.value = 0.32; out.connect(AC.destination);
+    const tone = (f, at, dur, type, vol, f2) => {
+      const o = AC.createOscillator(), g = AC.createGain(); o.type = type; o.frequency.setValueAtTime(f, t0 + at);
+      if (f2) o.frequency.exponentialRampToValueAtTime(f2, t0 + at + dur);
+      g.gain.setValueAtTime(0.0001, t0 + at); g.gain.exponentialRampToValueAtTime(vol, t0 + at + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t0 + at + dur);
+      o.connect(g); g.connect(out); o.start(t0 + at); o.stop(t0 + at + dur + 0.02);
+    };
+    if (v === 0) { tone(311, 0, 0.16, "triangle", 0.7, 262); tone(220, 0.13, 0.32, "triangle", 0.7, 165); }
+    else if (v === 1) { tone(392, 0, 0.14, "sine", 0.6); tone(370, 0.11, 0.26, "sine", 0.55); }
+    else if (v === 2) { tone(659, 0, 0.14, "sine", 0.6); tone(988, 0.09, 0.3, "sine", 0.6); tone(1976, 0.09, 0.2, "sine", 0.08); }
+    else { [784, 988, 1175, 1568].forEach((f, i) => { tone(f, i * 0.06, 0.32, "sine", 0.5); tone(f * 2, i * 0.06, 0.18, "sine", 0.06); }); }
+  } catch {}
+}
 function gradeFx(g, label, anchor){
   const fx = GRADE_FX[g], el = document.createElement("div");
   el.className = "grade-fx " + fx.cls; el.style.setProperty("--gc", `var(${fx.col})`);
@@ -4243,6 +4264,7 @@ function gradeFx(g, label, anchor){
 }
 function grade(i){
   const st = S.study, cur = curCard(), opt = curGrades()[i]; if (!st || !cur || !st.flipped || st.busy || !opt) return;
+  gradeSound(opt.v);
   const card = document.querySelector(".flash"), reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const m = fxMode();
   if (card && (m === "color" || (m === "full" && reduce))) {
@@ -4928,6 +4950,7 @@ document.addEventListener("click", e => {
   if (a === "gradeSetSheet") { gradeSetSheet(); return; }
   if (a === "animSheet") { animSheet(); return; }
   if (a === "demoGrade") { demoGrade(+b.dataset.g); return; }
+  if (a === "toggleSound") { saveSettings({ sound: S.set.sound === 0 ? 1 : 0 }); const sv = $("#sndV"); if (sv) sv.textContent = S.set.sound === 0 ? "Aus" : "An"; if (S.set.sound !== 0) gradeSound(2); return; }
   if (a === "setFxMode") { saveSettings({ fxMode: b.dataset.v }); const ap = $("#anPick"); if (ap) ap.innerHTML = animPickerHTML(); return; }
   if (a === "setLayout") { saveSettings({ layout: b.dataset.v }); return; }
   if (a === "setSide") { setSide(id, b.dataset.v); return; }
