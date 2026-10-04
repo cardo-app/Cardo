@@ -3707,9 +3707,12 @@ function mfScene(g, w, h, st, dt, t, kind){
     g.fillStyle = lin([[0, "#2C3E9E"], [.72, "#0B1338"], [1, "#0B1338"]]); g.fillRect(0, 0, w, h);
     glow(w * .7, h * .2, w * .45, "rgba(120,140,255,.45)");
     stars(.8, 1.8);
-    st.nx = (st.nx || 0) - dt; if (!st.sh && st.nx <= 0) { st.sh = { x: w * (.15 + Math.random() * .5), y: h * (.08 + Math.random() * .25), a: 0 }; st.nx = 8 + Math.random() * 8; }
-    if (st.sh) { const s2 = st.sh; s2.a += dt / .7; if (s2.a >= 1) st.sh = null; else { const x = s2.x + s2.a * w * .45, y = s2.y + s2.a * h * .22, q = g.createLinearGradient(x - w * .2, y - h * .1, x, y);
-      q.addColorStop(0, "rgba(255,255,255,0)"); q.addColorStop(1, `rgba(255,255,255,${(1 - s2.a) * .8})`); g.strokeStyle = q; g.lineWidth = X(.8); g.lineCap = "round"; g.beginPath(); g.moveTo(x - w * .2, y - h * .1); g.lineTo(x, y); g.stroke(); } }
+    /* Sternschnuppen: alle 1,5–4 s eine, auch mehrere gleichzeitig, leicht unterschiedliche Richtung/Länge */
+    st.nx = (st.nx ?? .8) - dt; st.shs = st.shs || [];
+    if (st.nx <= 0) { st.shs.push({ x: w * (.05 + Math.random() * .6), y: h * (.05 + Math.random() * .3), a: 0, d: .5 + Math.random() * .4, dx: .35 + Math.random() * .2, dy: .15 + Math.random() * .15, l: .14 + Math.random() * .1 }); st.nx = 1.5 + Math.random() * 2.5; }
+    for (let i = st.shs.length - 1; i >= 0; i--) { const s2 = st.shs[i]; s2.a += dt / s2.d; if (s2.a >= 1) { st.shs.splice(i, 1); continue; }
+      const x = s2.x + s2.a * w * s2.dx, y = s2.y + s2.a * h * s2.dy, n = Math.hypot(s2.dx, s2.dy), tx = x - w * s2.l * s2.dx / n, ty = y - w * s2.l * s2.dy / n, q = g.createLinearGradient(tx, ty, x, y);
+      q.addColorStop(0, "rgba(255,255,255,0)"); q.addColorStop(1, `rgba(255,255,255,${Math.sin(s2.a * 3.1416) * .85})`); g.strokeStyle = q; g.lineWidth = X(.8); g.lineCap = "round"; g.beginPath(); g.moveTo(tx, ty); g.lineTo(x, y); g.stroke(); }
     /* Sichelmond: steht still (weit weg), sanfter Lichthof, ab und zu zieht eine dünne Wolke vorbei */
     const mx = w * .66, my = h * .3, mr = w * .15;
     glow(mx - mr * .3, my + mr * .2, mr * 2.6, "rgba(244,201,93,.16)");
