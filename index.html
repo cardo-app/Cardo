@@ -2476,17 +2476,18 @@ const THEMES = [
     bases:{ "b-paper":"#EAF8F8", "b-surface":"#FFFFFF", "b-surface-2":"#F1FAFA", "b-line":"#CDE6E6", "b-muted":"#4E7378", "b-ink":"#0E2E33", "b-ink-2":"#24484D" }, flat:true, beach:true }
 ];
 const NEUTRAL = [["light","Hell"],["dark","Dunkel"],["auto","System"]];
-S.set = { look: "auto", layout: "grid", textSize: "m", fxMode: "full", gradeSet: "4", newPerDay: 20, splash: "daily", glass: 1 };
+S.set = { look: "auto", layout: "grid", textSize: "m", fxMode: "full", gradeSet: "4", newPerDay: 20, splash: "daily", glass: 1, retain: 90 };
 S.seen = {}; S.extraNew = {}; S.lastExport = 0; S.fdays = {}; S.prog = {}; // pro Tag und Hauptordner: heute gelernte Karten (IDs) / Zusatzkontingent
 const NEW_OPTS = [5, 10, 15, 20, 30, 50, 0]; // 0 = unbegrenzt
+const RETAIN_OPTS = [80, 85, 90, 95];
 const newLimit = () => (S.set.newPerDay ?? 20);
 const newLimitLabel = k => k === 0 ? "Unbegrenzt" : String(k);
 function normSet(v){ // accepts old {mode, theme} and new {look, layout}
   if (!v) return null;
-  const layout = v.layout === "list" ? "list" : "grid", textSize = ["s","m","l"].includes(v.textSize) ? v.textSize : "m", fxMode = ["full","color","off"].includes(v.fxMode) ? v.fxMode : (v.gradeFx === false ? "off" : "full"), gradeSet = ["4","3","2"].includes(String(v.gradeSet)) ? String(v.gradeSet) : "4", newPerDay = NEW_OPTS.includes(+v.newPerDay) ? +v.newPerDay : 20, splash = ["daily","always","never"].includes(v.splash) ? v.splash : "daily", glass = [0,1,2].includes(+v.glass) ? +v.glass : 1;
-  if (v.look) return { look: ["light","dark","auto"].includes(v.look) || THEMES.some(t => t.k === v.look) ? v.look : "auto", layout, textSize, fxMode, gradeSet, newPerDay, splash, glass };
-  if (v.theme && v.theme !== "koralle" && THEMES.some(t => t.k === v.theme)) return { look: v.theme, layout, textSize, fxMode, gradeSet, newPerDay, splash, glass };
-  return v.mode ? { look: v.mode, layout, textSize, fxMode, gradeSet, newPerDay, splash, glass } : null;
+  const layout = v.layout === "list" ? "list" : "grid", textSize = ["s","m","l"].includes(v.textSize) ? v.textSize : "m", fxMode = ["full","color","off"].includes(v.fxMode) ? v.fxMode : (v.gradeFx === false ? "off" : "full"), gradeSet = ["4","3","2"].includes(String(v.gradeSet)) ? String(v.gradeSet) : "4", newPerDay = NEW_OPTS.includes(+v.newPerDay) ? +v.newPerDay : 20, splash = ["daily","always","never"].includes(v.splash) ? v.splash : "daily", glass = [0,1,2].includes(+v.glass) ? +v.glass : 1, retain = RETAIN_OPTS.includes(+v.retain) ? +v.retain : 90;
+  if (v.look) return { look: ["light","dark","auto"].includes(v.look) || THEMES.some(t => t.k === v.look) ? v.look : "auto", layout, textSize, fxMode, gradeSet, newPerDay, splash, glass, retain };
+  if (v.theme && v.theme !== "koralle" && THEMES.some(t => t.k === v.theme)) return { look: v.theme, layout, textSize, fxMode, gradeSet, newPerDay, splash, glass, retain };
+  return v.mode ? { look: v.mode, layout, textSize, fxMode, gradeSet, newPerDay, splash, glass, retain } : null;
 }
 try { const c = normSet(JSON.parse(localStorage.getItem("kartenfach-settings") || "null")); if (c) S.set = c; } catch {}
 const darkMQ = matchMedia("(prefers-color-scheme: dark)");
@@ -2724,7 +2725,7 @@ new MutationObserver(() => { if (!document.body.classList.contains("splashing") 
 function saveSettings(patch){
   S.set = { ...S.set, ...patch }; applyTheme(); render();
   try { localStorage.setItem("kartenfach-settings", JSON.stringify(S.set)); } catch {}
-  if (DB) enqueue("settings/main", () => DB.doc("settings/main").set({ look: S.set.look, layout: S.set.layout, textSize: S.set.textSize, fxMode: S.set.fxMode || "full", gradeSet: S.set.gradeSet || "4", newPerDay: newLimit(), splash: S.set.splash || "daily", glass: S.set.glass ?? 1 }));
+  if (DB) enqueue("settings/main", () => DB.doc("settings/main").set({ look: S.set.look, layout: S.set.layout, textSize: S.set.textSize, fxMode: S.set.fxMode || "full", gradeSet: S.set.gradeSet || "4", newPerDay: newLimit(), splash: S.set.splash || "daily", glass: S.set.glass ?? 1, retain: S.set.retain || 90 }));
 }
 darkMQ.addEventListener && darkMQ.addEventListener("change", applyTheme);
 new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
@@ -3347,25 +3348,49 @@ const cposCss = f => cposOf(f).map(v => v + "%").join(" ");
 const coverUrl = f => !f || !f.cover ? "" : f.cover.startsWith("asset:") ? "/_blob/" + f.cover.slice(6) : f.cover;
 const colorOf = f => (f && f.color) || "#FF5A36";
 
-/* ---------- Spaced repetition (SM-2 style, like Anki) ---------- */
+/* ---------- Spaced repetition: FSRS-5 (wie in Anki ab Version 23.10) ----------
+   Jede Karte hat Stabilität c.s (Tage, nach denen sie zu 90 % noch sitzt) und Schwierigkeit c.d (1–10).
+   Die Karte kommt wieder, wenn die Abrufwahrscheinlichkeit auf die Zielquote fällt (Einstellung, Standard 90 %).
+   Lernschritte (1 / 6 / 10 Min) bleiben wie bisher; c.ivl = Abstand in Tagen (für Statistik, Prüfungsplan usw.).
+   Alte SM-2-Karten (ohne c.s) werden beim ersten Bewerten aus Abstand + Ease umgerechnet – der Lernstand bleibt. */
+const FW = [0.40255, 1.18385, 3.173, 15.69105, 7.1949, 0.5345, 1.4604, 0.0046, 1.54575, 0.1192, 1.01925, 1.9395, 0.11, 0.29605, 2.2698, 0.2315, 2.9898, 0.51655, 0.6621];
+const F_DECAY = -0.5, F_FACTOR = 19 / 81, F_MAXIVL = 3650;
+const fClampD = d => Math.min(10, Math.max(1, d));
+const fRetr = (t, s) => Math.pow(1 + F_FACTOR * t / s, F_DECAY); /* Abrufwahrscheinlichkeit nach t Tagen */
+const fIvl = (s, r) => Math.min(F_MAXIVL, Math.max(1, Math.round(s / F_FACTOR * (Math.pow(r, 1 / F_DECAY) - 1))));
+const fD0 = G => fClampD(FW[4] - Math.exp(FW[5] * (G - 1)) + 1);
+const fRetain = () => Math.min(.97, Math.max(.7, ((S.set && S.set.retain) || 90) / 100));
+function fNextD(d, G){ const dp = d - FW[6] * (G - 3) * (10 - d) / 9; return fClampD(FW[7] * fD0(4) + (1 - FW[7]) * dp); }
+function fRecallS(d, s, r, G){ return s * (1 + Math.exp(FW[8]) * (11 - d) * Math.pow(s, -FW[9]) * (Math.exp(FW[10] * (1 - r)) - 1) * (G === 2 ? FW[15] : 1) * (G === 4 ? FW[16] : 1)); }
+function fForgetS(d, s, r){ return Math.min(s / Math.exp(FW[17] * FW[18]), FW[11] * Math.pow(d, -FW[12]) * (Math.pow(s + 1, FW[13]) - 1) * Math.exp(FW[14] * (1 - r))); }
+const fShortS = (s, G) => s * Math.exp(FW[17] * (G - 3 + FW[18]));
+/* Gedächtnis-Zustand einer Karte {s, d} – bei alten Karten aus SM-2 umgerechnet; null = neue Karte */
+function fsrsState(c){
+  if (!c.reps) return null;
+  if (c.s > 0 && c.d > 0) return { s: c.s, d: c.d };
+  const ivl = c.ivl || 0, ease = c.ease || 2.5;
+  if (!ivl) return { s: FW[2], d: fClampD(fD0(3) + (c.lapses ? 1.5 : 0)) }; /* gerade in den Lernschritten */
+  const s = Math.max(.5, ivl), k = Math.exp(FW[8]) * Math.pow(s, -FW[9]) * (Math.exp(FW[10] * .1) - 1);
+  return { s, d: fClampD(11 - (ease - 1) / k) }; /* d so gewählt, dass FSRS bei „Gut“ etwa denselben Faktor wie SM-2 liefert */
+}
+const fLast = (c, now) => c.last || ((c.due || now) - (c.ivl || 0) * DAY);
+/* g: 0 Nochmal · 1 Schwer · 2 Gut · 3 Einfach */
 function schedule(c0, g, now = Date.now()){
-  const c = { ...c0, ease: c0.ease || 2.5, reps: (c0.reps||0) + 1, last: now };
-  if (!c.ivl) {
-    if (g === 0) { c.step = 0; c.due = now + MIN; }
-    else if (g === 1) { c.step = c.step || 0; c.due = now + 6*MIN; }
-    else if (g === 2) { if ((c.step||0) >= 1) { c.ivl = 1; c.step = 0; c.due = now + DAY; } else { c.step = 1; c.due = now + 10*MIN; } }
-    else { c.ivl = 4; c.step = 0; c.due = now + 4*DAY; }
-  } else if (g === 0) {
-    c.lapses = (c.lapses||0) + 1; c.ease = Math.max(1.3, c.ease - 0.2); c.ivl = 0; c.step = 0; c.due = now + 10*MIN;
-  } else {
-    const hard = Math.max(c.ivl + 1, Math.round(c.ivl * 1.2));
-    const good = Math.max(hard + 1, Math.round(c.ivl * c.ease));
-    const easy = Math.max(good + 1, Math.round(c.ivl * (c.ease + 0.15) * 1.3));
-    if (g === 1) { c.ease = Math.max(1.3, c.ease - 0.15); c.ivl = hard; }
-    else if (g === 2) { c.ivl = good; }
-    else { c.ease = c.ease + 0.15; c.ivl = easy; }
-    c.ivl = Math.min(c.ivl, 3650); c.due = now + c.ivl * DAY;
-  }
+  const G = g + 1, R = fRetain(), m = fsrsState(c0), c = { ...c0, reps: (c0.reps||0) + 1, last: now };
+  const t = Math.max(0, (now - fLast(c0, now)) / DAY), r = m ? fRetr(t, m.s) : 1;
+  const sFor = x => !m ? FW[x - 1] : t < 1 ? fShortS(m.s, x) : x === 1 ? fForgetS(m.d, m.s, r) : fRecallS(m.d, m.s, r, x);
+  const s = Math.max(.1, Math.min(36500, sFor(G))), d = m ? fNextD(m.d, G) : fD0(G);
+  c.s = +s.toFixed(4); c.d = +d.toFixed(4);
+  if (c0.ivl && G > 1) { /* Wiederholung: Abstände Schwer < Gut < Einfach erzwingen (wie Anki) */
+    const iv = [2, 3, 4].map(x => fIvl(Math.max(.1, sFor(x)), R));
+    iv[1] = Math.max(iv[1], iv[0] + 1); iv[2] = Math.max(iv[2], iv[1] + 1);
+    c.ivl = Math.min(F_MAXIVL, iv[G - 2]); c.step = 0; c.due = now + c.ivl * DAY;
+  } else if (G === 1) { /* Nochmal: zurück in die Lernschritte */
+    if (c0.ivl) c.lapses = (c.lapses||0) + 1;
+    c.ivl = 0; c.step = 0; c.due = now + (c0.ivl ? 10 : 1) * MIN;
+  } else if (G === 2) { c.step = c.step || 0; c.due = now + 6*MIN; }
+  else if (G === 3 && !((c0.step || 0) >= 1) && !c0.lapses) { c.step = 1; c.due = now + 10*MIN; }
+  else { c.ivl = fIvl(s, R); c.step = 0; c.due = now + c.ivl * DAY; }
   return c;
 }
 function fmtIvl(ms){
@@ -3575,8 +3600,15 @@ function cardsSheet(){
   openSheet(`${head("Karten")}<div class="set-list" style="margin:0">
     <button class="set-item" data-act="textSheet"><span class="si-t">Textgröße</span><span class="si-v">${({s:"Klein",m:"Mittel",l:"Groß"})[S.set.textSize || "m"]}</span><span class="si-ch" aria-hidden="true">›</span></button>
     <button class="set-item" data-act="fxSheet"><span class="si-t">Kartenbewertung</span><span class="si-v">${gradeSet().length} Stufen</span><span class="si-ch" aria-hidden="true">›</span></button>
+    <button class="set-item" data-act="retainSheet"><span class="si-t">Lernplan</span><span class="si-v">${S.set.retain || 90} % behalten</span><span class="si-ch" aria-hidden="true">›</span></button>
   </div>`);
 }
+const RETAIN_TXT = { 80: "Wenige Wiederholungen – du vergisst aber mehr", 85: "Entspannt", 90: "Standard – empfohlen", 95: "Sehr sicher, aber deutlich mehr Wiederholungen" };
+function retainPickerHTML(){
+  const cur = S.set.retain || 90;
+  return `<div class="gs-list" role="radiogroup" aria-label="Ziel">${RETAIN_OPTS.map(k => `<button class="gs-opt fx-opt ${cur === k ? 'on' : ''}" data-act="setRetain" data-v="${k}" role="radio" aria-checked="${cur === k}"><span class="fx-t"><b>${k} % behalten</b><span>${RETAIN_TXT[k]}</span></span><span class="gs-ck" aria-hidden="true">${cur === k ? '✓' : ''}</span></button>`).join("")}</div>`;
+}
+function retainSheet(){ openSheet(`${headBack("Lernplan", "cardsSheet")}<p class="muted" style="margin:0 0 16px;font-size:14.5px">Cardo plant Wiederholungen mit FSRS: Für jede Karte wird geschätzt, wie gut sie bei dir sitzt. Sie kommt genau dann wieder, wenn du sie mit dieser Wahrscheinlichkeit noch weißt. Höher = sicherer, aber mehr Karten pro Tag.</p><div id="rtPick">${retainPickerHTML()}</div>`); }
 function fxSheet(){
   openSheet(`${headBack("Kartenbewertung", "cardsSheet")}<div class="set-list" style="margin:0">
     <button class="set-item" data-act="gradeSetSheet"><span class="si-t">Bewertungsstufen</span><span class="si-v">${gradeSet().map(o => o.l).join(" · ")}</span><span class="si-ch" aria-hidden="true">›</span></button>
@@ -3982,7 +4014,7 @@ const saveExPref = () => { try { localStorage.setItem("cardo-exam", JSON.stringi
 const exKey = (fid, id) => fid + "/" + id;
 function exMatch(c){
   if (EX.which === "new") return !c.reps;
-  if (EX.which === "hard") return (c.lapses || 0) > 0 || (c.ease || 2.5) < 2.5 || (!!c.reps && !c.ivl);
+  if (EX.which === "hard") return (c.lapses || 0) > 0 || (c.d > 0 ? c.d >= 7 : (c.ease || 2.5) < 2.5) || (!!c.reps && !c.ivl);
   return true;
 }
 function exRows(){
@@ -4608,6 +4640,8 @@ document.addEventListener("click", e => {
   if (a === "moreNew") { const bk = S.study; addExtraNew(id, 10); if (bk) { S.study = null; S.view = bk.back; S.fid = bk.backFid; } startStudy(id); return; }
   if (a === "setGradeSet") { saveSettings({ gradeSet: b.dataset.v }); const gp = $("#gsPick"); if (gp) gp.innerHTML = gradeSetPickerHTML(); return; }
   if (a === "cardsSheet") { cardsSheet(); return; }
+  if (a === "retainSheet") { retainSheet(); return; }
+  if (a === "setRetain") { saveSettings({ retain: +b.dataset.v }); const rp = $("#rtPick"); if (rp) rp.innerHTML = retainPickerHTML(); return; }
   if (a === "dataSheet") { dataSheet(); return; }
   if (a === "remindLater") { try { localStorage.setItem("cardo-remind-snooze", String(Date.now() + 7 * DAY)); } catch {} render(); return; }
   if (a === "accountSheet") { accountSheet(); return; }
