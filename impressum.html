@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<title>Impressum – Cardo</title>
+<style>
+@font-face{font-family:'Figtree';font-weight:400 700;font-display:swap;src:url(fonts/figtree-latin.woff2) format('woff2')}
+@font-face{font-family:'Bricolage Grotesque';font-weight:600 800;font-display:swap;src:url(fonts/bricolage-latin.woff2) format('woff2')}
+:root{--bg:#fff;--ink:#1B1D23;--muted:#6b6e78;--line:#e6e7ec;--card:#f5f6f8;color-scheme:light dark}
+@media (prefers-color-scheme:dark){:root{--bg:#000;--ink:#ECEEF3;--muted:#9a9ca6;--line:#26272c;--card:#121316}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.6 Figtree,system-ui,-apple-system,sans-serif;-webkit-text-size-adjust:100%}
+main{max-width:680px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 14px) 20px calc(env(safe-area-inset-bottom) + 48px)}
+.back{display:inline-flex;align-items:center;gap:6px;color:var(--ink);text-decoration:none;font-weight:600;padding:8px 14px 8px 10px;border-radius:999px;background:var(--card)}
+h1{font:800 34px/1.1 'Bricolage Grotesque',Figtree,sans-serif;letter-spacing:-.02em;margin:26px 0 6px}
+h2{font:700 20px/1.25 'Bricolage Grotesque',Figtree,sans-serif;margin:30px 0 6px}
+p,li{margin:0 0 10px}
+ul{padding-left:20px;margin:0 0 10px}
+a{color:inherit}
+.muted{color:var(--muted)}
+.box{background:var(--card);border-radius:16px;padding:14px 16px;margin:12px 0}
+.fill{background:#ffe58a;color:#1B1D23;border-radius:4px;padding:0 4px}
+</style>
+</head>
+<body>
+<main>
+<a class="back" href="./">‹ Zurück zu Cardo</a>
+<h1>Impressum</h1>
+<p class="muted">Angaben gemäß § 5 Digitale-Dienste-Gesetz (DDG)</p>
+<div class="box">
+<p style="margin:0">__NAME__<br>__STRASSE__<br>__ORT__<br>Deutschland</p>
+</div>
+<h2>Kontakt</h2>
+<p>E-Mail: __MAIL__</p>
+<h2>Verantwortlich für den Inhalt</h2>
+<p>__NAME__ (Anschrift wie oben)</p>
+<h2>Haftung für Inhalte</h2>
+<p>Die Inhalte dieser App wurden mit Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität kann jedoch keine Gewähr übernommen werden. Für Karteikarten und andere Inhalte, die Nutzerinnen und Nutzer selbst anlegen oder per Link teilen, sind diese selbst verantwortlich. Wird mir ein Rechtsverstoß bekannt, entferne ich die betreffenden Inhalte umgehend.</p>
+<h2>Haftung für Links</h2>
+<p>Für Inhalte externer Seiten, auf die verlinkt wird, sind ausschließlich deren Betreiber verantwortlich.</p>
+<p class="muted" style="margin-top:28px"><a href="datenschutz.html">Datenschutzerklärung</a></p>
+</main>
+</body>
+</html>

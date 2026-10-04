@@ -1,8 +1,8 @@
 // Cardo service worker: app works offline after the first visit.
 // Pages: network first (so updates arrive right away), cache as fallback.
 // Scripts, icons, fonts: cache first, refreshed in the background.
-const CACHE = "cardo-v184", IMG_CACHE = "cardo-img";
-const CORE = ["./", "index.html", "manifest.webmanifest", "icons/icon.svg", "icons/icon-1024.png", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png",
+const CACHE = "cardo-v185", IMG_CACHE = "cardo-img";
+const CORE = ["./", "index.html", "manifest.webmanifest", "impressum.html", "datenschutz.html", "fonts/figtree-latin.woff2", "fonts/bricolage-latin.woff2", "icons/icon.svg", "icons/icon-1024.png", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png",
   "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js",
   "https://cdn.jsdelivr.net/npm/katex@0.18.9/dist/katex.min.js", "https://cdn.jsdelivr.net/npm/katex@0.18.9/dist/katex.min.css"];
 
@@ -24,9 +24,11 @@ self.addEventListener("fetch", e => {
   if (url.hostname.endsWith("supabase.co")) return; // never cache account or card data requests
   if (req.mode === "navigate") {
     // Netz zuerst, aber höchstens 3 s warten (schlechtes Netz / Flugmodus) – dann die gespeicherte App starten
-    const net = fetch(req).then(r => { const copy = r.clone(); caches.open(CACHE).then(c => c.put("index.html", copy)); return r; });
+    // Nur die App selbst als „index.html“ merken – Impressum/Datenschutz unter ihrem eigenen Namen (sonst startet offline die falsche Seite)
+    const page = /\/(impressum|datenschutz)\.html$/.test(url.pathname) ? url.pathname.split("/").pop() : "index.html";
+    const net = fetch(req).then(r => { if (r.ok) { const copy = r.clone(); caches.open(CACHE).then(c => c.put(page, copy)); } return r; });
     const slow = new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 3000));
-    e.respondWith(Promise.race([net, slow]).catch(() => caches.match("index.html").then(hit => hit || net)));
+    e.respondWith(Promise.race([net, slow]).catch(() => caches.match(page).then(hit => hit || net)));
     return;
   }
   e.respondWith(caches.match(req).then(hit => {

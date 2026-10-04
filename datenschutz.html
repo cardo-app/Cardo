@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<title>Datenschutz – Cardo</title>
+<style>
+@font-face{font-family:'Figtree';font-weight:400 700;font-display:swap;src:url(fonts/figtree-latin.woff2) format('woff2')}
+@font-face{font-family:'Bricolage Grotesque';font-weight:600 800;font-display:swap;src:url(fonts/bricolage-latin.woff2) format('woff2')}
+:root{--bg:#fff;--ink:#1B1D23;--muted:#6b6e78;--line:#e6e7ec;--card:#f5f6f8;color-scheme:light dark}
+@media (prefers-color-scheme:dark){:root{--bg:#000;--ink:#ECEEF3;--muted:#9a9ca6;--line:#26272c;--card:#121316}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.6 Figtree,system-ui,-apple-system,sans-serif;-webkit-text-size-adjust:100%}
+main{max-width:680px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 14px) 20px calc(env(safe-area-inset-bottom) + 48px)}
+.back{display:inline-flex;align-items:center;gap:6px;color:var(--ink);text-decoration:none;font-weight:600;padding:8px 14px 8px 10px;border-radius:999px;background:var(--card)}
+h1{font:800 34px/1.1 'Bricolage Grotesque',Figtree,sans-serif;letter-spacing:-.02em;margin:26px 0 6px}
+h2{font:700 20px/1.25 'Bricolage Grotesque',Figtree,sans-serif;margin:30px 0 6px}
+p,li{margin:0 0 10px}
+ul{padding-left:20px;margin:0 0 10px}
+a{color:inherit}
+.muted{color:var(--muted)}
+.box{background:var(--card);border-radius:16px;padding:14px 16px;margin:12px 0}
+.fill{background:#ffe58a;color:#1B1D23;border-radius:4px;padding:0 4px}
+</style>
+</head>
+<body>
+<main>
+<a class="back" href="./">‹ Zurück zu Cardo</a>
+<h1>Datenschutz­erklärung</h1>
+<p class="muted">Stand: Oktober 2026</p>
+<p>Cardo ist eine Karteikarten-App. Hier steht in einfachen Worten, welche Daten dabei anfallen, wo sie gespeichert werden und welche Rechte du hast. Cardo zeigt keine Werbung, verkauft keine Daten und verwendet keine Analyse- oder Tracking-Dienste.</p>
+
+<h2>1. Verantwortlich</h2>
+<div class="box"><p style="margin:0">__NAME__<br>__STRASSE__<br>__ORT__<br>E-Mail: __MAIL__</p></div>
+
+<h2>2. Aufruf der App (Hosting)</h2>
+<p>Die App-Dateien werden über <b>GitHub Pages</b> ausgeliefert (GitHub, Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, USA). Beim Aufruf verarbeitet GitHub technisch notwendige Daten wie deine IP-Adresse, Datum und Uhrzeit und die abgerufene Datei, um die Seite auszuliefern und vor Missbrauch zu schützen. Rechtsgrundlage ist unser berechtigtes Interesse an einer sicheren und funktionierenden App (Art. 6 Abs. 1 lit. f DSGVO). GitHub ist unter dem EU-US Data Privacy Framework zertifiziert. Mehr dazu: <a href="https://docs.github.com/de/site-policy/privacy-policies/github-general-privacy-statement">Datenschutzerklärung von GitHub</a>.</p>
+
+<h2>3. Konto und Synchronisierung</h2>
+<p>Damit deine Karten auf allen Geräten gleich sind, brauchst du ein Konto. Dafür nutzen wir <b>Supabase</b> (Supabase, Inc., 970 Toa Payoh North #07-04, Singapur 318992). Die Daten liegen auf Servern in __REGION__. Gespeichert werden:</p>
+<ul>
+<li>deine E-Mail-Adresse und dein Passwort (nur verschlüsselt als „Hash“, niemand kann es lesen),</li>
+<li>deine Ordner, Karten (Text, Formeln, Bilder), dein Lernstand und deine Lernstatistik,</li>
+<li>deine Einstellungen in der App,</li>
+<li>Decks, die du per Link teilst (siehe Punkt 4).</li>
+</ul>
+<p>Für die Anmeldung, die Bestätigung deiner E-Mail-Adresse und das Zurücksetzen des Passworts verschickt Supabase E-Mails an dich. Rechtsgrundlage ist die Bereitstellung der App, die du nutzen möchtest (Art. 6 Abs. 1 lit. b DSGVO). Die Daten werden gespeichert, bis du sie löschst oder dein Konto löschst. Mehr dazu: <a href="https://supabase.com/privacy">Datenschutzerklärung von Supabase</a>.</p>
+
+<h2>4. Teilen per Link</h2>
+<p>Wenn du einen Ordner teilst, wird eine Kopie der Karten (ohne deinen Lernstand) gespeichert. Jede Person mit dem Link kann diese Kopie ansehen und übernehmen. Du kannst den Link jederzeit ungültig machen; dann wird die Kopie gelöscht.</p>
+
+<h2>5. Speicher auf deinem Gerät</h2>
+<p>Cardo speichert Daten im Browser auf deinem Gerät (Local Storage, IndexedDB und Offline-Speicher des Service Workers), damit die App schnell startet, offline funktioniert und du angemeldet bleibst. Dazu gehören auch automatische Sicherungen deiner Karten, die nur auf deinem Gerät liegen. Das ist technisch notwendig (§ 25 Abs. 2 Nr. 2 TDDDG). Es werden keine Cookies zu Werbe- oder Analysezwecken gesetzt.</p>
+
+<h2>6. Programmbibliotheken von jsDelivr</h2>
+<p>Einige Programmteile (z. B. für die Anmeldung, Formeln und QR-Codes) lädt die App über das Netzwerk von <b>jsDelivr</b> (Prospect One, Królewska 65A/1, 30-081 Krakau, Polen). Dabei wird deine IP-Adresse übermittelt, damit die Dateien ausgeliefert werden können. Rechtsgrundlage ist unser berechtigtes Interesse an einer schnellen und zuverlässigen Auslieferung (Art. 6 Abs. 1 lit. f DSGVO). Mehr dazu: <a href="https://www.jsdelivr.com/terms/privacy-policy-jsdelivr-net">Datenschutzerklärung von jsDelivr</a>.</p>
+
+<h2>7. Deine Rechte</h2>
+<p>Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit und Widerspruch (Art. 15–21 DSGVO). Vieles kannst du direkt in der App erledigen:</p>
+<ul>
+<li><b>Daten exportieren:</b> Einstellungen › Daten sichern</li>
+<li><b>Konto und alle Daten löschen:</b> Einstellungen › Konto › Konto löschen</li>
+</ul>
+<p>Für alles andere schreib eine E-Mail an __MAIL__. Außerdem kannst du dich bei einer Datenschutz-Aufsichtsbehörde beschweren, zum Beispiel in dem Bundesland, in dem du wohnst.</p>
+
+<p class="muted" style="margin-top:28px"><a href="impressum.html">Impressum</a></p>
+</main>
+</body>
+</html>
