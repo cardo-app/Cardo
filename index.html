@@ -3664,11 +3664,11 @@ const DESIGN_ORB = {
 };
 /* Mikroflammen: winzige Glutteilchen steigen über die ganze Kugel auf, additiv überlagert (wirkt wie echtes Feuer).
    Läuft nur, solange Farbthema-Knöpfe sichtbar sind; aus bei „Bewegung reduzieren“. */
-const MF = { on: false, sprites: {}, parts: new WeakMap(), last: 0 };
+const MF = { on: false, sprites: {}, parts: new WeakMap(), smoke: new WeakMap(), last: 0 };
 function mfSprites(hex){
   if (MF.sprites[hex]) return MF.sprites[hex];
   const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)), c = p(hex), mix = (a, b, f) => a.map((v, i) => Math.round(v + (b[i] - v) * f));
-  const cols = [mix(c, [255, 246, 210], .6), mix(c, [255, 230, 160], .3), mix(c, [255, 255, 255], .08), mix(c, [0, 0, 0], .15)];
+  const cols = [mix(c, [255, 246, 210], .6), mix(c, [255, 230, 160], .3), mix(c, [255, 255, 255], .08), mix(c, [0, 0, 0], .15), mix(c, [70, 70, 78], .6), mix(c, [235, 235, 240], .55)]; /* 4 = dunkler Rauch, 5 = heller Rauch */
   return MF.sprites[hex] = cols.map(([r, g, b]) => { const cv = document.createElement("canvas"); cv.width = cv.height = 32; const x = cv.getContext("2d"), q = x.createRadialGradient(16, 16, 0, 16, 16, 16);
     q.addColorStop(0, `rgba(${r},${g},${b},1)`); q.addColorStop(.4, `rgba(${r},${g},${b},.55)`); q.addColorStop(1, `rgba(${r},${g},${b},0)`); x.fillStyle = q; x.fillRect(0, 0, 32, 32); return cv; });
 }
@@ -3692,7 +3692,17 @@ function microFlames(){
         q.y += q.vy * dt; q.x += (w * .5 - q.x) * dt * .9 + Math.sin(now / 110 + q.ph) * w * .006; /* leicht zur Mitte ziehen (Flammenspitze) + Flackern */
         const r = q.r * (1 - a * .75), st = a < .2 ? 0 : a < .45 ? 1 : a < .75 ? 2 : 3;
         g.globalAlpha = (a < .1 ? a * 10 : 1) * (1 - a) * .42; g.drawImage(spr[st], q.x - r * 1.6, q.y - r * 3, r * 3.2, r * 6); }
-      g.globalAlpha = 1; g.globalCompositeOperation = "source-over";
+      g.globalCompositeOperation = "source-over";
+      /* Rauch: steigt von den Flammenspitzen auf, legt sich an die Innenwand der oberen Kugelhälfte und gleitet daran entlang (Glaskugel) */
+      let Sm = MF.smoke.get(cv); if (!Sm) { Sm = []; MF.smoke.set(cv, Sm); }
+      const cx = w / 2, cy = h / 2, R = w * .44;
+      let m = dt * 26; while (m > 0) { if (Math.random() < m) Sm.push({ x: cx + (Math.random() - .5) * w * .55, y: h * (.42 + Math.random() * .16), vy: -h * (.45 + Math.random() * .3), wall: false, th: 0, om: 0, rr: R, age: 0, life: 1.6 + Math.random() * .9, r: w * (.06 + Math.random() * .04), k: Math.random() < .6 ? 4 : 5 }); m--; }
+      for (let i = Sm.length - 1; i >= 0; i--) { const q = Sm[i]; q.age += dt; const a = q.age / q.life; if (a >= 1) { Sm.splice(i, 1); continue; }
+        if (!q.wall) { q.y += q.vy * dt; q.x += (q.x - cx) * dt * .5; const dx = q.x - cx, dy = q.y - cy;
+          if (dy < 0 && dx * dx + dy * dy >= R * R) { q.wall = true; q.th = Math.atan2(dx, -dy); q.om = -Math.sign(q.th || (Math.random() - .5)) * (1.1 + Math.random() * .7); } }
+        else { q.th += q.om * dt; q.om *= 1 - .55 * dt; q.rr += (R * .8 - q.rr) * dt * .6; q.x = cx + Math.sin(q.th) * q.rr; q.y = cy - Math.cos(q.th) * q.rr; }
+        const rs = q.r * (1 + a * 1.4); g.globalAlpha = Math.min(1, a * 6) * (1 - a) * (q.k === 4 ? .32 : .22); g.drawImage(spr[q.k], q.x - rs, q.y - rs, rs * 2, rs * 2); }
+      g.globalAlpha = 1;
     });
     requestAnimationFrame(tick);
   };
