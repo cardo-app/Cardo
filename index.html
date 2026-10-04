@@ -3662,7 +3662,7 @@ const DESIGN_ORB = {
   autumn: ["radial-gradient(circle at 72% 26%,#FFE7A8 0 11%,transparent 12%),radial-gradient(120% 60% at 30% 100%,#C9342A 0 45%,transparent 46%),radial-gradient(130% 70% at 85% 100%,#E8792F 0 55%,transparent 56%),linear-gradient(180deg,#F6B76B,#FBD9A6)", "#1E6B3A"], /* Tannengrün zu Orange/Rot */
   beach: ["radial-gradient(circle at 74% 22%,#FFE48A 0 10%,transparent 11%),linear-gradient(180deg,#3DB8F2 0 42%,#18C9CF 42% 66%,#F6D79A 66%)", "#FF5E57"] /* Koralle zu Blau/Türkis/Sand */
 };
-/* Mikroflammen: winzige Glutteilchen steigen in mehreren kleinen Flammen auf, additiv überlagert (wirkt wie echtes Feuer).
+/* Mikroflammen: winzige Glutteilchen steigen über die ganze Kugel auf, additiv überlagert (wirkt wie echtes Feuer).
    Läuft nur, solange Farbthema-Knöpfe sichtbar sind; aus bei „Bewegung reduzieren“. */
 const MF = { on: false, sprites: {}, parts: new WeakMap(), last: 0 };
 function mfSprites(hex){
@@ -3683,14 +3683,15 @@ function microFlames(){
       const w = cv.clientWidth, h = cv.clientHeight; if (!w) return;
       const dpr = Math.min(3, devicePixelRatio || 1); if (cv.width !== Math.round(w * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
       let P = MF.parts.get(cv); if (!P) { P = []; MF.parts.set(cv, P); }
-      const spr = mfSprites(cv.dataset.c), srcs = [.3, .41, .5, .59, .7];
-      srcs.forEach((sx, si) => { let n = dt * (si === 2 ? 30 : 22); while (n > 0) { if (Math.random() < n) { const tall = 1 - Math.abs(sx - .5) * 2.2;
-        P.push({ sx: w * sx, x: w * sx + (Math.random() - .5) * w * .07, y: h * (.92 - (1 - tall) * .07), vy: -(h * (.42 + Math.random() * .2) * (.65 + tall * .5)), age: 0, life: .4 + Math.random() * .3, r: w * (.022 + Math.random() * .016), ph: Math.random() * 6.28 }); } n--; } });
+      const spr = mfSprites(cv.dataset.c);
+      /* Teilchen entstehen über die ganze Breite am unteren Kugelrand und steigen bis nach oben → die ganze Kugel brennt */
+      let n = dt * 150; while (n > 0) { if (Math.random() < n) { const u = Math.random() * 2 - 1, sx = w * (.5 + u * .46), bot = h * (.5 + Math.sqrt(1 - u * u) * .46);
+        P.push({ sx, x: sx, y: bot - Math.random() * h * .08, vy: -(h * (.75 + Math.random() * .55) * (1 - Math.abs(u) * .45)), age: 0, life: .6 + Math.random() * .45, r: w * (.03 + Math.random() * .025), ph: Math.random() * 6.28 }); } n--; }
       const g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h); g.globalCompositeOperation = "lighter";
       for (let i = P.length - 1; i >= 0; i--) { const q = P[i]; q.age += dt; const a = q.age / q.life; if (a >= 1) { P.splice(i, 1); continue; }
-        q.y += q.vy * dt; q.x += (q.sx - q.x) * dt * 6 + Math.sin(now / 90 + q.ph) * w * .004; /* zur Flammenmitte ziehen + leichtes Flackern */
+        q.y += q.vy * dt; q.x += (w * .5 - q.x) * dt * .9 + Math.sin(now / 110 + q.ph) * w * .006; /* leicht zur Mitte ziehen (Flammenspitze) + Flackern */
         const r = q.r * (1 - a * .75), st = a < .2 ? 0 : a < .45 ? 1 : a < .75 ? 2 : 3;
-        g.globalAlpha = (a < .1 ? a * 10 : 1) * (1 - a) * .55; g.drawImage(spr[st], q.x - r * 1.6, q.y - r * 3, r * 3.2, r * 6); }
+        g.globalAlpha = (a < .1 ? a * 10 : 1) * (1 - a) * .42; g.drawImage(spr[st], q.x - r * 1.6, q.y - r * 3, r * 3.2, r * 6); }
       g.globalAlpha = 1; g.globalCompositeOperation = "source-over";
     });
     requestAnimationFrame(tick);
