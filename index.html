@@ -3236,7 +3236,7 @@ function showAuth(mode = "in"){
       <p class="muted auth-msg" id="aMsg">${mode === 'up' ? 'Mindestens 6 Zeichen. Jede Person bekommt ihre eigene Bibliothek.' : ''}</p>
       ${mode === 'up' ? '<p class="muted auth-legal-note">Mit dem Erstellen des Kontos werden deine Daten wie in der <a href="datenschutz.html">Datenschutzerklärung</a> beschrieben verarbeitet.</p>' : ''}
     </form>
-    <p class="auth-legal"><a href="impressum.html">Impressum</a> · <a href="datenschutz.html">Datenschutz</a></p></div>`;
+    <p class="auth-legal"><a href="datenschutz.html#impressum">Impressum</a> · <a href="datenschutz.html">Datenschutz</a></p></div>`;
   $("#authForm").addEventListener("submit", async e => {
     e.preventDefault(); const email = $("#aEmail").value.trim(), pw = $("#aPw") ? $("#aPw").value : "", msg = $("#aMsg"), go = $("#aGo");
     if (!email) { msg.textContent = "Gib deine E-Mail-Adresse ein."; return; }
@@ -4177,8 +4177,7 @@ function settingsHTML(){
     <button class="set-item" data-act="accountSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span><span class="si-t">Konto</span><span class="si-v">${esc(USER && USER.email || "")}</span><span class="si-ch" aria-hidden="true">›</span></button>
   </div>
   <div class="set-list">
-    <a class="set-item" href="datenschutz.html"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg></span><span class="si-t">Datenschutz</span><span class="si-ch" aria-hidden="true">›</span></a>
-    <a class="set-item" href="impressum.html"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg></span><span class="si-t">Impressum</span><span class="si-ch" aria-hidden="true">›</span></a>
+    <a class="set-item" href="datenschutz.html"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg></span><span class="si-t">Datenschutz & Impressum</span><span class="si-ch" aria-hidden="true">›</span></a>
   </div>`;
 }
 
