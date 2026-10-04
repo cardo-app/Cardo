@@ -3670,7 +3670,7 @@ function mfSprites(hex){
   const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)), c = p(hex), mix = (a, b, f) => a.map((v, i) => Math.round(v + (b[i] - v) * f));
   const cols = [mix(c, [255, 246, 210], .6), mix(c, [255, 230, 160], .3), mix(c, [255, 255, 255], .08), mix(c, [0, 0, 0], .15)];
   return MF.sprites[hex] = cols.map(([r, g, b]) => { const cv = document.createElement("canvas"); cv.width = cv.height = 32; const x = cv.getContext("2d"), q = x.createRadialGradient(16, 16, 0, 16, 16, 16);
-    q.addColorStop(0, `rgba(${r},${g},${b},1)`); q.addColorStop(.4, `rgba(${r},${g},${b},.55)`); q.addColorStop(1, `rgba(${r},${g},${b},0)`); x.fillStyle = q; x.fillRect(0, 0, 32, 32); return cv; });
+    q.addColorStop(0, `rgba(${r},${g},${b},.85)`); q.addColorStop(.3, `rgba(${r},${g},${b},.45)`); q.addColorStop(.65, `rgba(${r},${g},${b},.14)`); q.addColorStop(1, `rgba(${r},${g},${b},0)`); /* weicher, verschwommener Rand */ x.fillStyle = q; x.fillRect(0, 0, 32, 32); return cv; });
 }
 /* Grundthemen: dezente Animation (Fokus bleibt auf den Farbthemen) – Hell: zarte Sonnenstrahlen, Dunkel: wenige, leise funkelnde Sterne,
    Dunkel +: etwas mehr Sterne und selten eine blasse Sternschnuppe, System: Strahlen auf der hellen, Sterne auf der dunklen Hälfte */
@@ -3819,7 +3819,7 @@ function microFlames(){
       for (let i = P.length - 1; i >= 0; i--) { const q = P[i]; q.age += dt; const a = q.age / q.life; if (a >= 1) { P.splice(i, 1); continue; }
         q.y += q.vy * dt; q.x += (w * .5 - q.x) * dt * .9 + Math.sin(now / 110 + q.ph) * w * .006; /* leicht zur Mitte ziehen (Flammenspitze) + Flackern */
         const r = q.r * (1 - a * .75), st = a < .2 ? 0 : a < .45 ? 1 : a < .75 ? 2 : 3;
-        g.globalAlpha = (a < .1 ? a * 10 : 1) * (1 - a) * .3; g.drawImage(spr[st], q.x - r * 1.6, q.y - r * 3, r * 3.2, r * 6); }
+        g.globalAlpha = (a < .1 ? a * 10 : 1) * (1 - a) * .2; g.drawImage(spr[st], q.x - r * 2.1, q.y - r * 3.8, r * 4.2, r * 7.6); }
       g.globalCompositeOperation = "source-over";
       g.globalAlpha = 1;
     });
