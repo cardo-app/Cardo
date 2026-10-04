@@ -3812,12 +3812,12 @@ function microFlames(){
         return; }
       const spr = mfSprites(cv.dataset.c);
       /* Teilchen entstehen über die ganze Breite am unteren Kugelrand und steigen bis nach oben → die ganze Kugel brennt */
-      let n = dt * 620; while (n > 0) { if (Math.random() < n) { const u = Math.random() * 2 - 1, sx = w * (.5 + u * .46), half = Math.sqrt(1 - u * u) * .46, bot = h * (.5 + half), top = h * (.5 - half);
+      let n = dt * 310; /* halb so viele neue, dafür doppelt so lange sichtbar → gleich viele Flammen, halbes Tempo */ while (n > 0) { if (Math.random() < n) { const u = Math.random() * 2 - 1, sx = w * (.5 + u * .46), half = Math.sqrt(1 - u * u) * .46, bot = h * (.5 + half), top = h * (.5 - half);
         const hi = Math.random() < .62, y0 = hi ? top + h * .04 + Math.random() * Math.max(0, bot - top - h * .08) : bot - Math.random() * h * .08; /* gut die Hälfte entsteht irgendwo in der Kugel bis hinauf in die Kuppel → kleine Flammen auch oben */
-        P.push({ sx, x: sx, y: y0, vy: -(h * (hi ? .45 + Math.random() * .35 : .75 + Math.random() * .55) * (1 - Math.abs(u) * .45)), age: 0, life: hi ? .35 + Math.random() * .3 : .6 + Math.random() * .45, r: w * (hi ? .018 + Math.random() * .018 : .028 + Math.random() * .022), ph: Math.random() * 6.28 }); } n--; }
+        P.push({ sx, x: sx, y: y0, vy: -(h * (hi ? .45 + Math.random() * .35 : .75 + Math.random() * .55) * (1 - Math.abs(u) * .45)) * .5, age: 0, life: (hi ? .35 + Math.random() * .3 : .6 + Math.random() * .45) * 2, r: w * (hi ? .018 + Math.random() * .018 : .028 + Math.random() * .022), ph: Math.random() * 6.28 }); } n--; }
       const g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h); g.globalCompositeOperation = "lighter";
       for (let i = P.length - 1; i >= 0; i--) { const q = P[i]; q.age += dt; const a = q.age / q.life; if (a >= 1) { P.splice(i, 1); continue; }
-        q.y += q.vy * dt; q.x += (w * .5 - q.x) * dt * .9 + Math.sin(now / 110 + q.ph) * w * .006; /* leicht zur Mitte ziehen (Flammenspitze) + Flackern */
+        q.y += q.vy * dt; q.x += (w * .5 - q.x) * dt * .45 + Math.sin(now / 220 + q.ph) * w * .004; /* leicht zur Mitte ziehen (Flammenspitze) + Flackern */
         const r = q.r * (1 - a * .75), st = a < .2 ? 0 : a < .45 ? 1 : a < .75 ? 2 : 3;
         g.globalAlpha = (a < .1 ? a * 10 : 1) * (1 - a) * .2; g.drawImage(spr[st], q.x - r * 2.1, q.y - r * 3.8, r * 4.2, r * 7.6); }
       g.globalCompositeOperation = "source-over";
