@@ -3692,6 +3692,59 @@ function mfStars(g, w, h, st, dt, now, dense){
       g.globalAlpha = 1; g.strokeStyle = gr; g.lineWidth = w / 58 * .8; g.lineCap = "round"; g.beginPath(); g.moveTo(tx, ty); g.lineTo(x, y); g.stroke(); } } }
   g.globalAlpha = 1; g.globalCompositeOperation = "source-over";
 }
+/* Designs: kleine Landschaft zieht langsam vorbei wie aus dem Zugfenster (Nahes schneller als Fernes) */
+const DESIGN_FX = { navy: "d-night", aubergine: "d-aurora", autumn: "d-autumn", beach: "d-beach" };
+function mfScene(g, w, h, st, dt, t, kind){
+  const k = w / 58, X = v => v * k; /* Maße in Punkten bei 58 px Knopfgröße */
+  const ridge = (off, base, amp, f1, f2, col) => { g.fillStyle = col; g.beginPath(); g.moveTo(0, h);
+    for (let x = 0; x <= w + 2; x += 2) { const u = (x + off) / w; g.lineTo(x, h * (base + amp * (.6 * Math.sin(u * f1) + .4 * Math.sin(u * f2 + 1.3)))); } g.lineTo(w, h); g.fill(); };
+  const lin = (stops, y0 = 0, y1 = h) => { const q = g.createLinearGradient(0, y0, 0, y1); stops.forEach(([o, c]) => q.addColorStop(o, c)); return q; };
+  const glow = (x, y, r, c) => { const q = g.createRadialGradient(x, y, 0, x, y, r); q.addColorStop(0, c); q.addColorStop(1, c.replace(/[\d.]+\)$/, "0)")); g.fillStyle = q; g.fillRect(x - r, y - r, r * 2, r * 2); };
+  if (!st.stars) st.stars = Array.from({ length: 40 }, (_, i) => ({ x: Math.random(), y: Math.random() * .75, r: .3 + Math.random() * .6, far: i % 2, ph: Math.random() * 6.28 }));
+  const stars = (spdFar, spdNear) => st.stars.forEach(p => { const x = ((p.x * w - t * X(p.far ? spdFar : spdNear)) % w + w) % w, a = .45 + .4 * Math.sin(t * 1.3 + p.ph);
+    g.globalAlpha = a * (p.far ? .7 : 1); g.fillStyle = "#FFFFFF"; g.beginPath(); g.arc(x, p.y * h, X(p.r), 0, 6.283); g.fill(); g.globalAlpha = 1; });
+  if (kind === "d-night") {
+    g.fillStyle = lin([[0, "#2C3E9E"], [.72, "#0B1338"], [1, "#0B1338"]]); g.fillRect(0, 0, w, h);
+    glow(w * .7, h * .2, w * .45, "rgba(120,140,255,.45)");
+    stars(.8, 1.8);
+    st.nx = (st.nx || 0) - dt; if (!st.sh && st.nx <= 0) { st.sh = { x: w * (.15 + Math.random() * .5), y: h * (.08 + Math.random() * .25), a: 0 }; st.nx = 8 + Math.random() * 8; }
+    if (st.sh) { const s2 = st.sh; s2.a += dt / .7; if (s2.a >= 1) st.sh = null; else { const x = s2.x + s2.a * w * .45, y = s2.y + s2.a * h * .22, q = g.createLinearGradient(x - w * .2, y - h * .1, x, y);
+      q.addColorStop(0, "rgba(255,255,255,0)"); q.addColorStop(1, `rgba(255,255,255,${(1 - s2.a) * .8})`); g.strokeStyle = q; g.lineWidth = X(.8); g.lineCap = "round"; g.beginPath(); g.moveTo(x - w * .2, y - h * .1); g.lineTo(x, y); g.stroke(); } }
+    ridge(t * X(2), .8, .07, 7, 13, "#16205A"); ridge(t * X(4.5), .9, .06, 9, 17, "#0A1030");
+  } else if (kind === "d-aurora") {
+    g.fillStyle = lin([[0, "#071030"], [.6, "#0B2238"], [1, "#0E2E3E"]]); g.fillRect(0, 0, w, h);
+    stars(.6, 1.2);
+    g.globalCompositeOperation = "lighter";
+    for (let x = 0; x <= w; x += 1.5) { const u = x / w + t * .03, c = h * (.4 + .09 * Math.sin(u * 5.5 + t * .5) + .04 * Math.sin(u * 13 - t * .8)), int = .5 + .5 * Math.sin(u * 17 + t * 1.1) * Math.sin(u * 7 - t * .4);
+      const q = g.createLinearGradient(0, c - h * .3, 0, c + h * .06); q.addColorStop(0, "rgba(160,100,255,0)"); q.addColorStop(.45, `rgba(170,110,255,${.42 * int})`); q.addColorStop(.85, `rgba(80,255,180,${.85 * int})`); q.addColorStop(1, "rgba(80,255,180,0)");
+      g.fillStyle = q; g.fillRect(x, c - h * .3, 1.6, h * .36); }
+    g.globalCompositeOperation = "source-over";
+    ridge(t * X(2), .82, .07, 8, 15, "#0D2034"); ridge(t * X(4), .92, .05, 11, 19, "#06121F");
+  } else if (kind === "d-autumn") {
+    g.fillStyle = lin([[0, "#F6B76B"], [1, "#FBD9A6"]]); g.fillRect(0, 0, w, h);
+    glow(w * .72, h * .26, w * .22, "rgba(255,236,170,.7)"); g.fillStyle = "#FFE7A8"; g.beginPath(); g.arc(w * .72, h * .26, w * .1, 0, 6.283); g.fill();
+    ridge(t * X(2), .66, .06, 6, 11, "#E8792F");
+    const off = t * X(5); ridge(off, .8, .06, 8, 14, "#C9342A");
+    const sp = w * .42; for (let i = -1; i < 4; i++) { const tx = i * sp - (off % sp), u = (tx + off) / w, ty = h * (.8 + .06 * (.6 * Math.sin(u * 8) + .4 * Math.sin(u * 14 + 1.3)));
+      g.fillStyle = "#7A2A1A"; g.fillRect(tx - X(.6), ty - X(5), X(1.2), X(5)); g.fillStyle = i % 2 ? "#F2A03D" : "#E2582A"; g.beginPath(); g.arc(tx, ty - X(7), X(3.6), 0, 6.283); g.fill(); }
+    if (!st.lv) st.lv = Array.from({ length: 7 }, () => ({ x: Math.random(), y: Math.random(), s: .6 + Math.random() * .8, ph: Math.random() * 6.28, c: ["#E8582A", "#F2A03D", "#C9342A"][Math.random() * 3 | 0] }));
+    st.lv.forEach(l => { l.y += dt * .09 * l.s; l.x -= dt * .07 * l.s; if (l.y > 1.05) { l.y = -.05; l.x = Math.random() * 1.2; } if (l.x < -.05) l.x += 1.1;
+      g.save(); g.translate(l.x * w + Math.sin(t * 2 + l.ph) * X(2), l.y * h); g.rotate(t * 1.5 + l.ph); g.fillStyle = l.c; g.beginPath(); g.ellipse(0, 0, X(1.6 * l.s), X(.9 * l.s), 0, 0, 6.283); g.fill(); g.restore(); });
+  } else if (kind === "d-beach") {
+    g.fillStyle = lin([[0, "#3DB8F2"], [.42, "#9EDDF6"]], 0, h * .42); g.fillRect(0, 0, w, h * .43);
+    glow(w * .74, h * .22, w * .2, "rgba(255,240,170,.7)"); g.fillStyle = "#FFE48A"; g.beginPath(); g.arc(w * .74, h * .22, w * .1, 0, 6.283); g.fill();
+    const cl = (cx, cy, s) => { g.fillStyle = "rgba(255,255,255,.92)"; g.beginPath(); [[0, 0, 1], [-.9, .25, .7], [.9, .25, .75], [-.4, -.35, .75], [.45, -.3, .7]].forEach(([dx, dy, r]) => { g.moveTo(cx + dx * s + r * s, cy + dy * s); g.arc(cx + dx * s, cy + dy * s, r * s, 0, 6.283); }); g.fill(); };
+    [[.15, .16, 3.2, 1.2], [.7, .32, 2.4, .8]].forEach(([fx, fy, sz, sp]) => { const span = w * 1.5, x = ((fx * span - t * X(sp)) % span + span) % span - w * .25; cl(x, h * fy, X(sz)); });
+    g.fillStyle = lin([[0, "#0E8FC0"], [1, "#22D3D0"]], h * .42, h * .68); g.fillRect(0, h * .42, w, h * .28);
+    g.fillStyle = "rgba(255,255,255,.55)"; for (let i = 0; i < 9; i++) { const span = w * 1.2, x = ((i * w * .17 - t * X(3 + (i % 3))) % span + span) % span - w * .1, y = h * (.47 + (i % 4) * .045); g.fillRect(x, y, X(2.4 + (i % 3)), X(.45)); }
+    const off = t * X(6), shore = x => h * (.66 + .02 * Math.sin((x + off) / w * 9) + .012 * Math.sin((x + off) / w * 21));
+    g.fillStyle = "rgba(255,255,255,.9)"; g.beginPath(); g.moveTo(0, h); for (let x = 0; x <= w + 2; x += 2) g.lineTo(x, shore(x) - X(.8)); g.lineTo(w, h); g.fill();
+    g.fillStyle = "#F6D79A"; g.beginPath(); g.moveTo(0, h); for (let x = 0; x <= w + 2; x += 2) g.lineTo(x, shore(x) + X(.6)); g.lineTo(w, h); g.fill();
+    const span = w * 1.7, px = ((w * 1.2 - t * X(8)) % span + span) % span - w * .3; /* Palme im Vordergrund, kommt ab und zu vorbei */
+    g.strokeStyle = "#8A5A2B"; g.lineWidth = X(1.6); g.lineCap = "round"; g.beginPath(); g.moveTo(px, h); g.quadraticCurveTo(px + X(3), h * .72, px + X(1), h * .55); g.stroke();
+    g.fillStyle = "#1E8C57"; [[-1, .2], [1, .1], [-.6, -.5], [.7, -.55], [0, -.9]].forEach(([dx, dy]) => { g.beginPath(); g.ellipse(px + X(1) + dx * X(4), h * .55 + dy * X(2.5), X(4.2), X(1.3), dx * .5 + dy * .3, 0, 6.283); g.fill(); });
+  }
+}
 function microFlames(){
   if (MF.on || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   MF.on = true; MF.last = performance.now();
@@ -3709,6 +3762,7 @@ function microFlames(){
         else if (md === "auto") { /* helle Hälfte oben links (Strahlen), dunkle unten rechts (Sterne) – Trennlinie wie im Symbol */
           g.save(); g.beginPath(); g.moveTo(0, 0); g.lineTo(w, 0); g.lineTo(0, h); g.closePath(); g.clip(); mfSun(g, w, h, P, dt, now); g.restore();
           g.save(); g.beginPath(); g.moveTo(w, 0); g.lineTo(w, h); g.lineTo(0, h); g.closePath(); g.clip(); mfStars(g, w, h, P.st, dt, now, false); g.restore(); }
+        else if (md.startsWith("d-")) mfScene(g, w, h, P.st, dt, now / 1000, md);
         else mfStars(g, w, h, P.st, dt, now, md === "stars+");
         return; }
       const spr = mfSprites(cv.dataset.c);
@@ -3732,7 +3786,7 @@ function lookPickerHTML(){
   const card = k => { const on = S.set.look === k, i = lookInfo(k);
     const t = THEMES.find(x => x.k === k), bg = t ? t.c : i.bg, fg = t ? (DESIGN_ORB[k] ? DESIGN_ORB[k][1] : "#FFFFFF") : i.fg; /* Farbthemen: Symbol immer weiß */ /* Kugel in Themenfarbe, Designs als kleine bunte Szene */
     const fire = t && !t.design && t.base === "light"; /* Farbthemen: feine Mikroflammen in der Kugel */
-    return `<button class="theme ${on ? 'on' : ''}${DESIGN_ORB[k] ? ' deco' : ''}${fire ? ' fire' : NEUTRAL_FX[k] ? ' fx' : ''}" data-act="setLook" data-v="${k}" role="radio" aria-checked="${on}"><span class="theme-ic" style="--tb:${bg};--tf:${fg}${DESIGN_ORB[k] ? `;--orb:${DESIGN_ORB[k][0]}` : ''}">${fire ? `<canvas class="mflm" data-c="${t.c}" aria-hidden="true"></canvas>` : NEUTRAL_FX[k] ? `<canvas class="mflm" data-m="${NEUTRAL_FX[k]}" aria-hidden="true"></canvas>` : ''}${THEME_IC[k]}</span>${i.n}</button>`; };
+    return `<button class="theme ${on ? 'on' : ''}${DESIGN_ORB[k] ? ' deco' : ''}${fire ? ' fire' : (NEUTRAL_FX[k] || DESIGN_FX[k]) ? ' fx' : ''}" data-act="setLook" data-v="${k}" role="radio" aria-checked="${on}"><span class="theme-ic" style="--tb:${bg};--tf:${fg}${DESIGN_ORB[k] ? `;--orb:${DESIGN_ORB[k][0]}` : ''}">${fire ? `<canvas class="mflm" data-c="${t.c}" aria-hidden="true"></canvas>` : (NEUTRAL_FX[k] || DESIGN_FX[k]) ? `<canvas class="mflm" data-m="${NEUTRAL_FX[k] || DESIGN_FX[k]}" aria-hidden="true"></canvas>` : ''}${THEME_IC[k]}</span>${i.n}</button>`; };
   return `<div role="radiogroup" aria-label="Thema">
       <div class="themes">${NEUTRAL.map(([k]) => card(k)).join("")}</div>
       <div class="lbl" style="margin:20px 0 12px">Farbthemen</div>
