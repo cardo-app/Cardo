@@ -3672,28 +3672,24 @@ function mfSprites(hex){
   return MF.sprites[hex] = cols.map(([r, g, b]) => { const cv = document.createElement("canvas"); cv.width = cv.height = 32; const x = cv.getContext("2d"), q = x.createRadialGradient(16, 16, 0, 16, 16, 16);
     q.addColorStop(0, `rgba(${r},${g},${b},1)`); q.addColorStop(.4, `rgba(${r},${g},${b},.55)`); q.addColorStop(1, `rgba(${r},${g},${b},0)`); x.fillStyle = q; x.fillRect(0, 0, 32, 32); return cv; });
 }
-/* Grundthemen: passende Teilchen im selben Stil – Hell: goldene Sonnenfünkchen, Dunkel: funkelnde Sterne,
-   Dunkel +: dichter Sternenhimmel mit Sternschnuppe, System: Fünkchen auf der hellen, Sterne auf der dunklen Hälfte */
+/* Grundthemen: dezente Animation (Fokus bleibt auf den Farbthemen) – Hell: zarte Sonnenstrahlen, Dunkel: wenige, leise funkelnde Sterne,
+   Dunkel +: etwas mehr Sterne und selten eine blasse Sternschnuppe, System: Strahlen auf der hellen, Sterne auf der dunklen Hälfte */
 const NEUTRAL_FX = { light: "sun", dark: "stars", black: "stars+", auto: "auto" };
-function mfSun(g, w, h, P, dt, now){
-  let n = dt * 40; while (n > 0) { if (Math.random() < n) { const u = Math.random() * 2 - 1;
-    P.push({ x: w * (.5 + u * .42), y: h * (.55 + Math.random() * .4), vx: (Math.random() - .5) * w * .06, vy: -h * (.08 + Math.random() * .12), age: 0, life: 1.4 + Math.random() * 1.4, r: w * (.012 + Math.random() * .016), ph: Math.random() * 6.28 }); } n--; }
-  for (let i = P.length - 1; i >= 0; i--) { const q = P[i]; q.age += dt; const a = q.age / q.life; if (a >= 1) { P.splice(i, 1); continue; }
-    q.x += (q.vx + Math.sin(now / 700 + q.ph) * w * .03) * dt; q.y += q.vy * dt;
-    const tw = .55 + .45 * Math.sin(now / 160 + q.ph * 3), al = Math.min(1, a * 5) * (1 - a) * tw;
-    const gr = g.createRadialGradient(q.x, q.y, 0, q.x, q.y, q.r * 2); gr.addColorStop(0, `rgba(255,190,50,${al})`); gr.addColorStop(.3, `rgba(255,165,30,${.6 * al})`); gr.addColorStop(1, "rgba(255,165,30,0)");
-    g.fillStyle = gr; g.fillRect(q.x - q.r * 2, q.y - q.r * 2, q.r * 4, q.r * 4); }
+function mfSun(g, w, h, P, dt, now){ /* zarte Sonnenstrahlen, drehen sich langsam und pulsieren leicht */
+  const cx = w / 2, cy = h / 2, R = w * .5, rot = now / 1000 * .12, n = 12;
+  for (let i = 0; i < n; i++) { const a = rot + i * 6.283 / n, wd = .085, pul = .5 + .5 * Math.sin(now / 1000 * 1.1 + i * 1.7), al = .05 + pul * .07;
+    const gr = g.createRadialGradient(cx, cy, w * .14, cx, cy, R); gr.addColorStop(0, `rgba(255,178,50,${al})`); gr.addColorStop(1, "rgba(255,178,50,0)");
+    g.fillStyle = gr; g.beginPath(); g.moveTo(cx + Math.cos(a) * w * .14, cy + Math.sin(a) * w * .14); g.arc(cx, cy, R, a - wd, a + wd); g.closePath(); g.fill(); }
 }
 function mfStars(g, w, h, st, dt, now, dense){
-  if (!st.s) { st.s = Array.from({ length: dense ? 46 : 26 }, () => ({ x: Math.random(), y: Math.random(), r: .5 + Math.random() * (dense ? 1.1 : .9), ph: Math.random() * 6.28, sp: 1.5 + Math.random() * 3, v: .01 + Math.random() * .02 })); st.sh = null; st.next = 1 + Math.random() * 2; }
+  if (!st.s) { st.s = Array.from({ length: dense ? 22 : 13 }, () => ({ x: Math.random(), y: Math.random(), r: .4 + Math.random() * .6, ph: Math.random() * 6.28, sp: .8 + Math.random() * 1.6, v: .006 + Math.random() * .01 })); st.sh = null; st.next = 4 + Math.random() * 4; }
   g.globalCompositeOperation = "lighter";
-  st.s.forEach(p => { p.x += p.v * dt; if (p.x > 1.05) p.x = -.05; const tw = .35 + .65 * Math.pow(.5 + .5 * Math.sin(now / 1000 * p.sp + p.ph), 2);
-    const x = p.x * w, y = p.y * h, r = p.r * w / 58; g.globalAlpha = tw; g.fillStyle = "#EEF2FF"; g.beginPath(); g.arc(x, y, r, 0, 6.283); g.fill();
-    if (p.r > 1.1) { g.globalAlpha = tw * .35; g.fillRect(x - r * 3, y - r * .25, r * 6, r * .5); g.fillRect(x - r * .25, y - r * 3, r * .5, r * 6); } });
-  if (dense) { st.next -= dt; if (!st.sh && st.next <= 0) { st.sh = { x: w * (.2 + Math.random() * .5), y: h * (.12 + Math.random() * .3), age: 0 }; st.next = 2.5 + Math.random() * 3.5; }
+  st.s.forEach(p => { p.x += p.v * dt; if (p.x > 1.05) p.x = -.05; const tw = .15 + .45 * Math.pow(.5 + .5 * Math.sin(now / 1000 * p.sp + p.ph), 2);
+    const x = p.x * w, y = p.y * h, r = p.r * w / 58; g.globalAlpha = tw; g.fillStyle = "#EEF2FF"; g.beginPath(); g.arc(x, y, r, 0, 6.283); g.fill(); });
+  if (dense) { st.next -= dt; if (!st.sh && st.next <= 0) { st.sh = { x: w * (.2 + Math.random() * .5), y: h * (.12 + Math.random() * .3), age: 0 }; st.next = 7 + Math.random() * 7; }
     if (st.sh) { const s2 = st.sh; s2.age += dt; const a = s2.age / .6; if (a >= 1) st.sh = null; else { const x = s2.x + a * w * .5, y = s2.y + a * h * .28, tx = x - w * .22, ty = y - h * .12;
-      const gr = g.createLinearGradient(tx, ty, x, y); gr.addColorStop(0, "rgba(238,242,255,0)"); gr.addColorStop(1, `rgba(238,242,255,${(1 - a) * .95})`);
-      g.globalAlpha = 1; g.strokeStyle = gr; g.lineWidth = w / 58 * 1.1; g.lineCap = "round"; g.beginPath(); g.moveTo(tx, ty); g.lineTo(x, y); g.stroke(); } } }
+      const gr = g.createLinearGradient(tx, ty, x, y); gr.addColorStop(0, "rgba(238,242,255,0)"); gr.addColorStop(1, `rgba(238,242,255,${(1 - a) * .5})`);
+      g.globalAlpha = 1; g.strokeStyle = gr; g.lineWidth = w / 58 * .8; g.lineCap = "round"; g.beginPath(); g.moveTo(tx, ty); g.lineTo(x, y); g.stroke(); } } }
   g.globalAlpha = 1; g.globalCompositeOperation = "source-over";
 }
 function microFlames(){
@@ -3710,7 +3706,7 @@ function microFlames(){
       const md = cv.dataset.m;
       if (md) { const g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
         if (md === "sun") mfSun(g, w, h, P, dt, now);
-        else if (md === "auto") { /* helle Hälfte oben links (Fünkchen), dunkle unten rechts (Sterne) – Trennlinie wie im Symbol */
+        else if (md === "auto") { /* helle Hälfte oben links (Strahlen), dunkle unten rechts (Sterne) – Trennlinie wie im Symbol */
           g.save(); g.beginPath(); g.moveTo(0, 0); g.lineTo(w, 0); g.lineTo(0, h); g.closePath(); g.clip(); mfSun(g, w, h, P, dt, now); g.restore();
           g.save(); g.beginPath(); g.moveTo(w, 0); g.lineTo(w, h); g.lineTo(0, h); g.closePath(); g.clip(); mfStars(g, w, h, P.st, dt, now, false); g.restore(); }
         else mfStars(g, w, h, P.st, dt, now, md === "stars+");
