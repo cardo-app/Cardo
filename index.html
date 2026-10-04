@@ -4255,7 +4255,7 @@ function sfxPlay(ac, ch, v){
   /* Weicher, dumpfer Ton für „falsch“ – sauber gestimmt, ohne Gleiten */
   const bonk = (f, at, dur, vol) => { osc(f, at, dur, "triangle", vol * 0.5, { lp: 1200 }); osc(f, at, dur, "sine", vol); };
   if (v === 0) { bonk(329.63, 0, 0.14, 0.55); bonk(261.63, 0.12, 0.32, 0.6); }           /* Nochmal: E4 → C4 (große Terz abwärts, klingt sauber) */
-  else if (v === 1) { ding(659.3, 0, 0.5, 0.45); }                                         /* Schwer: ein neutraler Ton, klingt etwas nach */
+  else if (v === 1) { ding(659.3, 0, 0.14, 0.42); ding(659.3, 0.1, 0.45, 0.45); }             /* Schwer: zweimal derselbe Ton (E5) – neutral, weder hoch noch runter */
   else if (v === 2) { ding(1046.5, 0, 0.14, 0.45); ding(1318.5, 0.075, 0.35, 0.5); }       /* Gut: „ding-ding“ nach oben */
   else { /* Einfach: schnelles Dur-Arpeggio C–E–G–C nach oben, reine Sinustöne mit Oktave → klar und „belohnend“ */
     const pure = (f, at, dur, vol) => { osc(f, at, dur, "sine", vol); osc(f * 2, at, dur * 0.4, "sine", vol * 0.18); };
