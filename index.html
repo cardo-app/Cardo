@@ -712,18 +712,13 @@ button.set-item:hover{background:color-mix(in oklab,var(--ink) 4%,transparent)}
 .theme.deco.on .theme-ic{box-shadow:0 0 0 3px var(--surface),0 0 0 5.5px color-mix(in oklab,var(--tb) 72%,var(--ink)),0 10px 26px -6px color-mix(in oklab,var(--tb) 90%,transparent)}
 .theme.on:is([data-v="light"],[data-v="dark"],[data-v="black"],[data-v="auto"]) .theme-ic{box-shadow:0 0 0 3px var(--surface),0 0 0 5.5px var(--ink),0 6px 18px -8px rgba(0,0,0,.45)}
 .theme:active .theme-ic{transform:scale(.92);transition-duration:.08s}
-/* Farbthemen: Knöpfe leuchten sanft pulsierend in ihrer Farbe (Lichtschein hinter dem Knopf + Glanz im Knopf) */
-.theme.glow{position:relative}
-.theme .glw{position:absolute;left:50%;top:33px;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;pointer-events:none;
-  background:radial-gradient(circle,var(--tb) 0,color-mix(in oklab,var(--tb) 60%,transparent) 45%,transparent 70%);
-  filter:blur(6px);opacity:.35;transform:scale(1.05);animation:glowPulse 2.8s ease-in-out infinite;animation-delay:var(--gd,0s);will-change:transform,opacity}
-.theme.glow .theme-ic{z-index:1}
+/* Farbthemen: ab und zu huscht eine Lichtspiegelung schräg über den Knopf (reihum versetzt) */
 .theme.glow .theme-ic::after{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;
-  background:radial-gradient(70% 70% at 50% 45%,rgba(255,255,255,.45),transparent 70%);opacity:0;animation:glowShine 2.8s ease-in-out infinite;animation-delay:var(--gd,0s)}
+  background:linear-gradient(115deg,transparent 38%,rgba(255,255,255,.18) 44%,rgba(255,255,255,.75) 50%,rgba(255,255,255,.18) 56%,transparent 62%) no-repeat;
+  background-size:300% 100%;background-position:130% 0;animation:glint 5s ease-in-out infinite;animation-delay:var(--gd,0s)}
 .theme.glow .theme-ic svg{position:relative;z-index:1}
-@keyframes glowPulse{0%,100%{opacity:.3;transform:scale(1.05)}50%{opacity:.95;transform:scale(1.55)}}
-@keyframes glowShine{0%,100%{opacity:0}50%{opacity:.7}}
-@media (prefers-reduced-motion:reduce){.theme .glw,.theme.glow .theme-ic::after{animation:none}}
+@keyframes glint{0%{background-position:130% 0}16%,100%{background-position:-30% 0}}
+@media (prefers-reduced-motion:reduce){.theme.glow .theme-ic::after{animation:none;opacity:0}}
 .theme.on{color:var(--ink);font-weight:700}
 .theme:active{transform:none}
 @media (prefers-reduced-motion:reduce){.theme-ic,.theme .theme-ic{transition:none}}
@@ -3674,8 +3669,8 @@ const DESIGN_ORB = {
 function lookPickerHTML(){
   const card = k => { const on = S.set.look === k, i = lookInfo(k);
     const t = THEMES.find(x => x.k === k), bg = t ? t.c : i.bg, fg = t ? (DESIGN_ORB[k] ? DESIGN_ORB[k][1] : "#FFFFFF") : i.fg; /* Farbthemen: Symbol immer weiß */ /* Kugel in Themenfarbe, Designs als kleine bunte Szene */
-    const glow = t && !t.design && t.base === "light"; /* Farbthemen leuchten */
-    return `<button class="theme ${on ? 'on' : ''}${DESIGN_ORB[k] ? ' deco' : ''}${glow ? ' glow' : ''}" data-act="setLook" data-v="${k}" role="radio" aria-checked="${on}"${glow ? ` style="--tb:${bg};--gd:${-(THEMES.indexOf(t) * .45 % 2.8).toFixed(2)}s"` : ''}>${glow ? '<i class="glw" aria-hidden="true"></i>' : ''}<span class="theme-ic" style="--tb:${bg};--tf:${fg}${DESIGN_ORB[k] ? `;--orb:${DESIGN_ORB[k][0]}` : ''}">${THEME_IC[k]}</span>${i.n}</button>`; };
+    const glow = t && !t.design && t.base === "light"; /* Farbthemen: Lichtspiegelung */
+    return `<button class="theme ${on ? 'on' : ''}${DESIGN_ORB[k] ? ' deco' : ''}${glow ? ' glow' : ''}" data-act="setLook" data-v="${k}" role="radio" aria-checked="${on}"${glow ? ` style="--gd:${(THEMES.indexOf(t) * .6).toFixed(1)}s"` : ''}><span class="theme-ic" style="--tb:${bg};--tf:${fg}${DESIGN_ORB[k] ? `;--orb:${DESIGN_ORB[k][0]}` : ''}">${THEME_IC[k]}</span>${i.n}</button>`; };
   return `<div role="radiogroup" aria-label="Thema">
       <div class="themes">${NEUTRAL.map(([k]) => card(k)).join("")}</div>
       <div class="lbl" style="margin:20px 0 12px">Farbthemen</div>
