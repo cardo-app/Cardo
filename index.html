@@ -107,6 +107,7 @@ body.starry{background-color:transparent}
 /* Sternenhimmel (Night): eigene, feststehende Ebene hinter der ganzen App – beim Wischen gleiten nur die Seiten darüber */
 #sky{position:fixed;left:0;right:0;top:-80px;bottom:-80px;z-index:-1;pointer-events:none;display:none}
 #sky canvas{display:block;width:100%;height:100%}
+#sky canvas.lf{position:absolute;inset:0}#sky canvas.lf[hidden]{display:none}
 body:is(.starry,.beach,.aurora,.autumn) #sky{display:block}
 body:is(.starry,.beach,.aurora,.autumn) .peek{background:transparent}
 body:is(.starry,.beach,.aurora,.autumn) #crumbbar{background:color-mix(in srgb,var(--paper) 55%,transparent);-webkit-backdrop-filter:blur(16px) saturate(140%);backdrop-filter:blur(16px) saturate(140%)} /* Pfadleiste lässt den Design-Hintergrund durchscheinen */
@@ -2717,13 +2718,79 @@ function paintAutumn(g, w, h, rnd, glow){
   /* Waldweg */
   g.fillStyle = "#F0CFA0"; g.beginPath(); g.moveTo(w * .42, h); g.bezierCurveTo(w * .45, Y(.92), w * .6, Y(.86), w * .52, Y(.8)); g.lineTo(w * .56, Y(.8)); g.bezierCurveTo(w * .7, Y(.86), w * .62, Y(.94), w * .7, h); g.fill();
   [[.12, .84, 110], [.92, .86, 120]].forEach(([fx, fy, sz]) => tree(w * fx, Y(fy), sz, ["#C9342A", "#E8582A", "#F2A03D", "#D9482A", "#F5C04A"]));
-  /* fallende Blätter */
+  /* Blätter am Boden (die fallenden zeichnet autumnLeaves() als Animation darüber) */
   const leaf = (x, y, s, rot, col) => { g.save(); g.translate(x, y); g.rotate(rot); g.fillStyle = col; g.beginPath(); g.moveTo(0, -s); g.quadraticCurveTo(s * .8, -s * .2, 0, s); g.quadraticCurveTo(-s * .8, -s * .2, 0, -s); g.fill();
     g.strokeStyle = "rgba(90,40,20,.35)"; g.lineWidth = 1; g.beginPath(); g.moveTo(0, -s * .8); g.lineTo(0, s * 1.2); g.stroke(); g.restore(); };
-  for (let i = 0; i < 34; i++) leaf(R(0, w), R(top, Y(.95)), R(4, 8), R(0, 6), ["#E8582A", "#F2A03D", "#C9342A", "#F5C04A", "#B5532A"][rnd() * 5 | 0]);
   for (let i = 0; i < 30; i++) leaf(R(0, w), R(Y(.86), h), R(4, 7), R(0, 6), ["#E8792F", "#C9342A", "#F2A03D"][rnd() * 3 | 0]);
 }
-addEventListener("resize", () => { clearTimeout(drawSky.t); drawSky.t = setTimeout(drawSky, 150); });
+/* Autumn: Blätter fallen vom Himmel – eigene Leinwand über dem Herbstbild (hinter der App).
+   Läuft nur, solange Autumn aktiv und die App sichtbar ist; bei „Bewegung reduzieren“ bleiben die Blätter stehen. */
+const LF = { cv: null, raf: 0, leaves: [], spr: null, w: 0, h: 0, dpr: 1, last: 0 };
+function leafPath(g, kind, s){
+  g.beginPath();
+  if (kind === 0) { g.moveTo(0, -s); g.quadraticCurveTo(s * .8, -s * .2, 0, s * .8); g.quadraticCurveTo(-s * .8, -s * .2, 0, -s); return; }
+  /* Ahornblatt: rechte Hälfte, dann gespiegelt */
+  const R = [[0,-1],[.16,-.62],[.44,-.78],[.38,-.34],[.92,-.46],[.72,-.06],[.9,.14],[.44,.2],[.5,.48],[.12,.38],[0,.52]];
+  R.forEach(([x, y], i) => i ? g.lineTo(x * s, y * s) : g.moveTo(x * s, y * s));
+  for (let i = R.length - 2; i > 0; i--) g.lineTo(-R[i][0] * s, R[i][1] * s);
+  g.closePath();
+}
+function leafSprites(dpr){
+  const cols = ["#E8582A", "#F2A03D", "#C9342A", "#F5C04A", "#B5532A", "#E8792F"], s = 14;
+  return cols.flatMap(col => [0, 1].map(kind => {
+    const c = document.createElement("canvas"); c.width = c.height = Math.ceil(s * 2.2 * dpr); const g = c.getContext("2d");
+    g.scale(dpr, dpr); g.translate(s * 1.1, s * 1.1);
+    leafPath(g, kind, s); g.fillStyle = col; g.fill();
+    g.strokeStyle = "rgba(90,40,20,.38)"; g.lineWidth = 1.1; g.lineCap = "round"; g.beginPath(); g.moveTo(0, -s * .75); g.lineTo(0, s * 1.05); g.stroke();
+    if (kind === 1) { g.lineWidth = .8; g.beginPath(); g.moveTo(0, s * .1); g.lineTo(s * .6, -s * .3); g.moveTo(0, s * .1); g.lineTo(-s * .6, -s * .3); g.stroke(); }
+    return c;
+  }));
+}
+function newLeaf(top){
+  const r = Math.random;
+  return { x: r() * LF.w, y: top ? -20 - r() * LF.h * .3 : r() * LF.h, s: 8 + r() * 8, vy: 30 + r() * 40, amp: 14 + r() * 34, f: .5 + r() * .9, ph: r() * 6.3,
+    wind: 4 + r() * 10, rot: r() * 6.3, vr: (r() - .5) * 2.4, fl: r() * 6.3, vf: .7 + r() * 1.6, spr: r() * LF.spr.length | 0, a: .82 + r() * .18 };
+}
+function autumnLeaves(){
+  const on = document.body.classList.contains("autumn") && document.visibilityState !== "hidden", el = document.getElementById("sky");
+  if (!on || !el) { cancelAnimationFrame(LF.raf); LF.raf = 0; if (LF.cv) LF.cv.hidden = true; return; }
+  if (!LF.cv) { LF.cv = document.createElement("canvas"); LF.cv.className = "lf"; }
+  if (LF.cv.parentNode !== el) el.appendChild(LF.cv);
+  LF.cv.hidden = false;
+  const w = el.clientWidth || innerWidth, h = el.clientHeight || innerHeight + 160, dpr = Math.min(2, devicePixelRatio || 1);
+  if (w !== LF.w || h !== LF.h || dpr !== LF.dpr || !LF.spr) {
+    LF.w = w; LF.h = h; LF.cv.width = Math.round(w * dpr); LF.cv.height = Math.round(h * dpr);
+    if (!LF.spr || dpr !== LF.dpr) LF.spr = leafSprites(dpr); LF.dpr = dpr;
+    const n = Math.max(12, Math.min(36, Math.round(w * h / 17000)));
+    LF.leaves = Array.from({ length: n }, () => newLeaf(false));
+  }
+  const g = LF.cv.getContext("2d"), still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const draw = t => {
+    g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, LF.cv.width, LF.cv.height);
+    for (const p of LF.leaves) {
+      const x = p.x + Math.sin(t * p.f + p.ph) * p.amp, sx = Math.cos(p.fl), k = p.s / 14;
+      g.setTransform(LF.dpr, 0, 0, LF.dpr, 0, 0); g.translate(x, p.y); g.rotate(p.rot + Math.sin(t * p.f + p.ph) * .5); g.scale(k * (Math.abs(sx) < .3 ? .3 * Math.sign(sx || 1) : sx), k);
+      g.globalAlpha = p.a; const im = LF.spr[p.spr]; g.drawImage(im, -im.width / LF.dpr / 2, -im.height / LF.dpr / 2, im.width / LF.dpr, im.height / LF.dpr);
+    }
+    g.globalAlpha = 1;
+  };
+  if (still) { cancelAnimationFrame(LF.raf); LF.raf = 0; draw(0); return; }
+  if (LF.raf) return;
+  LF.last = performance.now();
+  const step = now => {
+    LF.raf = requestAnimationFrame(step);
+    const dt = (now - LF.last) / 1000; if (dt < .014) return; /* höchstens ~60 Bilder/s, auch auf 120-Hz-Displays */
+    LF.last = now; const d = Math.min(dt, .1), t = now / 1000;
+    for (const p of LF.leaves) {
+      p.y += p.vy * d; p.x += p.wind * d; p.rot += p.vr * d; p.fl += p.vf * d;
+      if (p.y > LF.h + 24 || p.x > LF.w + 60) Object.assign(p, newLeaf(true));
+    }
+    draw(t);
+  };
+  LF.raf = requestAnimationFrame(step);
+}
+document.addEventListener("visibilitychange", autumnLeaves);
+addEventListener("resize", () => { clearTimeout(drawSky.t); drawSky.t = setTimeout(() => { drawSky(); autumnLeaves(); }, 150); });
 function applyTheme(){
   document.body.dataset.ts = S.set.textSize || "m";
   document.body.dataset.glass = String(S.set.glass ?? 1); /* Transparenz: 0 stark · 1 leicht · 2 aus */
@@ -2734,7 +2801,7 @@ function applyTheme(){
   b.style.setProperty("--accent-ink", t ? t.ink : dark ? BASE.id : BASE.il);
   ["b-paper","b-surface","b-surface-2","b-line","b-muted","b-ink","b-ink-2"].forEach(k => { if (t && t.bases && t.bases[k]) b.style.setProperty("--" + k, t.bases[k]); else b.style.removeProperty("--" + k); });
   b.classList.toggle("starry", !!(t && t.stars)); drawSky();
-  ["beach", "aurora", "autumn"].forEach(k => b.classList.toggle(k, !!(t && t[k]))); drawSky();
+  ["beach", "aurora", "autumn"].forEach(k => b.classList.toggle(k, !!(t && t[k]))); drawSky(); autumnLeaves();
   b.classList.toggle("hearts", !!(t && t.hearts));
   ["tp","ts","ts2","tl","ti"].forEach(k => { if (t && t.flat) b.style.setProperty("--" + k, "3%"); else b.style.removeProperty("--" + k); });
   drawSky.ready = true; applyTop();
