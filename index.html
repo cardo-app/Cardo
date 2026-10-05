@@ -2757,8 +2757,8 @@ function leafSprites(dpr){
 function newLeaf(top, layer){
   const r = Math.random, L = layer ?? (r() < .45 ? 0 : 1);
   const P = [ { s: [4, 7],   vy: [14, 24],  amp: [6, 14],  a: [.5, .7] },
-              { s: [8, 13],  vy: [30, 55],  amp: [14, 40], a: [.85, 1] },
-              { s: [32, 46], vy: [90, 135], amp: [36, 70], a: [.85, .95] } ][L], R = ([a, b]) => a + r() * (b - a);
+              { s: [8, 13],  vy: [30, 55],  amp: [14, 40], a: [1, 1] },
+              { s: [32, 46], vy: [90, 135], amp: [36, 70], a: [1, 1] } ][L], R = ([a, b]) => a + r() * (b - a);
   return { L, x: r() * LF.w, y: top ? -40 - r() * LF.h * (L === 2 ? 1.6 : .3) : r() * LF.h, /* nahes Blatt kommt mit Pausen */ s: R(P.s), vy: R(P.vy), amp: R(P.amp), f: .5 + r() * .9, ph: r() * 6.3,
     wind: (4 + r() * 10) * (.5 + L * .5), rot: r() * 6.3, vr: (r() - .5) * 2.4, fl: r() * 6.3, vf: .7 + r() * 1.6, spr: r() * 12 | 0, a: R(P.a) };
 }
