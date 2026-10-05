@@ -2735,21 +2735,32 @@ function leafPath(g, kind, s){
   for (let i = R.length - 2; i > 0; i--) g.lineTo(-R[i][0] * s, R[i][1] * s);
   g.closePath();
 }
+/* Drei Entfernungen: 0 = weit weg (klein, blass im Dunst, leicht unscharf) · 1 = Mitte (scharf) · 2 = ganz nah (groß, unscharf wie bei einer Kamera).
+   Unschärfe über Schatten-Trick (shadowBlur), weil Safari „filter“ auf der Leinwand nicht zuverlässig kann. */
+const LF_LAYERS = [{ blur: 1.2, haze: .45 }, { blur: 0, haze: 0 }, { blur: 3.5, haze: 0 }];
 function leafSprites(dpr){
-  const cols = ["#E8582A", "#F2A03D", "#C9342A", "#F5C04A", "#B5532A", "#E8792F"], s = 14;
-  return cols.flatMap(col => [0, 1].map(kind => {
-    const c = document.createElement("canvas"); c.width = c.height = Math.ceil(s * 2.2 * dpr); const g = c.getContext("2d");
-    g.scale(dpr, dpr); g.translate(s * 1.1, s * 1.1);
-    leafPath(g, kind, s); g.fillStyle = col; g.fill();
-    g.strokeStyle = "rgba(90,40,20,.38)"; g.lineWidth = 1.1; g.lineCap = "round"; g.beginPath(); g.moveTo(0, -s * .75); g.lineTo(0, s * 1.05); g.stroke();
-    if (kind === 1) { g.lineWidth = .8; g.beginPath(); g.moveTo(0, s * .1); g.lineTo(s * .6, -s * .3); g.moveTo(0, s * .1); g.lineTo(-s * .6, -s * .3); g.stroke(); }
+  const cols = ["#E8582A", "#F2A03D", "#C9342A", "#F5C04A", "#B5532A", "#E8792F"], s = 14, pad = 8;
+  const mix = (a, b, t) => "#" + [1, 3, 5].map(i => Math.round(parseInt(a.substr(i, 2), 16) * (1 - t) + parseInt(b.substr(i, 2), 16) * t).toString(16).padStart(2, "0")).join("");
+  return LF_LAYERS.map(L => cols.flatMap(c0 => [0, 1].map(kind => {
+    const col = L.haze ? mix(c0, "#FBDDB0", L.haze) : c0, size = s * 2.2 + pad * 2;
+    const c = document.createElement("canvas"); c.width = c.height = Math.ceil(size * dpr); const g = c.getContext("2d");
+    g.scale(dpr, dpr); g.translate(size / 2, size / 2);
+    const shape = () => {
+      leafPath(g, kind, s); g.fillStyle = col; g.fill();
+      g.strokeStyle = L.haze ? "rgba(140,90,60,.25)" : "rgba(90,40,20,.38)"; g.lineWidth = 1.1; g.lineCap = "round"; g.beginPath(); g.moveTo(0, -s * .75); g.lineTo(0, s * 1.05); g.stroke();
+      if (kind === 1) { g.lineWidth = .8; g.beginPath(); g.moveTo(0, s * .1); g.lineTo(s * .6, -s * .3); g.moveTo(0, s * .1); g.lineTo(-s * .6, -s * .3); g.stroke(); }
+    };
+    if (L.blur) { g.shadowColor = col; g.shadowBlur = L.blur * dpr; g.shadowOffsetX = 1000 * dpr; g.translate(-1000, 0); shape(); } else shape();
     return c;
-  }));
+  })));
 }
-function newLeaf(top){
-  const r = Math.random;
-  return { x: r() * LF.w, y: top ? -20 - r() * LF.h * .3 : r() * LF.h, s: 8 + r() * 8, vy: 30 + r() * 40, amp: 14 + r() * 34, f: .5 + r() * .9, ph: r() * 6.3,
-    wind: 4 + r() * 10, rot: r() * 6.3, vr: (r() - .5) * 2.4, fl: r() * 6.3, vf: .7 + r() * 1.6, spr: r() * LF.spr.length | 0, a: .82 + r() * .18 };
+function newLeaf(top, layer){
+  const r = Math.random, L = layer ?? (r() < .42 ? 0 : r() < .87 ? 1 : 2);
+  const P = [ { s: [4, 7],   vy: [14, 24],  amp: [6, 14],  a: [.5, .7] },
+              { s: [8, 13],  vy: [30, 55],  amp: [14, 40], a: [.85, 1] },
+              { s: [20, 28], vy: [80, 120], amp: [30, 60], a: [.85, .95] } ][L], R = ([a, b]) => a + r() * (b - a);
+  return { L, x: r() * LF.w, y: top ? -40 - r() * LF.h * .3 : r() * LF.h, s: R(P.s), vy: R(P.vy), amp: R(P.amp), f: .5 + r() * .9, ph: r() * 6.3,
+    wind: (4 + r() * 10) * (.5 + L * .5), rot: r() * 6.3, vr: (r() - .5) * 2.4, fl: r() * 6.3, vf: .7 + r() * 1.6, spr: r() * 12 | 0, a: R(P.a) };
 }
 function autumnLeaves(){
   const on = document.body.classList.contains("autumn") && document.visibilityState !== "hidden", el = document.getElementById("sky");
@@ -2761,16 +2772,16 @@ function autumnLeaves(){
   if (w !== LF.w || h !== LF.h || dpr !== LF.dpr || !LF.spr) {
     LF.w = w; LF.h = h; LF.cv.width = Math.round(w * dpr); LF.cv.height = Math.round(h * dpr);
     if (!LF.spr || dpr !== LF.dpr) LF.spr = leafSprites(dpr); LF.dpr = dpr;
-    const n = Math.max(12, Math.min(36, Math.round(w * h / 17000)));
-    LF.leaves = Array.from({ length: n }, () => newLeaf(false));
+    const n = Math.max(16, Math.min(44, Math.round(w * h / 13000)));
+    LF.leaves = Array.from({ length: n }, () => newLeaf(false)).sort((a, b) => a.L - b.L); /* hinten zuerst zeichnen */
   }
   const g = LF.cv.getContext("2d"), still = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const draw = t => {
     g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, LF.cv.width, LF.cv.height);
     for (const p of LF.leaves) {
-      const x = p.x + Math.sin(t * p.f + p.ph) * p.amp, sx = Math.cos(p.fl), k = p.s / 14;
+      const x = p.x + Math.sin(t * p.f + p.ph) * p.amp, sx = Math.cos(p.fl), k = p.s / 14; /* Bild ist 14er-Blatt + Rand */
       g.setTransform(LF.dpr, 0, 0, LF.dpr, 0, 0); g.translate(x, p.y); g.rotate(p.rot + Math.sin(t * p.f + p.ph) * .5); g.scale(k * (Math.abs(sx) < .3 ? .3 * Math.sign(sx || 1) : sx), k);
-      g.globalAlpha = p.a; const im = LF.spr[p.spr]; g.drawImage(im, -im.width / LF.dpr / 2, -im.height / LF.dpr / 2, im.width / LF.dpr, im.height / LF.dpr);
+      g.globalAlpha = p.a; const im = LF.spr[p.L][p.spr]; g.drawImage(im, -im.width / LF.dpr / 2, -im.height / LF.dpr / 2, im.width / LF.dpr, im.height / LF.dpr);
     }
     g.globalAlpha = 1;
   };
@@ -2783,7 +2794,7 @@ function autumnLeaves(){
     LF.last = now; const d = Math.min(dt, .1), t = now / 1000;
     for (const p of LF.leaves) {
       p.y += p.vy * d; p.x += p.wind * d; p.rot += p.vr * d; p.fl += p.vf * d;
-      if (p.y > LF.h + 24 || p.x > LF.w + 60) Object.assign(p, newLeaf(true));
+      if (p.y > LF.h + 50 || p.x > LF.w + 80) Object.assign(p, newLeaf(true, p.L)); /* gleiche Entfernung behalten → Reihenfolge stimmt */
     }
     draw(t);
   };
