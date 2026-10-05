@@ -2735,9 +2735,9 @@ function leafPath(g, kind, s){
   for (let i = R.length - 2; i > 0; i--) g.lineTo(-R[i][0] * s, R[i][1] * s);
   g.closePath();
 }
-/* Drei Entfernungen: 0 = weit weg (klein, blass im Dunst, leicht unscharf) · 1 = Mitte (scharf) · 2 = ganz nah (groß, unscharf wie bei einer Kamera).
+/* Vier Entfernungen: 0 = weit weg (klein, blass im Dunst, leicht unscharf) · 1 = Mitte (scharf) · 2 = näher (größer, scharf) · 3 = ganz nah (groß, leicht unscharf, nur eins).
    Unschärfe über Schatten-Trick (shadowBlur), weil Safari „filter“ auf der Leinwand nicht zuverlässig kann. */
-const LF_LAYERS = [{ blur: 1.2, haze: .45, res: 1 }, { blur: 0, haze: 0, res: 1 }, { blur: .7, haze: 0, res: 3 }]; /* res: nahe Blätter in höherer Auflösung, weil sie stark vergrößert werden */
+const LF_LAYERS = [{ blur: 1.2, haze: .45, res: 1 }, { blur: 0, haze: 0, res: 1 }, { blur: 0, haze: 0, res: 2 }, { blur: .7, haze: 0, res: 3 }]; /* res: nahe Blätter in höherer Auflösung, weil sie stark vergrößert werden */
 function leafSprites(dpr){
   const cols = ["#E8582A", "#F2A03D", "#C9342A", "#F5C04A", "#B5532A", "#E8792F"], s = 14, pad = 8;
   const mix = (a, b, t) => "#" + [1, 3, 5].map(i => Math.round(parseInt(a.substr(i, 2), 16) * (1 - t) + parseInt(b.substr(i, 2), 16) * t).toString(16).padStart(2, "0")).join("");
@@ -2755,11 +2755,12 @@ function leafSprites(dpr){
   })));
 }
 function newLeaf(top, layer){
-  const r = Math.random, L = layer ?? (r() < .45 ? 0 : 1);
+  const r = Math.random, L = layer ?? (r() < .35 ? 0 : r() < .62 ? 1 : 2); /* ca. 35 % weit weg, 40 % Mitte, 25 % näher */
   const P = [ { s: [4, 7],   vy: [14, 24],  amp: [6, 14],  a: [.5, .7] },
               { s: [8, 13],  vy: [30, 55],  amp: [14, 40], a: [1, 1] },
+              { s: [16, 23], vy: [55, 85],  amp: [24, 52], a: [1, 1] },
               { s: [32, 46], vy: [90, 135], amp: [36, 70], a: [1, 1] } ][L], R = ([a, b]) => a + r() * (b - a);
-  return { L, x: r() * LF.w, y: top ? -40 - r() * LF.h * (L === 2 ? 1.6 : .3) : r() * LF.h, /* nahes Blatt kommt mit Pausen */ s: R(P.s), vy: R(P.vy), amp: R(P.amp), f: .5 + r() * .9, ph: r() * 6.3,
+  return { L, x: r() * LF.w, y: top ? -40 - r() * LF.h * (L === 3 ? 1.6 : .3) : r() * LF.h, /* nahes Blatt kommt mit Pausen */ s: R(P.s), vy: R(P.vy), amp: R(P.amp), f: .5 + r() * .9, ph: r() * 6.3,
     wind: (4 + r() * 10) * (.5 + L * .5), rot: r() * 6.3, vr: (r() - .5) * 2.4, fl: r() * 6.3, vf: .7 + r() * 1.6, spr: r() * 12 | 0, a: R(P.a) };
 }
 function autumnLeaves(){
@@ -2773,7 +2774,7 @@ function autumnLeaves(){
     LF.w = w; LF.h = h; LF.cv.width = Math.round(w * dpr); LF.cv.height = Math.round(h * dpr);
     if (!LF.spr || dpr !== LF.dpr) LF.spr = leafSprites(dpr); LF.dpr = dpr;
     const n = Math.max(16, Math.min(44, Math.round(w * h / 13000)));
-    LF.leaves = [...Array.from({ length: n - 1 }, () => newLeaf(false)), newLeaf(true, 2)].sort((a, b) => a.L - b.L); /* nur ein nahes Blatt; hinten zuerst zeichnen */
+    LF.leaves = [...Array.from({ length: n - 1 }, () => newLeaf(false)), newLeaf(true, 3)].sort((a, b) => a.L - b.L); /* nur ein nahes Blatt; hinten zuerst zeichnen */
   }
   const g = LF.cv.getContext("2d"), still = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const draw = t => {
