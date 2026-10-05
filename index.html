@@ -2737,7 +2737,7 @@ function leafPath(g, kind, s){
 }
 /* Drei Entfernungen: 0 = weit weg (klein, blass im Dunst, leicht unscharf) · 1 = Mitte (scharf) · 2 = ganz nah (groß, unscharf wie bei einer Kamera).
    Unschärfe über Schatten-Trick (shadowBlur), weil Safari „filter“ auf der Leinwand nicht zuverlässig kann. */
-const LF_LAYERS = [{ blur: 1.2, haze: .45 }, { blur: 0, haze: 0 }, { blur: 3.5, haze: 0 }];
+const LF_LAYERS = [{ blur: 1.2, haze: .45 }, { blur: 0, haze: 0 }, { blur: 1.2, haze: 0 }];
 function leafSprites(dpr){
   const cols = ["#E8582A", "#F2A03D", "#C9342A", "#F5C04A", "#B5532A", "#E8792F"], s = 14, pad = 8;
   const mix = (a, b, t) => "#" + [1, 3, 5].map(i => Math.round(parseInt(a.substr(i, 2), 16) * (1 - t) + parseInt(b.substr(i, 2), 16) * t).toString(16).padStart(2, "0")).join("");
