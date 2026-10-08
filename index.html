@@ -2566,7 +2566,19 @@ function paintStars(g, w, h, rnd, glow){
   for (let i = 0; i < n; i++) { const r = rnd(); star(rnd() * w, rnd() * h, r < .85 ? .25 + rnd() * .45 : r < .97 ? .6 + rnd() * .5 : 1 + rnd() * .7, .25 + rnd() * .65, COLS[rnd() * COLS.length | 0]); }
   for (let i = 0; i < n * .9; i++) { const t = rnd(), o = (rnd() + rnd() + rnd() - 1.5) * band * .55; star(bx(t) + o * .7, by(t) + o, .2 + rnd() * .35, .2 + rnd() * .45, "#EAF0FF"); }
   for (let i = 0; i < Math.round(w * h / 26000); i++) { const x = rnd() * w, y = rnd() * h, c = COLS[rnd() * COLS.length | 0]; glow(x, y, 5 + rnd() * 5, "rgba(200,215,255,.22)"); star(x, y, 1.1 + rnd() * .6, .95, c); }
+  /* Sichelmond oben rechts (wie im Vorschaubild der Design-Auswahl): warmer Lichthof, unbeleuchteter Teil schwach zu erahnen, Krater */
+  const [mx, my, R] = nightMoon(w, h), d = g.getTransform().a || 1;
+  glow(mx - R * .3, my + R * .2, R * 3.2, "rgba(244,201,93,.14)");
+  g.fillStyle = "rgba(14,22,66,.94)"; g.beginPath(); g.arc(mx, my, R * .98, 0, Math.PI * 2); g.fill();
+  g.strokeStyle = "rgba(160,180,230,.12)"; g.lineWidth = 1; g.beginPath(); g.arc(mx, my, R * .97, 0, Math.PI * 2); g.stroke();
+  const c = document.createElement("canvas"), S = Math.ceil(R * 2.2 * d), o = R * 1.1; c.width = c.height = S; const m = c.getContext("2d"); m.scale(d, d);
+  const q = m.createRadialGradient(o - R * .3, o - R * .3, 0, o, o, R); q.addColorStop(0, "#FFF0B8"); q.addColorStop(1, "#F4C95D"); m.fillStyle = q; m.beginPath(); m.arc(o, o, R, 0, Math.PI * 2); m.fill();
+  m.fillStyle = "rgba(200,150,60,.25)"; [[-.3, .2, .16], [.1, .45, .1], [-.05, -.25, .08], [-.55, -.1, .07]].forEach(([dx, dy, r]) => { m.beginPath(); m.arc(o + dx * R, o + dy * R, r * R, 0, Math.PI * 2); m.fill(); });
+  m.globalCompositeOperation = "destination-out"; m.fillStyle = "#000"; m.beginPath(); m.arc(o + R * .55, o - R * .3, R * .9, 0, Math.PI * 2); m.fill();
+  g.drawImage(c, mx - o, my - o, S / d, S / d);
 }
+/* Lage und Größe des Mondes (Night) – gemeinsam für Bild und Animation */
+function nightMoon(w, h){ return [w * .76, 80 + (h - 160) * .22, Math.min(w * .085, 34)]; }
 /* Beach: sonniger Himmel, türkises Meer mit Wellen, Sandstrand, zwei Palmen mit Kokosnüssen – flacher, freundlicher Stil */
 function paintBeach(g, w, h, rnd, glow){
   const top = 80, H = h - top * 2, Y = f => top + H * f; /* Y(0) = oberer, Y(1) = unterer Bildschirmrand */
@@ -3057,6 +3069,9 @@ function nightFx(){
       gr.addColorStop(0, `rgba(255,255,255,${a.toFixed(3)})`); gr.addColorStop(.3, `rgba(205,222,255,${(.6 * a).toFixed(3)})`); gr.addColorStop(1, "rgba(160,190,255,0)");
       g.strokeStyle = gr; g.lineWidth = m.wd; g.lineCap = "round"; g.beginPath(); g.moveTo(hx, hy); g.lineTo(tx, ty); g.stroke();
       g.globalAlpha = a * (m.bright ? 1 : .7); const z = m.bright ? 22 : 12; g.drawImage(NF.glowSpr, hx - z / 2, hy - z / 2, z, z); g.globalAlpha = 1; }
+    /* dünne Wolke zieht ab und zu langsam vor dem Mond vorbei */
+    { const [mx, my, R] = nightMoon(w, h), span = w * 2.6, cx = ((w * 1.4 - t * 9) % span + span) % span - w * .6;
+      g.fillStyle = "rgba(40,55,120,.4)"; g.beginPath(); g.ellipse(cx, my + R * .25, R * 2.6, R * .28, 0, 0, Math.PI * 2); g.ellipse(cx + R * 1.1, my - R * .05, R * 1.5, R * .22, 0, 0, Math.PI * 2); g.fill(); }
     /* Satellit: winziger, gleichmäßig wandernder Punkt, blinkt ganz leicht */
     if (NF.sat) { const S = NF.sat; g.globalAlpha = .55 + .2 * Math.sin(t * 2.3); g.fillStyle = "#EAF0FF"; g.beginPath(); g.arc(S.x, S.y, .9, 0, Math.PI * 2); g.fill(); g.globalAlpha = 1; }
   };
