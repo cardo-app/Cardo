@@ -107,7 +107,7 @@ body.starry{background-color:transparent}
 /* Sternenhimmel (Night): eigene, feststehende Ebene hinter der ganzen App – beim Wischen gleiten nur die Seiten darüber */
 #sky{position:fixed;left:0;right:0;top:-80px;bottom:-80px;z-index:-1;pointer-events:none;display:none}
 #sky canvas{display:block;width:100%;height:100%}
-#sky canvas:is(.lf,.bfx,.fg){position:absolute;inset:0}#sky canvas[hidden]{display:none}
+#sky canvas:is(.lf,.bfx,.afx,.fg){position:absolute;inset:0}#sky canvas[hidden]{display:none}
 body:is(.starry,.beach,.aurora,.autumn) #sky{display:block}
 body:is(.starry,.beach,.aurora,.autumn) .peek{background:transparent}
 body:is(.starry,.beach,.aurora,.autumn) #crumbbar{background:color-mix(in srgb,var(--paper) 55%,transparent);-webkit-backdrop-filter:blur(16px) saturate(140%);backdrop-filter:blur(16px) saturate(140%)} /* Pfadleiste lässt den Design-Hintergrund durchscheinen */
@@ -2534,12 +2534,13 @@ function isDark(){
 }
 /* Feststehende Hintergrund-Ebene der Designs (Night, Aurora, Autumn, Beach) – feste Zufallsfolge → immer dasselbe Bild */
 let skyKey = "", skyTop = "";
+const AU = { cv: null, raf: 0, w: 0, h: 0, dpr: 1, last: 0, bands: null, ver: 0, sprVer: -1, spr: [], tw: [] }; /* Aurora-Animation, siehe auroraFx() */
 function drawSky(){
   const bd = document.body, mode = bd.classList.contains("starry") ? "stars" : ["beach", "aurora", "autumn"].find(k => bd.classList.contains(k)) || "";
   if (!mode) return;
   let el = document.getElementById("sky"); if (!el) { el = document.createElement("div"); el.id = "sky"; el.setAttribute("aria-hidden", "true"); el.appendChild(document.createElement("canvas")); bd.prepend(el); }
   const w = el.clientWidth || innerWidth, h = el.clientHeight || innerHeight + 160, dpr = Math.min(3, devicePixelRatio || 1), key = `${mode}:${w}x${h}@${dpr}`;
-  if (key === skyKey) return; skyKey = key; if (mode !== "beach") skyCanvas("fg", false);
+  if (key === skyKey) return; skyKey = key; if (mode !== "beach" && mode !== "aurora") skyCanvas("fg", false);
   const cv = el.firstChild; cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
   const g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0);
   let seed = { stars: 7, beach: 31, aurora: 19, autumn: 41 }[mode]; const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
@@ -2657,22 +2658,23 @@ function paintAurora(g, w, h, rnd, glow){
   g.fillStyle = sky; g.fillRect(0, 0, w, h);
   for (let i = 0; i < Math.round(w * h / 1600); i++) { g.globalAlpha = R(.2, .8); g.fillStyle = rnd() < .2 ? "#DDE8FF" : "#FFFFFF"; g.beginPath(); g.arc(rnd() * w, rnd() * Y(.7), R(.3, 1.1), 0, Math.PI * 2); g.fill(); }
   g.globalAlpha = 1;
-  /* Nordlicht-Vorhänge: viele senkrechte, weich auslaufende Striche entlang einer Wellenlinie */
-  g.save(); g.globalCompositeOperation = "lighter";
+  /* Nordlicht-Vorhänge: Strahlen (Stärke k, Länge l) hier nur festlegen – auroraFx() zeichnet sie bewegt auf eigener Ebene */
+  AU.bands = []; AU.ver++;
   const band = (y0, amp, f, ph, len, a0, hue2) => {
+    const cols = [];
     for (let x = -10; x < w + 10; x += 1.5) {
-      const y = y0 + Math.sin(x / f + ph) * amp + Math.sin(x / (f * .37) + ph * 2) * amp * .25;
       const k = (.35 + .65 * Math.pow(Math.sin(x / (f * .6) + ph * 1.7) * .5 + .5, 1.5)) * R(.55, 1) /* feine Strahlen */, l = len * (.6 + .4 * Math.sin(x / (f * .45) + ph)) * R(.85, 1.1);
-      const q = g.createLinearGradient(0, y + 6, 0, y - l);
-      q.addColorStop(0, "rgba(90,255,170,0)"); q.addColorStop(.06, `rgba(110,255,180,${a0 * k})`); q.addColorStop(.3, `rgba(60,230,200,${a0 * k * .6})`); q.addColorStop(.7, `rgba(${hue2},${a0 * k * .3})`); q.addColorStop(1, `rgba(${hue2},0)`);
-      g.fillStyle = q; g.fillRect(x, y - l, 1.6, l + 6);
+      cols.push([x, k, l]);
     }
+    AU.bands.push({ y0, amp, f, ph, a0, hue2, cols, L: Math.max(...cols.map(c => c[2])) });
   };
   band(Y(.38), 36, 120, .4, Y(.3), .6, "150,90,255");
   band(Y(.5), 26, 85, 2.1, Y(.22), .45, "120,110,255");
   band(Y(.27), 18, 150, 4, Y(.18), .28, "190,90,240");
-  g.restore();
   glow(w * .45, Y(.4), Math.max(w, h) * .55, "rgba(60,220,160,.13)");
+  /* Berge, Schnee und Tannen auf die Vordergrund-Leinwand, damit das bewegte Nordlicht dahinter bleibt (g kurz umbiegen) */
+  const g0 = g, fgc = skyCanvas("fg", true);
+  if (fgc) { fgc.width = g0.canvas.width; fgc.height = g0.canvas.height; g = fgc.getContext("2d"); g.setTransform(g0.getTransform()); }
   /* Berge: hinten bläulich mit Schneekappen, vorne dunkel */
   const ridge = (base, hgt, seedPh, col, snow) => {
     const pts = []; let x = -20; while (x < w + 40) { pts.push([x, base - hgt * (.35 + .65 * Math.abs(Math.sin(x / 70 + seedPh) * Math.cos(x / 41 + seedPh * 2))) - R(0, hgt * .1)]); x += R(28, 52); }
@@ -2692,6 +2694,7 @@ function paintAurora(g, w, h, rnd, glow){
   const tree = (x, by, th) => { g.fillStyle = "#07111C"; g.fillRect(x - th * .03, by - th * .12, th * .06, th * .14);
     for (let k = 0; k < 4; k++) { const yy = by - th * .1 - k * th * .22, ww = th * (.36 - k * .07); g.beginPath(); g.moveTo(x, yy - th * .34); g.lineTo(x + ww, yy); g.lineTo(x - ww, yy); g.fill(); } };
   [[.04, 1.1], [.11, .8], [.17, .95], [.82, .9], [.89, 1.2], [.96, .85], [.62, .55], [.36, .5]].forEach(([fx, sc]) => tree(w * fx, Y(.87) + Math.sin(w * fx / 60) * 6, 70 * sc));
+  g = g0;
 }
 /* Autumn: warmes Nachmittagslicht, Hügel, Laubbäume in Orange/Rot/Gelb, Waldweg, fallende Blätter */
 function paintAutumn(g, w, h, rnd, glow){
@@ -2937,7 +2940,47 @@ function beachFx(){
   BF.raf = requestAnimationFrame(step);
 }
 document.addEventListener("visibilitychange", beachFx);
-addEventListener("resize", () => { clearTimeout(drawSky.t); drawSky.t = setTimeout(() => { drawSky(); autumnLeaves(); beachFx(); }, 150); });
+/* Aurora: Nordlicht-Vorhänge wogen langsam, Helligkeitswellen laufen hindurch, das Licht atmet; dazu funkeln einige Sterne.
+   Strahlen werden einmal vorgezeichnet und dann nur in schmalen Streifen verschoben (sparsam, 30 Bilder/s). */
+function auroraFx(){
+  const on = document.body.classList.contains("aurora") && document.visibilityState !== "hidden", el = document.getElementById("sky");
+  if (!on || !el || !AU.bands) { cancelAnimationFrame(AU.raf); AU.raf = 0; skyCanvas("afx", false); return; }
+  const cv = AU.cv = skyCanvas("afx", true), w = el.clientWidth || innerWidth, h = el.clientHeight || innerHeight + 160, dpr = Math.min(2, devicePixelRatio || 1);
+  if (w !== AU.w || h !== AU.h || dpr !== AU.dpr || AU.sprVer !== AU.ver) {
+    AU.w = w; AU.h = h; AU.dpr = dpr; AU.sprVer = AU.ver; cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    AU.spr = AU.bands.map(b => { const c = document.createElement("canvas"), H = b.L + 8; c.width = Math.ceil((w + 24) * dpr); c.height = Math.ceil(H * dpr); const q = c.getContext("2d"); q.scale(dpr, dpr); q.globalCompositeOperation = "lighter";
+      for (const [x, k0, l] of b.cols) { const k = k0 * 1.3 /* heller vorzeichnen, die Animation dimmt dann wellenförmig */, y = b.L, gr = q.createLinearGradient(0, y + 6, 0, y - l);
+        gr.addColorStop(0, "rgba(90,255,170,0)"); gr.addColorStop(.06, `rgba(110,255,180,${b.a0 * k})`); gr.addColorStop(.3, `rgba(60,230,200,${b.a0 * k * .6})`); gr.addColorStop(.7, `rgba(${b.hue2},${b.a0 * k * .3})`); gr.addColorStop(1, `rgba(${b.hue2},0)`);
+        q.fillStyle = gr; q.fillRect(x + 12, y - l, 1.6, l + 6); }
+      return c; });
+    const top = 80, Hh = h - top * 2;
+    AU.tw = Array.from({ length: Math.round(w * h / 9000) }, () => ({ x: Math.random() * w, y: top + Math.random() * Hh * .62, r: .6 + Math.random() * .8, f: .6 + Math.random() * 1.6, ph: Math.random() * 6 }));
+  }
+  const g = cv.getContext("2d"), still = matchMedia("(prefers-reduced-motion: reduce)").matches, SL = 3; /* Streifenbreite in Punkten */
+  const draw = t => {
+    g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h); g.globalCompositeOperation = "lighter";
+    AU.bands.forEach((b, i) => { const im = AU.spr[i], breathe = .87 + .13 * Math.sin(t * .23 + b.ph * 3);
+      for (let x = -10; x < w + 10; x += SL) {
+        const y = b.y0 + Math.sin(x / b.f + b.ph + t * .11) * b.amp + Math.sin(x / (b.f * .37) + b.ph * 2 - t * .19) * b.amp * .25 + Math.sin(x / (b.f * 1.9) - t * .07) * b.amp * .3;
+        const wave = .5 + .5 * Math.sin(x / (b.f * .7) - t * .45 + b.ph), a = breathe * (.6 + .4 * wave * wave);
+        g.globalAlpha = a; g.drawImage(im, (x + 12) * dpr, 0, SL * dpr, im.height, x, y - b.L, SL, im.height / dpr); }
+    });
+    g.globalCompositeOperation = "source-over"; g.fillStyle = "#FFFFFF";
+    for (const s of AU.tw) { g.globalAlpha = .15 + .85 * (.5 + .5 * Math.sin(t * s.f + s.ph)) ** 3; g.beginPath(); g.arc(s.x, s.y, s.r, 0, Math.PI * 2); g.fill(); }
+    g.globalAlpha = 1;
+  };
+  if (still) { cancelAnimationFrame(AU.raf); AU.raf = 0; draw(20); return; }
+  if (AU.raf) return;
+  AU.last = 0;
+  const step = now => {
+    AU.raf = requestAnimationFrame(step);
+    if (now - AU.last < 31) return; AU.last = now; /* ~30 Bilder/s reichen für die langsame Bewegung */
+    draw(now / 1000);
+  };
+  AU.raf = requestAnimationFrame(step);
+}
+document.addEventListener("visibilitychange", auroraFx);
+addEventListener("resize", () => { clearTimeout(drawSky.t); drawSky.t = setTimeout(() => { drawSky(); autumnLeaves(); beachFx(); auroraFx(); }, 150); });
 function applyTheme(){
   document.body.dataset.ts = S.set.textSize || "m";
   document.body.dataset.glass = String(S.set.glass ?? 1); /* Transparenz: 0 stark · 1 leicht · 2 aus */
@@ -2948,7 +2991,7 @@ function applyTheme(){
   b.style.setProperty("--accent-ink", t ? t.ink : dark ? BASE.id : BASE.il);
   ["b-paper","b-surface","b-surface-2","b-line","b-muted","b-ink","b-ink-2"].forEach(k => { if (t && t.bases && t.bases[k]) b.style.setProperty("--" + k, t.bases[k]); else b.style.removeProperty("--" + k); });
   b.classList.toggle("starry", !!(t && t.stars)); drawSky();
-  ["beach", "aurora", "autumn"].forEach(k => b.classList.toggle(k, !!(t && t[k]))); drawSky(); autumnLeaves(); beachFx();
+  ["beach", "aurora", "autumn"].forEach(k => b.classList.toggle(k, !!(t && t[k]))); drawSky(); autumnLeaves(); beachFx(); auroraFx();
   b.classList.toggle("hearts", !!(t && t.hearts));
   ["tp","ts","ts2","tl","ti"].forEach(k => { if (t && t.flat) b.style.setProperty("--" + k, "3%"); else b.style.removeProperty("--" + k); });
   drawSky.ready = true; applyTop();
