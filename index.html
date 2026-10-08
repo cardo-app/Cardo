@@ -2625,6 +2625,14 @@ function paintBeach(g, w, h, rnd, glow){
     g.fillStyle = "rgba(255,230,190,.18)"; for (let i = 0; i <= 120; i++) { const t = i / 120, [x, y] = P(t); g.beginPath(); g.arc(x - lean * ph * .012, y, ph * (.012 - .005 * t), 0, Math.PI * 2); g.fill(); }
     g.strokeStyle = "rgba(90,55,25,.35)"; g.lineWidth = 1.2; g.lineCap = "round";
     for (let i = 1; i < 16; i++) { const t = i / 16, [x, y] = P(t), [x2, y2] = P(t + .01), dx = x2 - x, dy = y2 - y, l = Math.hypot(dx, dy) || 1, r = ph * (.034 - .014 * t) * .85; g.beginPath(); g.moveTo(x - dy / l * r, y + dx / l * r); g.lineTo(x + dy / l * r, y - dx / l * r); g.stroke(); }
+    /* Kokosnüsse: dichte Traube direkt am Stammende, vor den Wedeln gezeichnet, damit die Blätter sie oben überdecken (wirken angewachsen) */
+    const nr = ph * .034;
+    [[-1.05, 1.05], [1.0, 1.15], [-.05, 1.95], [0, .35]].forEach(([dx, dy]) => {
+      const x = tx + dx * nr, y = ty + dy * nr, gr = g.createRadialGradient(x - nr * .35, y - nr * .4, nr * .1, x, y, nr);
+      gr.addColorStop(0, "#9A6A3A"); gr.addColorStop(.6, "#6B4423"); gr.addColorStop(1, "#4A2E16");
+      g.fillStyle = gr; g.beginPath(); g.arc(x, y, nr, 0, Math.PI * 2); g.fill();
+    });
+    g.fillStyle = "#7A5530"; g.beginPath(); g.ellipse(tx, ty - nr * .2, nr * 1.4, nr * .7, 0, 0, Math.PI * 2); g.fill(); /* Ansatz der Krone */
     const L = ph * .5;
     [[-2.75, 1], [-2.25, .95], [-1.75, .85], [-1.05, .9], [-.55, 1], [-.05, .8], [.6, .7], [-3.3, .7]].forEach(([a, k], i) => {
       const ang = a + lean * .15, ex = tx + Math.cos(ang) * L * k, ey = ty + Math.sin(ang) * L * k + L * k * .35, mx = tx + Math.cos(ang) * L * k * .55, my = ty + Math.sin(ang) * L * k * .55 - L * .12;
@@ -2633,8 +2641,6 @@ function paintBeach(g, w, h, rnd, glow){
       g.quadraticCurveTo(mx + nx / nl * wd, my + ny / nl * wd, ex, ey); g.quadraticCurveTo(mx - nx / nl * wd * .35, my - ny / nl * wd * .35, tx, ty); g.fill();
       g.strokeStyle = "rgba(10,60,30,.45)"; g.lineWidth = 1.2; g.beginPath(); g.moveTo(tx, ty); g.quadraticCurveTo(mx, my, ex, ey); g.stroke();
     });
-    g.fillStyle = "#6B4423"; [[-.05, .06], [.05, .07], [0, .11]].forEach(([dx, dy]) => { g.beginPath(); g.arc(tx + dx * ph, ty + dy * ph, ph * .04, 0, Math.PI * 2); g.fill(); });
-    g.fillStyle = "rgba(255,255,255,.25)"; g.beginPath(); g.arc(tx - .05 * ph - ph * .012, ty + .06 * ph - ph * .012, ph * .012, 0, Math.PI * 2); g.fill();
   };
   /* Palmen auf eine eigene Vordergrund-Leinwand, damit Wellen, Glitzer und Möwen dahinter bleiben (g kurz umbiegen, palm() nutzt g) */
   const g0 = g, fgc = skyCanvas("fg", true);
