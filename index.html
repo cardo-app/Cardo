@@ -2726,8 +2726,11 @@ function paintAutumn(g, w, h, rnd, glow){
   hill(Y(.7), 12, 70, 3, "#E19A5E");
   [[.05, .73, 80], [.3, .71, 64], [.86, .74, 86]].forEach(([fx, fy, sz]) => tree(w * fx, Y(fy) + 6, sz, ["#D9482A", "#EF7A2E", "#C9342A", "#F2A03D"]));
   hill(Y(.8), 10, 60, 5, "#C97A45");
-  /* Waldweg */
-  g.fillStyle = "#F0CFA0"; g.beginPath(); g.moveTo(w * .42, h); g.bezierCurveTo(w * .45, Y(.92), w * .6, Y(.86), w * .52, Y(.8)); g.lineTo(w * .56, Y(.8)); g.bezierCurveTo(w * .7, Y(.86), w * .62, Y(.94), w * .7, h); g.fill();
+  /* Waldweg: wird nach hinten schmal und verschwindet genau an der Kuppe des vorderen Hügels (auf dessen Fläche zugeschnitten) */
+  const edge = x => Y(.8) + Math.sin(x / 60 + 5) * 10, tx = w * .54, ty = edge(tx);
+  g.save(); g.beginPath(); g.moveTo(0, h); for (let x = 0; x <= w; x += 8) g.lineTo(x, edge(x)); g.lineTo(w, h); g.clip();
+  g.fillStyle = "#F0CFA0"; g.beginPath(); g.moveTo(w * .42, h); g.bezierCurveTo(w * .45, Y(.92), w * .62, (Y(.86) + ty) / 2 + 8, tx - w * .008, ty - 8); g.lineTo(tx + w * .008, ty - 8); g.bezierCurveTo(w * .66, (Y(.86) + ty) / 2 + 8, w * .62, Y(.94), w * .7, h); g.fill();
+  g.restore();
   [[.12, .84, 110], [.92, .86, 120]].forEach(([fx, fy, sz]) => tree(w * fx, Y(fy), sz, ["#C9342A", "#E8582A", "#F2A03D", "#D9482A", "#F5C04A"]));
   /* Blätter am Boden (die fallenden zeichnet autumnLeaves() als Animation darüber) */
   const leaf = (x, y, s, rot, col) => { g.save(); g.translate(x, y); g.rotate(rot); g.fillStyle = col; g.beginPath(); g.moveTo(0, -s); g.quadraticCurveTo(s * .8, -s * .2, 0, s); g.quadraticCurveTo(-s * .8, -s * .2, 0, -s); g.fill();
