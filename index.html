@@ -107,7 +107,7 @@ body.starry{background-color:transparent}
 /* Sternenhimmel (Night): eigene, feststehende Ebene hinter der ganzen App – beim Wischen gleiten nur die Seiten darüber */
 #sky{position:fixed;left:0;right:0;top:-80px;bottom:-80px;z-index:-1;pointer-events:none;display:none}
 #sky canvas{display:block;width:100%;height:100%}
-#sky canvas:is(.lf,.bfx,.afx,.fg){position:absolute;inset:0}#sky canvas[hidden]{display:none}
+#sky canvas:is(.lf,.bfx,.afx,.fg,.wfx){position:absolute;inset:0}#sky canvas[hidden]{display:none}
 body:is(.starry,.beach,.aurora,.autumn) #sky{display:block}
 body:is(.starry,.beach,.aurora,.autumn) .peek{background:transparent}
 body:is(.starry,.beach,.aurora,.autumn) #crumbbar{background:color-mix(in srgb,var(--paper) 55%,transparent);-webkit-backdrop-filter:blur(16px) saturate(140%);backdrop-filter:blur(16px) saturate(140%)} /* Pfadleiste lässt den Design-Hintergrund durchscheinen */
@@ -2534,7 +2534,7 @@ function isDark(){
 }
 /* Feststehende Hintergrund-Ebene der Designs (Night, Aurora, Autumn, Beach) – feste Zufallsfolge → immer dasselbe Bild */
 let skyKey = "", skyTop = "";
-const AU = { cv: null, raf: 0, w: 0, h: 0, dpr: 1, last: 0, bands: null, ver: 0, sprVer: -1, spr: [], tw: [] }; /* Aurora-Animation, siehe auroraFx() */
+const AU = { cv: null, raf: 0, w: 0, h: 0, dpr: 1, last: 0, bands: null, ver: 0, sprVer: -1, spr: [], tw: [], wolf: null, nextWolf: 0, wcv: null }; /* Aurora-Animation, siehe auroraFx() */
 function drawSky(){
   const bd = document.body, mode = bd.classList.contains("starry") ? "stars" : ["beach", "aurora", "autumn"].find(k => bd.classList.contains(k)) || "";
   if (!mode) return;
@@ -2823,7 +2823,7 @@ function skyCanvas(cls, show){
   const el = document.getElementById("sky"); if (!el) return null;
   let c = el.querySelector("canvas." + cls);
   if (!show) { if (c) c.hidden = true; return null; }
-  if (!c) { c = document.createElement("canvas"); c.className = cls; const fg = el.querySelector("canvas.fg"); cls !== "fg" && fg ? el.insertBefore(c, fg) : el.appendChild(c); }
+  if (!c) { c = document.createElement("canvas"); c.className = cls; const fg = el.querySelector("canvas.fg"); cls !== "fg" && cls !== "wfx" && fg ? el.insertBefore(c, fg) : el.appendChild(c); } /* wfx liegt vor dem Vordergrund */
   c.hidden = false; return c;
 }
 /* Beach: Wellen laufen den Strand hinauf und zurück (nasser Sand bleibt kurz dunkel), Sonnenglitzern auf dem Meer,
@@ -2836,6 +2836,7 @@ function beachFx(){
   const top = 80, H = h - top * 2, Y = f => top + H * f, hz = Y(.5), shore = Y(.8), sunX = w * .66;
   const sw = x => shore + Math.sin(x / 38) * 6 + Math.sin(x / 15 + 1) * 2.5;
   if (w !== BF.w || h !== BF.h || dpr !== BF.dpr) {
+    cancelAnimationFrame(BF.raf); BF.raf = 0; /* neue Maße → Animation mit neuen Werten neu starten */
     BF.w = w; BF.h = h; BF.dpr = dpr; cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
     /* Wolken als fertige Bilder (gleiche Form wie im Bild), ziehen langsam nach rechts – kleine (fernere) langsamer */
     BF.cloudSpr = [15, 11, 9, 13].map(s => { const c = document.createElement("canvas"), W = s * 4, Hh = s * 2.6; c.width = Math.ceil(W * dpr); c.height = Math.ceil(Hh * dpr); const q = c.getContext("2d"); q.scale(dpr, dpr); q.translate(W / 2, Hh * .55);
@@ -2944,9 +2945,10 @@ document.addEventListener("visibilitychange", beachFx);
    Strahlen werden einmal vorgezeichnet und dann nur in schmalen Streifen verschoben (sparsam, 30 Bilder/s). */
 function auroraFx(){
   const on = document.body.classList.contains("aurora") && document.visibilityState !== "hidden", el = document.getElementById("sky");
-  if (!on || !el || !AU.bands) { cancelAnimationFrame(AU.raf); AU.raf = 0; skyCanvas("afx", false); return; }
+  if (!on || !el || !AU.bands) { cancelAnimationFrame(AU.raf); AU.raf = 0; skyCanvas("afx", false); skyCanvas("wfx", false); return; }
   const cv = AU.cv = skyCanvas("afx", true), w = el.clientWidth || innerWidth, h = el.clientHeight || innerHeight + 160, dpr = Math.min(2, devicePixelRatio || 1);
   if (w !== AU.w || h !== AU.h || dpr !== AU.dpr || AU.sprVer !== AU.ver) {
+    cancelAnimationFrame(AU.raf); AU.raf = 0; /* neue Maße → Animation mit neuen Werten neu starten */
     AU.w = w; AU.h = h; AU.dpr = dpr; AU.sprVer = AU.ver; cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
     AU.spr = AU.bands.map(b => { const c = document.createElement("canvas"), H = b.L + 8; c.width = Math.ceil((w + 24) * dpr); c.height = Math.ceil(H * dpr); const q = c.getContext("2d"); q.scale(dpr, dpr); q.globalCompositeOperation = "lighter";
       for (const [x, k0, l] of b.cols) { const k = k0 * 1.45 /* heller vorzeichnen, die Animation dimmt dann wellenförmig */, y = b.L, gr = q.createLinearGradient(0, y + 6, 0, y - l);
@@ -2954,6 +2956,7 @@ function auroraFx(){
         q.fillStyle = gr; q.fillRect(x + 12, y - l, 1.6, l + 6); }
       return c; });
     const top = 80, Hh = h - top * 2;
+    const wc = AU.wcv = skyCanvas("wfx", true); wc.width = cv.width; wc.height = cv.height; AU.wolf = null; AU.nextWolf = performance.now() + 20000 + Math.random() * 20000;
     AU.tw = Array.from({ length: Math.round(w * h / 9000) }, () => ({ x: Math.random() * w, y: top + Math.random() * Hh * .62, r: .6 + Math.random() * .8, f: .6 + Math.random() * 1.6, ph: Math.random() * 6 }));
   }
   const g = cv.getContext("2d"), still = matchMedia("(prefers-reduced-motion: reduce)").matches, SL = 3; /* Streifenbreite in Punkten */
@@ -2969,17 +2972,54 @@ function auroraFx(){
     for (const s of AU.tw) { g.globalAlpha = .15 + .85 * (.5 + .5 * Math.sin(t * s.f + s.ph)) ** 3; g.beginPath(); g.arc(s.x, s.y, s.r, 0, Math.PI * 2); g.fill(); }
     g.globalAlpha = 1;
   };
-  if (still) { cancelAnimationFrame(AU.raf); AU.raf = 0; draw(20); return; }
+  /* Wolf: läuft selten unten über den Schnee (erst nach 20–40 s, dann alle 60–120 s), eigene Ebene vor Bergen und Tannen */
+  const wg = AU.wcv.getContext("2d"), Yw = f => 80 + (h - 160) * f, ground = x => Yw(.877) + Math.sin(x / 60) * 6;
+  const wolfStep = (now, d) => {
+    if (!AU.wolf && now > AU.nextWolf) { const dir = Math.random() < .5 ? 1 : -1, L = 30 + Math.random() * 6; AU.wolf = { x: dir > 0 ? -L : w + L, dir, L, v: 30 + Math.random() * 10, ph: 0 }; }
+    wg.setTransform(1, 0, 0, 1, 0, 0); wg.clearRect(0, 0, AU.wcv.width, AU.wcv.height);
+    const W = AU.wolf; if (!W) return;
+    W.x += W.dir * W.v * d; W.ph += d * W.v / (W.L * .34);
+    if (W.x < -W.L * 1.5 || W.x > w + W.L * 1.5) { AU.wolf = null; AU.nextWolf = now + 60000 + Math.random() * 60000; return; }
+    wg.setTransform(dpr, 0, 0, dpr, 0, 0); drawWolf(wg, W.x, ground(W.x), W.L, W.dir, W.ph);
+  };
+  if (still) { cancelAnimationFrame(AU.raf); AU.raf = 0; draw(20); wg.clearRect(0, 0, AU.wcv.width, AU.wcv.height); return; }
   if (AU.raf) return;
   AU.last = 0;
   const step = now => {
     AU.raf = requestAnimationFrame(step);
-    if (now - AU.last < 31) return; AU.last = now; /* ~30 Bilder/s reichen für die langsame Bewegung */
-    draw(now / 1000);
+    if (now - AU.last < 31) return; const d = Math.min(.1, (now - AU.last) / 1000); AU.last = now; /* ~30 Bilder/s reichen für die langsame Bewegung */
+    draw(now / 1000); wolfStep(now, d);
   };
   AU.raf = requestAnimationFrame(step);
 }
 document.addEventListener("visibilitychange", auroraFx);
+/* Wolf als dunkle Silhouette (Blick in Richtung dir), Füße bei y; ph = Schrittphase. Kreuzgang: Beine diagonal versetzt, Körper wippt leicht. */
+function drawWolf(g, x, y, L, dir, ph){
+  g.save(); g.translate(x, y - Math.abs(Math.sin(ph)) * L * .015); g.scale(dir * L, L);
+  g.fillStyle = g.strokeStyle = "#060F18"; g.lineCap = "round"; g.lineJoin = "round";
+  /* Beine: kräftiger Oberschenkel + schmalerer Unterlauf, Knie knickt beim Zurückschwingen */
+  const leg = (ax, ay, o, back) => { const a = Math.sin(ph + o) * .4, k = Math.max(0, -Math.cos(ph + o)) * .5 * (back ? -1 : 1);
+    const kx = ax + Math.sin(a) * .19, ky = ay + Math.cos(a) * .19, fx = kx + Math.sin(a + k) * .2, fy = Math.min(0, ky + Math.cos(a + k) * .2);
+    g.lineWidth = .1; g.beginPath(); g.moveTo(ax, ay - .04); g.lineTo(kx, ky); g.stroke(); g.lineWidth = .06; g.beginPath(); g.moveTo(kx, ky); g.lineTo(fx, fy); g.stroke(); };
+  leg(-.22, -.39, Math.PI, true); leg(.2, -.39, Math.PI * 1.5, false); /* hintere Beine (weiter weg) zuerst */
+  /* Rumpf: tiefe Brust, schlanke Taille, Hinterteil */
+  g.beginPath(); g.ellipse(-.02, -.48, .33, .12, 0, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.ellipse(.2, -.46, .17, .17, 0, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.ellipse(-.25, -.49, .13, .13, 0, 0, Math.PI * 2); g.fill();
+  /* Schwanz: buschig, hängt nach unten und pendelt */
+  const sw = Math.sin(ph * .5) * .025;
+  g.beginPath(); g.moveTo(-.33, -.56); g.quadraticCurveTo(-.52, -.55, -.58 + sw, -.3); g.quadraticCurveTo(-.58 + sw, -.22, -.53 + sw, -.25); g.quadraticCurveTo(-.46, -.4, -.33, -.44); g.fill();
+  /* Nacken mit Halskrause und Kopf etwa auf Rückenhöhe (Wölfe traben mit gesenktem Kopf), lange Schnauze */
+  g.beginPath(); g.moveTo(.08, -.6); g.quadraticCurveTo(.28, -.68, .42, -.65); g.lineTo(.5, -.62); g.lineTo(.67, -.55); g.quadraticCurveTo(.7, -.52, .66, -.5);
+  g.lineTo(.52, -.47); g.quadraticCurveTo(.46, -.42, .4, -.32); g.lineTo(.36, -.36); g.lineTo(.33, -.3); g.lineTo(.12, -.36); g.closePath(); g.fill();
+  /* kleine, spitze Ohren */
+  g.beginPath(); g.moveTo(.37, -.64); g.lineTo(.39, -.75); g.lineTo(.44, -.65); g.fill();
+  g.beginPath(); g.moveTo(.42, -.65); g.lineTo(.46, -.74); g.lineTo(.48, -.63); g.fill();
+  leg(-.28, -.39, 0, true); leg(.16, -.39, Math.PI * .5, false); /* vordere Beine */
+  /* ganz schwacher grüner Lichtsaum vom Nordlicht auf Rücken und Kopf */
+  g.strokeStyle = "rgba(110,255,180,.14)"; g.lineWidth = .02; g.beginPath(); g.moveTo(-.34, -.59); g.quadraticCurveTo(-.1, -.62, .08, -.61); g.quadraticCurveTo(.28, -.69, .42, -.66); g.stroke();
+  g.restore();
+}
 addEventListener("resize", () => { clearTimeout(drawSky.t); drawSky.t = setTimeout(() => { drawSky(); autumnLeaves(); beachFx(); auroraFx(); }, 150); });
 function applyTheme(){
   document.body.dataset.ts = S.set.textSize || "m";
