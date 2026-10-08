@@ -2975,12 +2975,29 @@ function auroraFx(){
   /* Wolf: läuft selten unten über den Schnee (erst nach 20–40 s, dann alle 60–120 s), eigene Ebene vor Bergen und Tannen */
   const wg = AU.wcv.getContext("2d"), Yw = f => 80 + (h - 160) * f, ground = x => Yw(.877) + Math.sin(x / 60) * 6;
   const wolfStep = (now, d) => {
-    if (!AU.wolf && now > AU.nextWolf) { const dir = Math.random() < .5 ? 1 : -1, L = 30 + Math.random() * 6; AU.wolf = { x: dir > 0 ? -L : w + L, dir, L, v: 30 + Math.random() * 10, ph: 0 }; }
+    if (!AU.wolf && now > AU.nextWolf) { const dir = Math.random() < .5 ? 1 : -1, L = 31 + Math.random() * 5, vt = 44 + Math.random() * 10;
+      AU.wolf = { x: dir > 0 ? -L : w + L, dir, L, v: vt, vt, ph: 0, mode: "trot", stopX: Math.random() < .8 ? w * (.25 + Math.random() * .5) : null, act: "", t: 0, head: 0, tail: .55, puffs: [], nextPuff: .8 }; }
     wg.setTransform(1, 0, 0, 1, 0, 0); wg.clearRect(0, 0, AU.wcv.width, AU.wcv.height);
     const W = AU.wolf; if (!W) return;
-    W.x += W.dir * W.v * d; W.ph += d * W.v / (W.L * .5); /* ein Schrittzyklus = halbe Körperlänge, passend zur Geschwindigkeit → Pfoten rutschen nicht */
+    /* Verhalten: traben → (meist) einmal anhalten und schnüffeln, heulen oder sich umschauen → weitertraben */
+    if (W.mode === "trot" && W.stopX != null && (W.x - W.stopX) * W.dir > 0) { W.mode = "stop"; W.vt = 0; W.stopX = null; W.t = 0; const r = Math.random(); W.act = r < .4 ? "sniff" : r < .75 ? "howl" : "look"; W.dur = { sniff: 2.6, howl: 3.2, look: 1.8 }[W.act]; }
+    let headT = 0, tailT = .55;
+    if (W.mode === "stop") { tailT = .78;
+      if (W.v < 4) { W.t += d;
+        if (W.act === "sniff") headT = .62 + Math.sin(W.t * 11) * .06 * (W.t > .5);
+        else if (W.act === "howl") { headT = W.t > .3 && W.t < W.dur - .4 ? -.95 : 0; tailT = .9; }
+        else headT = W.t < W.dur - .3 ? -.28 + Math.sin(W.t * 2.2) * .12 : 0;
+        if (W.t > W.dur) { W.mode = "trot"; W.vt = 44 + Math.random() * 10; } } }
+    W.v += (W.vt - W.v) * Math.min(1, d * 2.2); W.x += W.dir * W.v * d; W.ph += d * W.v / (W.L * .55); /* ein Trabzyklus = 0,55 Körperlängen → Pfoten stehen fest */
+    W.m = Math.min(1, W.v / 30); W.head += (headT - W.head) * Math.min(1, d * 4); W.tail += (tailT - W.tail) * Math.min(1, d * 3);
     if (W.x < -W.L * 1.5 || W.x > w + W.L * 1.5) { AU.wolf = null; AU.nextWolf = now + 60000 + Math.random() * 60000; return; }
-    wg.setTransform(dpr, 0, 0, dpr, 0, 0); drawWolf(wg, W.x, ground(W.x), W.L, W.dir, W.ph, Math.atan(Math.cos(W.x / 60) * .1));
+    /* Atemwölkchen in der kalten Luft (beim Heulen öfter) */
+    const howling = W.act === "howl" && W.mode === "stop" && W.head < -.6; W.nextPuff -= d;
+    if (W.nextPuff < 0) { W.nextPuff = howling ? .25 : 1 + Math.random() * .8; const h = W.head, lx = .14 + .54 * Math.cos(h) - .03 * Math.sin(h), ly = -.55 + .54 * Math.sin(h) + .03 * Math.cos(h);
+      W.puffs.push({ x: W.x + W.dir * W.L * lx, y: ground(W.x) + W.L * ly, vx: W.dir * (W.v * .85 + 6), vy: howling ? -14 : -4, age: 0, life: howling ? 1.6 : .8, r: howling ? 2.6 : 1.6 }); /* treibt mit dem Wolf nach vorn */ }
+    for (const q of W.puffs) { q.age += d; q.x += q.vx * d; q.y += q.vy * d; q.vx *= 1 - Math.min(1, d * 1.5); } W.puffs = W.puffs.filter(q => q.age < q.life);
+    wg.setTransform(dpr, 0, 0, dpr, 0, 0); drawWolf(wg, W.x, ground(W.x), W.dir, W, Math.atan(Math.cos(W.x / 60) * .1));
+    for (const q of W.puffs) { const k = q.age / q.life; wg.fillStyle = `rgba(225,240,250,${(.32 * (1 - k)).toFixed(3)})`; wg.beginPath(); wg.arc(q.x, q.y, q.r * (1 + k * 1.8), 0, Math.PI * 2); wg.fill(); }
   };
   if (still) { cancelAnimationFrame(AU.raf); AU.raf = 0; draw(20); wg.clearRect(0, 0, AU.wcv.width, AU.wcv.height); return; }
   if (AU.raf) return;
@@ -2993,44 +3010,53 @@ function auroraFx(){
   AU.raf = requestAnimationFrame(step);
 }
 document.addEventListener("visibilitychange", auroraFx);
-/* Wolf als dunkle Silhouette (Blick in Richtung dir), Füße bei y; ph = Schrittphase. Kreuzgang: Beine diagonal versetzt, Körper wippt leicht. */
-function drawWolf(g, x, y, L, dir, ph, tilt){
-  const bob = (1 - Math.cos(ph * Math.PI * 4)) * .008; /* zweimal pro Zyklus leicht auf und ab */
+/* Wolf als dunkle Silhouette (Blick in Richtung dir), Füße bei y. W: ph = Trabzyklus, m = 0…1 wie stark er läuft, head = Kopfneigung
+   (+ runter zum Schnüffeln, − hoch zum Heulen), tail = Schwanzwinkel. Beine nach Körperbau: vorn fast gerades Bein, beim Anheben klappt
+   das Handgelenk die Pfote nach hinten; hinten Oberschenkel, Knie nach vorn, Sprunggelenk nach hinten, das sich beim Anheben faltet. */
+function drawWolf(g, x, y, dir, W, tilt){
+  const L = W.L, ph = W.ph, m = W.m, S = .55, ST = .55, A = S * ST / 2;
+  const bob = (1 - Math.cos(ph * Math.PI * 4)) * .012 * m;
   g.save(); g.translate(x, y); g.rotate(tilt); g.scale(dir * L, L); g.translate(0, -bob);
-  g.fillStyle = g.strokeStyle = "#060F18"; g.lineCap = "round"; g.lineJoin = "round";
-  /* Beine mit festem Tritt: 60 % des Zyklus steht die Pfote am Boden (wandert relativ zum Körper genau so schnell nach hinten,
-     wie der Wolf läuft), 40 % schwingt sie angehoben nach vorn. Knie per Zwei-Gelenk-Rechnung: vorne knickt es nach vorn, hinten nach hinten. */
-  const S = .5, ST = .6, L1 = .22, L2 = .24;
-  const leg = (hx, hy, off, front, col) => {
-    const u = ((ph + off) % 1 + 1) % 1; let fx, fy;
-    if (u < ST) { fx = S * ST / 2 - u / ST * S * ST; fy = 0; }
-    else { const v = (u - ST) / (1 - ST), e = v * v * (3 - 2 * v); fx = -S * ST / 2 + e * S * ST; fy = -Math.sin(v * Math.PI) * .09; }
-    fx += hx; const dx = fx - hx, dy = (fy + bob) - hy, D = Math.min(Math.hypot(dx, dy), L1 + L2 - .001), base = Math.atan2(dy, dx);
-    const k = Math.acos(Math.max(-1, Math.min(1, (L1 * L1 + D * D - L2 * L2) / (2 * L1 * D)))) * (front ? -1 : 1), kx = hx + Math.cos(base + k) * L1, ky = hy + Math.sin(base + k) * L1;
-    g.strokeStyle = g.fillStyle = col; g.lineWidth = .1; g.beginPath(); g.moveTo(hx, hy - .04); g.lineTo(kx, ky); g.stroke();
-    g.lineWidth = .06; g.beginPath(); g.moveTo(kx, ky); g.lineTo(fx, fy + bob); g.stroke();
-    g.beginPath(); g.ellipse(fx + .02, fy + bob - .01, .04, .022, 0, 0, Math.PI * 2); g.fill(); /* Pfote */
-  };
-  /* Schrittfolge wie beim Hund: hinten links, vorne links, hinten rechts, vorne rechts; ferne Seite etwas heller (Tiefe) */
-  leg(-.22, -.42, .5, false, "#0E1C2A"); leg(.2, -.42, .75, true, "#0E1C2A");
-  g.fillStyle = g.strokeStyle = "#060F18";
-  /* Rumpf: tiefe Brust, schlanke Taille, Hinterteil */
-  g.beginPath(); g.ellipse(-.02, -.48, .33, .12, 0, 0, Math.PI * 2); g.fill();
-  g.beginPath(); g.ellipse(.2, -.46, .17, .17, 0, 0, Math.PI * 2); g.fill();
-  g.beginPath(); g.ellipse(-.25, -.49, .13, .13, 0, 0, Math.PI * 2); g.fill();
-  /* Schwanz: gerade, buschig (in der Mitte am dicksten, Spitze rund), hängt schräg nach hinten unten und pendelt leicht */
-  g.save(); g.translate(-.33, -.53); g.rotate(-(.72 + Math.sin(ph * Math.PI * 2) * .06));
+  g.lineCap = "round"; g.lineJoin = "round";
+  const seg = (x0, y0, x1, y1, w0, w1) => { const dx = x1 - x0, dy = y1 - y0, l = Math.hypot(dx, dy) || 1, nx = -dy / l, ny = dx / l;
+    g.beginPath(); g.moveTo(x0 + nx * w0 / 2, y0 + ny * w0 / 2); g.lineTo(x1 + nx * w1 / 2, y1 + ny * w1 / 2); g.lineTo(x1 - nx * w1 / 2, y1 - ny * w1 / 2); g.lineTo(x0 - nx * w0 / 2, y0 - ny * w0 / 2); g.fill();
+    g.beginPath(); g.arc(x1, y1, w1 / 2, 0, Math.PI * 2); g.fill(); };
+  /* Pfotenweg: Standphase fest am Boden (wandert genau mit der Laufgeschwindigkeit nach hinten), Schwungphase angehoben nach vorn */
+  const foot = off => { const u = ((ph + off) % 1 + 1) % 1; if (u < ST) return [(A - u / ST * 2 * A) * m, 0];
+    const v = (u - ST) / (1 - ST); return [(-A + v * v * (3 - 2 * v) * 2 * A) * m, Math.sin(v * Math.PI) * m]; };
+  const front = (ex, off, col) => { const [px, lift] = foot(off), ey = -.38 + lift * .03, a = Math.asin(Math.max(-.9, Math.min(.9, px / .37))) + lift * .3, f = lift * 1.7;
+    const wx = ex + Math.sin(a) * .26, wy = ey + Math.cos(a) * .26, a2 = a - f, fx = wx + Math.sin(a2) * .11, fy = wy + Math.cos(a2) * .11;
+    g.fillStyle = col; g.beginPath(); g.arc(ex, ey - .03, .055, 0, Math.PI * 2); g.fill(); seg(ex, ey - .03, wx, wy, .095, .05); seg(wx, wy, fx, fy, .05, .042);
+    g.beginPath(); g.ellipse(fx + Math.cos(a2) * .025, fy, .04, .022, -a2 * .5, 0, Math.PI * 2); g.fill(); };
+  const hind = (hx, off, col) => { const [px, lift] = foot(off), th = (px + .011) / .48;
+    const a1 = .45 + th + lift * .55, a2 = -.55 + th - lift * .5, a3 = .05 + th + lift * .25;
+    const kx = hx + Math.sin(a1) * .2, ky = -.48 + Math.cos(a1) * .2, hkx = kx + Math.sin(a2) * .2, hky = ky + Math.cos(a2) * .2, fx = hkx + Math.sin(a3) * .13, fy = hky + Math.cos(a3) * .13;
+    g.fillStyle = col; seg(hx, -.48, kx, ky, .17, .1); seg(kx, ky, hkx, hky, .085, .05); seg(hkx, hky, fx, fy, .05, .042);
+    g.beginPath(); g.ellipse(fx + .02, fy, .04, .022, 0, 0, Math.PI * 2); g.fill(); };
+  /* Trab: diagonale Beinpaare gleichzeitig. Ferne Seite etwas heller (Tiefe) */
+  const FAR = "#0F1E2D", NEAR = "#060F18";
+  front(.22, .5, FAR); hind(-.2, 0, FAR);
+  g.fillStyle = NEAR;
+  /* Rumpf: tiefe Brust, schlanke Taille, Hinterteil; atmet im Stand leicht */
+  const br = (1 - m) * Math.sin(performance.now() / 600) * .006;
+  g.beginPath(); g.ellipse(-.02, -.48, .33, .12 + br, 0, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.ellipse(.2, -.46, .17, .17 + br, 0, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.ellipse(-.25, -.49, .14, .14, 0, 0, Math.PI * 2); g.fill();
+  /* Schwanz: gerade, buschig, schwingt im Trab mit */
+  g.save(); g.translate(-.33, -.54); g.rotate(-(W.tail + Math.sin(ph * Math.PI * 2) * .09 * m));
   g.beginPath(); g.moveTo(0, -.04); g.bezierCurveTo(-.1, -.085, -.27, -.075, -.37, -.012); g.quadraticCurveTo(-.39, .008, -.36, .02); g.bezierCurveTo(-.26, .06, -.1, .055, 0, .04); g.closePath(); g.fill();
   g.restore();
-  /* Nacken mit Halskrause und Kopf etwa auf Rückenhöhe (Wölfe traben mit gesenktem Kopf), lange Schnauze */
-  g.beginPath(); g.moveTo(.08, -.6); g.quadraticCurveTo(.28, -.68, .42, -.65); g.lineTo(.5, -.62); g.lineTo(.67, -.55); g.quadraticCurveTo(.7, -.52, .66, -.5);
-  g.lineTo(.52, -.47); g.quadraticCurveTo(.46, -.42, .4, -.32); g.lineTo(.36, -.36); g.lineTo(.33, -.3); g.lineTo(.12, -.36); g.closePath(); g.fill();
-  /* kleine, spitze Ohren */
+  /* Kopf und Hals drehen sich um den Nackenansatz: im Trab leichtes Nicken, sonst nach W.head */
+  g.save(); g.translate(.14, -.55); g.rotate(W.head + Math.sin(ph * Math.PI * 4) * .035 * m); g.translate(-.14, .55);
+  g.beginPath(); g.moveTo(.06, -.62); g.quadraticCurveTo(.28, -.68, .42, -.65); g.lineTo(.5, -.62); g.lineTo(.67, -.55); g.quadraticCurveTo(.7, -.52, .66, -.5);
+  g.lineTo(.52, -.47); g.quadraticCurveTo(.46, -.42, .4, -.32); g.lineTo(.36, -.36); g.lineTo(.33, -.3); g.lineTo(.08, -.36); g.closePath(); g.fill();
   g.beginPath(); g.moveTo(.37, -.64); g.lineTo(.39, -.75); g.lineTo(.44, -.65); g.fill();
   g.beginPath(); g.moveTo(.42, -.65); g.lineTo(.46, -.74); g.lineTo(.48, -.63); g.fill();
-  leg(-.26, -.42, 0, false, "#060F18"); leg(.16, -.42, .25, true, "#060F18"); /* nahe Seite */
-  /* ganz schwacher grüner Lichtsaum vom Nordlicht auf Rücken und Kopf */
-  g.strokeStyle = "rgba(110,255,180,.14)"; g.lineWidth = .02; g.beginPath(); g.moveTo(-.34, -.59); g.quadraticCurveTo(-.1, -.62, .08, -.61); g.quadraticCurveTo(.28, -.69, .42, -.66); g.stroke();
+  g.strokeStyle = "rgba(110,255,180,.14)"; g.lineWidth = .02; g.beginPath(); g.moveTo(.08, -.62); g.quadraticCurveTo(.28, -.69, .42, -.66); g.stroke();
+  g.restore();
+  front(.17, 0, NEAR); hind(-.26, .5, NEAR);
+  /* ganz schwacher grüner Lichtsaum vom Nordlicht auf dem Rücken */
+  g.strokeStyle = "rgba(110,255,180,.14)"; g.lineWidth = .02; g.beginPath(); g.moveTo(-.36, -.6); g.quadraticCurveTo(-.1, -.62, .08, -.61); g.stroke();
   g.restore();
 }
 addEventListener("resize", () => { clearTimeout(drawSky.t); drawSky.t = setTimeout(() => { drawSky(); autumnLeaves(); beachFx(); auroraFx(); }, 150); });
