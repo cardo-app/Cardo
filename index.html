@@ -107,7 +107,7 @@ body.starry{background-color:transparent}
 /* Sternenhimmel (Night): eigene, feststehende Ebene hinter der ganzen App – beim Wischen gleiten nur die Seiten darüber */
 #sky{position:fixed;left:0;right:0;top:-80px;bottom:-80px;z-index:-1;pointer-events:none;display:none}
 #sky canvas{display:block;width:100%;height:100%}
-#sky canvas:is(.lf,.bfx,.afx,.fg,.wfx){position:absolute;inset:0}#sky canvas[hidden]{display:none}
+#sky canvas:is(.lf,.bfx,.afx,.fg,.wfx,.nfx){position:absolute;inset:0}#sky canvas[hidden]{display:none}
 body:is(.starry,.beach,.aurora,.autumn) #sky{display:block}
 body:is(.starry,.beach,.aurora,.autumn) .peek{background:transparent}
 body:is(.starry,.beach,.aurora,.autumn) #crumbbar{background:color-mix(in srgb,var(--paper) 55%,transparent);-webkit-backdrop-filter:blur(16px) saturate(140%);backdrop-filter:blur(16px) saturate(140%)} /* Pfadleiste lässt den Design-Hintergrund durchscheinen */
@@ -2534,6 +2534,7 @@ function isDark(){
 }
 /* Feststehende Hintergrund-Ebene der Designs (Night, Aurora, Autumn, Beach) – feste Zufallsfolge → immer dasselbe Bild */
 let skyKey = "", skyTop = "";
+const NF = { cv: null, raf: 0, w: 0, h: 0, dpr: 1, last: 0, tw: [], meteors: [], nextMeteor: 0, sat: null, nextSat: 0, glowSpr: null }; /* Night-Animation, siehe nightFx() */
 const AU = { cv: null, raf: 0, w: 0, h: 0, dpr: 1, last: 0, bands: null, ver: 0, sprVer: -1, spr: [], tw: [], wolf: null, nextWolf: 0, wcv: null }; /* Aurora-Animation, siehe auroraFx() */
 function drawSky(){
   const bd = document.body, mode = bd.classList.contains("starry") ? "stars" : ["beach", "aurora", "autumn"].find(k => bd.classList.contains(k)) || "";
@@ -3023,6 +3024,59 @@ function auroraFx(){
   AU.raf = requestAnimationFrame(step);
 }
 document.addEventListener("visibilitychange", auroraFx);
+/* Night: einige Sterne funkeln (die hellsten mit kleinem Lichtkreuz), alle 4–10 s eine Sternschnuppe mit leuchtendem Schweif,
+   selten zieht ein Satellit langsam über den Himmel. Eigene Ebene über dem festen Sternenbild, ~30 Bilder/s. */
+function nightFx(){
+  const on = document.body.classList.contains("starry") && document.visibilityState !== "hidden", el = document.getElementById("sky");
+  if (!on || !el) { cancelAnimationFrame(NF.raf); NF.raf = 0; skyCanvas("nfx", false); return; }
+  const cv = NF.cv = skyCanvas("nfx", true), w = el.clientWidth || innerWidth, h = el.clientHeight || innerHeight + 160, dpr = Math.min(2, devicePixelRatio || 1);
+  if (w !== NF.w || h !== NF.h || dpr !== NF.dpr) {
+    cancelAnimationFrame(NF.raf); NF.raf = 0; /* neue Maße → Animation mit neuen Werten neu starten */
+    NF.w = w; NF.h = h; NF.dpr = dpr; cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    /* weicher Lichthof als fertiges Bild */
+    const c = document.createElement("canvas"), S = Math.ceil(32 * dpr); c.width = c.height = S; const q = c.getContext("2d"), gr = q.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
+    gr.addColorStop(0, "rgba(220,230,255,.55)"); gr.addColorStop(.25, "rgba(200,215,255,.18)"); gr.addColorStop(1, "rgba(200,215,255,0)"); q.fillStyle = gr; q.fillRect(0, 0, S, S); NF.glowSpr = c;
+    const COLS = ["#FFFFFF", "#FFFFFF", "#DCE6FF", "#C9D8FF", "#FFF4DD", "#FFE6C2"];
+    NF.tw = Array.from({ length: Math.round(w * h / 7000) }, () => { const big = Math.random() < .14; return { x: Math.random() * w, y: Math.random() * h, r: big ? 1.1 + Math.random() * .6 : .5 + Math.random() * .6, big,
+      col: COLS[Math.random() * COLS.length | 0], f: .5 + Math.random() * 1.8, ph: Math.random() * 6.3, sharp: 1 + Math.random() * 3 }; });
+    if (!NF.nextMeteor) NF.nextMeteor = performance.now() + 2500 + Math.random() * 3000;
+    if (!NF.nextSat) NF.nextSat = performance.now() + 15000 + Math.random() * 20000;
+  }
+  const g = cv.getContext("2d"), still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const draw = (t, d) => {
+    g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    /* funkelnde Sterne */
+    for (const s of NF.tw) { const a = .5 + .5 * Math.sin(t * s.f + s.ph), k = a ** s.sharp;
+      if (s.big) { g.globalAlpha = .35 + .65 * k; const z = 14 + 10 * k; g.drawImage(NF.glowSpr, s.x - z / 2, s.y - z / 2, z, z);
+        g.strokeStyle = s.col; g.globalAlpha = .25 + .55 * k; g.lineWidth = .6; const l = 3 + 5 * k; g.beginPath(); g.moveTo(s.x - l, s.y); g.lineTo(s.x + l, s.y); g.moveTo(s.x, s.y - l); g.lineTo(s.x, s.y + l); g.stroke(); }
+      g.globalAlpha = .25 + .75 * k; g.fillStyle = s.col; g.beginPath(); g.arc(s.x, s.y, s.r, 0, Math.PI * 2); g.fill(); }
+    g.globalAlpha = 1;
+    /* Sternschnuppen: heller Kopf, Schweif läuft aus; blenden ein und verglühen */
+    for (const m of NF.meteors) { const k = m.age / m.life, a = Math.sin(Math.min(1, k) * Math.PI) ** .6, hx = m.x + m.vx * m.age, hy = m.y + m.vy * m.age, sp = Math.hypot(m.vx, m.vy), tl = m.len * (.4 + .6 * Math.min(1, k * 3));
+      const tx = hx - m.vx / sp * tl, ty = hy - m.vy / sp * tl, gr = g.createLinearGradient(hx, hy, tx, ty);
+      gr.addColorStop(0, `rgba(255,255,255,${a.toFixed(3)})`); gr.addColorStop(.3, `rgba(205,222,255,${(.6 * a).toFixed(3)})`); gr.addColorStop(1, "rgba(160,190,255,0)");
+      g.strokeStyle = gr; g.lineWidth = m.wd; g.lineCap = "round"; g.beginPath(); g.moveTo(hx, hy); g.lineTo(tx, ty); g.stroke();
+      g.globalAlpha = a * (m.bright ? 1 : .7); const z = m.bright ? 22 : 12; g.drawImage(NF.glowSpr, hx - z / 2, hy - z / 2, z, z); g.globalAlpha = 1; }
+    /* Satellit: winziger, gleichmäßig wandernder Punkt, blinkt ganz leicht */
+    if (NF.sat) { const S = NF.sat; g.globalAlpha = .55 + .2 * Math.sin(t * 2.3); g.fillStyle = "#EAF0FF"; g.beginPath(); g.arc(S.x, S.y, .9, 0, Math.PI * 2); g.fill(); g.globalAlpha = 1; }
+  };
+  if (still) { cancelAnimationFrame(NF.raf); NF.raf = 0; NF.meteors = []; NF.sat = null; draw(0, 0); return; }
+  if (NF.raf) return;
+  NF.last = 0;
+  const step = now => {
+    NF.raf = requestAnimationFrame(step);
+    if (now - NF.last < 31) return; const d = Math.min(.1, (now - NF.last) / 1000); NF.last = now;
+    if (now > NF.nextMeteor) { const right = Math.random() < .5, ang = (right ? .35 : Math.PI - .35) + (Math.random() - .5) * .5, v = 300 + Math.random() * 180, bright = Math.random() < .25;
+      NF.meteors.push({ x: w * (right ? .05 + Math.random() * .45 : .5 + Math.random() * .45), y: h * (.1 + Math.random() * .35), /* startet so, dass sie über den sichtbaren Himmel zieht */ vx: Math.cos(ang) * v, vy: Math.sin(ang) * v, age: 0, life: .6 + Math.random() * .45, len: 80 + Math.random() * 70 + (bright ? 50 : 0), wd: bright ? 2.8 : 1.9, bright });
+      NF.nextMeteor = now + 4000 + Math.random() * 6000; }
+    for (const m of NF.meteors) m.age += d; NF.meteors = NF.meteors.filter(m => m.age < m.life);
+    if (!NF.sat && now > NF.nextSat) { const dir = Math.random() < .5 ? 1 : -1, y0 = h * (.12 + Math.random() * .4); NF.sat = { x: dir > 0 ? -5 : w + 5, y: y0, vx: dir * (14 + Math.random() * 8), vy: (Math.random() - .5) * 6 }; }
+    if (NF.sat) { NF.sat.x += NF.sat.vx * d; NF.sat.y += NF.sat.vy * d; if (NF.sat.x < -10 || NF.sat.x > w + 10) { NF.sat = null; NF.nextSat = now + 40000 + Math.random() * 40000; } }
+    draw(now / 1000, d);
+  };
+  NF.raf = requestAnimationFrame(step);
+}
+document.addEventListener("visibilitychange", nightFx);
 /* Wolf als dunkle Silhouette (Blick in Richtung dir), Füße bei y. W: ph = Trabzyklus, m = 0…1 wie stark er läuft, head = Kopfneigung
    (+ runter zum Schnüffeln, − hoch zum Heulen), tail = Schwanzwinkel. Beine nach Körperbau: vorn fast gerades Bein, beim Anheben klappt
    das Handgelenk die Pfote nach hinten; hinten Oberschenkel, Knie nach vorn, Sprunggelenk nach hinten, das sich beim Anheben faltet. */
@@ -3074,7 +3128,7 @@ function drawWolf(g, x, y, dir, W, tilt){
   g.strokeStyle = "rgba(110,255,180,.14)"; g.lineWidth = .02; g.beginPath(); g.moveTo(-.36, -.6); g.quadraticCurveTo(-.1, -.62, .08, -.61); g.stroke();
   g.restore();
 }
-addEventListener("resize", () => { clearTimeout(drawSky.t); drawSky.t = setTimeout(() => { drawSky(); autumnLeaves(); beachFx(); auroraFx(); }, 150); });
+addEventListener("resize", () => { clearTimeout(drawSky.t); drawSky.t = setTimeout(() => { drawSky(); autumnLeaves(); beachFx(); auroraFx(); nightFx(); }, 150); });
 function applyTheme(){
   document.body.dataset.ts = S.set.textSize || "m";
   document.body.dataset.glass = String(S.set.glass ?? 1); /* Transparenz: 0 stark · 1 leicht · 2 aus */
@@ -3085,7 +3139,7 @@ function applyTheme(){
   b.style.setProperty("--accent-ink", t ? t.ink : dark ? BASE.id : BASE.il);
   ["b-paper","b-surface","b-surface-2","b-line","b-muted","b-ink","b-ink-2"].forEach(k => { if (t && t.bases && t.bases[k]) b.style.setProperty("--" + k, t.bases[k]); else b.style.removeProperty("--" + k); });
   b.classList.toggle("starry", !!(t && t.stars)); drawSky();
-  ["beach", "aurora", "autumn"].forEach(k => b.classList.toggle(k, !!(t && t[k]))); drawSky(); autumnLeaves(); beachFx(); auroraFx();
+  ["beach", "aurora", "autumn"].forEach(k => b.classList.toggle(k, !!(t && t[k]))); drawSky(); autumnLeaves(); beachFx(); auroraFx(); nightFx();
   b.classList.toggle("hearts", !!(t && t.hearts));
   ["tp","ts","ts2","tl","ti"].forEach(k => { if (t && t.flat) b.style.setProperty("--" + k, "3%"); else b.style.removeProperty("--" + k); });
   drawSky.ready = true; applyTop();
