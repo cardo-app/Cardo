@@ -3006,9 +3006,10 @@ function drawWolf(g, x, y, L, dir, ph){
   g.beginPath(); g.ellipse(-.02, -.48, .33, .12, 0, 0, Math.PI * 2); g.fill();
   g.beginPath(); g.ellipse(.2, -.46, .17, .17, 0, 0, Math.PI * 2); g.fill();
   g.beginPath(); g.ellipse(-.25, -.49, .13, .13, 0, 0, Math.PI * 2); g.fill();
-  /* Schwanz: buschig, hängt nach unten und pendelt */
-  const sw = Math.sin(ph * .5) * .025;
-  g.beginPath(); g.moveTo(-.33, -.56); g.quadraticCurveTo(-.52, -.55, -.58 + sw, -.3); g.quadraticCurveTo(-.58 + sw, -.22, -.53 + sw, -.25); g.quadraticCurveTo(-.46, -.4, -.33, -.44); g.fill();
+  /* Schwanz: gerade, buschig (in der Mitte am dicksten, Spitze rund), hängt schräg nach hinten unten und pendelt leicht */
+  g.save(); g.translate(-.33, -.53); g.rotate(-(.72 + Math.sin(ph) * .06));
+  g.beginPath(); g.moveTo(0, -.04); g.bezierCurveTo(-.1, -.085, -.27, -.075, -.37, -.012); g.quadraticCurveTo(-.39, .008, -.36, .02); g.bezierCurveTo(-.26, .06, -.1, .055, 0, .04); g.closePath(); g.fill();
+  g.restore();
   /* Nacken mit Halskrause und Kopf etwa auf Rückenhöhe (Wölfe traben mit gesenktem Kopf), lange Schnauze */
   g.beginPath(); g.moveTo(.08, -.6); g.quadraticCurveTo(.28, -.68, .42, -.65); g.lineTo(.5, -.62); g.lineTo(.67, -.55); g.quadraticCurveTo(.7, -.52, .66, -.5);
   g.lineTo(.52, -.47); g.quadraticCurveTo(.46, -.42, .4, -.32); g.lineTo(.36, -.36); g.lineTo(.33, -.3); g.lineTo(.12, -.36); g.closePath(); g.fill();
