@@ -2838,7 +2838,7 @@ function beachFx(){
     BF.cloudSpr = [15, 11, 9, 13].map(s => { const c = document.createElement("canvas"), W = s * 4, Hh = s * 2.6; c.width = Math.ceil(W * dpr); c.height = Math.ceil(Hh * dpr); const q = c.getContext("2d"); q.scale(dpr, dpr); q.translate(W / 2, Hh * .55);
       q.fillStyle = "rgba(255,255,255,.92)"; q.beginPath(); [[0, 0, 1], [-.9, .25, .7], [.9, .25, .75], [-.4, -.35, .75], [.45, -.3, .7]].forEach(([dx, dy, r]) => { q.moveTo(dx * s + r * s, dy * s); q.arc(dx * s, dy * s, r * s, 0, Math.PI * 2); }); q.fill(); q.fillRect(-1.4 * s, .2 * s, 2.8 * s, .75 * s); return c; });
     BF.clouds = [[.22, .2, 0, 6], [.6, .32, 1, 4.5], [.92, .38, 2, 3.5], [.05, .1, 3, 5]].map(([fx, fy, i, v]) => ({ x: w * fx, y: Y(fy), i, v }));
-    BF.glit = Array.from({ length: Math.round(w / 9) }, () => ({ t: Math.random() * 3 })).map(p => (newGlint(p), p));
+    BF.glit = Array.from({ length: Math.round(w / 6) }, () => ({ t: Math.random() * 3 })).map(p => (newGlint(p), p));
     BF.boat = { x: w * .3, v: 2.2 };
     /* Wellenkämme als fertige Bilder in 6 Entfernungsstufen (hinten dünn/blass, vorne kräftiger): helle Lichtkante, dunkler Schatten darunter, Enden laufen weich aus */
     BF.crestSpr = Array.from({ length: 6 }, (_, k) => { const t = (k + .5) / 6, L = 40, bend = 1 + t * 2.5, off = 1 + t * 1.6, W = L * 2 + 6, Hh = bend * 2 + off + 8, c = document.createElement("canvas");
@@ -2854,8 +2854,9 @@ function beachFx(){
     c.d = Math.random() ** 1.6; c.x = Math.random() * w; c.r = Math.random(); c.ph = Math.random() * 6; c.life = 4 + Math.random() * 6; c.age = anyAge ? Math.random() * c.life : 0; return c;
   }
   function newGlint(p){ /* Glitzer sammelt sich unter der Sonne und wird zum Ufer hin breiter */
-    const d = Math.random() ** 1.6, y = hz + 4 + d * (shore - hz - 30), spread = 18 + d * w * .45;
-    p.x = sunX + (Math.random() + Math.random() - 1) * spread; p.y = y; p.s = 1.2 + d * 2.6 + Math.random(); p.per = 1.4 + Math.random() * 2.2; p.t = 0;
+    /* Lichtstraße: schmal am Horizont, zum Ufer hin breiter; in der Mitte dichter (Summe aus drei Zufallszahlen) */
+    const d = Math.random() ** 1.3, y = hz + 4 + d * (shore - hz - 30), spread = 12 + d * w * .26;
+    p.x = sunX + ((Math.random() + Math.random() + Math.random()) / 1.5 - 1) * spread; p.y = y; p.s = 1 + d * 2.6 + Math.random() * .7; p.per = 1.2 + Math.random() * 1.8; p.t = 0;
   }
   const g = cv.getContext("2d"), still = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const WAVE = 7.5; /* Sekunden pro Welle */
@@ -2878,6 +2879,11 @@ function beachFx(){
     g.strokeStyle = "#34495A"; g.lineCap = "round"; g.lineJoin = "round";
     for (const m of BF.gulls) { const f = Math.sin(t * m.f + m.ph), s = m.s, y = m.y + Math.sin(t * .9 + m.ph) * 4; g.lineWidth = Math.max(1.2, s * .16);
       g.beginPath(); g.moveTo(m.x - s, y - s * .15 * f); g.quadraticCurveTo(m.x - s * .45, y - s * (.15 + .45 * f), m.x, y); g.quadraticCurveTo(m.x + s * .45, y - s * (.15 + .45 * f), m.x + s, y - s * .15 * f); g.stroke(); }
+    /* Lichtstraße unter der Sonne: kurze helle Querstriche, die langsam flimmern */
+    for (let i = 0; i < 46; i++) { const d = (i + .5) / 46, y = hz + 3 + d * d * (shore - hz - 26), sp = 10 + d * w * .22, a = (.5 + .5 * Math.sin(t * (1.3 + (i % 5) * .3) + i * 2.4)) * (.55 - d * .25);
+      const off = Math.sin(t * .7 + i * 1.7) * sp * .25, len = sp * (.5 + .5 * Math.sin(i * 3.7 + t * .9) ** 2), gr = g.createLinearGradient(sunX + off - len, 0, sunX + off + len, 0);
+      gr.addColorStop(0, "rgba(255,248,215,0)"); gr.addColorStop(.5, `rgba(255,248,215,${a.toFixed(3)})`); gr.addColorStop(1, "rgba(255,248,215,0)");
+      g.fillStyle = gr; g.fillRect(sunX + off - len, y - .6 - d, len * 2, 1.2 + d * 2); }
     /* Glitzern: kleine Sterne blitzen auf und vergehen */
     g.fillStyle = "#FFFFFF";
     for (const p of BF.glit) { const a = Math.max(0, Math.sin(p.t / p.per * Math.PI)) ** 3; if (a < .02) continue; const s = p.s * (.6 + .4 * a); g.globalAlpha = a * .95;
