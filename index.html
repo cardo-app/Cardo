@@ -2946,6 +2946,7 @@ document.addEventListener("visibilitychange", beachFx);
 function auroraFx(){
   const on = document.body.classList.contains("aurora") && document.visibilityState !== "hidden", el = document.getElementById("sky");
   if (!on || !el || !AU.bands) { cancelAnimationFrame(AU.raf); AU.raf = 0; skyCanvas("afx", false); skyCanvas("wfx", false); return; }
+  AU.wcv = skyCanvas("wfx", true); /* Wolf-Ebene jedes Mal wieder einblenden (wird beim Verstecken der App ausgeblendet) */
   const cv = AU.cv = skyCanvas("afx", true), w = el.clientWidth || innerWidth, h = el.clientHeight || innerHeight + 160, dpr = Math.min(2, devicePixelRatio || 1);
   if (w !== AU.w || h !== AU.h || dpr !== AU.dpr || AU.sprVer !== AU.ver) {
     cancelAnimationFrame(AU.raf); AU.raf = 0; /* neue Maße → Animation mit neuen Werten neu starten */
@@ -2956,7 +2957,7 @@ function auroraFx(){
         q.fillStyle = gr; q.fillRect(x + 12, y - l, 1.6, l + 6); }
       return c; });
     const top = 80, Hh = h - top * 2;
-    const wc = AU.wcv = skyCanvas("wfx", true); wc.width = cv.width; wc.height = cv.height; AU.wolf = null; AU.nextWolf = performance.now() + 20000 + Math.random() * 20000;
+    AU.wcv.width = cv.width; AU.wcv.height = cv.height; if (AU.wolf || !AU.nextWolf) { AU.wolf = null; AU.nextWolf = performance.now() + (AU.nextWolf ? 5000 : 20000 + Math.random() * 20000); } /* Wartezeit bei Größenänderung nicht neu starten */
     AU.tw = Array.from({ length: Math.round(w * h / 9000) }, () => ({ x: Math.random() * w, y: top + Math.random() * Hh * .62, r: .6 + Math.random() * .8, f: .6 + Math.random() * 1.6, ph: Math.random() * 6 }));
   }
   const g = cv.getContext("2d"), still = matchMedia("(prefers-reduced-motion: reduce)").matches, SL = 3; /* Streifenbreite in Punkten */
