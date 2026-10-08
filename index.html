@@ -2722,9 +2722,12 @@ function paintAutumn(g, w, h, rnd, glow){
     [[0, -.75, .32], [-.22, -.62, .24], [.22, -.6, .25], [-.1, -.92, .22], [.14, -.86, .22]].forEach(([dx, dy, r], k) => { g.fillStyle = cols[k % cols.length]; g.beginPath(); g.arc(x + dx * s, by + dy * s, r * s, 0, Math.PI * 2); g.fill(); });
   };
   hill(Y(.62), 10, 90, 1, "#EDB57E");
-  [[.08, .62, 50], [.2, .6, 40], [.62, .61, 46], [.74, .63, 38], [.9, .6, 52]].forEach(([fx, fy, sz]) => tree(w * fx, Y(fy) + 4, sz, ["#F2A03D", "#E8792F", "#F5C04A"]));
+  /* Bäume stehen genau auf der Kante ihres Hügels (leicht eingesunken), sonst schweben sie über den Senken */
+  const onHill = (base, amp, f, ph) => x => base + Math.sin(x / f + ph) * amp;
+  const h1 = onHill(Y(.62), 10, 90, 1), h2 = onHill(Y(.7), 12, 70, 3);
+  [[.08, .62, 50], [.2, .6, 40], [.62, .61, 46], [.74, .63, 38], [.9, .6, 52]].forEach(([fx, fy, sz]) => tree(w * fx, h1(w * fx) + 5, sz, ["#F2A03D", "#E8792F", "#F5C04A"]));
   hill(Y(.7), 12, 70, 3, "#E19A5E");
-  [[.05, .73, 80], [.3, .71, 64], [.86, .74, 86]].forEach(([fx, fy, sz]) => tree(w * fx, Y(fy) + 6, sz, ["#D9482A", "#EF7A2E", "#C9342A", "#F2A03D"]));
+  [[.05, .73, 80], [.3, .71, 64], [.86, .74, 86]].forEach(([fx, fy, sz]) => tree(w * fx, h2(w * fx) + 7, sz, ["#D9482A", "#EF7A2E", "#C9342A", "#F2A03D"]));
   hill(Y(.8), 10, 60, 5, "#C97A45");
   /* Waldweg: wird nach hinten schmal und verschwindet genau an der Kuppe des vorderen Hügels (auf dessen Fläche zugeschnitten) */
   const edge = x => Y(.8) + Math.sin(x / 60 + 5) * 10, tx = w * .54, ty = edge(tx);
