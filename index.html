@@ -2978,9 +2978,9 @@ function auroraFx(){
     if (!AU.wolf && now > AU.nextWolf) { const dir = Math.random() < .5 ? 1 : -1, L = 30 + Math.random() * 6; AU.wolf = { x: dir > 0 ? -L : w + L, dir, L, v: 30 + Math.random() * 10, ph: 0 }; }
     wg.setTransform(1, 0, 0, 1, 0, 0); wg.clearRect(0, 0, AU.wcv.width, AU.wcv.height);
     const W = AU.wolf; if (!W) return;
-    W.x += W.dir * W.v * d; W.ph += d * W.v / (W.L * .34);
+    W.x += W.dir * W.v * d; W.ph += d * W.v / (W.L * .5); /* ein Schrittzyklus = halbe Körperlänge, passend zur Geschwindigkeit → Pfoten rutschen nicht */
     if (W.x < -W.L * 1.5 || W.x > w + W.L * 1.5) { AU.wolf = null; AU.nextWolf = now + 60000 + Math.random() * 60000; return; }
-    wg.setTransform(dpr, 0, 0, dpr, 0, 0); drawWolf(wg, W.x, ground(W.x), W.L, W.dir, W.ph);
+    wg.setTransform(dpr, 0, 0, dpr, 0, 0); drawWolf(wg, W.x, ground(W.x), W.L, W.dir, W.ph, Math.atan(Math.cos(W.x / 60) * .1));
   };
   if (still) { cancelAnimationFrame(AU.raf); AU.raf = 0; draw(20); wg.clearRect(0, 0, AU.wcv.width, AU.wcv.height); return; }
   if (AU.raf) return;
@@ -2994,20 +2994,32 @@ function auroraFx(){
 }
 document.addEventListener("visibilitychange", auroraFx);
 /* Wolf als dunkle Silhouette (Blick in Richtung dir), Füße bei y; ph = Schrittphase. Kreuzgang: Beine diagonal versetzt, Körper wippt leicht. */
-function drawWolf(g, x, y, L, dir, ph){
-  g.save(); g.translate(x, y - Math.abs(Math.sin(ph)) * L * .015); g.scale(dir * L, L);
+function drawWolf(g, x, y, L, dir, ph, tilt){
+  const bob = (1 - Math.cos(ph * Math.PI * 4)) * .008; /* zweimal pro Zyklus leicht auf und ab */
+  g.save(); g.translate(x, y); g.rotate(tilt); g.scale(dir * L, L); g.translate(0, -bob);
   g.fillStyle = g.strokeStyle = "#060F18"; g.lineCap = "round"; g.lineJoin = "round";
-  /* Beine: kräftiger Oberschenkel + schmalerer Unterlauf, Knie knickt beim Zurückschwingen */
-  const leg = (ax, ay, o, back) => { const a = Math.sin(ph + o) * .4, k = Math.max(0, -Math.cos(ph + o)) * .5 * (back ? -1 : 1);
-    const kx = ax + Math.sin(a) * .19, ky = ay + Math.cos(a) * .19, fx = kx + Math.sin(a + k) * .2, fy = Math.min(0, ky + Math.cos(a + k) * .2);
-    g.lineWidth = .1; g.beginPath(); g.moveTo(ax, ay - .04); g.lineTo(kx, ky); g.stroke(); g.lineWidth = .06; g.beginPath(); g.moveTo(kx, ky); g.lineTo(fx, fy); g.stroke(); };
-  leg(-.22, -.39, Math.PI, true); leg(.2, -.39, Math.PI * 1.5, false); /* hintere Beine (weiter weg) zuerst */
+  /* Beine mit festem Tritt: 60 % des Zyklus steht die Pfote am Boden (wandert relativ zum Körper genau so schnell nach hinten,
+     wie der Wolf läuft), 40 % schwingt sie angehoben nach vorn. Knie per Zwei-Gelenk-Rechnung: vorne knickt es nach vorn, hinten nach hinten. */
+  const S = .5, ST = .6, L1 = .22, L2 = .24;
+  const leg = (hx, hy, off, front, col) => {
+    const u = ((ph + off) % 1 + 1) % 1; let fx, fy;
+    if (u < ST) { fx = S * ST / 2 - u / ST * S * ST; fy = 0; }
+    else { const v = (u - ST) / (1 - ST), e = v * v * (3 - 2 * v); fx = -S * ST / 2 + e * S * ST; fy = -Math.sin(v * Math.PI) * .09; }
+    fx += hx; const dx = fx - hx, dy = (fy + bob) - hy, D = Math.min(Math.hypot(dx, dy), L1 + L2 - .001), base = Math.atan2(dy, dx);
+    const k = Math.acos(Math.max(-1, Math.min(1, (L1 * L1 + D * D - L2 * L2) / (2 * L1 * D)))) * (front ? -1 : 1), kx = hx + Math.cos(base + k) * L1, ky = hy + Math.sin(base + k) * L1;
+    g.strokeStyle = g.fillStyle = col; g.lineWidth = .1; g.beginPath(); g.moveTo(hx, hy - .04); g.lineTo(kx, ky); g.stroke();
+    g.lineWidth = .06; g.beginPath(); g.moveTo(kx, ky); g.lineTo(fx, fy + bob); g.stroke();
+    g.beginPath(); g.ellipse(fx + .02, fy + bob - .01, .04, .022, 0, 0, Math.PI * 2); g.fill(); /* Pfote */
+  };
+  /* Schrittfolge wie beim Hund: hinten links, vorne links, hinten rechts, vorne rechts; ferne Seite etwas heller (Tiefe) */
+  leg(-.22, -.42, .5, false, "#0E1C2A"); leg(.2, -.42, .75, true, "#0E1C2A");
+  g.fillStyle = g.strokeStyle = "#060F18";
   /* Rumpf: tiefe Brust, schlanke Taille, Hinterteil */
   g.beginPath(); g.ellipse(-.02, -.48, .33, .12, 0, 0, Math.PI * 2); g.fill();
   g.beginPath(); g.ellipse(.2, -.46, .17, .17, 0, 0, Math.PI * 2); g.fill();
   g.beginPath(); g.ellipse(-.25, -.49, .13, .13, 0, 0, Math.PI * 2); g.fill();
   /* Schwanz: gerade, buschig (in der Mitte am dicksten, Spitze rund), hängt schräg nach hinten unten und pendelt leicht */
-  g.save(); g.translate(-.33, -.53); g.rotate(-(.72 + Math.sin(ph) * .06));
+  g.save(); g.translate(-.33, -.53); g.rotate(-(.72 + Math.sin(ph * Math.PI * 2) * .06));
   g.beginPath(); g.moveTo(0, -.04); g.bezierCurveTo(-.1, -.085, -.27, -.075, -.37, -.012); g.quadraticCurveTo(-.39, .008, -.36, .02); g.bezierCurveTo(-.26, .06, -.1, .055, 0, .04); g.closePath(); g.fill();
   g.restore();
   /* Nacken mit Halskrause und Kopf etwa auf Rückenhöhe (Wölfe traben mit gesenktem Kopf), lange Schnauze */
@@ -3016,7 +3028,7 @@ function drawWolf(g, x, y, L, dir, ph){
   /* kleine, spitze Ohren */
   g.beginPath(); g.moveTo(.37, -.64); g.lineTo(.39, -.75); g.lineTo(.44, -.65); g.fill();
   g.beginPath(); g.moveTo(.42, -.65); g.lineTo(.46, -.74); g.lineTo(.48, -.63); g.fill();
-  leg(-.28, -.39, 0, true); leg(.16, -.39, Math.PI * .5, false); /* vordere Beine */
+  leg(-.26, -.42, 0, false, "#060F18"); leg(.16, -.42, .25, true, "#060F18"); /* nahe Seite */
   /* ganz schwacher grüner Lichtsaum vom Nordlicht auf Rücken und Kopf */
   g.strokeStyle = "rgba(110,255,180,.14)"; g.lineWidth = .02; g.beginPath(); g.moveTo(-.34, -.59); g.quadraticCurveTo(-.1, -.62, .08, -.61); g.quadraticCurveTo(.28, -.69, .42, -.66); g.stroke();
   g.restore();
