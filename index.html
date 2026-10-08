@@ -2825,7 +2825,7 @@ function skyCanvas(cls, show){
 }
 /* Beach: Wellen laufen den Strand hinauf und zurück (nasser Sand bleibt kurz dunkel), Sonnenglitzern auf dem Meer,
    ziehende Wolken, ab und zu Möwen, ein Segelboot am Horizont. Gleiche Maße wie paintBeach. */
-const BF = { cv: null, raf: 0, w: 0, h: 0, dpr: 1, last: 0, clouds: [], glit: [], gulls: [], boat: null, nextGull: 0, cloudSpr: null, crabs: [], crests: [], crestSpr: null, dol: null, nextDol: 0, splash: [] };
+const BF = { cv: null, raf: 0, w: 0, h: 0, dpr: 1, last: 0, clouds: [], glit: [], gulls: [], boat: null, nextGull: 0, cloudSpr: null, crabs: [], crests: [], crestSpr: null };
 function beachFx(){
   const on = document.body.classList.contains("beach") && document.visibilityState !== "hidden", el = document.getElementById("sky");
   if (!on || !el) { cancelAnimationFrame(BF.raf); BF.raf = 0; skyCanvas("bfx", false); return; }
@@ -2840,7 +2840,6 @@ function beachFx(){
     BF.clouds = [[.22, .2, 0, 6], [.6, .32, 1, 4.5], [.92, .38, 2, 3.5], [.05, .1, 3, 5]].map(([fx, fy, i, v]) => ({ x: w * fx, y: Y(fy), i, v }));
     BF.glit = Array.from({ length: Math.round(w / 6) }, () => ({ t: Math.random() * 3 })).map(p => (newGlint(p), p));
     BF.boat = { x: w * .3, v: 2.2 };
-    BF.dol = null; BF.splash = []; BF.nextDol = performance.now() + 10000 + Math.random() * 8000;
     /* Wellenkämme als fertige Bilder in 6 Entfernungsstufen (hinten dünn/blass, vorne kräftiger): helle Lichtkante, dunkler Schatten darunter, Enden laufen weich aus */
     BF.crestSpr = Array.from({ length: 6 }, (_, k) => { const t = (k + .5) / 6, L = 40, bend = 1 + t * 2.5, off = 1 + t * 1.6, W = L * 2 + 6, Hh = bend * 2 + off + 8, c = document.createElement("canvas");
       c.width = Math.ceil(W * dpr); c.height = Math.ceil(Hh * dpr); const q = c.getContext("2d"); q.scale(dpr, dpr); q.lineCap = "round"; const y = Hh / 2 - off / 2 + bend * .3;
@@ -2890,19 +2889,6 @@ function beachFx(){
     for (const p of BF.glit) { const a = Math.max(0, Math.sin(p.t / p.per * Math.PI)) ** 3; if (a < .02) continue; const s = p.s * (.6 + .4 * a); g.globalAlpha = a * .95;
       g.beginPath(); g.moveTo(p.x, p.y - s * 1.6); g.lineTo(p.x + s * .3, p.y - s * .3); g.lineTo(p.x + s * 1.6, p.y); g.lineTo(p.x + s * .3, p.y + s * .3); g.lineTo(p.x, p.y + s * 1.6); g.lineTo(p.x - s * .3, p.y + s * .3); g.lineTo(p.x - s * 1.6, p.y); g.lineTo(p.x - s * .3, p.y - s * .3); g.fill(); }
     g.globalAlpha = 1;
-    /* Delfin: springt im Bogen aus dem Wasser; unter der Wasserlinie abgeschnitten */
-    if (BF.dol) { const D = BF.dol, p = D.p, L = D.L, span = L * 2.3, hgt = L * .85, x = D.x0 + D.dir * (p - .5) * span, y = D.base - 4 * hgt * p * (1 - p);
-      g.save(); g.beginPath(); g.rect(0, 0, w, D.base + .5); g.clip(); g.translate(x, y); g.scale(D.dir * L, L); g.rotate(Math.atan2(-4 * hgt * (1 - 2 * p), span));
-      const gr = g.createLinearGradient(0, -.15, 0, .1); gr.addColorStop(0, "#3F6680"); gr.addColorStop(.55, "#6E93AB"); gr.addColorStop(1, "#DCE8EF"); g.fillStyle = gr;
-      g.beginPath(); g.moveTo(.52, .02); g.quadraticCurveTo(.45, -.05, .36, -.07); g.bezierCurveTo(.2, -.16, -.1, -.14, -.32, -.05); g.quadraticCurveTo(-.42, -.01, -.46, 0);
-      g.lineTo(-.57, -.1); g.quadraticCurveTo(-.53, 0, -.59, .09); g.lineTo(-.46, .02); g.bezierCurveTo(-.2, .1, .2, .1, .38, .04); g.quadraticCurveTo(.46, .03, .52, .02); g.fill();
-      g.fillStyle = "#3F6680"; g.beginPath(); g.moveTo(-.02, -.13); g.quadraticCurveTo(-.06, -.26, -.16, -.28); g.quadraticCurveTo(-.12, -.18, -.15, -.12); g.fill();
-      g.fillStyle = "#557C95"; g.beginPath(); g.moveTo(.18, .06); g.quadraticCurveTo(.12, .16, .03, .18); g.quadraticCurveTo(.1, .1, .1, .06); g.fill();
-      g.fillStyle = "#1C2E3A"; g.beginPath(); g.arc(.35, -.025, .018, 0, Math.PI * 2); g.fill(); g.restore(); }
-    /* Spritzer: Tropfen fliegen und fallen, dazu ein sich ausbreitender Ring */
-    for (const sp of BF.splash) { const k = sp.age / sp.life; if (k >= 1) continue;
-      g.strokeStyle = `rgba(255,255,255,${(.7 * (1 - k)).toFixed(2)})`; g.lineWidth = 1.2; g.beginPath(); g.ellipse(sp.x, sp.y, 3 + k * sp.s * .9, 1 + k * sp.s * .22, 0, 0, Math.PI * 2); g.stroke();
-      g.fillStyle = `rgba(255,255,255,${(.9 * (1 - k)).toFixed(2)})`; for (const q of sp.drops) { if (q.y > sp.y + 1) continue; g.beginPath(); g.arc(q.x, q.y, q.r, 0, Math.PI * 2); g.fill(); } }
     /* Brandung: zwei versetzte Wellen – große und kleine */
     [[0, 34], [.5, 14]].forEach(([off, R]) => {
       const p = ((t / WAVE + off) % 1 + 1) % 1, e = ease(p), reach = R * e, back = p > .4;
@@ -2927,14 +2913,6 @@ function beachFx(){
     for (const c of BF.clouds) { c.x += c.v * d; const hw = BF.cloudSpr[c.i].width / dpr / 2; if (c.x - hw > w) c.x = -hw; }
     BF.boat.x += BF.boat.v * d; if (BF.boat.x > w + 20) BF.boat.x = -20;
     for (const p of BF.glit) { p.t += d; if (p.t > p.per) newGlint(p); }
-    /* Delfin: selten (erst nach 10–18 s, dann alle 35–70 s), in der Lichtstraße im oberen Drittel des Wassers */
-    const splashAt = (x, y, s) => BF.splash.push({ x, y, s, age: 0, life: .9, drops: Array.from({ length: 9 }, () => ({ x, y, r: .7 + Math.random() * 1.1, vx: (Math.random() - .5) * s * 2.2, vy: -(s * 2 + Math.random() * s * 2.5) })) });
-    if (!BF.dol && now > BF.nextDol) { const f = .11 + Math.random() * .2, L = 26 + f * 36, dir = Math.random() < .5 ? 1 : -1;
-      BF.dol = { x0: sunX + (Math.random() - .4) * w * .22, base: hz + f * (shore - hz), L, dir, p: 0 }; splashAt(BF.dol.x0 - dir * L * 1.1, BF.dol.base, L * .5); }
-    if (BF.dol) { const D = BF.dol; D.p += d / 1.5; if (D.p > .9 && !D.out) { D.out = 1; splashAt(D.x0 + D.dir * D.L * 1.1, D.base, D.L * .6); }
-      if (D.p > 1.08) { BF.dol = null; BF.nextDol = now + 35000 + Math.random() * 35000; } }
-    for (const sp of BF.splash) { sp.age += d; for (const q of sp.drops) { q.x += q.vx * d; q.y += q.vy * d; q.vy += 90 * d; } }
-    BF.splash = BF.splash.filter(sp => sp.age < sp.life);
     for (const c of BF.crests) { c.age += d; c.d += d * (.006 + c.d * .012); c.x += d * 3; if (c.age > c.life || c.d > 1) newCrest(c); if (c.x > w + 60) c.x -= w + 120; }
     if (now > BF.nextGull && BF.gulls.length < 3) { /* 1–2 Möwen, mal von links, mal von rechts */
       const dir = Math.random() < .5 ? 1 : -1, n = Math.random() < .4 ? 2 : 1, y0 = Y(.04 + Math.random() * .26);
