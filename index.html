@@ -2584,9 +2584,16 @@ function paintBeach(g, w, h, rnd, glow){
   g.fillStyle = "rgba(255,255,255,.55)"; g.fillRect(0, hz, w, 1.5);
   /* helle Streifen im flachen Lagunenwasser */
   [[.62, .5], [.76, .45], [.88, .55]].forEach(([f, a]) => { const y = hz + (shore - hz) * f; g.fillStyle = `rgba(160,255,240,${a * .35})`; g.beginPath(); g.moveTo(0, y); for (let x = 0; x <= w; x += 8) g.lineTo(x, y + Math.sin(x / 55 + f * 9) * 3); g.lineTo(w, y + 7); g.lineTo(0, y + 7); g.fill(); });
-  /* kleine Wellen */
-  g.strokeStyle = "rgba(255,255,255,.55)"; g.lineWidth = 1.6; g.lineCap = "round";
-  for (let i = 0; i < Math.round(w * (shore - hz) / 2600); i++) { const t = rnd(), y = hz + 8 + t * t * (shore - hz - 24), x = rnd() * w, ww = 6 + t * 14; g.beginPath(); g.moveTo(x - ww, y); g.quadraticCurveTo(x - ww / 2, y - 3 - t * 2, x, y); g.quadraticCurveTo(x + ww / 2, y - 3 - t * 2, x + ww, y); g.stroke(); }
+  /* Wellenkämme: flache, lange Lichtkanten mit dunklem Schatten darunter, an den Enden weich auslaufend;
+     am Horizont klein, dünn und dicht, zum Ufer hin länger und kräftiger (Perspektive) */
+  g.lineCap = "round";
+  for (let i = 0; i < Math.round(w * (shore - hz) / 1500); i++) {
+    const t = Math.pow(rnd(), 1.6), y = hz + 5 + t * (shore - hz - 30), x = rnd() * w, len = 8 + t * 46 + rnd() * t * 30, bend = (1 + t * 2.5) * (rnd() < .5 ? 1 : .6);
+    const line = (dy, rgb, al, lw) => { const gr = g.createLinearGradient(x - len, 0, x + len, 0); gr.addColorStop(0, `rgba(${rgb},0)`); gr.addColorStop(.5, `rgba(${rgb},${al})`); gr.addColorStop(1, `rgba(${rgb},0)`);
+      g.strokeStyle = gr; g.lineWidth = lw; g.beginPath(); g.moveTo(x - len, y + dy + bend * .4); g.quadraticCurveTo(x, y + dy - bend, x + len, y + dy + bend * .4); g.stroke(); };
+    line(1 + t * 1.6, "4,70,110", .12 + t * .14, .8 + t * 1.6);
+    line(0, "255,255,255", .45 + t * .35, .5 + t * 1.3);
+  }
   /* Strand mit Schaumkante */
   const sw = x => shore + Math.sin(x / 38) * 6 + Math.sin(x / 15 + 1) * 2.5;
   g.fillStyle = "rgba(255,255,255,.9)"; g.beginPath(); g.moveTo(0, h); for (let x = 0; x <= w; x += 5) g.lineTo(x, sw(x) - 5); g.lineTo(w, h); g.fill();
