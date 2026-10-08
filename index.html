@@ -2973,7 +2973,7 @@ function auroraFx(){
     for (const s of AU.tw) { g.globalAlpha = .15 + .85 * (.5 + .5 * Math.sin(t * s.f + s.ph)) ** 3; g.beginPath(); g.arc(s.x, s.y, s.r, 0, Math.PI * 2); g.fill(); }
     g.globalAlpha = 1;
   };
-  /* Wolf: läuft ab und zu unten über den Schnee (erst nach 6–12 s, dann alle 25–45 s), eigene Ebene vor Bergen und Tannen */
+  /* Wolf: läuft ab und zu unten über den Schnee (erst nach 6–12 s, dann alle 10–15 s), eigene Ebene vor Bergen und Tannen */
   const wg = AU.wcv.getContext("2d"), Yw = f => 80 + (h - 160) * f, ground = x => Yw(.877) + Math.sin(x / 60) * 6;
   const wolfStep = (now, d) => {
     if (!AU.wolf && now > AU.nextWolf) { const dir = Math.random() < .5 ? 1 : -1, L = 31 + Math.random() * 5, vt = 44 + Math.random() * 10;
@@ -2998,7 +2998,7 @@ function auroraFx(){
     W.v += (W.vt - W.v) * Math.min(1, d * (W.mode === "flee" ? 4 : W.mode === "startle" ? 6 : 2.2)); W.x += W.dir * W.v * d;
     W.ph += d * W.v / (W.L * (W.gait === "gallop" ? 1.1 : .55)); /* ein Zyklus = 0,55 (Trab) bzw. 1,1 (Galopp) Körperlängen → Pfoten stehen fest */
     W.m = Math.min(1, W.v / 30); W.head += (headT - W.head) * Math.min(1, d * 4); W.tail += (tailT - W.tail) * Math.min(1, d * 3);
-    if (W.x < -W.L * 1.5 || W.x > w + W.L * 1.5) { AU.wolf = null; AU.nextWolf = now + 25000 + Math.random() * 20000; return; }
+    if (W.x < -W.L * 1.5 || W.x > w + W.L * 1.5) { AU.wolf = null; AU.nextWolf = now + 10000 + Math.random() * 5000; return; }
     /* Atemwölkchen in der kalten Luft (beim Heulen öfter) */
     const howling = W.act === "howl" && W.mode === "stop" && W.head < -.6; W.nextPuff -= d;
     if (W.nextPuff < 0) { W.nextPuff = howling ? .45 : 1.6 + Math.random() * 1.2; const h = W.head, lx = .14 + .54 * Math.cos(h) - .03 * Math.sin(h), ly = -.55 + .54 * Math.sin(h) + .03 * Math.cos(h);
