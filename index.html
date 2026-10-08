@@ -2561,19 +2561,19 @@ function paintStars(g, w, h, rnd, glow){
   const bx = t => w * (-.1 + 1.2 * t), by = t => h * (.95 - .9 * t), band = Math.max(w, h) * .16;
   for (let i = 0; i < 26; i++) { const t = i / 25; glow(bx(t) + (rnd() - .5) * band * .6, by(t) + (rnd() - .5) * band * .6, band * (.7 + rnd() * .6), `rgba(${150 + rnd() * 40 | 0},${160 + rnd() * 40 | 0},255,${.035 + rnd() * .03})`); }
   const star = (x, y, r, a, col) => { g.globalAlpha = a; g.fillStyle = col; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill(); g.globalAlpha = 1; };
-  const COLS = ["#FFFFFF", "#FFFFFF", "#FFFFFF", "#DCE6FF", "#C9D8FF", "#FFF4DD", "#FFE6C2"];
+  const COLS = ["#FFFDF4", "#FFF8E6", "#FFF4DD", "#FFFFFF", "#F4F0FF", "#FFEFCC", "#FFE6B8"]; /* warmweiß bis hellgelb, passend zum Mond */
   const n = Math.round(w * h / 900);
   for (let i = 0; i < n; i++) { const r = rnd(); star(rnd() * w, rnd() * h, r < .85 ? .25 + rnd() * .45 : r < .97 ? .6 + rnd() * .5 : 1 + rnd() * .7, .25 + rnd() * .65, COLS[rnd() * COLS.length | 0]); }
-  for (let i = 0; i < n * .9; i++) { const t = rnd(), o = (rnd() + rnd() + rnd() - 1.5) * band * .55; star(bx(t) + o * .7, by(t) + o, .2 + rnd() * .35, .2 + rnd() * .45, "#EAF0FF"); }
-  for (let i = 0; i < Math.round(w * h / 26000); i++) { const x = rnd() * w, y = rnd() * h, c = COLS[rnd() * COLS.length | 0]; glow(x, y, 5 + rnd() * 5, "rgba(200,215,255,.22)"); star(x, y, 1.1 + rnd() * .6, .95, c); }
+  for (let i = 0; i < n * .9; i++) { const t = rnd(), o = (rnd() + rnd() + rnd() - 1.5) * band * .55; star(bx(t) + o * .7, by(t) + o, .2 + rnd() * .35, .2 + rnd() * .45, "#F6F1E4"); }
+  for (let i = 0; i < Math.round(w * h / 26000); i++) { const x = rnd() * w, y = rnd() * h, c = COLS[rnd() * COLS.length | 0]; glow(x, y, 5 + rnd() * 5, "rgba(245,230,195,.22)"); star(x, y, 1.1 + rnd() * .6, .95, c); }
   /* Sichelmond oben rechts (wie im Vorschaubild der Design-Auswahl): heller Lichthof, unbeleuchteter Teil schwach zu erahnen, Krater */
   const [mx, my, R] = nightMoon(w, h), d = g.getTransform().a || 1;
-  glow(mx - R * .3, my + R * .2, R * 3.2, "rgba(225,228,240,.12)"); /* Mondlicht in den Farben der Sterne: Elfenbein statt Gold */
+  glow(mx - R * .3, my + R * .2, R * 3.2, "rgba(250,228,165,.14)"); /* Mondlicht in den Farben der Sterne: warmes Mondgelb */
   g.fillStyle = "rgba(14,22,66,.94)"; g.beginPath(); g.arc(mx, my, R * .98, 0, Math.PI * 2); g.fill();
   g.strokeStyle = "rgba(160,180,230,.12)"; g.lineWidth = 1; g.beginPath(); g.arc(mx, my, R * .97, 0, Math.PI * 2); g.stroke();
   const c = document.createElement("canvas"), S = Math.ceil(R * 2.2 * d), o = R * 1.1; c.width = c.height = S; const m = c.getContext("2d"); m.scale(d, d);
-  const q = m.createRadialGradient(o - R * .3, o - R * .3, 0, o, o, R); q.addColorStop(0, "#FFFCF2"); q.addColorStop(1, "#E9E1CC"); m.fillStyle = q; m.beginPath(); m.arc(o, o, R, 0, Math.PI * 2); m.fill();
-  m.fillStyle = "rgba(150,150,170,.22)"; [[-.3, .2, .16], [.1, .45, .1], [-.05, -.25, .08], [-.55, -.1, .07]].forEach(([dx, dy, r]) => { m.beginPath(); m.arc(o + dx * R, o + dy * R, r * R, 0, Math.PI * 2); m.fill(); });
+  const q = m.createRadialGradient(o - R * .3, o - R * .3, 0, o, o, R); q.addColorStop(0, "#FFF7DA"); q.addColorStop(1, "#F1D896"); m.fillStyle = q; m.beginPath(); m.arc(o, o, R, 0, Math.PI * 2); m.fill();
+  m.fillStyle = "rgba(175,145,90,.22)"; [[-.3, .2, .16], [.1, .45, .1], [-.05, -.25, .08], [-.55, -.1, .07]].forEach(([dx, dy, r]) => { m.beginPath(); m.arc(o + dx * R, o + dy * R, r * R, 0, Math.PI * 2); m.fill(); });
   m.globalCompositeOperation = "destination-out"; m.fillStyle = "#000"; m.beginPath(); m.arc(o + R * .55, o - R * .3, R * .9, 0, Math.PI * 2); m.fill();
   g.drawImage(c, mx - o, my - o, S / d, S / d);
 }
@@ -3047,8 +3047,8 @@ function nightFx(){
     NF.w = w; NF.h = h; NF.dpr = dpr; cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
     /* weicher Lichthof als fertiges Bild */
     const c = document.createElement("canvas"), S = Math.ceil(32 * dpr); c.width = c.height = S; const q = c.getContext("2d"), gr = q.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
-    gr.addColorStop(0, "rgba(220,230,255,.55)"); gr.addColorStop(.25, "rgba(200,215,255,.18)"); gr.addColorStop(1, "rgba(200,215,255,0)"); q.fillStyle = gr; q.fillRect(0, 0, S, S); NF.glowSpr = c;
-    const COLS = ["#FFFFFF", "#FFFFFF", "#DCE6FF", "#C9D8FF", "#FFF4DD", "#FFE6C2"];
+    gr.addColorStop(0, "rgba(255,240,205,.55)"); gr.addColorStop(.25, "rgba(250,230,190,.18)"); gr.addColorStop(1, "rgba(250,230,190,0)"); q.fillStyle = gr; q.fillRect(0, 0, S, S); NF.glowSpr = c;
+    const COLS = ["#FFFDF4", "#FFF8E6", "#FFF4DD", "#FFFFFF", "#FFEFCC", "#FFE6B8"];
     NF.tw = Array.from({ length: Math.round(w * h / 7000) }, () => { const big = Math.random() < .14; return { x: Math.random() * w, y: Math.random() * h, r: big ? 1.1 + Math.random() * .6 : .5 + Math.random() * .6, big,
       col: COLS[Math.random() * COLS.length | 0], f: .5 + Math.random() * 1.8, ph: Math.random() * 6.3, sharp: 1 + Math.random() * 3 }; });
     if (!NF.nextMeteor) NF.nextMeteor = performance.now() + 2500 + Math.random() * 3000;
@@ -3066,14 +3066,14 @@ function nightFx(){
     /* Sternschnuppen: heller Kopf, Schweif läuft aus; blenden ein und verglühen */
     for (const m of NF.meteors) { const k = m.age / m.life, a = Math.sin(Math.min(1, k) * Math.PI) ** .6, hx = m.x + m.vx * m.age, hy = m.y + m.vy * m.age, sp = Math.hypot(m.vx, m.vy), tl = m.len * (.4 + .6 * Math.min(1, k * 3));
       const tx = hx - m.vx / sp * tl, ty = hy - m.vy / sp * tl, gr = g.createLinearGradient(hx, hy, tx, ty);
-      gr.addColorStop(0, `rgba(255,255,255,${a.toFixed(3)})`); gr.addColorStop(.3, `rgba(205,222,255,${(.6 * a).toFixed(3)})`); gr.addColorStop(1, "rgba(160,190,255,0)");
+      gr.addColorStop(0, `rgba(255,255,255,${a.toFixed(3)})`); gr.addColorStop(.3, `rgba(255,236,195,${(.6 * a).toFixed(3)})`); gr.addColorStop(1, "rgba(255,220,160,0)");
       g.strokeStyle = gr; g.lineWidth = m.wd; g.lineCap = "round"; g.beginPath(); g.moveTo(hx, hy); g.lineTo(tx, ty); g.stroke();
       g.globalAlpha = a * (m.bright ? 1 : .7); const z = m.bright ? 22 : 12; g.drawImage(NF.glowSpr, hx - z / 2, hy - z / 2, z, z); g.globalAlpha = 1; }
     /* dünne Wolke zieht ab und zu langsam vor dem Mond vorbei */
     { const [mx, my, R] = nightMoon(w, h), span = w * 2.6, cx = ((w * 1.4 - t * 9) % span + span) % span - w * .6;
       g.fillStyle = "rgba(40,55,120,.4)"; g.beginPath(); g.ellipse(cx, my + R * .25, R * 2.6, R * .28, 0, 0, Math.PI * 2); g.ellipse(cx + R * 1.1, my - R * .05, R * 1.5, R * .22, 0, 0, Math.PI * 2); g.fill(); }
     /* Satellit: winziger, gleichmäßig wandernder Punkt, blinkt ganz leicht */
-    if (NF.sat) { const S = NF.sat; g.globalAlpha = .55 + .2 * Math.sin(t * 2.3); g.fillStyle = "#EAF0FF"; g.beginPath(); g.arc(S.x, S.y, .9, 0, Math.PI * 2); g.fill(); g.globalAlpha = 1; }
+    if (NF.sat) { const S = NF.sat; g.globalAlpha = .55 + .2 * Math.sin(t * 2.3); g.fillStyle = "#FFF6E2"; g.beginPath(); g.arc(S.x, S.y, .9, 0, Math.PI * 2); g.fill(); g.globalAlpha = 1; }
   };
   if (still) { cancelAnimationFrame(NF.raf); NF.raf = 0; NF.meteors = []; NF.sat = null; draw(0, 0); return; }
   if (NF.raf) return;
@@ -4153,11 +4153,11 @@ function mfScene(g, w, h, st, dt, t, kind){
       q.addColorStop(0, "rgba(255,255,255,0)"); q.addColorStop(1, `rgba(255,255,255,${Math.sin(s2.a * 3.1416) * .85})`); g.strokeStyle = q; g.lineWidth = X(.8); g.lineCap = "round"; g.beginPath(); g.moveTo(tx, ty); g.lineTo(x, y); g.stroke(); }
     /* Sichelmond: steht still (weit weg), sanfter Lichthof, ab und zu zieht eine dünne Wolke vorbei */
     const mx = w * .66, my = h * .3, mr = w * .15;
-    glow(mx - mr * .3, my + mr * .2, mr * 2.6, "rgba(225,228,240,.14)");
+    glow(mx - mr * .3, my + mr * .2, mr * 2.6, "rgba(250,228,165,.16)");
     g.fillStyle = "rgba(14,22,66,.92)"; g.beginPath(); g.arc(mx, my, mr * .98, 0, 6.283); g.fill(); /* unbeleuchteter Teil des Mondes */
     if (!st.moon || st.moon.w !== w) { const c = document.createElement("canvas"), d = Math.min(3, devicePixelRatio || 1), S = Math.ceil(mr * 2.2 * d); c.width = c.height = S; const m = c.getContext("2d"); m.scale(d, d); const R = mr, o = mr * 1.1;
-      const q = m.createRadialGradient(o - R * .3, o - R * .3, 0, o, o, R); q.addColorStop(0, "#FFFCF2"); q.addColorStop(1, "#E9E1CC"); m.fillStyle = q; m.beginPath(); m.arc(o, o, R, 0, 6.283); m.fill();
-      m.fillStyle = "rgba(150,150,170,.22)"; [[-.3, .2, .16], [.1, .45, .1], [-.05, -.25, .08]].forEach(([dx, dy, r]) => { m.beginPath(); m.arc(o + dx * R, o + dy * R, r * R, 0, 6.283); m.fill(); });
+      const q = m.createRadialGradient(o - R * .3, o - R * .3, 0, o, o, R); q.addColorStop(0, "#FFF7DA"); q.addColorStop(1, "#F1D896"); m.fillStyle = q; m.beginPath(); m.arc(o, o, R, 0, 6.283); m.fill();
+      m.fillStyle = "rgba(175,145,90,.22)"; [[-.3, .2, .16], [.1, .45, .1], [-.05, -.25, .08]].forEach(([dx, dy, r]) => { m.beginPath(); m.arc(o + dx * R, o + dy * R, r * R, 0, 6.283); m.fill(); });
       m.globalCompositeOperation = "destination-out"; m.fillStyle = "#000"; m.beginPath(); m.arc(o + R * .55, o - R * .3, R * .9, 0, 6.283); m.fill(); st.moon = { c, w, o }; }
     g.drawImage(st.moon.c, mx - st.moon.o, my - st.moon.o, st.moon.c.width / Math.min(3, devicePixelRatio || 1), st.moon.c.height / Math.min(3, devicePixelRatio || 1));
     { const span = w * 2.2, cx2 = ((w * 1.3 - t * X(2.2)) % span + span) % span - w * .5; g.fillStyle = "rgba(40,55,120,.55)"; g.beginPath(); g.ellipse(cx2, my + mr * .2, w * .24, h * .035, 0, 0, 6.283); g.ellipse(cx2 + w * .1, my - mr * .05, w * .14, h * .03, 0, 0, 6.283); g.fill(); }
