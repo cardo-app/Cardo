@@ -1319,10 +1319,796 @@ sup .ms-bx,sub .ms-bx{width:.8em;height:.9em}
 <script>
 (() => {
 "use strict";
-document.documentElement.lang = "de";
+/* ---------- Sprache: Deutsch (Original), Englisch, Italienisch ----------
+   Die App ist auf Deutsch geschrieben. Bei Englisch/Italienisch übersetzt ein Beobachter alle sichtbaren Texte
+   (Textknoten und aria-label/title/placeholder/alt) anhand der Tabelle I18N: "Deutsch": ["English", "Italiano"].
+   {} = Platzhalter (Zahl, Name …); {0}/{1} in der Übersetzung ändern bei Bedarf die Reihenfolge.
+   Eigene Inhalte (Karten, Ordnernamen) bleiben unberührt (siehe I18N_SKIP). */
+const LANGS = [["de", "Deutsch"], ["en", "English"], ["it", "Italiano"]];
+const LOCALES = { de: "de-DE", en: "en-GB", it: "it-IT" };
+/* Ohne eigene Wahl: wer Cardo schon benutzt, bleibt bei Deutsch; neue Geräte starten in der Gerätesprache (Deutsch, Italienisch, sonst Englisch) */
+let LANG = "de";
+try {
+  const st = JSON.parse(localStorage.getItem("kartenfach-settings") || "null"), dl = String(navigator.language || "de").slice(0, 2).toLowerCase();
+  LANG = st && LOCALES[st.lang] ? st.lang : st ? "de" : dl === "de" || dl === "it" ? dl : "en";
+} catch {}
+const LOC = () => LOCALES[LANG];
+const I18N = {
+  /* Allgemein */
+  "Cardo lädt …": ["Cardo is loading …", "Cardo si sta caricando …"],
+  "Hauptnavigation": ["Main navigation", "Navigazione principale"],
+  "Abbrechen": ["Cancel", "Annulla"],
+  "Fertig": ["Done", "Fatto"],
+  "Speichern": ["Save", "Salva"],
+  "Löschen": ["Delete", "Elimina"],
+  "Schließen": ["Close", "Chiudi"],
+  "Zurück": ["Back", "Indietro"],
+  "Weiter": ["Next", "Avanti"],
+  "Kopieren": ["Copy", "Copia"],
+  "Verschieben": ["Move", "Sposta"],
+  "Entfernen": ["Remove", "Rimuovi"],
+  "Laden": ["Load", "Carica"],
+  "Sichern": ["Back up", "Salva copia"],
+  "Wiederherstellen": ["Restore", "Ripristina"],
+  "Zurücksetzen": ["Reset", "Reimposta"],
+  "Zurückgesetzt": ["Reset", "Reimpostato"],
+  "Importieren": ["Import", "Importa"],
+  "Auswahl": ["Selection", "Selezione"],
+  "Name": ["Name", "Nome"],
+  "Farbe": ["Colour", "Colore"],
+  "Eigene Farbe": ["Custom colour", "Colore personalizzato"],
+  "Emoji": ["Emoji", "Emoji"],
+  "Kein Emoji": ["No emoji", "Nessuna emoji"],
+  "Eigenes Emoji eintippen": ["Type your own emoji", "Digita la tua emoji"],
+  "Bild": ["Image", "Immagine"],
+  "Bild: ": ["Image: ", "Immagine: "],
+  "Titelbild": ["Cover image", "Immagine di copertina"],
+  "Inhalt": ["Content", "Contenuto"],
+  "Vorschau": ["Preview", "Anteprima"],
+  "Vorschau in Claude": ["Preview in Claude", "Anteprima in Claude"],
+  "An": ["On", "Attivo"],
+  "Aus": ["Off", "Disattivato"],
+  "Kein": ["None", "Nessuno"],
+  "Keine": ["None", "Nessuna"],
+  "Neu": ["New", "Nuove"],
+  "Heute": ["Today", "Oggi"],
+  "Tag": ["day", "giorno"],
+  "Tage": ["days", "giorni"],
+  "morgen": ["tomorrow", "domani"],
+  "übermorgen": ["the day after tomorrow", "dopodomani"],
+  "am {}": ["on {}", "il {}"],
+  "heute um {} Uhr": ["today at {}", "oggi alle {}"],
+  "in {} Min.": ["in {} min", "tra {} min"],
+  "in {} T.": ["in {} d", "tra {} g"],
+  "vor {} T.": ["{} d ago", "{} g fa"],
+  "Einen Moment …": ["One moment …", "Un momento …"],
+  "Wird geladen …": ["Loading …", "Caricamento …"],
+  "Wird gelöscht …": ["Deleting …", "Eliminazione …"],
+  "Wird hinzugefügt …": ["Adding …", "Aggiunta in corso …"],
+  "Wird vorbereitet …": ["Preparing …", "Preparazione …"],
+  "Wird übernommen …": ["Importing …", "Importazione …"],
+  "Wird aktualisiert …": ["Updating …", "Aggiornamento …"],
+  "Lädt hoch …": ["Uploading …", "Caricamento …"],
+  "Gespeichert": ["Saved", "Salvato"],
+  "Gespeichert.": ["Saved.", "Salvato."],
+  "Das hat nicht geklappt.": ["That didn't work.", "Non ha funzionato."],
+  "Wirklich löschen?": ["Really delete?", "Eliminare davvero?"],
+  "Keine Verbindung. Prüfe dein Internet.": ["No connection. Check your internet.", "Nessuna connessione. Controlla internet."],
+  "Zu viele Änderungen auf einmal. Kurz warten.": ["Too many changes at once. Wait a moment.", "Troppe modifiche insieme. Attendi un attimo."],
+  "Speichern fehlgeschlagen. Prüfe deine Verbindung.": ["Saving failed. Check your connection.", "Salvataggio non riuscito. Controlla la connessione."],
+  "Laden fehlgeschlagen. Versuch es gleich noch einmal.": ["Loading failed. Please try again in a moment.", "Caricamento non riuscito. Riprova tra poco."],
+  "Offline: Du siehst den zuletzt gespeicherten Stand.": ["Offline: you are seeing the last saved state.", "Offline: vedi l'ultimo stato salvato."],
+  "Cardo braucht beim ersten Start eine Internetverbindung.": ["Cardo needs an internet connection the first time it starts.", "Al primo avvio Cardo ha bisogno di una connessione internet."],
+  "Speicher auf diesem Gerät ist voll.": ["Storage on this device is full.", "La memoria di questo dispositivo è piena."],
+  "Speicherlimit erreicht. Lösche alte Ordner, um Platz zu schaffen.": ["Storage limit reached. Delete old folders to free up space.", "Limite di memoria raggiunto. Elimina vecchie cartelle per liberare spazio."],
+  "Konnte nicht speichern (Ordner zu groß?). Teile ihn in Unterordner auf.": ["Couldn't save (folder too large?). Split it into subfolders.", "Impossibile salvare (cartella troppo grande?). Dividila in sottocartelle."],
+  "Deine Karten werden geladen …": ["Loading your cards …", "Caricamento delle tue schede …"],
+  "Karteikarten, synchron auf all deinen Geräten.": ["Flashcards, in sync on all your devices.", "Flashcard, sincronizzate su tutti i tuoi dispositivi."],
+  "Später erinnern": ["Remind me later", "Ricordamelo più tardi"],
+
+  /* Tabs & Ansichten */
+  "Bibliothek": ["Library", "Libreria"],
+  "Statistik": ["Statistics", "Statistiche"],
+  "Einstellungen": ["Settings", "Impostazioni"],
+  "Bibliothek-Menü": ["Library menu", "Menu libreria"],
+  "{}-Menü": ["{} menu", "Menu {}"],
+  "die Bibliothek": ["the library", "la libreria"],
+  "Bibliothek (oberste Ebene)": ["Library (top level)", "Libreria (livello principale)"],
+  "Synchronisiert": ["Synced", "Sincronizzato"],
+  "Nur dieses Gerät": ["This device only", "Solo questo dispositivo"],
+
+  /* Ordner & Bereiche */
+  "Ordner": ["Folder", "Cartella"],
+  "Neuer Ordner": ["New folder", "Nuova cartella"],
+  "Neuer Ordner hier": ["New folder here", "Nuova cartella qui"],
+  "Neuer Unterordner": ["New subfolder", "Nuova sottocartella"],
+  "Ordner gestalten": ["Customise folder", "Personalizza cartella"],
+  "Ordner angelegt": ["Folder created", "Cartella creata"],
+  "Ordner gelöscht": ["Folder deleted", "Cartella eliminata"],
+  "In Ordner": ["To folder", "In cartella"],
+  "Liegt in": ["Located in", "Si trova in"],
+  "Weitere Ordner": ["More folders", "Altre cartelle"],
+  "„Weitere Ordner“": ["“More folders”", "“Altre cartelle”"],
+  "Oberste Ebene": ["Top level", "Livello principale"],
+  "Oberste Ebene in diesem Bereich": ["Top level in this section", "Livello principale in questa sezione"],
+  "Oberste Ebene ohne Bereich": ["Top level without section", "Livello principale senza sezione"],
+  "Unterordner und Karten wandern mit.": ["Subfolders and cards move along with it.", "Sottocartelle e schede vengono spostate insieme."],
+  "Lernstand bleibt erhalten.": ["Learning progress is kept.", "I progressi restano invariati."],
+  "Verschoben nach {}": ["Moved to {}", "Spostato in {}"],
+  "„{}“ verschieben": ["Move “{}”", "Sposta “{}”"],
+  "{} verschieben": ["Move {}", "Sposta {}"],
+  "{} nach „{}“": ["{} to “{}”", "{} in “{}”"],
+  "{} {} nach „{}“": ["{} {} to “{}”", "{} {} in “{}”"],
+  "Kopiert nach „{}“": ["Copied to “{}”", "Copiato in “{}”"],
+  "So sieht dein Ordner in der Bibliothek aus. Wähle Farbe, Emoji oder ein eigenes Titelbild.": ["This is how your folder looks in the library. Choose a colour, emoji or your own cover image.", "Ecco come appare la tua cartella nella libreria. Scegli colore, emoji o un'immagine di copertina."],
+  "Dieser Ordner ist zu voll. Verteile die Karten auf Unterordner.": ["This folder is too full. Spread the cards across subfolders.", "Questa cartella è troppo piena. Distribuisci le schede in sottocartelle."],
+  "Leg zuerst einen Ordner an.": ["Create a folder first.", "Crea prima una cartella."],
+  "Bereich": ["Section", "Sezione"],
+  "Bereich „{}“": ["Section “{}”", "Sezione “{}”"],
+  "Bereich angelegt": ["Section created", "Sezione creata"],
+  "Bereich gelöscht": ["Section deleted", "Sezione eliminata"],
+  "Neuer Bereich (Überschrift)": ["New section (heading)", "Nuova sezione (titolo)"],
+  "＋ Neuer Bereich …": ["＋ New section …", "＋ Nuova sezione …"],
+  "Kein Bereich (Weitere Ordner)": ["No section (More folders)", "Nessuna sezione (Altre cartelle)"],
+  "Bereiche sind Überschriften in deiner Bibliothek, unter denen du Ordner gruppierst, z. B. „Uni“, „Englisch“ oder „Allgemeinwissen“.": ["Sections are headings in your library that group folders, e.g. “Uni”, “English” or “General knowledge”.", "Le sezioni sono titoli nella tua libreria che raggruppano le cartelle, ad es. “Università”, “Inglese” o “Cultura generale”."],
+  "Gib dem neuen Bereich einen Namen.": ["Give the new section a name.", "Dai un nome alla nuova sezione."],
+  "Gib eine Überschrift ein.": ["Enter a heading.", "Inserisci un titolo."],
+  "Name des neuen Bereichs, z. B. Uni": ["Name of the new section, e.g. Uni", "Nome della nuova sezione, ad es. Università"],
+  "z. B. Uni": ["e.g. Uni", "ad es. Università"],
+  "z. B. Financial Accounting": ["e.g. Financial Accounting", "ad es. Contabilità"],
+  "Überschrift": ["Heading", "Titolo"],
+  "Umbenennen oder löschen": ["Rename or delete", "Rinomina o elimina"],
+  "Nach oben": ["Move up", "Sposta su"],
+  "Nach unten": ["Move down", "Sposta giù"],
+  "Links, Text daneben": ["Left, text beside it", "A sinistra, testo accanto"],
+  "Rechts, Text daneben": ["Right, text beside it", "A destra, testo accanto"],
+  "Mittig": ["Centred", "Al centro"],
+  "Zieh das Bild in der Vorschau oben, um den sichtbaren Ausschnitt festzulegen.": ["Drag the image in the preview above to choose the visible area.", "Trascina l'immagine nell'anteprima in alto per scegliere l'area visibile."],
+
+  /* Sortierung */
+  "Reihenfolge": ["Order", "Ordine"],
+  "Eigene Reihenfolge": ["Custom order", "Ordine personalizzato"],
+  "Sortierung: Eigene Reihenfolge": ["Sorting: custom order", "Ordinamento: personalizzato"],
+  "Alphabetisch (A–Z)": ["Alphabetical (A–Z)", "Alfabetico (A–Z)"],
+  "Alphabetisch (Z–A)": ["Alphabetical (Z–A)", "Alfabetico (Z–A)"],
+  "Name (A–Z)": ["Name (A–Z)", "Nome (A–Z)"],
+  "Neueste zuerst": ["Newest first", "Più recenti prima"],
+  "Zuletzt erstellt": ["Recently created", "Creati di recente"],
+  "Wie hinzugefügt": ["As added", "Come aggiunte"],
+  "Meiste fällige Karten": ["Most cards due", "Più schede da ripassare"],
+  "Karten sortieren": ["Sort cards", "Ordina schede"],
+
+  /* Karten */
+  "Karte": ["Card", "Scheda"],
+  "Karten": ["Cards", "Schede"],
+  "Neue Karte": ["New card", "Nuova scheda"],
+  "Karte angelegt": ["Card created", "Scheda creata"],
+  "Karte gelöscht": ["Card deleted", "Scheda eliminata"],
+  "Karte kopieren": ["Copy card", "Copia scheda"],
+  "Karte verschieben": ["Move card", "Sposta scheda"],
+  "Karten auswählen": ["Select cards", "Seleziona schede"],
+  "kopieren, verschieben, löschen": ["copy, move, delete", "copia, sposta, elimina"],
+  "Kopieren nicht möglich": ["Copying not possible", "Impossibile copiare"],
+  "Die Kopie startet als neue Karte. Das Original bleibt, wo es ist.": ["The copy starts as a new card. The original stays where it is.", "La copia parte come scheda nuova. L'originale resta dov'è."],
+  "Die Kopien starten als neue Karten.": ["The copies start as new cards.", "Le copie partono come schede nuove."],
+  "Vorderseite": ["Front", "Fronte"],
+  "Rückseite": ["Back", "Retro"],
+  "Musterkarte": ["Sample card", "Scheda di esempio"],
+  "Beispielkarte": ["Example card", "Scheda di esempio"],
+  "Fülle Vorder- und Rückseite aus.": ["Fill in the front and back.", "Compila fronte e retro."],
+  "Keine Karte passt zu „{}“.": ["No card matches “{}”.", "Nessuna scheda corrisponde a “{}”."],
+  "Tippen zum Vergrößern": ["Tap to enlarge", "Tocca per ingrandire"],
+  "… und {} weitere": ["… and {} more", "… e altre {}"],
+  "Formatierung": ["Formatting", "Formattazione"],
+  "Du bist schon in einer Tabelle – nutze die Knöpfe darunter.": ["You are already in a table – use the buttons below it.", "Sei già in una tabella: usa i pulsanti sotto."],
+  "In einer Tabelle gehen keine Listen.": ["Lists don't work inside a table.", "Le liste non funzionano in una tabella."],
+  "Erste Zeile ist eine Überschrift": ["First row is a header", "La prima riga è un'intestazione"],
+  "Währung – lange drücken für weitere": ["Currency – long press for more", "Valuta – tieni premuto per altre"],
+  "Tippe auf ein Kästchen, um es auszufüllen.": ["Tap a box to fill it in.", "Tocca una casella per compilarla."],
+
+  /* Bilder */
+  "Bild wählen": ["Choose image", "Scegli immagine"],
+  "Bild entfernen": ["Remove image", "Rimuovi immagine"],
+  "Bild zuschneiden": ["Crop image", "Ritaglia immagine"],
+  "Zuschneiden": ["Crop", "Ritaglia"],
+  "Zuschneiden hat nicht geklappt.": ["Cropping didn't work.", "Ritaglio non riuscito."],
+  "Dieses Bild kann nicht zugeschnitten werden.": ["This image can't be cropped.", "Questa immagine non può essere ritagliata."],
+  "Ziehe an den Ecken oder verschiebe den Rahmen.": ["Drag the corners or move the frame.", "Trascina gli angoli o sposta la cornice."],
+  "Bild wird zugeschnitten …": ["Cropping image …", "Ritaglio immagine …"],
+  "Bild wird hinzugefügt …": ["Adding image …", "Aggiunta immagine …"],
+  "Bild konnte nicht geladen werden.": ["The image couldn't be loaded.", "Impossibile caricare l'immagine."],
+  "Bild konnte nicht geladen werden. Probier JPG oder PNG.": ["The image couldn't be loaded. Try JPG or PNG.", "Impossibile caricare l'immagine. Prova JPG o PNG."],
+  "Bild konnte nicht gelesen werden": ["The image couldn't be read", "Impossibile leggere l'immagine"],
+  "Bild konnte nicht hochgeladen werden.": ["The image couldn't be uploaded.", "Impossibile caricare l'immagine."],
+  "Zum Hinzufügen von Bildern brauchst du Internet.": ["You need internet to add images.", "Per aggiungere immagini serve internet."],
+
+  /* Mathe-Leiste */
+  "Mathe": ["Maths", "Matematica"],
+  "Mathe braucht beim ersten Öffnen Internet.": ["Maths needs internet the first time it opens.", "La matematica richiede internet alla prima apertura."],
+  "Mathe wird geladen …": ["Loading maths …", "Caricamento matematica …"],
+  "Bruch": ["Fraction", "Frazione"],
+  "Wurzel": ["Square root", "Radice"],
+  "n-te Wurzel": ["n-th root", "Radice n-esima"],
+  "Hochzahl": ["Exponent", "Esponente"],
+  "Tiefzahl": ["Subscript", "Pedice"],
+  "Klammern": ["Brackets", "Parentesi"],
+  "Summe": ["Sum", "Somma"],
+  "Produkt": ["Product", "Prodotto"],
+  "Integral": ["Integral", "Integrale"],
+  "Grenzwert": ["Limit", "Limite"],
+  "Ableitung": ["Derivative", "Derivata"],
+  "Logarithmus": ["Logarithm", "Logaritmo"],
+  "Sinus": ["Sine", "Seno"],
+  "Kosinus": ["Cosine", "Coseno"],
+  "Tangens": ["Tangent", "Tangente"],
+  "Vektor": ["Vector", "Vettore"],
+  "Betrag": ["Absolute value", "Valore assoluto"],
+  "Fakultät": ["Factorial", "Fattoriale"],
+  "Binomialkoeffizient": ["Binomial coefficient", "Coefficiente binomiale"],
+  "Mittelwert": ["Mean", "Media"],
+  "Delta": ["Delta", "Delta"],
+  "Zeichen": ["Symbols", "Simboli"],
+
+  /* Lernen */
+  "Lernen": ["Learn", "Studia"],
+  "Lernen beenden": ["Stop learning", "Termina studio"],
+  "Nochmal": ["Again", "Ancora"],
+  "Schwer": ["Hard", "Difficile"],
+  "Gut": ["Good", "Bene"],
+  "Einfach": ["Easy", "Facile"],
+  "Gewusst": ["Known", "Sapute"],
+  "Nicht gewusst": ["Not known", "Non sapute"],
+  "Nicht gewusste früher wiederholen": ["Review unknown cards sooner", "Ripeti prima le schede non sapute"],
+  "Bewertung rückgängig gemacht": ["Rating undone", "Valutazione annullata"],
+  "Nochmal zurück zum Beenden": ["Back again to quit", "Ancora indietro per uscire"],
+  "Leertaste: umdrehen · Zahlen: bewerten · E: bearbeiten · Z: rückgängig": ["Space: flip · Numbers: rate · E: edit · Z: undo", "Spazio: gira · Numeri: valuta · E: modifica · Z: annulla"],
+  "Geschafft!": ["Done!", "Fatto!"],
+  "Alle Karten sind schon gelernt.": ["All cards have already been learned.", "Tutte le schede sono già state studiate."],
+  "Keine Karten fällig.": ["No cards due.", "Nessuna scheda da ripassare."],
+  "die nächste ist {} wieder dran.": ["the next one is due {}.", "la prossima tocca {}."],
+  "neue Karten kannst du jederzeit hinzufügen.": ["you can add new cards at any time.", "puoi aggiungere nuove schede in qualsiasi momento."],
+  "Lernrichtung": ["Study direction", "Direzione di studio"],
+  "Lernrichtung: ": ["Study direction: ", "Direzione di studio: "],
+  "Vorderseite zuerst": ["Front first", "Prima il fronte"],
+  "Rückseite zuerst": ["Back first", "Prima il retro"],
+  "Beidseitig (gemischt)": ["Both sides (mixed)", "Entrambi i lati (misti)"],
+  "Vorne → hinten": ["Front → back", "Fronte → retro"],
+  "Hinten → vorne": ["Back → front", "Retro → fronte"],
+  "Zufällig mal so, mal so": ["Randomly one way or the other", "A caso, in un senso o nell'altro"],
+  "Lerneinstellungen": ["Learning settings", "Impostazioni di studio"],
+  "Lerneinstellungen: {}": ["Learning settings: {}", "Impostazioni di studio: {}"],
+  "Lernmenge pro Tag": ["Cards per day", "Schede al giorno"],
+  "Feste Anzahl": ["Fixed number", "Numero fisso"],
+  "Unbegrenzt": ["Unlimited", "Illimitato"],
+  "Kein Tageslimit": ["No daily limit", "Nessun limite giornaliero"],
+  "{} pro Tag": ["{} per day", "{} al giorno"],
+  "{} / Tag": ["{} / day", "{} / giorno"],
+  "∞ / Tag": ["∞ / day", "∞ / giorno"],
+  "{} Karten pro Tag": ["{} cards per day", "{} schede al giorno"],
+  "Karten pro Tag": ["Cards per day", "Schede al giorno"],
+  "neue Karten pro Tag": ["new cards per day", "nuove schede al giorno"],
+  "So viele Karten lernst du pro Tag in jedem Hauptordner (z. B. pro Modul) – Wiederholungen und neue Karten zusammen. Zuerst kommen fällige Wiederholungen, dann neue Karten. Karten, die du heute schon hattest und die gleich wieder dran sind („Nochmal“), zählen nicht doppelt. Ist das Limit erreicht, kannst du im Ordner „10 weitere Karten“ lernen.": ["This is how many cards you study per day in each main folder (e.g. per module) – reviews and new cards together. Due reviews come first, then new cards. Cards you already had today that come back right away (“Again”) don't count twice. Once the limit is reached, you can study “10 more cards” in the folder.", "Ecco quante schede studi al giorno in ogni cartella principale (ad es. per modulo), ripassi e schede nuove insieme. Prima i ripassi in scadenza, poi le schede nuove. Le schede già viste oggi che tornano subito (“Ancora”) non contano due volte. Raggiunto il limite, nella cartella puoi studiare “altre 10 schede”."],
+  "Welche Karten": ["Which cards", "Quali schede"],
+  "Geh Karten nochmal durch, ohne deinen Lernplan zu verändern. Nicht gewusste Karten kommen am Ende der Runde noch einmal.": ["Go through cards again without changing your study plan. Cards you didn't know come back at the end of the round.", "Ripassa le schede senza modificare il tuo piano di studio. Le schede non sapute tornano alla fine del giro."],
+  "Gelernte Karten, die du hier nicht weißt, kommen im normalen Lernplan gleich wieder dran.": ["Learned cards you don't know here come up again right away in your normal study plan.", "Le schede studiate che qui non sai tornano subito nel normale piano di studio."],
+  "Keine Karten zum Prüfen.": ["No cards to test.", "Nessuna scheda da verificare."],
+  "{} von {} beim ersten Versuch gewusst ·": ["{} of {} known on the first try ·", "{} su {} sapute al primo tentativo ·"],
+
+  /* Prüfung */
+  "Bis zur Prüfung": ["Until the exam", "Fino all'esame"],
+  "Weg zur Prüfung": ["Road to the exam", "Verso l'esame"],
+  "Prüfung heute": ["Exam today", "Esame oggi"],
+  "Prüfung morgen": ["Exam tomorrow", "Esame domani"],
+  "Prüfung vorbei": ["Exam over", "Esame passato"],
+  "Prüfung in {} T.": ["Exam in {} d", "Esame tra {} g"],
+  "Prüfung {}": ["Exam {}", "Esame {}"],
+  "Prüfungsplan gespeichert": ["Exam plan saved", "Piano d'esame salvato"],
+  "Datum wählen": ["Choose date", "Scegli data"],
+  "Tippen, um den Kalender zu öffnen": ["Tap to open the calendar", "Tocca per aprire il calendario"],
+  "Wähle ein Datum in der Zukunft.": ["Choose a date in the future.", "Scegli una data futura."],
+  "Das Datum liegt nicht in der Zukunft.": ["The date is not in the future.", "La data non è nel futuro."],
+  "Gib das Datum ein – Cardo rechnet aus, wie viele neue Karten du jeden Tag lernen musst, um bis zur Prüfung alles einmal gelernt und oft genug wiederholt zu haben.": ["Enter the date – Cardo works out how many new cards you need to learn each day to have studied everything once and reviewed it often enough by the exam.", "Inserisci la data: Cardo calcola quante schede nuove devi studiare ogni giorno per aver visto tutto e ripassato abbastanza entro l'esame."],
+  "Alle neuen Karten sind bis {} dran{}{}.{} Fällige Wiederholungen kommen jeden Tag dazu (grob geschätzt bis zu ~{} pro Tag) – und spätestens am Tag vor der Prüfung ist jede Karte noch einmal dran.": ["All new cards will be covered by {}{}{}.{} Due reviews are added every day (roughly up to ~{} per day) – and every card comes up once more on the day before the exam at the latest.", "Tutte le schede nuove saranno viste entro {}{}{}.{} Ogni giorno si aggiungono i ripassi in scadenza (circa fino a ~{} al giorno) e ogni scheda torna al più tardi il giorno prima dell'esame."],
+  "Bis zur Prüfung ({}) wiederholst du nur noch, was fällig ist – spätestens am Tag davor kommt jede Karte noch einmal dran.": ["Until the exam ({}) you only review what's due – every card comes up once more on the day before at the latest.", "Fino all'esame ({}) ripassi solo ciò che è in scadenza: ogni scheda torna al più tardi il giorno prima."],
+  "Die Prüfung ist vorbei – {} % gefestigt.": ["The exam is over – {} % mastered.", "L'esame è passato: {} % consolidato."],
+  "Gefestigt": ["Mastered", "Consolidate"],
+  "Gefestigt heißt: Die Karte sitzt so sicher, dass sie erst zur Prüfung wieder dran wäre. Ziel: alle Karten gefestigt am Prüfungstag.": ["Mastered means: you know the card so well that it wouldn't come up again before the exam. Goal: all cards mastered on exam day.", "Consolidata significa: conosci la scheda così bene che non tornerebbe prima dell'esame. Obiettivo: tutte le schede consolidate il giorno dell'esame."],
+  "Anteil gefestigter Karten bis zur Prüfung": ["Share of mastered cards until the exam", "Quota di schede consolidate fino all'esame"],
+  "{} % gefestigt – laut Plan wären heute {} % dran. Lern heute alle fälligen Karten, um aufzuholen.": ["{} % mastered – the plan says {} % by today. Study all due cards today to catch up.", "{} % consolidato: secondo il piano oggi dovresti essere al {} %. Studia oggi tutte le schede in scadenza per recuperare."],
+  "{} % gefestigt{}. {}": ["{} % mastered{}. {}", "{} % consolidato{}. {}"],
+  "Du liegst im Plan": ["You're on track", "Sei in linea con il piano"],
+  "Du liegst hinter dem Plan": ["You're behind the plan", "Sei indietro rispetto al piano"],
+  "Plan bis 100 %": ["Plan to 100 %", "Piano fino al 100 %"],
+  "{} · noch {} bis {}": ["{} · {} left until {}", "{} · ancora {} fino a {}"],
+  "{} übrig": ["{} left", "{} rimaste"],
+  "Puffertage": ["Buffer days", "Giorni di margine"],
+  "ein Puffertag mehr": ["one more buffer day", "un giorno di margine in più"],
+  "ein Puffertag weniger": ["one buffer day less", "un giorno di margine in meno"],
+  "Ziel": ["Goal", "Obiettivo"],
+
+  /* Statistik */
+  "Karten gesamt": ["Total cards", "Schede totali"],
+  "Gesehen": ["Seen", "Viste"],
+  "Lernend": ["Learning", "In studio"],
+  "Wiederholung": ["Review", "Ripasso"],
+  "Wiederholungen": ["Reviews", "Ripassi"],
+  "Heute wiederholt": ["Reviewed today", "Ripassate oggi"],
+  "Wiederholungen pro Tag": ["Reviews per day", "Ripassi al giorno"],
+  "Wiederholungen der letzten {} Tage": ["Reviews in the last {} days", "Ripassi degli ultimi {} giorni"],
+  "Tage Serie": ["day streak", "giorni di fila"],
+  "{} wiederholt · {} Serie": ["{} reviewed · {} streak", "{} ripassate · {} di fila"],
+  "Fortschritt pro Ordner": ["Progress per folder", "Progressi per cartella"],
+  "Gesehene Karten · letzte 14 Tage und Vorschau": ["Cards seen · last 14 days and forecast", "Schede viste · ultimi 14 giorni e previsione"],
+  "Gesehene Karten und Vorschau": ["Cards seen and forecast", "Schede viste e previsione"],
+  "Gesehene Karten pro Tag, heute in der Mitte": ["Cards seen per day, today in the middle", "Schede viste al giorno, oggi al centro"],
+  "Diagramm vergrößern": ["Enlarge chart", "Ingrandisci grafico"],
+  "Fällig (Vorschau)": ["Due (forecast)", "In scadenza (previsione)"],
+  "{}: {} fällig (Vorschau)": ["{}: {} due (forecast)", "{}: {} in scadenza (previsione)"],
+  "{}: {} gesehen": ["{}: {} seen", "{}: viste {}"],
+  "Heute: {} gesehen": ["Today: {} seen", "Viste oggi: {}"],
+  "{} gesehen in den letzten {} Tagen (inkl. heute)": ["{} seen in the last {} days (incl. today)", "Viste negli ultimi {1} giorni (oggi incluso): {0}"],
+  "{} gesehen seit {}": ["{} seen since {}", "Viste dal {1}: {0}"],
+  "{} · Wischen für ältere Tage": ["{} · Swipe for earlier days", "{} · Scorri per i giorni precedenti"],
+  "{} von {} Wiederholungen gewusst": ["{} of {} reviews known", "{} ripassi su {} saputi"],
+  "{} % gewusst, Ziel {}&nbsp;%": ["{} % known, goal {} %", "{} % saputo, obiettivo {} %"],
+  "{} % gewusst, Ziel {} %": ["{} % known, goal {} %", "{} % saputo, obiettivo {} %"],
+  "Noch zu wenig Wiederholungen ({} von {}). Zählt nur Karten, die schon im Lernplan sind – neue Karten und Lernschritte nicht.": ["Not enough reviews yet ({} of {}). Only counts cards already in the study plan – not new cards or learning steps.", "Ancora troppo pochi ripassi ({} su {}). Contano solo le schede già nel piano di studio, non quelle nuove né i passi di apprendimento."],
+  "{} · {} Stufen": ["{} · {} levels", "{} · {} livelli"],
+
+  /* Einstellungen */
+  "Sprache": ["Language", "Lingua"],
+  "App installieren": ["Install app", "Installa app"],
+  "Thema": ["Theme", "Tema"],
+  "Hell": ["Light", "Chiaro"],
+  "Dunkel": ["Dark", "Scuro"],
+  "Dunkel +": ["Dark +", "Scuro +"],
+  "System": ["System", "Sistema"],
+  "Designs": ["Designs", "Design"],
+  "Farbthemen": ["Colour themes", "Temi a colori"],
+  "Hell, Dunkel und System sind schlicht schwarz-weiß, Dunkel + ist ganz schwarz. Ein Farbthema färbt die ganze App ein. System folgt deinem Gerät.": ["Light, Dark and System are plain black and white, Dark + is pure black. A colour theme tints the whole app. System follows your device.", "Chiaro, Scuro e Sistema sono semplici in bianco e nero, Scuro + è nero totale. Un tema a colori colora tutta l'app. Sistema segue il tuo dispositivo."],
+  "Transparenz": ["Transparency", "Trasparenza"],
+  "Stark": ["Strong", "Forte"],
+  "Leicht": ["Light", "Leggera"],
+  "Wie stark die Tab-Leiste und die Menüs den Hintergrund durchscheinen lassen.": ["How much the tab bar and menus let the background shine through.", "Quanto la barra delle schede e i menu lasciano trasparire lo sfondo."],
+  "Startanimation": ["Start animation", "Animazione iniziale"],
+  "Einmal am Tag": ["Once a day", "Una volta al giorno"],
+  "Immer": ["Always", "Sempre"],
+  "Nie": ["Never", "Mai"],
+  "Beim ersten Öffnen des Tages die ganze Animation, danach ein kurzer Start.": ["The full animation the first time you open it each day, a short start after that.", "L'animazione completa alla prima apertura del giorno, poi un avvio breve."],
+  "Bei jedem Öffnen die ganze Animation.": ["The full animation every time you open it.", "L'animazione completa a ogni apertura."],
+  "Immer nur ein kurzer Übergang vom Icon in die App.": ["Always just a short transition from the icon into the app.", "Sempre solo una breve transizione dall'icona all'app."],
+  "Die Animation beim Öffnen von Cardo. Antippen überspringt sie jederzeit.": ["The animation when Cardo opens. Tap to skip it at any time.", "L'animazione all'apertura di Cardo. Toccala per saltarla in qualsiasi momento."],
+  "Intro ansehen": ["Watch intro", "Guarda l'intro"],
+  "Textgröße": ["Text size", "Dimensione testo"],
+  "Klein": ["Small", "Piccolo"],
+  "Mittel": ["Medium", "Medio"],
+  "Groß": ["Large", "Grande"],
+  "Gilt für Vorder- und Rückseite beim Lernen.": ["Applies to the front and back while learning.", "Vale per fronte e retro durante lo studio."],
+  "Kartenbewertung": ["Card rating", "Valutazione schede"],
+  "Bewertungsstufen": ["Rating levels", "Livelli di valutazione"],
+  "{} Stufen": ["{} levels", "{} livelli"],
+  "Wähle, mit welchen Buttons du Karten beim Lernen bewertest.": ["Choose which buttons you use to rate cards while learning.", "Scegli con quali pulsanti valuti le schede durante lo studio."],
+  "Animationen": ["Animations", "Animazioni"],
+  "Animation": ["Animation", "Animazione"],
+  "Nur Farbe": ["Colour only", "Solo colore"],
+  "Effekt": ["Effect", "Effetto"],
+  "Karte reagiert je nach Bewertung: Schütteln, Absacken, Wegfliegen, Funkenregen.": ["The card reacts to your rating: shaking, sinking, flying away, a shower of sparks.", "La scheda reagisce alla valutazione: tremolio, caduta, volo via, pioggia di scintille."],
+  "Der Rahmen der Karte leuchtet kurz in der Farbe der Bewertung auf, dann verschwindet sie ohne Bewegung.": ["The card's border briefly lights up in the rating colour, then it disappears without moving.", "Il bordo della scheda si illumina brevemente del colore della valutazione, poi scompare senza movimento."],
+  "Kein Effekt, die nächste Karte kommt direkt.": ["No effect, the next card appears straight away.", "Nessun effetto, la scheda successiva arriva subito."],
+  "Tippe auf eine Bewertung, um zu sehen, wie die Karte reagiert.": ["Tap a rating to see how the card reacts.", "Tocca una valutazione per vedere come reagisce la scheda."],
+  "Töne": ["Sounds", "Suoni"],
+  "Lernplan": ["Study plan", "Piano di studio"],
+  "{} % behalten": ["{} % retention", "{} % ricordato"],
+  "Wenige Wiederholungen – du vergisst aber mehr": ["Few reviews – but you forget more", "Pochi ripassi, ma dimentichi di più"],
+  "Entspannt": ["Relaxed", "Rilassato"],
+  "Standard – empfohlen": ["Standard – recommended", "Standard – consigliato"],
+  "Sehr sicher, aber deutlich mehr Wiederholungen": ["Very safe, but far more reviews", "Molto sicuro, ma molti più ripassi"],
+  "Cardo plant Wiederholungen mit FSRS: Für jede Karte wird geschätzt, wie gut sie bei dir sitzt. Sie kommt genau dann wieder, wenn du sie mit dieser Wahrscheinlichkeit noch weißt. Höher = sicherer, aber mehr Karten pro Tag.": ["Cardo schedules reviews with FSRS: for each card it estimates how well you know it. The card comes back exactly when you still know it with this probability. Higher = safer, but more cards per day.", "Cardo pianifica i ripassi con FSRS: per ogni scheda stima quanto bene la conosci. La scheda torna proprio quando la ricordi ancora con questa probabilità. Più alto = più sicuro, ma più schede al giorno."],
+  "Daten sichern": ["Back up data", "Backup dei dati"],
+  "Daten exportieren": ["Export data", "Esporta dati"],
+  "Speichert alle Ordner, Bereiche, Karten mit Lernstand, Titelbilder, Statistik und Einstellungen in einer Datei. Damit kannst du Cardo sichern oder später in eine eigene Version umziehen.": ["Saves all folders, sections, cards with progress, cover images, statistics and settings in one file. Use it to back up Cardo or move to your own version later.", "Salva in un file tutte le cartelle, sezioni, schede con progressi, copertine, statistiche e impostazioni. Così puoi fare un backup di Cardo o trasferirlo in seguito."],
+  "Datei „cardo-backup.json“": ["File “cardo-backup.json”", "File “cardo-backup.json”"],
+  "Tipp: Speichere die Datei in deinem OneDrive oder in iCloud Drive.": ["Tip: save the file in your OneDrive or iCloud Drive.", "Consiglio: salva il file su OneDrive o iCloud Drive."],
+  "Sicherung heruntergeladen": ["Backup downloaded", "Backup scaricato"],
+  "Export hat nicht geklappt. Versuch es bitte noch einmal.": ["Export didn't work. Please try again.", "Esportazione non riuscita. Riprova."],
+  "Sicherung einspielen": ["Restore backup", "Ripristina backup"],
+  "Sicherungsdatei auswählen …": ["Choose backup file …", "Scegli file di backup …"],
+  "Übernimmt Ordner, Karten mit Lernstand, Statistik und Einstellungen aus einer Cardo-Sicherung. Vorhandene Einträge mit gleicher Kennung werden überschrieben.": ["Imports folders, cards with progress, statistics and settings from a Cardo backup. Existing entries with the same ID are overwritten.", "Importa cartelle, schede con progressi, statistiche e impostazioni da un backup di Cardo. Le voci esistenti con lo stesso ID vengono sovrascritte."],
+  "Das ist keine gültige Cardo-Sicherung.": ["This is not a valid Cardo backup.", "Questo non è un backup valido di Cardo."],
+  "Sicherung eingespielt": ["Backup restored", "Backup ripristinato"],
+  "Fertig: {} und {} übernommen.": ["Done: {} and {} imported.", "Fatto: {} e {} importati."],
+  "Automatische Sicherungen auf diesem Gerät": ["Automatic backups on this device", "Backup automatici su questo dispositivo"],
+  "Cardo legt einmal pro Woche selbst eine Sicherung an und behält die letzten {}. Wiederherstellen spielt Ordner und Karten mit ihrem damaligen Lernstand wieder ein.": ["Cardo creates a backup once a week and keeps the last {}. Restoring brings back folders and cards with their progress at that time.", "Cardo crea un backup una volta a settimana e conserva gli ultimi {}. Il ripristino riporta cartelle e schede con i progressi di allora."],
+  "Noch keine – die erste entsteht automatisch.": ["None yet – the first one is created automatically.", "Ancora nessuno: il primo viene creato automaticamente."],
+  "Zeit für eine Sicherung": ["Time for a backup", "È ora di un backup"],
+  "Synchronisierung": ["Sync", "Sincronizzazione"],
+  "Aktuell": ["Up to date", "Aggiornato"],
+  "Offline – wird nachgeholt": ["Offline – will catch up", "Offline – verrà recuperata"],
+  "Wird erneut versucht": ["Retrying", "Nuovo tentativo"],
+  "Wird gespeichert …": ["Saving …", "Salvataggio …"],
+  "Datenschutz & Impressum": ["Privacy & legal notice", "Privacy e note legali"],
+  "Datenschutz": ["Privacy", "Privacy"],
+  "Impressum": ["Legal notice", "Note legali"],
+
+  /* Konto & Anmeldung */
+  "Konto": ["Account", "Account"],
+  "E-Mail": ["Email", "Email"],
+  "Passwort": ["Password", "Password"],
+  "Anmelden": ["Log in", "Accedi"],
+  "Registrieren": ["Sign up", "Registrati"],
+  "Abmelden": ["Log out", "Esci"],
+  "Angemeldet als": ["Logged in as", "Accesso come"],
+  "Noch kein Konto? Kostenlos registrieren": ["No account yet? Sign up for free", "Non hai un account? Registrati gratis"],
+  "Schon ein Konto? Anmelden": ["Already have an account? Log in", "Hai già un account? Accedi"],
+  "Passwort vergessen": ["Forgot password", "Password dimenticata"],
+  "Passwort vergessen?": ["Forgot password?", "Password dimenticata?"],
+  "Passwort ändern": ["Change password", "Cambia password"],
+  "Neues Passwort": ["New password", "Nuova password"],
+  "Aktuelles Passwort": ["Current password", "Password attuale"],
+  "Code aus der E-Mail": ["Code from the email", "Codice dall'email"],
+  "Code erneut senden": ["Resend code", "Invia di nuovo il codice"],
+  "Code wird gesendet …": ["Sending code …", "Invio codice …"],
+  "Neuer Code ist unterwegs.": ["A new code is on its way.", "Un nuovo codice è in arrivo."],
+  "Wir haben einen Code an": ["We've sent a code to", "Abbiamo inviato un codice a"],
+  "geschickt. Gib ihn hier ein und wähle ein neues Passwort.": [". Enter it here and choose a new password.", ". Inseriscilo qui e scegli una nuova password."],
+  "Gib dein aktuelles Passwort ein.": ["Enter your current password.", "Inserisci la tua password attuale."],
+  "Gib deine E-Mail-Adresse ein.": ["Enter your email address.", "Inserisci il tuo indirizzo email."],
+  "Gib den Code aus der E-Mail ein.": ["Enter the code from the email.", "Inserisci il codice dall'email."],
+  "Das Passwort muss mindestens 6 Zeichen haben.": ["The password must have at least 6 characters.", "La password deve avere almeno 6 caratteri."],
+  "Das neue Passwort muss mindestens 6 Zeichen haben.": ["The new password must have at least 6 characters.", "La nuova password deve avere almeno 6 caratteri."],
+  "Das aktuelle Passwort stimmt nicht.": ["The current password is wrong.", "La password attuale non è corretta."],
+  "E-Mail oder Passwort stimmt nicht.": ["Email or password is wrong.", "Email o password non corretta."],
+  "Der Code stimmt nicht oder ist abgelaufen.": ["The code is wrong or has expired.", "Il codice non è corretto o è scaduto."],
+  "Für diese E-Mail gibt es schon ein Konto. Melde dich an.": ["There's already an account for this email. Please log in.", "Esiste già un account per questa email. Accedi."],
+  "Bitte bestätige zuerst deine E-Mail-Adresse über den Link in der Bestätigungsmail.": ["Please confirm your email address first using the link in the confirmation email.", "Conferma prima il tuo indirizzo email tramite il link nell'email di conferma."],
+  "Fast geschafft: Bestätige deine E-Mail über den Link, den wir dir geschickt haben, und melde dich dann an.": ["Almost there: confirm your email using the link we sent you, then log in.", "Quasi fatto: conferma la tua email con il link che ti abbiamo inviato, poi accedi."],
+  "Wenn es ein Konto gibt, ist eine E-Mail mit Link unterwegs. Öffne den Link auf diesem Gerät.": ["If an account exists, an email with a link is on its way. Open the link on this device.", "Se esiste un account, è in arrivo un'email con un link. Apri il link su questo dispositivo."],
+  "Zu viele Versuche. Warte kurz und probier es dann erneut.": ["Too many attempts. Wait a moment and try again.", "Troppi tentativi. Attendi un attimo e riprova."],
+  "In der Vorschau gibt es kein Konto.": ["There's no account in the preview.", "Nell'anteprima non c'è alcun account."],
+  "Abgebrochen. Du kannst es jederzeit erneut versuchen.": ["Cancelled. You can try again at any time.", "Annullato. Puoi riprovare in qualsiasi momento."],
+  "Konto löschen": ["Delete account", "Elimina account"],
+  "Konto endgültig löschen": ["Delete account permanently", "Elimina account definitivamente"],
+  "Damit werden": ["This permanently deletes", "Così verranno eliminati"],
+  "alle deine Ordner, Karten, Bilder, Statistiken und geteilten Links": ["all your folders, cards, images, statistics and shared links", "tutte le tue cartelle, schede, immagini, statistiche e link condivisi"],
+  "endgültig gelöscht – auf allen Geräten. Das lässt sich nicht rückgängig machen.": ["– on all devices. This cannot be undone.", "definitivamente, su tutti i dispositivi. Non si può annullare."],
+  "Tipp: Lade vorher eine Sicherung herunter, wenn du deine Karten behalten willst.": ["Tip: download a backup first if you want to keep your cards.", "Consiglio: scarica prima un backup se vuoi conservare le tue schede."],
+  "Zum Bestätigen": ["To confirm", "Per confermare"],
+  "eingeben": ["type", "digita"],
+  "Zum Löschen brauchst du Internet.": ["You need internet to delete.", "Per eliminare serve internet."],
+  "Konto löschen ist auf dem Server noch nicht eingerichtet.": ["Account deletion isn't set up on the server yet.", "L'eliminazione dell'account non è ancora configurata sul server."],
+  "Löschen hat nicht geklappt. Versuch es gleich noch einmal.": ["Deleting didn't work. Please try again in a moment.", "Eliminazione non riuscita. Riprova tra poco."],
+  "Dein Konto wurde gelöscht.": ["Your account has been deleted.", "Il tuo account è stato eliminato."],
+
+  /* Import */
+  "Karten importieren": ["Import cards", "Importa schede"],
+  "{} importieren": ["Import {}", "Importa {}"],
+  "Text einfügen": ["Paste text", "Incolla testo"],
+  "Datei wählen": ["Choose file", "Scegli file"],
+  "Noch nichts eingefügt.": ["Nothing pasted yet.", "Ancora niente incollato."],
+  "Eine Karte pro Zeile: Vorderseite, Trennzeichen, Rückseite. Funktioniert mit Anki-Export (.txt), Excel/Numbers (.csv) und Listen aus Noji oder Quizlet.": ["One card per line: front, separator, back. Works with Anki exports (.txt), Excel/Numbers (.csv) and lists from Noji or Quizlet.", "Una scheda per riga: fronte, separatore, retro. Funziona con esportazioni Anki (.txt), Excel/Numbers (.csv) ed elenchi da Noji o Quizlet."],
+  "Trennzeichen": ["Separator", "Separatore"],
+  "Automatisch erkennen": ["Detect automatically", "Rileva automaticamente"],
+  "Tabulator": ["Tab", "Tabulazione"],
+  "Semikolon": ["Semicolon", "Punto e virgola"],
+  "Komma": ["Comma", "Virgola"],
+  "Komma ,": ["Comma ,", "Virgola ,"],
+  "Senkrechtstrich": ["Vertical bar", "Barra verticale"],
+  "Senkrechtstrich |": ["Vertical bar |", "Barra verticale |"],
+  "Bindestrich": ["Dash", "Trattino"],
+  "Bindestrich –": ["Dash –", "Trattino –"],
+  "Vorschau · {} erkannt ({})": ["Preview · {} detected ({})", "Anteprima · {} rilevate ({})"],
+  "Keine Karten erkannt. Prüfe das Trennzeichen.": ["No cards detected. Check the separator.", "Nessuna scheda rilevata. Controlla il separatore."],
+  "Zu viele Karten für einen Ordner. Teile die Liste auf mehrere Unterordner auf.": ["Too many cards for one folder. Split the list into several subfolders.", "Troppe schede per una cartella. Dividi l'elenco in più sottocartelle."],
+
+  /* Teilen */
+  "Teilen": ["Share", "Condividi"],
+  "QR-Code": ["QR code", "Codice QR"],
+  "Zum Scannen mit der Kamera": ["To scan with the camera", "Da scansionare con la fotocamera"],
+  "Link kopiert": ["Link copied", "Link copiato"],
+  "Link wird erstellt …": ["Creating link …", "Creazione link …"],
+  "Link zeigt jetzt den aktuellen Stand": ["The link now shows the current version", "Il link ora mostra la versione attuale"],
+  "Link ist nicht mehr gültig": ["The link is no longer valid", "Il link non è più valido"],
+  "Link nicht gefunden": ["Link not found", "Link non trovato"],
+  "Lern mit mir „{}“ in Cardo": ["Study “{}” with me in Cardo", "Studia “{}” con me su Cardo"],
+  "Dieser Ordner ist zu groß zum Teilen.": ["This folder is too large to share.", "Questa cartella è troppo grande per essere condivisa."],
+  "Teilen geht nur in der Cardo-App mit Konto.": ["Sharing only works in the Cardo app with an account.", "La condivisione funziona solo nell'app Cardo con un account."],
+  "Teilen hat nicht geklappt. Versuch es gleich noch einmal.": ["Sharing didn't work. Please try again in a moment.", "Condivisione non riuscita. Riprova tra poco."],
+  "Teilen ist noch nicht eingerichtet.": ["Sharing isn't set up yet.", "La condivisione non è ancora configurata."],
+  "Zum Teilen brauchst du Internet.": ["You need internet to share.", "Per condividere serve internet."],
+  "Geteiltes Kartendeck": ["Shared card deck", "Mazzo di schede condiviso"],
+  "Geteiltes Deck wird geladen …": ["Loading shared deck …", "Caricamento mazzo condiviso …"],
+  "Zu meiner Bibliothek hinzufügen": ["Add to my library", "Aggiungi alla mia libreria"],
+  "Du bekommst eine eigene Kopie: Du kannst sie frei bearbeiten und lernst mit deinem eigenen Fortschritt.": ["You get your own copy: you can edit it freely and learn with your own progress.", "Ricevi una copia tutta tua: puoi modificarla liberamente e studiare con i tuoi progressi."],
+  "Nach dem Anmelden wird das Deck hinzugefügt.": ["The deck will be added after you log in.", "Il mazzo verrà aggiunto dopo l'accesso."],
+  "„{}“ ist jetzt in deiner Bibliothek": ["“{}” is now in your library", "“{}” è ora nella tua libreria"],
+  "Hinzufügen hat nicht geklappt. Versuch es noch einmal.": ["Adding didn't work. Please try again.", "Aggiunta non riuscita. Riprova."],
+  "Gespeichert als „": ["Saved as “", "Salvato come “"],
+  /* Ergänzungen */
+  "% der Karten sitzen sicher": ["% of cards are solid", "% delle schede è consolidato"],
+  "% gewusst, Ziel": ["% known, goal", "% saputo, obiettivo"],
+  ", ohne Puffertage": [", without buffer days", ", senza giorni di margine"],
+  "1 Woche": ["1 week", "1 settimana"],
+  "2 Wochen": ["2 weeks", "2 settimane"],
+  "4 Wochen": ["4 weeks", "4 settimane"],
+  "8 Wochen": ["8 weeks", "8 settimane"],
+  ": Plan": [": plan", ": piano"],
+  "Alle": ["All", "Tutte"],
+  "An den Puffertagen kommen keine neuen Karten mehr – nur Wiederholen. „Auto“ wählt je nach Zeit bis zur Prüfung 0–3 Tage, bei „Eigene“ legst du die Zahl selbst fest.": ["On buffer days no new cards come up – only reviews. “Auto” picks 0–3 days depending on the time until the exam; with “Custom” you set the number yourself.", "Nei giorni di margine non arrivano schede nuove, solo ripassi. “Auto” sceglie 0–3 giorni in base al tempo fino all'esame; con “Personalizzato” scegli tu il numero."],
+  "Anmelden und hinzufügen": ["Log in and add", "Accedi e aggiungi"],
+  "Ansicht": ["View", "Vista"],
+  "Auf Standard zurücksetzen": ["Reset to default", "Ripristina predefinito"],
+  "Ausgewogen": ["Balanced", "Equilibrato"],
+  "Auto": ["Auto", "Auto"],
+  "Bearbeiten": ["Edit", "Modifica"],
+  "Beim Löschen bleiben die Ordner erhalten und landen unter „Weitere Ordner“.": ["When deleting, the folders are kept and move to “More folders”.", "Eliminando, le cartelle restano e finiscono in “Altre cartelle”."],
+  "Beispielkarten": ["Sample cards", "Schede di esempio"],
+  "Bereich bearbeiten": ["Edit section", "Modifica sezione"],
+  "Bereich löschen": ["Delete section", "Elimina sezione"],
+  "Bibliothek – Bereich": ["Library – section", "Libreria – sezione"],
+  "Cardo erstellt einen Link zu einer Kopie dieses Ordners mit allen Unterordnern und Karten. Wer ihn öffnet, sieht das Deck – auch ohne Konto – und kann es in seine eigene Bibliothek übernehmen und dort frei bearbeiten.": ["Cardo creates a link to a copy of this folder with all subfolders and cards. Anyone who opens it sees the deck – even without an account – and can add it to their own library and edit it freely.", "Cardo crea un link a una copia di questa cartella con tutte le sottocartelle e schede. Chi lo apre vede il mazzo, anche senza account, e può aggiungerlo alla propria libreria e modificarlo liberamente."],
+  "Das ist kein Bild.": ["That's not an image.", "Questa non è un'immagine."],
+  "Datenschutzerklärung": ["privacy policy", "informativa sulla privacy"],
+  "Mit dem Erstellen des Kontos werden deine Daten wie in der": ["By creating an account, your data is processed as described in the", "Creando l'account, i tuoi dati vengono trattati come descritto nell'"],
+  "beschrieben verarbeitet.": [".", "."],
+  "Datum der Prüfung": ["Exam date", "Data dell'esame"],
+  "Dein Lernstand und deine Statistik bleiben privat.": ["Your progress and statistics stay private.", "I tuoi progressi e le statistiche restano privati."],
+  "Der Reihe nach": ["In order", "In ordine"],
+  "Dieses Deck enthält noch keine Karten.": ["This deck has no cards yet.", "Questo mazzo non contiene ancora schede."],
+  "Dieses Deck wird nicht mehr geteilt oder der Link ist unvollständig.": ["This deck is no longer shared or the link is incomplete.", "Questo mazzo non è più condiviso o il link è incompleto."],
+  "Du bist offline. Öffne den Link noch einmal, sobald du Internet hast.": ["You're offline. Open the link again once you have internet.", "Sei offline. Riapri il link quando hai internet."],
+  "Du hast noch keine Sicherungsdatei heruntergeladen": ["You haven't downloaded a backup file yet", "Non hai ancora scaricato un file di backup"],
+  "Eigene": ["Custom", "Personalizzato"],
+  "Eigene Anzahl pro Tag": ["Custom number per day", "Numero personalizzato al giorno"],
+  "Einfügen": ["Insert", "Inserisci"],
+  "Einstellung des übergeordneten Ordners verwenden": ["Use the parent folder's setting", "Usa l'impostazione della cartella superiore"],
+  "Entspannt, gut bei vielen Modulen": ["Relaxed, good for many modules", "Rilassato, adatto a molti moduli"],
+  "Formel entfernen": ["Remove formula", "Rimuovi formula"],
+  "Funktionen": ["Functions", "Funzioni"],
+  "Fällig": ["Due", "In scadenza"],
+  "Gemischt": ["Mixed", "Misto"],
+  "Gilt für alle, die den Link ab jetzt öffnen. Wer schon eine Kopie hat, behält seine.": ["Applies to everyone who opens the link from now on. Anyone who already has a copy keeps it.", "Vale per chi apre il link da ora in poi. Chi ha già una copia la conserva."],
+  "Großbuchstaben": ["Capital letters", "Maiuscole"],
+  "Heute alles gelernt – dein Tageslimit ist erreicht.": ["All done for today – you've reached your daily limit.", "Tutto studiato per oggi: hai raggiunto il limite giornaliero."],
+  "In einen Ordner": ["Into a folder", "In una cartella"],
+  "Intensiv, viele Wiederholungen": ["Intensive, many reviews", "Intenso, molti ripassi"],
+  "Kacheln": ["Tiles", "Riquadri"],
+  "Liste": ["List", "Elenco"],
+  "Karte bearbeiten": ["Edit card", "Modifica scheda"],
+  "Karten antippen": ["Tap cards", "Tocca le schede"],
+  "Karten durchsuchen": ["Search cards", "Cerca schede"],
+  "Kein Tageslimit – alles Fällige und alle neuen Karten": ["No daily limit – everything due and all new cards", "Nessun limite giornaliero: tutto ciò che è in scadenza e tutte le schede nuove"],
+  "Keine passenden Karten": ["No matching cards", "Nessuna scheda corrispondente"],
+  "Konto erstellen": ["Create account", "Crea account"],
+  "Kopiert": ["Copied", "Copiato"],
+  "Ordner-Menü": ["Folder menu", "Menu cartella"],
+  "Nicht gewusste nochmal üben": ["Practise unknown cards again", "Esercitati ancora sulle non sapute"],
+  "Nicht gewusst ({})": ["Not known ({})", "Non sapute ({})"],
+  "{} ausgewählt": ["{} selected", "{} selezionate"],
+  "{} kopieren": ["Copy {}", "Copia {}"],
+  "Ordner löschen": ["Delete folder", "Elimina cartella"],
+  "Speichern & schließen": ["Save & close", "Salva e chiudi"],
+  "Semikolon ;": ["Semicolon ;", "Punto e virgola ;"],
+  "Farbe {}": ["Colour {}", "Colore {}"],
+  "Aktiva;Vermögenswerte eines Unternehmens\nPassiva;Kapitalherkunft (Eigen- und Fremdkapital)": ["Assets;Resources owned by a company\nLiabilities;Sources of capital (equity and debt)", "Attivo;Beni di un'impresa\nPassivo;Fonti del capitale (proprio e di terzi)"],
+  "Ordner\u200b": ["Folders", "Cartelle"],
+  "weniger": ["less", "meno"],
+  "mehr": ["more", "più"],
+  "unbegrenzt": ["unlimited", "illimitato"],
+  "heute": ["today", "oggi"],
+  "in 1 Woche": ["in 1 week", "tra 1 settimana"],
+  "in 2 Wochen": ["in 2 weeks", "tra 2 settimane"],
+  "in 4 Wochen": ["in 4 weeks", "tra 4 settimane"],
+  "in 8 Wochen": ["in 8 weeks", "tra 8 settimane"],
+  "{} · in {} Tagen": ["{} · in {} days", "{} · tra {} giorni"],
+  "{} · morgen": ["{} · tomorrow", "{} · domani"],
+  "{} · heute": ["{} · today", "{} · oggi"],
+  "{} · liegt in der Vergangenheit": ["{} · is in the past", "{} · è nel passato"],
+  ", danach {} nur zum Wiederholen": [", then {} for reviews only", ", poi {} solo per ripassare"],
+  "(automatisch)": ["(automatic)", "(automatico)"],
+  "Für {} ist zu wenig Zeit – es bleibt mindestens ein Lerntag.": ["There isn't enough time for {} – at least one study day remains.", "Non c'è abbastanza tempo per {}: resta almeno un giorno di studio."],
+  "Noch {} bis zur Prüfung.": ["{} left until the exam.", "Mancano {} all'esame."],
+  "Letzte Sicherungsdatei vor {} Tagen": ["Last backup file {} days ago", "Ultimo file di backup {} giorni fa"],
+  "Karte bearbeiten (E)": ["Edit card (E)", "Modifica scheda (E)"],
+  "Rückgängig (Z)": ["Undo (Z)", "Annulla (Z)"],
+  "Ordner verschieben": ["Move folder", "Sposta cartella"],
+  "{} fällig": ["{} due", "{} da ripassare"],
+  "{} neu": ["{} new", "{} nuove"],
+  "· {} % sicher": ["· {} % solid", "· {} % consolidato"],
+  "{} % der Karten sitzen sicher": ["{} % of cards are solid", "{} % delle schede è consolidato"],
+  "lange drücken & ziehen": ["long press & drag", "tieni premuto e trascina"],
+  "＋ Zeile": ["＋ Row", "＋ Riga"],
+  "− Zeile": ["− Row", "− Riga"],
+  "＋ Spalte": ["＋ Column", "＋ Colonna"],
+  "− Spalte": ["− Column", "− Colonna"],
+  "Kopfzeile": ["Header row", "Riga d'intestazione"],
+  "Tabelle löschen": ["Delete table", "Elimina tabella"],
+  "Tabelle": ["Table", "Tabella"],
+  "Schrift: fett, kursiv, markieren": ["Text: bold, italic, highlight", "Testo: grassetto, corsivo, evidenzia"],
+  "Fett": ["Bold", "Grassetto"],
+  "Kursiv": ["Italic", "Corsivo"],
+  "Markieren": ["Highlight", "Evidenzia"],
+  "Aufzählung": ["Bulleted list", "Elenco puntato"],
+  "Nummerierte Liste": ["Numbered list", "Elenco numerato"],
+  "{} Karten": ["{} cards", "{} schede"],
+  "{} Karte": ["{} card", "{} scheda"],
+  "Leg deinen ersten Ordner an oder spiel eine Cardo-Sicherung ein.": ["Create your first folder or restore a Cardo backup.", "Crea la tua prima cartella o ripristina un backup di Cardo."],
+  "Letzte 7 Tage:": ["Last 7 days:", "Ultimi 7 giorni:"],
+  "Letzte Bewertung rückgängig": ["Undo last rating", "Annulla ultima valutazione"],
+  "Link auf aktuellen Stand bringen": ["Update link to current version", "Aggiorna il link alla versione attuale"],
+  "Link erstellen": ["Create link", "Crea link"],
+  "Link kopieren": ["Copy link", "Copia link"],
+  "Link zum Teilen": ["Link for sharing", "Link da condividere"],
+  "Link zum Zurücksetzen senden": ["Send reset link", "Invia link per reimpostare"],
+  "Listen und Tabelle": ["Lists and table", "Elenchi e tabella"],
+  "Mindestens 6 Zeichen. Jede Person bekommt ihre eigene Bibliothek.": ["At least 6 characters. Everyone gets their own library.", "Almeno 6 caratteri. Ogni persona ha la propria libreria."],
+  "Neue": ["New", "Nuove"],
+  "Neuer Bereich": ["New section", "Nuova sezione"],
+  "Noch keine Ordner": ["No folders yet", "Ancora nessuna cartella"],
+  "Noch keine Ordner.": ["No folders yet.", "Ancora nessuna cartella."],
+  "Noch keine anderen Ordner.": ["No other folders yet.", "Ancora nessun'altra cartella."],
+  "Noch keine Ordner in diesem Bereich. Tippe auf ⋯ › Neuer Ordner hier, oder öffne einen Ordner und ordne ihn über Ordner ⋯ › Ordner gestalten diesem Bereich zu.": ["No folders in this section yet. Tap ⋯ › New folder here, or open a folder and assign it to this section via the folder's ⋯ › Customise folder.", "Ancora nessuna cartella in questa sezione. Tocca ⋯ › Nuova cartella qui, oppure apri una cartella e assegnala a questa sezione con ⋯ › Personalizza cartella."],
+  "Noch nicht gelernt": ["Not learned yet", "Non ancora studiate"],
+  "Nochmal üben": ["Practise again", "Esercitati ancora"],
+  "nochmal üben": ["practise again", "esercitati ancora"],
+  "↻ Nochmal üben": ["↻ Practise again", "↻ Esercitati ancora"],
+  "Nächste Karte →": ["Next card →", "Scheda successiva →"],
+  "Ordner teilen": ["Share folder", "Condividi cartella"],
+  "Prüfen": ["Test", "Verifica"],
+  "Prüfung": ["Exam", "Esame"],
+  "Prüfung beendet": ["Test finished", "Verifica terminata"],
+  "Prüfung festlegen": ["Set exam", "Imposta esame"],
+  "Prüfung starten": ["Start test", "Inizia verifica"],
+  "Puffer vor der Prüfung": ["Buffer before the exam", "Margine prima dell'esame"],
+  "Puffertag": ["Buffer day", "Giorno di margine"],
+  "QR-Code zum Link": ["QR code for the link", "Codice QR del link"],
+  "Runde beendet": ["Round finished", "Giro terminato"],
+  "Schwierige": ["Difficult ones", "Difficili"],
+  "Sehr entspannt": ["Very relaxed", "Molto rilassato"],
+  "Sortieren nach": ["Sort by", "Ordina per"],
+  "Unterordner sortieren nach": ["Sort subfolders by", "Ordina sottocartelle per"],
+  "Standard": ["Standard", "Standard"],
+  "Tagen": ["days", "giorni"],
+  "Teilen beenden": ["Stop sharing", "Interrompi condivisione"],
+  "Teilen …": ["Share …", "Condividi …"],
+  "Tippen zum Überspringen": ["Tap to skip", "Tocca per saltare"],
+  "Trag ein Prüfungsdatum ein, dann siehst du hier, ob du im Plan liegst.": ["Enter an exam date to see here whether you're on track.", "Inserisci una data d'esame per vedere qui se sei in linea con il piano."],
+  "Unterordner": ["Subfolders", "Sottocartelle"],
+  "Verschoben": ["Moved", "Spostato"],
+  "Viel Erfolg heute!": ["Good luck today!", "In bocca al lupo per oggi!"],
+  "Wiederholungen und neue Karten zusammen. Zuerst kommen fällige Wiederholungen, dann neue Karten.": ["Reviews and new cards together. Due reviews come first, then new cards.", "Ripassi e schede nuove insieme. Prima i ripassi in scadenza, poi le schede nuove."],
+  "Wirklich?": ["Really?", "Davvero?"],
+  "Wähle zuerst das Datum – dann siehst du, wie viele Puffertage möglich sind.": ["Choose the date first – then you'll see how many buffer days are possible.", "Scegli prima la data: poi vedrai quanti giorni di margine sono possibili."],
+  "Zügig durch den Stoff": ["Quickly through the material", "Rapidamente attraverso la materia"],
+  "aktuell": ["current", "attuale"],
+  "liegt in der Vergangenheit": ["is in the past", "è nel passato"],
+  "und seine Unterordner": ["and its subfolders", "e le sue sottocartelle"],
+  "Üben": ["Practise", "Esercitati"],
+  "Üben starten": ["Start practising", "Inizia a esercitarti"],
+  "Übernehmen": ["Apply", "Applica"],
+  "↺ Rückseite zuerst": ["↺ Back first", "↺ Prima il retro"],
+  "⇄ Rückseite zuerst": ["⇄ Back first", "⇄ Prima il retro"],
+  "⇄ beidseitig": ["⇄ both sides", "⇄ entrambi i lati"],
+  "＋ 10 weitere Karten": ["＋ 10 more cards", "＋ altre 10 schede"],
+  "Für": ["For", "Per"]
+};
+/* Mehrzahl für plural(): Deutsch "Karte" → [Englisch [eins, viele], Italienisch [eins, viele]] */
+const PLURALS = {
+  "Karte": [["card", "cards"], ["scheda", "schede"]],
+  "Ordner": [["folder", "folders"], ["cartella", "cartelle"]],
+  "Unterordner": [["subfolder", "subfolders"], ["sottocartella", "sottocartelle"]],
+  "Puffertag": [["buffer day", "buffer days"], ["giorno di margine", "giorni di margine"]],
+  "Tag": [["day", "days"], ["giorno", "giorni"]],
+  "neue Karte": [["new card", "new cards"], ["nuova scheda", "nuove schede"]],
+  "weitere Karte": [["more card", "more cards"], ["altra scheda", "altre schede"]]
+};
+/* Beispiel-Ordner für neue Konten in der gewählten Sprache */
+const START_DECK_I18N = {
+  en: ["How Cardo works", [
+    ["Welcome to Cardo! What is this?", "Your first folder. Each card explains one thing about Cardo.\n\nTap the card to see the back – then rate how well you knew it."],
+    ["What do the buttons under the card mean?", "- **Again** – didn't know it, comes back right away\n- **Hard** – only just knew it\n- **Good** – knew it\n- **Easy** – knew it instantly, comes back much later"],
+    ["Why does a card only come back in a few days?", "Cardo shows you each card shortly before you would forget it. The better you know it, the longer the gap.\n\nThat way you learn ==for good== with little time."],
+    ["How do I create my own cards?", "In the **Library** via **⋯ → New folder**.\n\nThen in the folder via **⋯ → New card**. Subfolders work the same way."],
+    ["Can I bring cards over from Anki, Quizlet or Excel?", "Yes: in the folder **⋯ → Import cards**.\n\nOne card per line, front and back separated by a tab, semicolon or comma."],
+    ["What can I put on a card?", "**Bold**, *italic*, ==highlighted==, lists, tables, images – and formulas like $a^2 + b^2 = c^2$."],
+    ["I have an exam soon – what now?", "In the folder, tap the button with the daily amount at the top (e.g. **20 / day**) → **Cards per day** and set an exam plan with a date. Cardo spreads the cards so you finish in time.\n\nWith **Test** you check yourself like in a real exam."],
+    ["Can I also learn from the back?", "Yes: in the folder tap **20 / day → Study direction** at the top. Choose back first or both sides – handy e.g. for vocabulary."],
+    ["How do I customise a folder?", "**⋯ → Customise folder**: name, colour, emoji or your own cover image."],
+    ["How do I share a folder with others?", "In the folder, tap the **share icon** at the top. You get a link – anyone who opens it can get their own copy."],
+    ["Are my cards on all my devices?", "Yes. With your account they're the same on iPhone, iPad and Mac.\n\nYou can still learn without internet – everything syncs as soon as you're back online."],
+    ["And what do I do with this folder?", "Once you know everything, you can delete it: **⋯ → Customise folder → Delete folder**.\n\nHave fun learning! 🎓"]
+  ]],
+  it: ["Come funziona Cardo", [
+    ["Benvenuto in Cardo! Che cos'è?", "La tua prima cartella. Ogni scheda ti spiega una cosa di Cardo.\n\nTocca la scheda per vedere il retro, poi valuta quanto bene la sapevi."],
+    ["Cosa significano i pulsanti sotto la scheda?", "- **Ancora** – non la sapevo, torna subito\n- **Difficile** – la sapevo appena\n- **Bene** – la sapevo\n- **Facile** – la sapevo subito, torna molto più tardi"],
+    ["Perché una scheda torna solo tra qualche giorno?", "Cardo ti mostra ogni scheda poco prima che tu la dimentichi. Più la conosci, più lungo è l'intervallo.\n\nCosì impari ==in modo duraturo== con poco tempo."],
+    ["Come creo le mie schede?", "Nella **Libreria** con **⋯ → Nuova cartella**.\n\nPoi nella cartella con **⋯ → Nuova scheda**. Le sottocartelle funzionano allo stesso modo."],
+    ["Posso importare schede da Anki, Quizlet o Excel?", "Sì: nella cartella **⋯ → Importa schede**.\n\nUna scheda per riga, fronte e retro separati da tabulazione, punto e virgola o virgola."],
+    ["Cosa posso scrivere su una scheda?", "**Grassetto**, *corsivo*, ==evidenziato==, elenchi, tabelle, immagini e formule come $a^2 + b^2 = c^2$."],
+    ["Ho presto un esame: e adesso?", "Nella cartella tocca in alto il pulsante con la quantità giornaliera (ad es. **20 / giorno**) → **Schede al giorno** e imposta un piano d'esame con una data. Cardo distribuisce le schede in modo che tu finisca in tempo.\n\nCon **Verifica** ti metti alla prova come in un vero esame."],
+    ["Posso studiare anche partendo dal retro?", "Sì: nella cartella tocca in alto **20 / giorno → Direzione di studio**. Scegli prima il retro o entrambi i lati, utile ad es. per il vocabolario."],
+    ["Come personalizzo una cartella?", "**⋯ → Personalizza cartella**: nome, colore, emoji o un'immagine di copertina."],
+    ["Come condivido una cartella con altri?", "Nella cartella tocca in alto l'**icona di condivisione**. Ricevi un link: chi lo apre può ottenere una propria copia."],
+    ["Le mie schede sono su tutti i dispositivi?", "Sì. Con il tuo account sono uguali su iPhone, iPad e Mac.\n\nPuoi studiare anche senza internet: tutto si sincronizza appena torni online."],
+    ["E cosa faccio con questa cartella?", "Quando sai tutto, puoi eliminarla: **⋯ → Personalizza cartella → Elimina cartella**.\n\nBuono studio! 🎓"]
+  ]]
+};
+const I18N_EXACT = new Map(), I18N_PATS = [];
+for (const [k, v] of Object.entries(I18N)) {
+  if (!k.includes("{}")) { I18N_EXACT.set(k, v); continue; }
+  const re = new RegExp("^" + k.split("{}").map(p => p.replace(/[.*+?^$()|[\]\\]/g, "\\$&")).join("([\\s\\S]*?)") + "$");
+  I18N_PATS.push({ re, v, len: k.replace(/\{\}/g, "").length, raw: /„\{\}“|-Menü|nach \{\}/.test(k) }); /* raw: Platzhalter ist ein Name → nie mitübersetzen */
+}
+I18N_PATS.sort((a, b) => b.len - a.len);
+const I18N_CACHE = new Map();
+function trCore(t){
+  const li = LANG === "en" ? 0 : 1;
+  const e = I18N_EXACT.get(t); if (e) return e[li];
+  for (const p of I18N_PATS) {
+    const m = p.re.exec(t); if (!m) continue;
+    const args = m.slice(1).map(a => { const r = a.trim() && !p.raw ? trCore(a.trim()) : null; return r == null ? a : a.replace(a.trim(), r); });
+    let i = 0; return p.v[li].replace(/\{(\d?)\}/g, (_, d) => args[d === "" ? i++ : +d] ?? "");
+  }
+  return null;
+}
+/* Übersetzt einen Text (Leerzeichen am Rand bleiben); unbekannte Texte bleiben unverändert */
+function tr(s){
+  if (LANG === "de" || !s || !/[A-Za-zÄÖÜäöüß]/.test(s)) return s;
+  const key = LANG + "\u0001" + s; if (I18N_CACHE.has(key)) return I18N_CACHE.get(key);
+  const m = /^(\s*)([\s\S]*?)(\s*)$/.exec(s), r = trCore(m[2]), out = r == null ? s : m[1] + r + m[3];
+  if (I18N_CACHE.size > 5000) I18N_CACHE.clear();
+  I18N_CACHE.set(key, out); return out;
+}
+/* Eigene Inhalte nie übersetzen: Karten, Ordnernamen, Eingaben, Formeln, Sprachauswahl */
+const I18N_SKIP = ".flash-face,.cf,.cb,.cm-f,.cm-b,.tile-name,.ft-l,.dv-name,.katex,math-field,[translate=no],textarea,script,style,[contenteditable],.ed-area";
+const I18N_ATTRS = ["aria-label", "title", "placeholder", "alt", "aria-valuetext"];
+/* Originaltexte merken, damit ein Sprachwechsel alles (auch feste Elemente) sauber zurückstellen kann */
+let I18N_DONE = new WeakMap();
+const I18N_ORIG = new Map(), I18N_ORIGA = new Map();
+function i18nPrune(){ if (I18N_ORIG.size + I18N_ORIGA.size < 4000) return; for (const n of I18N_ORIG.keys()) if (!n.isConnected) I18N_ORIG.delete(n); for (const n of I18N_ORIGA.keys()) if (!n.isConnected) I18N_ORIGA.delete(n); }
+function trText(n){
+  if (I18N_DONE.get(n) === n.data) return;
+  const p = n.parentElement; if (p && p.closest(I18N_SKIP)) return;
+  const v = tr(n.data); if (v !== n.data) { if (!I18N_ORIG.has(n)) I18N_ORIG.set(n, n.data); n.data = v; i18nPrune(); } I18N_DONE.set(n, n.data);
+}
+function trAttr(el, a){
+  const v = el.getAttribute(a); if (!v) return; const t = tr(v); if (t === v) return;
+  const o = I18N_ORIGA.get(el) || {}; if (!(a in o)) { o[a] = v; I18N_ORIGA.set(el, o); }
+  el.setAttribute(a, t);
+}
+function trAttrs(el){ for (const a of I18N_ATTRS) trAttr(el, a); }
+function trTree(root){
+  if (LANG === "de" || !root) return;
+  if (root.nodeType === 3) { trText(root); return; }
+  if (root.nodeType !== 1 || root.closest(I18N_SKIP)) return;
+  trAttrs(root);
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, { acceptNode: n => { if (n.nodeType === 1 && n.matches(I18N_SKIP)) { if (n.tagName === "TEXTAREA") trAttrs(n); return NodeFilter.FILTER_REJECT; } return NodeFilter.FILTER_ACCEPT; } });
+  let n; while ((n = w.nextNode())) n.nodeType === 3 ? trText(n) : trAttrs(n);
+}
+new MutationObserver(ms => {
+  if (LANG === "de") return;
+  for (const m of ms) {
+    if (m.type === "childList") m.addedNodes.forEach(trTree);
+    else if (m.type === "characterData") trText(m.target);
+    else if (m.target.nodeType === 1 && !m.target.closest(I18N_SKIP)) trAttr(m.target, m.attributeName);
+  }
+}).observe(document.documentElement, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: I18N_ATTRS });
+function setLang(l){
+  l = LOCALES[l] ? l : LANG; const changed = l !== LANG; LANG = l;
+  document.documentElement.lang = l;
+  if (changed) {
+    for (const [n, o] of I18N_ORIG) if (n.isConnected) n.data = o;
+    for (const [el, o] of I18N_ORIGA) if (el.isConnected) for (const a in o) el.setAttribute(a, o[a]);
+    I18N_ORIG.clear(); I18N_ORIGA.clear(); I18N_DONE = new WeakMap();
+  }
+  if (LANG !== "de") trTree(document.body);
+  return changed;
+}
+setLang(LANG);
 /* ---------- Helpers ---------- */
 const $ = (s, el = document) => el.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+/* Ordner-/Bereichsnamen: unsichtbares Zeichen dahinter, damit die Übersetzung eigene Namen (z. B. „Mathe“) nie verändert */
+const escN = s => esc(s) + (LANG === "de" ? "" : "\u2060");
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 /* ---------- Karteninhalt: Formatierung, Formeln (KaTeX), Bilder ----------
    **fett**, *kursiv*, ==markiert==, Listen (- / 1.), Tabellen (| a | b |), $Formel$ / $$Formel$$, ![](cimg:pfad) */
@@ -1465,7 +2251,9 @@ function rich(raw, opt){
   return ed ? html : `<div class="rich">${html}</div>`;
 }
 // Einzeilige Kurzfassung (Kartenliste, Menüs, Zusammenfassungen)
-function richLine(raw){
+/* Karteninhalt in einer Zeile; translate="no" schützt ihn vor der Übersetzung der Oberfläche */
+function richLine(raw){ return `<span translate="no">${richLine0(raw)}</span>`; }
+function richLine0(raw){
   raw = String(raw ?? "");
   if (!hasRich(raw)) return esc(raw);
   const [s, blocks] = protectBlocks(raw.replace(/\r\n?/g, "\n"));
@@ -2197,7 +2985,7 @@ function mountRichEditor(root, host, initial){
 document.addEventListener("selectionchange", () => { const s = getSelection(); const n = s.rangeCount && s.anchorNode; const h = n && (n.nodeType === 1 ? n : n.parentNode); const ed = h && h.closest && h.closest(".ed-area"); if (ed && ed._state) ed._state(); });
 const MIN = 6e4, DAY = 864e5;
 const dayKey = (t = Date.now()) => { const d = new Date(t); return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0"); };
-const plural = (n, one, many) => n + " " + (n === 1 ? one : many);
+const plural = (n, one, many) => { const p = LANG !== "de" && PLURALS[one]; return n + " " + (p ? p[LANG === "en" ? 0 : 1][n === 1 ? 0 : 1] : n === 1 ? one : many); };
 const COLORS = ["#FF5A36","#F59E0B","#E2B203","#22A06B","#0E9F9A","#2F80ED","#5B5BD6","#9B51E0","#E0487D","#64748B","#2B2F38","#8B5E3C"];
 const EMOJIS = ["📕","📙","📒","📗","📘","📓","📔","📚","📖"]; /* Bücher in verschiedenen Farben */
 const IC_EXAM = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2.5"/><path d="M9 4.5V3.5h6v1M9 12.5l2 2 4-4"/></svg>`;
@@ -2518,10 +3306,10 @@ const newLimit = () => (S.set.newPerDay ?? 20);
 const newLimitLabel = k => k === 0 ? "Unbegrenzt" : String(k);
 function normSet(v){ // accepts old {mode, theme} and new {look, layout}
   if (!v) return null;
-  const layout = v.layout === "list" ? "list" : "grid", textSize = ["s","m","l"].includes(v.textSize) ? v.textSize : "m", fxMode = ["full","color","off"].includes(v.fxMode) ? v.fxMode : (v.gradeFx === false ? "off" : "full"), gradeSet = ["4","3","2"].includes(String(v.gradeSet)) ? String(v.gradeSet) : "4", newPerDay = NEW_OPTS.includes(+v.newPerDay) ? +v.newPerDay : 20, splash = ["daily","always","never"].includes(v.splash) ? v.splash : "daily", glass = [0,1,2].includes(+v.glass) ? +v.glass : 1, retain = RETAIN_OPTS.includes(+v.retain) ? +v.retain : 90, sound = v.sound === 0 ? 0 : 1;
-  if (v.look) return { look: ["light","dark","black","auto"].includes(v.look) || THEMES.some(t => t.k === v.look) ? v.look : "auto", layout, textSize, fxMode, gradeSet, newPerDay, splash, glass, retain, sound };
-  if (v.theme && v.theme !== "koralle" && THEMES.some(t => t.k === v.theme)) return { look: v.theme, layout, textSize, fxMode, gradeSet, newPerDay, splash, glass, retain, sound };
-  return v.mode ? { look: v.mode, layout, textSize, fxMode, gradeSet, newPerDay, splash, glass, retain, sound } : null;
+  const layout = v.layout === "list" ? "list" : "grid", textSize = ["s","m","l"].includes(v.textSize) ? v.textSize : "m", fxMode = ["full","color","off"].includes(v.fxMode) ? v.fxMode : (v.gradeFx === false ? "off" : "full"), gradeSet = ["4","3","2"].includes(String(v.gradeSet)) ? String(v.gradeSet) : "4", newPerDay = NEW_OPTS.includes(+v.newPerDay) ? +v.newPerDay : 20, splash = ["daily","always","never"].includes(v.splash) ? v.splash : "daily", glass = [0,1,2].includes(+v.glass) ? +v.glass : 1, retain = RETAIN_OPTS.includes(+v.retain) ? +v.retain : 90, sound = v.sound === 0 ? 0 : 1, lang = LOCALES[v.lang] ? v.lang : undefined;
+  if (v.look) return { look: ["light","dark","black","auto"].includes(v.look) || THEMES.some(t => t.k === v.look) ? v.look : "auto", layout, textSize, fxMode, gradeSet, newPerDay, splash, glass, retain, sound, lang };
+  if (v.theme && v.theme !== "koralle" && THEMES.some(t => t.k === v.theme)) return { look: v.theme, layout, textSize, fxMode, gradeSet, newPerDay, splash, glass, retain, sound, lang };
+  return v.mode ? { look: v.mode, layout, textSize, fxMode, gradeSet, newPerDay, splash, glass, retain, sound, lang } : null;
 }
 try { const c = normSet(JSON.parse(localStorage.getItem("kartenfach-settings") || "null")); if (c) S.set = c; } catch {}
 const darkMQ = matchMedia("(prefers-color-scheme: dark)");
@@ -3182,9 +3970,9 @@ function hexColor(c){ try { const cv = hexColor.cv || (hexColor.cv = document.cr
 // Nach dem Startbildschirm die echte Hintergrundfarbe übernehmen
 new MutationObserver(() => { if (!document.body.classList.contains("splashing") && !document.documentElement.style.backgroundColor) applyTheme(); }).observe(document.body, { attributes: true, attributeFilter: ["class"] });
 function saveSettings(patch){
-  S.set = { ...S.set, ...patch }; applyTheme(); render();
+  S.set = { ...S.set, ...patch }; setLang(S.set.lang); applyTheme(); render();
   try { localStorage.setItem("kartenfach-settings", JSON.stringify(S.set)); } catch {}
-  if (DB) enqueue("settings/main", () => DB.doc("settings/main").set({ look: S.set.look, layout: S.set.layout, textSize: S.set.textSize, fxMode: S.set.fxMode || "full", gradeSet: S.set.gradeSet || "4", newPerDay: newLimit(), splash: S.set.splash || "daily", glass: S.set.glass ?? 1, retain: S.set.retain || 90, sound: S.set.sound === 0 ? 0 : 1 }));
+  if (DB) enqueue("settings/main", () => DB.doc("settings/main").set({ look: S.set.look, layout: S.set.layout, textSize: S.set.textSize, fxMode: S.set.fxMode || "full", gradeSet: S.set.gradeSet || "4", newPerDay: newLimit(), splash: S.set.splash || "daily", glass: S.set.glass ?? 1, retain: S.set.retain || 90, sound: S.set.sound === 0 ? 0 : 1, lang: S.set.lang || LANG }));
 }
 darkMQ.addEventListener && darkMQ.addEventListener("change", applyTheme);
 new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
@@ -3464,7 +4252,7 @@ function startApp(){
   document.body.classList.remove("authing");
   DB = makeStore(SB, USER.id); AS = null; S.mode = DB.cached() ? "cloud" : "loading";
   if (S.mode === "loading") $("#main").innerHTML = '<div class="loading">Deine Karten werden geladen …</div>';
-  DB.doc("settings/main").onSnapshot(d => { if (!d.exists) return; const v = normSet(d.data()); if (!v) return; S.set = v; try { localStorage.setItem("kartenfach-settings", JSON.stringify(S.set)); } catch {} applyTheme(); render(); });
+  DB.doc("settings/main").onSnapshot(d => { if (!d.exists) return; const v = normSet(d.data()); if (!v) return; S.set = v; try { localStorage.setItem("kartenfach-settings", JSON.stringify(S.set)); } catch {} if (setLang(S.set.lang)) { if (!$("#sheet").hidden) closeSheet(); schedulePrerender(); } applyTheme(); render(); });
   DB.collection("sections").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = d.data(); }); S.sections = o; render(); });
   DB.collection("folders").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = d.data(); }); S.folders = o; S.loaded.f = true; render(); });
   DB.collection("cards").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = { ...((d.data()||{}).cards || {}) }; }); S.decks = o; S.loaded.c = true; render(); });
@@ -3499,12 +4287,12 @@ function shareSheet(fid){
   if (!canShare()) { toast("Teilen geht nur in der Cardo-App mit Konto."); return; }
   const sh = f.share && f.share.id ? f.share : null, n = counts(fid).total;
   openSheet(`${head("Ordner teilen")}
-    <div class="sh-deck">${dotHTML(f)}<div><b>${esc(f.name)}</b><span>${plural(n, "Karte", "Karten")}${children(fid).length ? " · " + plural(descendants(fid).length, "Unterordner", "Unterordner") : ""}</span></div></div>
+    <div class="sh-deck">${dotHTML(f)}<div><b>${escN(f.name)}</b><span>${plural(n, "Karte", "Karten")}${children(fid).length ? " · " + plural(descendants(fid).length, "Unterordner", "Unterordner") : ""}</span></div></div>
     ${sh ? `
       <div class="sh-link"><input class="in" id="shUrl" readonly value="${esc(shareLink(sh.id))}" aria-label="Link zum Teilen"></div>
       <div class="sh-acts"><button class="btn" id="shCopy">Link kopieren</button>${navigator.share ? `<button class="btn primary" id="shShare">Teilen …</button>` : ''}</div>
       <div class="sh-qr" id="shQr" aria-label="QR-Code zum Link"></div>
-      <p class="muted sh-note">Stand vom ${new Date(sh.at || Date.now()).toLocaleDateString("de-DE", { day: "numeric", month: "long" })} · ${plural(sh.n || 0, "Karte", "Karten")}. Wer den Link öffnet, sieht das Deck – auch ohne Konto – und kann sich eine eigene Kopie holen. Dein Lernstand wird nicht geteilt.</p>
+      <p class="muted sh-note">Stand vom ${new Date(sh.at || Date.now()).toLocaleDateString(LOC(), { day: "numeric", month: "long" })} · ${plural(sh.n || 0, "Karte", "Karten")}. Wer den Link öffnet, sieht das Deck – auch ohne Konto – und kann sich eine eigene Kopie holen. Dein Lernstand wird nicht geteilt.</p>
       <button class="btn block" id="shUpd" style="justify-content:center">Link auf aktuellen Stand bringen</button>
       <p class="muted sh-note" style="margin-top:6px">Gilt für alle, die den Link ab jetzt öffnen. Wer schon eine Kopie hat, behält seine.</p>
       <button class="pw-forgot" id="shStop" type="button" style="color:var(--again)">Teilen beenden</button>`
@@ -3572,10 +4360,10 @@ async function openSharedDeck(id){
   const cv = safeCover(root.cv);
   const logged = !!USER;
   body.innerHTML = `<div class="dv-hero ${cv ? 'has-cover' : ''}" style="--c:${esc(safeColor(root.c))};${cv ? `background-image:linear-gradient(to top,rgba(0,0,0,.3),transparent 60%),url('${esc(cv)}')` : ''}">${root.e ? `<span class="dv-emo">${esc(root.e)}</span>` : ''}</div>
-    <div class="dv-kicker">Geteiltes Kartendeck</div><h1 class="dv-name">${esc(root.n)}</h1>
+    <div class="dv-kicker">Geteiltes Kartendeck</div><h1 class="dv-name">${escN(root.n)}</h1>
     <div class="muted dv-meta">${plural(cards.length, "Karte", "Karten")}${snap.folders.length > 1 ? " · " + plural(snap.folders.length - 1, "Unterordner", "Unterordner") : ""}</div>
     <p class="dv-info">Du bekommst eine eigene Kopie: Du kannst sie frei bearbeiten und lernst mit deinem eigenen Fortschritt.</p>
-    ${subs.length ? `<div class="dv-h">Unterordner</div><div class="dv-subs">${subs.map(x => `<div><span class="dot" style="background-color:${esc(safeColor(x.c))}">${esc(x.e || "")}</span><b>${esc(x.n)}</b><span class="muted">${perF(x.k) + snap.folders.filter(y => y.p === x.k).reduce((a, y) => a + perF(y.k), 0)}</span></div>`).join("")}</div>` : ''}
+    ${subs.length ? `<div class="dv-h">Unterordner</div><div class="dv-subs">${subs.map(x => `<div><span class="dot" style="background-color:${esc(safeColor(x.c))}">${esc(x.e || "")}</span><b>${escN(x.n)}</b><span class="muted">${perF(x.k) + snap.folders.filter(y => y.p === x.k).reduce((a, y) => a + perF(y.k), 0)}</span></div>`).join("")}</div>` : ''}
     ${cards.length ? `<div class="dv-h">Beispielkarten</div><div class="dv-cards">${cards.slice(0, 8).map(c => `<div><b>${richLine(c[1])}</b><span>${richLine(c[2])}</span></div>`).join("")}${cards.length > 8 ? `<div class="dv-more muted">+ ${plural(cards.length - 8, "weitere Karte", "weitere Karten")}</div>` : ''}</div>` : '<p class="muted">Dieses Deck enthält noch keine Karten.</p>'}
     <div class="dv-foot">${logged ? `<button class="btn primary block" data-dv="add">Zu meiner Bibliothek hinzufügen</button>`
       : `<button class="btn primary block" data-dv="login">Anmelden und hinzufügen</button><button class="pw-forgot" data-dv="signup" type="button">Noch kein Konto? Kostenlos registrieren</button>`}</div>`;
@@ -3635,7 +4423,8 @@ async function startDeck(){
   let pend = null; try { pend = localStorage.getItem("cardo-pending-deck"); } catch {}
   if (Object.keys(S.folders).length || Object.keys(S.sections).length || Object.keys(S.days || {}).length || pend) { mark(); return; }
   mark();
-  await importSharedDeck({ id: "cardo-start", data: { v: 1, folders: [{ k: 0, p: -1, n: "So geht Cardo", e: "👋", c: "#FF5A36" }], cards: START_DECK.map(([f, b]) => [0, f, b]) } });
+  const [dn, dk] = START_DECK_I18N[LANG] || ["So geht Cardo", START_DECK];
+  await importSharedDeck({ id: "cardo-start", data: { v: 1, folders: [{ k: 0, p: -1, n: dn, e: "👋", c: "#FF5A36" }], cards: dk.map(([f, b]) => [0, f, b]) } });
 }
 
 /* ---------- Login ---------- */
@@ -3753,7 +4542,7 @@ function accountSheet(){
 /* Konto löschen: Bilder (Storage) → Datenbank-Funktion delete_my_account (löscht Karten, geteilte Decks und das Konto) → Gerät aufräumen */
 function deleteAccountSheet(){
   if (!SB || !USER) { toast("In der Vorschau gibt es kein Konto."); return; }
-  const WORD = "LÖSCHEN";
+  const WORD = ({ de: "LÖSCHEN", en: "DELETE", it: "ELIMINA" })[LANG];
   openSheet(`${headBack("Konto löschen", "accountSheet")}
     <p style="margin:0 0 12px;font-size:15.5px">Damit werden <b>alle deine Ordner, Karten, Bilder, Statistiken und geteilten Links</b> endgültig gelöscht – auf allen Geräten. Das lässt sich nicht rückgängig machen.</p>
     <p class="muted" style="margin:0 0 10px;font-size:14.5px">Tipp: Lade vorher eine Sicherung herunter, wenn du deine Karten behalten willst.</p><button class="btn block" style="margin-bottom:18px" data-act="dataSheet">Daten sichern</button>
@@ -3811,7 +4600,7 @@ function nextDueText(fid){
   cardsIn(fid, true).forEach(x => { if (x.c.reps) { const d = capForExam(x.fid, x.c).due || 0; if (d > now && d < t) t = d; } });
   if (t === Infinity) return "neue Karten kannst du jederzeit hinzufügen.";
   const min = Math.ceil((t - now) / 60000), dd = Math.round((dayStart(t) - dayStart()) / DAY);
-  const when = min < 60 ? `in ${min} Min.` : dd === 0 ? `heute um ${new Date(t).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })} Uhr` : dd === 1 ? "morgen" : dd === 2 ? "übermorgen" : `am ${new Date(t).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "long" })}`;
+  const when = min < 60 ? `in ${min} Min.` : dd === 0 ? `heute um ${new Date(t).toLocaleTimeString(LOC(), { hour: "2-digit", minute: "2-digit" })} Uhr` : dd === 1 ? "morgen" : dd === 2 ? "übermorgen" : `am ${new Date(t).toLocaleDateString(LOC(), { weekday: "short", day: "numeric", month: "long" })}`;
   return `die nächste ist ${when} wieder dran.`;
 }
 function topOf(fid){ let f = S.folders[fid], g = 0; while (f && f.parentId && S.folders[f.parentId] && g++ < 40) f = S.folders[f.parentId]; return f ? f.id : fid; }
@@ -3825,7 +4614,7 @@ const seenToday = (fid, cid) => !!seenIds(quotaKey(fid))[cid];
 const dayStart = (t = Date.now()) => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
 const parseDay = s => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ""); return m ? new Date(+m[1], +m[2] - 1, +m[3]).getTime() : NaN; };
 const daysUntil = s => Math.round((parseDay(s) - dayStart()) / DAY); // 0 = heute, 1 = morgen …
-const fmtDay = s => new Date(parseDay(s)).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "long" });
+const fmtDay = s => new Date(parseDay(s)).toLocaleDateString(LOC(), { weekday: "short", day: "numeric", month: "long" });
 // Prüfungsplan: alle neuen Karten bis kurz vor der Prüfung einmal lernen, die letzten Tage bleiben für Wiederholungen frei.
 const autoBuffer = dl => dl >= 14 ? 3 : dl >= 6 ? 2 : dl >= 3 ? 1 : 0;
 function examPlan(key, date, buf){
@@ -3945,12 +4734,12 @@ function schedule(c0, g, now = Date.now()){
   return c;
 }
 function fmtIvl(ms){
-  const m = Math.round(ms / MIN);
-  if (m < 60) return "< " + Math.max(1, m) + " Min";
-  const h = Math.round(ms / 36e5); if (h < 24) return h + " Std";
-  const d = Math.round(ms / DAY); if (d < 31) return d + " T";
-  const mo = Math.round(d / 30.4); if (mo < 12) return mo + " Mon";
-  return (d / 365).toFixed(1).replace(".", ",") + " J";
+  const m = Math.round(ms / MIN), U = ({ de: ["Min", "Std", "T", "Mon", "J"], en: ["min", "h", "d", "mo", "y"], it: ["min", "h", "g", "mesi", "a"] })[LANG];
+  if (m < 60) return "< " + Math.max(1, m) + " " + U[0];
+  const h = Math.round(ms / 36e5); if (h < 24) return h + " " + U[1];
+  const d = Math.round(ms / DAY); if (d < 31) return d + " " + U[2];
+  const mo = Math.round(d / 30.4); if (mo < 12) return mo + " " + U[3];
+  return (d / 365).toFixed(1).replace(".", LANG === "en" ? "." : ",") + " " + U[4];
 }
 
 /* ---------- Rendering ---------- */
@@ -4003,19 +4792,19 @@ function tileHTML(f){
   const meta = [plural(n.total, "Karte", "Karten"), subs ? plural(subs, "Ordner", "Ordner") : ""].filter(Boolean).join(" · ");
   return `<div class="tile"><button class="tile-main${coverUrl(f) ? ' cvw' : ''}" data-act="open" data-id="${f.id}"${cvwStyle(f)}>
     ${artHTML(f, n.due ? `<span class="due-badge">${n.due} fällig</span>` : '')}
-    <div class="tile-body"><div class="tile-name">${esc(f.name)}</div><div class="tile-meta">${meta}</div></div></button></div>`;
+    <div class="tile-body"><div class="tile-name">${escN(f.name)}</div><div class="tile-meta">${meta}</div></div></button></div>`;
 }
 function frowHTML(f){
   const n = counts(f.id), subs = children(f.id).length, u = coverUrl(f);
   const meta = [plural(n.total, "Karte", "Karten"), subs ? plural(subs, "Ordner", "Ordner") : ""].filter(Boolean).join(" · ");
   return `<button class="frow" data-act="open" data-id="${f.id}"><span class="frow-ic" style="background-color:${esc(colorOf(f))};${u ? `background-image:url('${esc(u)}');background-position:${cposCss(f)}` : ''}">${u ? '' : esc(emo(f))}</span>
-    <span class="frow-t"><b>${esc(f.name)}</b><span>${meta}</span></span>${n.due ? `<span class="frow-due">${n.due} fällig</span>` : ''}<span class="frow-ch" aria-hidden="true">›</span></button>`;
+    <span class="frow-t"><b>${escN(f.name)}</b><span>${meta}</span></span>${n.due ? `<span class="frow-due">${n.due} fällig</span>` : ''}<span class="frow-ch" aria-hidden="true">›</span></button>`;
 }
 function foldersHTML(list){ return S.set.layout === "list" ? `<div class="flist">${list.map(frowHTML).join("")}</div>` : `<div class="grid">${list.map(tileHTML).join("")}</div>`; }
 function libHTML(){
   const top = children(null), all = counts(null);
   return `<div class="topbar"><h1>Bibliothek</h1><div class="tb-r"><button class="icon-btn" data-act="libMenu" aria-haspopup="menu" aria-expanded="false" aria-label="Bibliothek-Menü" title="Bibliothek">${IC.dots}</button></div></div>
-  ${sectionList().length ? sectionsHTML() : top.length ? `<div class="sec-h"><h2>Ordner</h2><span class="muted">${plural(all.total, 'Karte', 'Karten')}</span></div>` : ''}
+  ${sectionList().length ? sectionsHTML() : top.length ? `<div class="sec-h"><h2>Ordner\u200b</h2><span class="muted">${plural(all.total, 'Karte', 'Karten')}</span></div>` : ''}
   ${sectionList().length ? '' : top.length ? foldersHTML(top) : `<div class="empty"><b>Noch keine Ordner</b>Leg deinen ersten Ordner an oder spiel eine Cardo-Sicherung ein.<div class="actions"><button class="btn primary" data-act="newFolder">Neuer Ordner</button><button class="btn" data-act="dataSheet">Sicherung einspielen</button></div></div>`}`;
 }
 function sectionsHTML(){
@@ -4029,14 +4818,14 @@ function sectionsHTML(){
   return sectionList().map(x => block(x.id, x.name, topIn(x.id), true)).join("") + (rest.length ? block(null, "Weitere Ordner", rest, false) : "");
 }
 function crumbsHTML(fid){
-  return `<div class="crumbs"><button data-act="nav" data-v="lib">Bibliothek</button>${pathOf(fid).map(f => `<span>›</span><button data-act="open" data-id="${f.id}">${esc(f.name)}</button>`).join("")}</div>`;
+  return `<div class="crumbs"><button data-act="nav" data-v="lib">Bibliothek</button>${pathOf(fid).map(f => `<span>›</span><button data-act="open" data-id="${f.id}">${escN(f.name)}</button>`).join("")}</div>`;
 }
 function folderHTML(fid){
   const f = S.folders[fid]; if (!f) return libHTML();
   const n = counts(fid), subs = children(fid), deepOnly = n.total - n.own;
   return `${crumbsHTML(fid)}
   <section class="banner ${coverUrl(f) ? 'has-cover cvw' : ''}"${cvwStyle(f)}>${artHTML(f)}
-    <div class="banner-body"><div class="banner-row"><div><h1>${esc(f.name)}</h1><div class="muted banner-meta">${plural(n.total, 'Karte', 'Karten')} · ${n.due} fällig${subs.length ? ' · ' + plural(subs.length, 'Unterordner', 'Unterordner') : ''}${sideOf(fid) !== 'front' ? ` · ${sideOf(fid) === 'both' ? '⇄ beidseitig' : '↺ Rückseite zuerst'}` : ''}</div></div>
+    <div class="banner-body"><div class="banner-row"><div><h1>${escN(f.name)}</h1><div class="muted banner-meta">${plural(n.total, 'Karte', 'Karten')} · ${n.due} fällig${subs.length ? ' · ' + plural(subs.length, 'Unterordner', 'Unterordner') : ''}${sideOf(fid) !== 'front' ? ` · ${sideOf(fid) === 'both' ? '⇄ beidseitig' : '↺ Rückseite zuerst'}` : ''}</div></div>
       <div class="banner-acts"><button class="lset-btn" style="--c:${esc(colorOf(f))}" data-act="learnMenu" data-id="${fid}" aria-haspopup="menu" aria-expanded="false" aria-label="Lerneinstellungen: ${esc(dailyLabel(fid))}" title="Lerneinstellungen">${IC_LEARN}<span>${esc(learnShort(fid))}</span></button>
       <button class="icon-btn" data-act="folderMenu" data-id="${fid}" aria-haspopup="menu" aria-expanded="false" aria-label="${f.parentId ? 'Unterordner' : 'Ordner'}-Menü" title="${f.parentId ? 'Unterordner' : 'Ordner'}">${IC.dots}</button>
       <button class="icon-btn share-btn ${f.share ? 'live' : ''}" data-act="shareSheet" data-id="${fid}" aria-label="Teilen${f.share ? ' (Link aktiv)' : ''}" title="Teilen${f.share ? ' – Link aktiv' : ''}">${IC.share}</button></div></div>
@@ -4059,7 +4848,7 @@ function cardListHTML(fid){
     return `<div class="card-row picking ${on ? 'sel' : ''}"><span class="pick" aria-hidden="true">${on ? '✓' : ''}</span><button class="card-main" data-act="pick" data-id="${c.id}" role="checkbox" aria-checked="${on}"><span class="cf">${richLine(c.f)}</span><span class="cb">${richLine(c.b)}</span></button></div>`; }).join("")}</div>`;
   return `<div class="cards">${list.map(c => {
     const st = cardState(c), due = isDue(c, now) && st !== "new";
-    const label = st === "new" ? "Neu" : due ? "Fällig" : st === "mature" ? "Gefestigt" : "in " + fmtIvl((c.due||0) - now).replace("< ", "");
+    const label = st === "new" ? "Neu" : due ? "Fällig" : st === "mature" ? "Gefestigt" : (LANG === "it" ? "tra " : "in ") + fmtIvl((c.due||0) - now).replace("< ", "");
     return `<div class="card-row"><button class="card-main" data-act="editCard" data-f="${fid}" data-id="${c.id}"><span class="cf">${richLine(c.f)}</span><span class="cb">${richLine(c.b)}</span></button><span class="st ${st === 'new' ? 'new' : due ? 'due' : st === 'mature' ? 'mature' : ''}">${label}</span></div>`;
   }).join("")}</div>`;
 }
@@ -4329,7 +5118,7 @@ function retainPickerHTML(){
 function retainSheet(){ openSheet(`${headBack("Lernplan", "cardsSheet")}<p class="muted" style="margin:0 0 16px;font-size:14.5px">Cardo plant Wiederholungen mit FSRS: Für jede Karte wird geschätzt, wie gut sie bei dir sitzt. Sie kommt genau dann wieder, wenn du sie mit dieser Wahrscheinlichkeit noch weißt. Höher = sicherer, aber mehr Karten pro Tag.</p><div id="rtPick">${retainPickerHTML()}</div>`); }
 function fxSheet(){
   openSheet(`${headBack("Kartenbewertung", "cardsSheet")}<div class="set-list" style="margin:0">
-    <button class="set-item" data-act="gradeSetSheet"><span class="si-t">Bewertungsstufen</span><span class="si-v">${gradeSet().map(o => o.l).join(" · ")}</span><span class="si-ch" aria-hidden="true">›</span></button>
+    <button class="set-item" data-act="gradeSetSheet"><span class="si-t">Bewertungsstufen</span><span class="si-v">${gradeSet().map(o => tr(o.l)).join(" · ")}</span><span class="si-ch" aria-hidden="true">›</span></button>
     <button class="set-item" data-act="animSheet"><span class="si-t">Animationen</span><span class="si-v">${fxName()}</span><span class="si-ch" aria-hidden="true">›</span></button>
     <button class="set-item" data-act="toggleSound"><span class="si-t">Töne</span><span class="si-v" id="sndV">${S.set.sound === 0 ? "Aus" : "An"}</span></button>
   </div>`);
@@ -4337,7 +5126,7 @@ function fxSheet(){
 /* Lernmenge pro Tag für einen Ordner: feste Anzahl (Voreinstellung oder eigene Zahl) oder Prüfungsplan mit Datum */
 function dailyLabel(fid){
   const key = quotaKey(fid), dy = dailyOf(key);
-  if (dy.mode === "exam") { const pl = examPlan(key, dy.date); return pl.over ? "Prüfung vorbei" : `Prüfung ${new Date(parseDay(dy.date)).toLocaleDateString("de-DE", { day: "numeric", month: "short" })}`; }
+  if (dy.mode === "exam") { const pl = examPlan(key, dy.date); return pl.over ? "Prüfung vorbei" : `Prüfung ${new Date(parseDay(dy.date)).toLocaleDateString(LOC(), { day: "numeric", month: "short" })}`; }
   return dy.n ? `${dy.n} pro Tag` : "Unbegrenzt";
 }
 /* Gedrückt halten = schnell weiterzählen: erst ein Schritt, nach kurzer Pause wiederholt und immer schneller. */
@@ -4359,7 +5148,7 @@ function dailySheet(fid){
   const maxBuf = () => date && daysUntil(date) > 0 ? daysUntil(date) - 1 : 99;
   const PRE = [5, 10, 15, 20, 30, 50];
   const tomorrow = dayKey(Date.now() + DAY);
-  const body = () => `${head("Lernmenge pro Tag")}<p class="muted" style="margin:-4px 0 14px;font-size:14.5px">Für <b>${esc(f.name)}</b>${children(fid).length ? " und seine Unterordner" : ""}.${inh ? ` Im Moment gilt die Einstellung von „${esc(inh.name)}“.` : ""}</p>
+  const body = () => `${head("Lernmenge pro Tag")}<p class="muted" style="margin:-4px 0 14px;font-size:14.5px">Für <b>${escN(f.name)}</b>${children(fid).length ? " und seine Unterordner" : ""}.${inh ? ` Im Moment gilt die Einstellung von „${escN(inh.name)}“.` : ""}</p>
     <div class="seg" style="grid-template-columns:1fr 1fr;margin-bottom:16px" role="radiogroup"><button class="${mode === 'fixed' ? 'on' : ''}" data-dm="fixed" role="radio" aria-checked="${mode === 'fixed'}">Feste Anzahl</button><button class="${mode === 'exam' ? 'on' : ''}" data-dm="exam" role="radio" aria-checked="${mode === 'exam'}">Bis zur Prüfung</button></div>
     ${mode === "fixed" ? `
       <div class="dl-pre">${PRE.map(k => `<button class="dl-chip ${n === k ? 'on' : ''}" data-dn="${k}">${k}</button>`).join("")}<button class="dl-chip ${n === 0 ? 'on' : ''}" data-dn="0">∞</button></div>
@@ -4379,7 +5168,7 @@ function dailySheet(fid){
     ${own && ownerKey === fid && (f.parentId || own) ? `<button class="pw-forgot" id="dlReset" type="button">${f.parentId ? "Einstellung des übergeordneten Ordners verwenden" : "Auf Standard zurücksetzen"}</button>` : ""}`;
   const calIcon = () => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>`;
   const dateText = () => { if (!date) return `<b>Datum wählen</b><small>Tippen, um den Kalender zu öffnen</small>`; const d = new Date(parseDay(date)), dl = daysUntil(date);
-    return `<b>${d.toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}</b><small>${d.getFullYear()} · ${dl > 1 ? `in ${dl} Tagen` : dl === 1 ? "morgen" : dl === 0 ? "heute" : "liegt in der Vergangenheit"}</small>`; };
+    return `<b>${d.toLocaleDateString(LOC(), { weekday: "long", day: "numeric", month: "long" })}</b><small>${d.getFullYear()} · ${dl > 1 ? `in ${dl} Tagen` : dl === 1 ? "morgen" : dl === 0 ? "heute" : "liegt in der Vergangenheit"}</small>`; };
   const bufChips = () => `<div class="dl-pre dl-bufrow">${BUFS.map(k => `<button class="dl-chip ${!bufCustom && buf === k ? 'on' : ''}" data-db="${k == null ? 'auto' : k}">${k == null ? 'Auto' : k}</button>`).join("")}<button class="dl-chip ${bufCustom ? 'on' : ''}" data-db="custom">Eigene</button></div>`
     + (bufCustom ? `<div class="dl-step" style="margin-top:10px"><button class="dl-pm" data-bstep="-1" aria-label="ein Puffertag weniger">−</button><div class="dl-bin"><input class="in num" id="dlB" type="number" inputmode="numeric" min="0" max="${maxBuf()}" value="${buf ?? 0}" aria-label="Puffertage"><span>${buf === 1 ? "Tag" : "Tage"}</span></div><button class="dl-pm" data-bstep="1" aria-label="ein Puffertag mehr">＋</button></div>
       <p class="muted" style="font-size:13px;margin:6px 0 0;text-align:center">${date && daysUntil(date) > 0 ? `Höchstens ${plural(maxBuf(), "Tag", "Tage")} – die Prüfung ist in ${plural(daysUntil(date), "Tag", "Tagen")}.` : "Wähle zuerst das Datum – dann siehst du, wie viele Puffertage möglich sind."}</p>` : "");
@@ -4547,7 +5336,7 @@ let bkTimer = 0;
 function scheduleAutoBackup(){ if (bkTimer) return; bkTimer = setTimeout(() => autoBackup(false), 8000); }
 async function bkRender(root){
   const box = $("#bkList", root); if (!box) return; const list = await bkList();
-  const fmt = t => { const d = new Date(t); return d.toLocaleDateString("de-DE", { day: "numeric", month: "short", year: "numeric" }) + " · " + d.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }); };
+  const fmt = t => { const d = new Date(t); return d.toLocaleDateString(LOC(), { day: "numeric", month: "short", year: "numeric" }) + " · " + d.toLocaleTimeString(LOC(), { hour: "2-digit", minute: "2-digit" }); };
   box.innerHTML = list.length ? list.map(x => `<div class="set-item static bk-row"><span class="si-t">${fmt(x.at)}<small>${plural(x.cards, "Karte", "Karten")} · ${plural(x.folders, "Ordner", "Ordner")}</small></span><span class="bk-acts"><button class="btn" data-bk="dl" data-id="${esc(x.id)}">Laden</button><button class="btn" data-bk="restore" data-id="${esc(x.id)}">Wiederherstellen</button></span></div>`).join("")
     : '<div class="set-item static"><span class="si-t muted">Noch keine – die erste entsteht automatisch.</span></div>';
 }
@@ -4581,6 +5370,10 @@ function glassSheet(){
 function lookSheet(){
   openSheet(`${head("Thema")}<p class="muted" style="margin:0 0 16px;font-size:15.5px">Hell, Dunkel und System sind schlicht schwarz-weiß, Dunkel + ist ganz schwarz. Ein Farbthema färbt die ganze App ein. System folgt deinem Gerät.</p><div id="lookPick">${lookPickerHTML()}</div>`); microFlames();
 }
+function langPickerHTML(){
+  return `<div class="gs-list" role="radiogroup" aria-label="Sprache">${LANGS.map(([k, l]) => `<button class="gs-opt fx-opt ${LANG === k ? 'on' : ''}" data-act="setLang" data-v="${k}" role="radio" aria-checked="${LANG === k}"><span class="fx-t" translate="no"><b>${l}</b></span><span class="gs-ck" aria-hidden="true">${LANG === k ? '✓' : ''}</span></button>`).join("")}</div>`;
+}
+function langSheet(){ openSheet(`${head("Sprache")}<div id="langPick">${langPickerHTML()}</div>`); }
 function settingsHTML(){
   const cur = lookInfo(S.set.look);
   return `<div class="topbar set-top"><h1>Einstellungen</h1></div>
@@ -4588,6 +5381,7 @@ function settingsHTML(){
     <button class="set-item" data-act="installApp"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M12 7v7M9 11l3 3 3-3"/></svg></span><span class="si-t">App installieren</span><span class="si-ch" aria-hidden="true">›</span></button>
   </div>` : ""}
   <div class="set-list">
+    <button class="set-item" data-act="langSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z"/></svg></span><span class="si-t">Sprache</span><span class="si-v" translate="no">${esc((LANGS.find(l => l[0] === LANG) || LANGS[0])[1])}</span><span class="si-ch" aria-hidden="true">›</span></button>
     <button class="set-item" data-act="lookSheet"><span class="theme-ic sm" style="--tb:${cur.bg};--tf:${cur.fg}">${THEME_IC[S.set.look] || THEME_IC.auto}</span><span class="si-t">Thema</span><span class="si-v">${esc(cur.n)}</span><span class="si-ch" aria-hidden="true">›</span></button>
     <button class="set-item" data-act="glassSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="13" height="13" rx="3.5"/><rect x="8" y="8" width="13" height="13" rx="3.5" fill="currentColor" fill-opacity=".25"/></svg></span><span class="si-t">Transparenz</span><span class="si-v">${["Stark", "Leicht", "Aus"][S.set.glass ?? 1]}</span><span class="si-ch" aria-hidden="true">›</span></button>
     <button class="set-item" data-act="splashSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)">${THEME_IC.sparkle}</span><span class="si-t">Startanimation</span><span class="si-v">${splashLabel()}</span><span class="si-ch" aria-hidden="true">›</span></button>
@@ -4658,7 +5452,7 @@ function studyHTML(){
   const opts = curGrades();
   const fresh = st.shown !== cur.id + ":" + st.done; st.shown = cur.id + ":" + st.done; const jf = st.justFlipped; st.justFlipped = false;
   return top + `<div class="flash ${fresh ? 'card-in' : ''} ${jf ? 'flipped-in' : ''} ${st.flipped ? 'flipped' : ''}" data-act="flip">
-    <div class="flash-src">${emo(f) ? esc(emo(f)) + ' ' : ''}${pathOf(cur.fid).map(x => esc(x.name)).join(" › ")}${cur.rev ? '<span class="rev-tag">⇄ Rückseite zuerst</span>' : ''}</div>
+    <div class="flash-src">${emo(f) ? esc(emo(f)) + ' ' : ''}${pathOf(cur.fid).map(x => escN(x.name)).join(" › ")}${cur.rev ? '<span class="rev-tag">⇄ Rückseite zuerst</span>' : ''}</div>
     <div class="flash-face">${rich(cur.rev ? cur.c.b : cur.c.f)}</div>
     ${st.flipped ? `<div class="flash-face flash-back">${rich(cur.rev ? cur.c.f : cur.c.b)}</div>` : ''}</div>
   ${st.flipped ? `<div class="grades" style="grid-template-columns:repeat(${opts.length},1fr)">${opts.map((o, i) => `<button class="grade" style="--g:var(${GRADE_VARS[o.v]})" data-act="grade" data-g="${i}">${o.l}${st.exam ? '' : `<small>${fmtIvl(schedule(cur.c, o.g, now).due - now)}</small>`}</button>`).join("")}</div>`
@@ -4799,7 +5593,7 @@ function examBodyHTML(){
   const seg = (act, cur, opts) => `<div class="seg" style="grid-template-columns:repeat(${opts.length},1fr)" role="radiogroup">${opts.map(([k, l]) => `<button class="${cur === k ? 'on' : ''}" data-act="${act}" data-v="${k}" role="radio" aria-checked="${cur === k}">${l}</button>`).join("")}</div>`;
   return `<div class="field"><span class="lbl">Welche Karten</span>${seg("exWhich", EX.which, [["all", "Alle"], ["hard", "Schwierige"], ["new", "Neue"]])}</div>
     <div class="field"><span class="lbl">Reihenfolge</span>${seg("exOrder", EX.order, [["mix", "Gemischt"], ["seq", "Der Reihe nach"]])}</div>
-    ${rows.length > 1 ? `<div class="field"><span class="lbl">Unterordner</span><div class="set-list ex-list">${rows.map(r => `<button class="ex-row ${EX.sel.has(r.id) ? 'on' : ''}" data-act="exSel" data-id="${r.id}" ${r.self ? 'data-self="1"' : ''} role="checkbox" aria-checked="${EX.sel.has(r.id)}" style="padding-left:${14 + r.d * 22}px"><span class="ex-box" aria-hidden="true">✓</span><span class="ex-name">${r.emoji ? esc(r.emoji) + ' ' : ''}${esc(r.name)}</span><span class="ex-n num">${r.n}</span></button>`).join("")}</div></div>` : ''}
+    ${rows.length > 1 ? `<div class="field"><span class="lbl">Unterordner</span><div class="set-list ex-list">${rows.map(r => `<button class="ex-row ${EX.sel.has(r.id) ? 'on' : ''}" data-act="exSel" data-id="${r.id}" ${r.self ? 'data-self="1"' : ''} role="checkbox" aria-checked="${EX.sel.has(r.id)}" style="padding-left:${14 + r.d * 22}px"><span class="ex-box" aria-hidden="true">✓</span><span class="ex-name">${r.emoji ? esc(r.emoji) + ' ' : ''}${escN(r.name)}</span><span class="ex-n num">${r.n}</span></button>`).join("")}</div></div>` : ''}
     <div class="set-list" style="margin-bottom:18px"><button class="set-item ex-sw" data-act="exResched" role="switch" aria-checked="${EX.resched}"><span class="si-t">Nicht gewusste früher wiederholen<small>Gelernte Karten, die du hier nicht weißt, kommen im normalen Lernplan gleich wieder dran.</small></span><span class="switch ${EX.resched ? 'on' : ''}" aria-hidden="true"><i></i></span></button></div>
     <button class="learn-btn" data-act="examStart" ${pool.length ? '' : 'disabled'}><span class="lb-play" aria-hidden="true">${IC_EXAM}</span><span class="lb-t"><b>${EX.prac ? "Üben starten" : "Prüfung starten"}</b><span>${pool.length ? plural(pool.length, 'Karte', 'Karten') : 'Keine passenden Karten'}</span></span></button>`;
 }
@@ -4863,7 +5657,7 @@ function statsHTML(){
   <div class="panel"><h3>Fortschritt pro Ordner</h3>
     ${stageLegend()}
     ${top.length ? top.map(f => { const n = stageCounts(f.id);
-      return `<button class="mrow" data-act="folderStats" data-id="${f.id}"><div class="nm">${dotHTML(f)}<span>${esc(f.name)}</span></div>${stackHTML(n)}<div class="n">${n.total}<span class="ch" aria-hidden="true">›</span></div></button>`;
+      return `<button class="mrow" data-act="folderStats" data-id="${f.id}"><div class="nm">${dotHTML(f)}<span>${escN(f.name)}</span></div>${stackHTML(n)}<div class="n">${n.total}<span class="ch" aria-hidden="true">›</span></div></button>`;
     }).join("") : '<div class="muted">Noch keine Ordner.</div>'}
   </div>`;
 }
@@ -4886,7 +5680,7 @@ function dayChartHTML(fid){
   data.forEach((d, i) => {
     const x = L + i * bw, bx = x + 1.5, w = bw - 3, by = y(d.v), h = base - by, r = Math.min(4, h / 2, w / 2);
     const path = d.v ? `M${bx},${base}V${by + r}Q${bx},${by} ${bx + r},${by}H${bx + w - r}Q${bx + w},${by} ${bx + w},${by + r}V${base}Z` : "";
-    const lab = new Date(d.t).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" });
+    const lab = new Date(d.t).toLocaleDateString(LOC(), { weekday: "short", day: "numeric", month: "short" });
     const tipTxt = d.o < 0 ? `${lab}: ${plural(d.v, "Karte", "Karten")} gesehen` : d.o === 0 ? `Heute: ${plural(d.v, "Karte", "Karten")} gesehen` : `${lab}: ${plural(d.v, "Karte", "Karten")} fällig (Vorschau)`;
     const cls = d.o < 0 ? "past" : d.o === 0 ? "today" : "fut";
     if (path) svg += `<path class="barm ${cls}" d="${path}"><title>${esc(tipTxt)}</title></path>`;
@@ -4935,12 +5729,12 @@ function chartZoom(fid){
     data.forEach((d, i) => {
       const x = i * slot, pad = Math.max(2, slot * .14), bx = x + pad, w = slot - pad * 2, by = y(d.v), h = base - by, r = Math.min(5, h / 2, w / 2);
       const path = d.v ? `M${bx},${base}V${by + r}Q${bx},${by} ${bx + r},${by}H${bx + w - r}Q${bx + w},${by} ${bx + w},${by + r}V${base}Z` : "";
-      const dt = new Date(d.t), lab = dt.toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" });
+      const dt = new Date(d.t), lab = dt.toLocaleDateString(LOC(), { weekday: "short", day: "numeric", month: "short" });
       const tipTxt = d.o < 0 ? `${lab}: ${plural(d.v, "Karte", "Karten")} gesehen` : d.o === 0 ? `Heute: ${plural(d.v, "Karte", "Karten")} gesehen` : `${lab}: ${plural(d.v, "Karte", "Karten")} fällig (Vorschau)`;
       const cls = d.o < 0 ? "past" : d.o === 0 ? "today" : "fut";
       if (path) bars += `<path class="barm ${cls}" d="${path}"><title>${esc(tipTxt)}</title></path>`;
       if (d.v) bars += `<text class="axis vlab ${d.o === 0 ? '' : 'dim'}" x="${x + slot / 2}" y="${by - 6}" text-anchor="middle">${d.v}</text>`;
-      const wd = d.o === 0 ? "Heute" : dt.toLocaleDateString("de-DE", { weekday: "short" }).replace(".", ""), dm = `${dt.getDate()}.${dt.getMonth() + 1}.`;
+      const wd = d.o === 0 ? "Heute" : dt.toLocaleDateString(LOC(), { weekday: "short" }).replace(".", ""), dm = `${dt.getDate()}.${dt.getMonth() + 1}.`;
       const every = slot >= 34 ? 1 : 2;
       if (d.o === 0 || (d.o % every === 0)) bars += `<text class="axis ${d.o === 0 ? 'now' : ''}" x="${x + slot / 2}" y="${H - 24}" text-anchor="middle">${wd}</text><text class="axis small ${d.o === 0 ? 'now' : ''}" x="${x + slot / 2}" y="${H - 8}" text-anchor="middle">${dm}</text>`;
     });
@@ -4949,7 +5743,7 @@ function chartZoom(fid){
     sc.classList.toggle("scrolls", !fits);
     sc.scrollLeft = fits ? 0 : Math.max(0, back * slot + slot / 2 - avail / 2);
     const past = data.filter(d => d.o <= 0).reduce((a, d) => a + d.v, 0);
-    $(".cz-note", el).textContent = `${plural(past, "Karte", "Karten")} gesehen seit ${new Date(t0 - back * DAY + DAY / 2).toLocaleDateString("de-DE", { day: "numeric", month: "long" })}` + (fits ? "" : " · Wischen für ältere Tage");
+    $(".cz-note", el).textContent = `${plural(past, "Karte", "Karten")} gesehen seit ${new Date(t0 - back * DAY + DAY / 2).toLocaleDateString(LOC(), { day: "numeric", month: "long" })}` + (fits ? "" : " · Wischen für ältere Tage");
   };
   draw();
   const onResize = () => draw(); addEventListener("resize", onResize);
@@ -4991,9 +5785,9 @@ function examChartHTML(key){
     svg += `<circle class="actual-dot ${behind ? 'bad' : ''}" cx="${x(p.t)}" cy="${y(p.v)}" r="5.5"/>`;
   }
   // unsichtbare Flächen je Tag für die Tooltips
-  for (let i = 0; i <= span; i++) { const t = startT + i * DAY, p = pts[i]; const lab = new Date(t + DAY / 2).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" });
+  for (let i = 0; i <= span; i++) { const t = startT + i * DAY, p = pts[i]; const lab = new Date(t + DAY / 2).toLocaleDateString(LOC(), { weekday: "short", day: "numeric", month: "short" });
     svg += `<rect class="hit" x="${x(t) - (W - L - R) / span / 2}" y="${T}" width="${(W - L - R) / span}" height="${H - T - B}" data-tip="${esc(lab)}: Plan ${Math.round(guide(t))} %${p ? ` · du ${Math.round(p.v)} %` : ''}"/>`; }
-  const fmtS = t => new Date(t + DAY / 2).toLocaleDateString("de-DE", { day: "numeric", month: "numeric" });
+  const fmtS = t => new Date(t + DAY / 2).toLocaleDateString(LOC(), { day: "numeric", month: "numeric" });
   svg += `<text class="axis" x="${x(startT)}" y="${H - 9}" text-anchor="start">${today === startT ? "Heute" : fmtS(startT)}</text>`;
   if (today > startT && today < examT && x(today) - x(startT) > 44 && x(examT) - x(today) > 60) svg += `<text class="axis now" x="${x(today)}" y="${H - 9}" text-anchor="middle">Heute</text>`;
   svg += `<text class="axis now" x="${x(examT)}" y="${H - 9}" text-anchor="end">🎯 ${fmtS(examT)}</text></svg>`;
@@ -5009,7 +5803,7 @@ function folderStatsSheet(fid){
   const f = S.folders[fid]; if (!f) return;
   const n = stageCounts(fid), key = quotaKey(fid), dy = dailyOf(key), subs = children(fid);
   const exam = dy.mode === "exam" && daysUntil(dy.date) >= -3;
-  openSheet(`<div class="sheet-h"><h2 class="fs-h">${dotHTML(f)}<span>${esc(f.name)}</span></h2></div>
+  openSheet(`<div class="sheet-h"><h2 class="fs-h">${dotHTML(f)}<span>${escN(f.name)}</span></h2></div>
     <div class="fs-tiles">${STAGES.map(([k, l]) => `<div class="stat"><b>${n[k]}</b><span><i class="sg-${k}"></i>${l}</span></div>`).join("")}</div>
     ${stackHTML(n)}
     ${exam ? examChartHTML(key) : `<div class="panel sub fs-hint"><span>Trag ein Prüfungsdatum ein, dann siehst du hier, ob du im Plan liegst.</span><button class="btn" data-act="dailySheet" data-id="${fid}">Prüfung festlegen</button></div>`}
@@ -5032,7 +5826,7 @@ function closeSheet(){
 }
 const head = t => `<div class="sheet-h"><h2>${t}</h2></div>`;
 function folderOptions(sel, exclude = []){
-  const out = []; const walk = (pid, d) => children(pid).forEach(f => { if (exclude.includes(f.id)) return; out.push(`<option value="${f.id}" ${f.id === sel ? 'selected' : ''}>${"  ".repeat(d)}${d ? "└ " : ""}${esc(f.emoji || "")} ${esc(f.name)}</option>`); walk(f.id, d + 1); });
+  const out = []; const walk = (pid, d) => children(pid).forEach(f => { if (exclude.includes(f.id)) return; out.push(`<option value="${f.id}" ${f.id === sel ? 'selected' : ''}>${"  ".repeat(d)}${d ? "└ " : ""}${esc(f.emoji || "")} ${escN(f.name)}</option>`); walk(f.id, d + 1); });
   walk(null, 0); return out.join("");
 }
 function armDelete(btn, fn){
@@ -5054,7 +5848,7 @@ function folderSheet(id, parentId, sect){
     <div class="field"><span class="lbl">Titelbild</span><div class="row2"><label class="btn" for="fi">Bild wählen</label><input id="fi" type="file" accept="image/*" hidden><button class="btn" id="fr" ${d.cover ? '' : 'hidden'}>Bild entfernen</button><span class="muted" id="fst" style="align-self:center;font-size:14.5px"></span></div>
       <div class="muted cv-hint" id="fch" style="font-size:14.5px;margin-top:8px" ${d.cover ? '' : 'hidden'}>Zieh das Bild in der Vorschau oben, um den sichtbaren Ausschnitt festzulegen.</div></div>
     <div class="field"><span class="lbl">Liegt in</span><input type="hidden" id="fp" value="${esc(d.parentId || '')}"><button type="button" class="in ft-btn" id="fpb" aria-expanded="false"></button><div class="ftree" id="ftr" hidden></div></div>
-    <div class="field" id="fsw" ${d.parentId ? 'hidden' : ''}><label for="fs">Bereich</label><select class="in" id="fs"><option value="">Kein Bereich (Weitere Ordner)</option>${sectionList().map(x => `<option value="${x.id}" ${x.id === d.section ? 'selected' : ''}>${esc(x.name)}</option>`).join("")}<option value="__new">＋ Neuer Bereich …</option></select>
+    <div class="field" id="fsw" ${d.parentId ? 'hidden' : ''}><label for="fs">Bereich</label><select class="in" id="fs"><option value="">Kein Bereich (Weitere Ordner)</option>${sectionList().map(x => `<option value="${x.id}" ${x.id === d.section ? 'selected' : ''}>${escN(x.name)}</option>`).join("")}<option value="__new">＋ Neuer Bereich …</option></select>
       <input class="in" id="fsn" maxlength="60" placeholder="Name des neuen Bereichs, z. B. Uni" hidden></div>
     <div class="sheet-foot">${ex ? `<button class="btn danger" id="fdel">Ordner löschen</button>` : ''}<div class="r"><button class="btn" data-act="close">Abbrechen</button><button class="btn primary" id="fsave">Speichern</button></div></div>`,
   root => {
@@ -5083,7 +5877,7 @@ function folderSheet(id, parentId, sect){
     const fpLabel = () => { const v = fpIn.value, f = v && S.folders[v];
       fpb.innerHTML = `${f ? dotHTML(f, "pk-dot ft-dot") : `<span class="pk-dot pk-ic ft-dot">${IC.lib}</span>`}<span class="ft-l">${f ? esc(f.name) : "Bibliothek (oberste Ebene)"}</span><span class="ft-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10l5 5 5-5"/></svg></span>`; };
     const ftRow = (f, dep) => { const has = kids(f.id).length > 0, op = openT.has(f.id), on = fpIn.value === f.id;
-      return `<button type="button" class="ft-row${on ? ' on' : ''}" data-fid="${f.id}" style="--d:${dep}"${has ? ` aria-expanded="${op}"` : ''}><span class="ft-tw${has ? '' : ' no'}${op ? ' op' : ''}" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>${dotHTML(f, "pk-dot ft-dot")}<span class="ft-l">${esc(f.name)}</span>${on ? `<span class="ft-ck">${MI.check}</span>` : ''}</button>`
+      return `<button type="button" class="ft-row${on ? ' on' : ''}" data-fid="${f.id}" style="--d:${dep}"${has ? ` aria-expanded="${op}"` : ''}><span class="ft-tw${has ? '' : ' no'}${op ? ' op' : ''}" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>${dotHTML(f, "pk-dot ft-dot")}<span class="ft-l">${escN(f.name)}</span>${on ? `<span class="ft-ck">${MI.check}</span>` : ''}</button>`
         + (has && op ? kids(f.id).map(c => ftRow(c, dep + 1)).join("") : ""); };
     const ftDraw = () => { ftr.innerHTML = `<button type="button" class="ft-row${fpIn.value ? '' : ' on'}" data-fid="" style="--d:0"><span class="ft-tw no" aria-hidden="true"></span><span class="pk-dot pk-ic ft-dot">${IC.lib}</span><span class="ft-l">Bibliothek (oberste Ebene)</span>${fpIn.value ? '' : `<span class="ft-ck">${MI.check}</span>`}</button>` + kids(null).map(f => ftRow(f, 0)).join(""); };
     fpLabel();
@@ -5179,7 +5973,7 @@ function pickFolderSheet(o){
   const walk = (pid, d) => children(pid).forEach(f => { if (ex.has(f.id)) return; rows.push([f, d]); walk(f.id, d + 1); });
   walk(null, 0);
   const row = (f, d) => { const cur = f.id === o.current;
-    return `<button type="button" class="pk-row" data-fid="${f.id}" style="--d:${d}" ${cur ? 'disabled' : ''}>${dotHTML(f, "pk-dot")}<span class="pk-t"><b>${esc(f.name)}</b>${d ? `<span>${esc(pathOf(f.id).slice(0, -1).map(x => x.name).join(" › "))}</span>` : ''}</span>${cur ? '<span class="pk-cur">aktuell</span>' : '<span class="pk-ch" aria-hidden="true">›</span>'}</button>`; };
+    return `<button type="button" class="pk-row" data-fid="${f.id}" style="--d:${d}" ${cur ? 'disabled' : ''}>${dotHTML(f, "pk-dot")}<span class="pk-t"><b>${escN(f.name)}</b>${d ? `<span>${esc(pathOf(f.id).slice(0, -1).map(x => x.name).join(" › "))}</span>` : ''}</span>${cur ? '<span class="pk-cur">aktuell</span>' : '<span class="pk-ch" aria-hidden="true">›</span>'}</button>`; };
   let top = "";
   if (o.root) {
     const secs = sectionList(), cur = o.curRoot;
@@ -5213,7 +6007,7 @@ function moveFolderTo(id, t){
 }
 function moveFolderSheet(id){
   const f = S.folders[id]; if (!f) return;
-  pickFolderSheet({ title: `„${esc(f.name)}“ verschieben`, note: "Unterordner und Karten wandern mit.", root: true, exclude: [id, ...descendants(id)], current: f.parentId,
+  pickFolderSheet({ title: `„${escN(f.name)}“ verschieben`, note: "Unterordner und Karten wandern mit.", root: true, exclude: [id, ...descendants(id)], current: f.parentId,
     curRoot: f.parentId ? undefined : (sectOf(f) || ""),
     onPick: t => { if (!moveFolderTo(id, t)) return; const where = t.fid ? `„${S.folders[t.fid].name}“` : t.sid ? `Bereich „${S.sections[t.sid].name}“` : sectionList().length ? "„Weitere Ordner“" : "die Bibliothek"; toast(`Verschoben nach ${where}`); } });
 }
@@ -5299,7 +6093,7 @@ function openMenu(btn, fid){
   const d = fid ? ` data-id="${fid}"` : "", n = fid ? counts(fid) : null, both = fid && bothSided(fid);
   const sortBlock = !fid || children(fid).length > 1;
   const fo = fid && S.folders[fid];
-  const title = fo ? `<div class="mt">${dotHTML(fo)}<span>${fo.parentId ? 'Unterordner' : 'Ordner'}</span><b>${esc(fo.name)}</b></div><hr>` : `<div class="mt">${IC.lib.replace('<svg', '<svg width="16" height="16"')}<b>Bibliothek</b></div><hr>`;
+  const title = fo ? `<div class="mt">${dotHTML(fo)}<span>${fo.parentId ? 'Unterordner' : 'Ordner'}</span><b>${escN(fo.name)}</b></div><hr>` : `<div class="mt">${IC.lib.replace('<svg', '<svg width="16" height="16"')}<b>Bibliothek</b></div><hr>`;
   m.innerHTML = title + (fid ? `
     <button data-act="newCard"${d} role="menuitem">${MI.plus}Neue Karte</button>
     <button data-act="newFolder"${d} role="menuitem">${MI.folderPlus}Neuer Unterordner</button>
@@ -5323,7 +6117,7 @@ function learnShort(fid){
 function openLearnMenu(btn, fid){
   const m = $("#menu"), fo = S.folders[fid]; if (!fo) return;
   const d = ` data-id="${fid}"`, side = sideOf(fid);
-  m.innerHTML = `<div class="mt">${IC_LEARN.replace('<svg', '<svg width="16" height="16"')}<span>Lernen</span><b>${esc(fo.name)}</b></div><hr>
+  m.innerHTML = `<div class="mt">${IC_LEARN.replace('<svg', '<svg width="16" height="16"')}<span>Lernen</span><b>${escN(fo.name)}</b></div><hr>
     <button data-act="dailySheet"${d} role="menuitem">${MI.clock}Lernmenge pro Tag<span class="sub" style="color:var(--muted)">${dailyLabel(fid)}</span></button>
     <hr><div class="mh">Lernrichtung</div>${SIDES.map(([k, l]) => `<button data-act="setSide"${d} data-v="${k}" role="menuitemradio" aria-checked="${side === k}">${miRadio(side === k)}${l}</button>`).join("")}`;
   m.hidden = false; btn.setAttribute("aria-expanded", "true");
@@ -5393,6 +6187,8 @@ document.addEventListener("click", e => {
   if (a === "lookSheet") { lookSheet(); return; }
   if (a === "splashSheet") { splashSheet(); return; }
   if (a === "glassSheet") { glassSheet(); return; }
+  if (a === "langSheet") { langSheet(); return; }
+  if (a === "setLang") { saveSettings({ lang: b.dataset.v }); langSheet(); schedulePrerender(); return; }
   if (a === "playIntro") { closeSheet(); setTimeout(() => playIntro({ center: true }), 250); return; }
   if (a === "setSplash") { saveSettings({ splash: b.dataset.v }); const sp = $("#spPick"); if (sp) sp.innerHTML = splashPickerHTML(); return; }
   if (a === "setTextSize") { saveSettings({ textSize: b.dataset.v }); const tp = $("#textPick"); if (tp) tp.innerHTML = textPickerHTML(); return; }
