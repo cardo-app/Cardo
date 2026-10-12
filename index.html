@@ -5592,12 +5592,12 @@ function settingsHTML(){
     <button class="set-item" data-act="installApp"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M12 7v7M9 11l3 3 3-3"/></svg></span><span class="si-t">App installieren</span><span class="si-ch" aria-hidden="true">›</span></button>
   </div>` : ""}
   <div class="set-list">
+    <button class="set-item" data-act="cardsSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)">${ICONS.learn}</span><span class="si-t">Karten</span><span class="si-v">${({s:"Klein",m:"Mittel",l:"Groß"})[S.set.textSize || "m"]} · ${gradeSet().length} Stufen</span><span class="si-ch" aria-hidden="true">›</span></button>
+  </div>
+  <div class="set-list">
     <button class="set-item" data-act="lookSheet"><span class="theme-ic sm" style="--tb:${cur.bg};--tf:${cur.fg}">${THEME_IC[S.set.look] || THEME_IC.auto}</span><span class="si-t">Thema</span><span class="si-v">${esc(cur.n)}</span><span class="si-ch" aria-hidden="true">›</span></button>
     <button class="set-item" data-act="glassSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="13" height="13" rx="3.5"/><rect x="8" y="8" width="13" height="13" rx="3.5" fill="currentColor" fill-opacity=".25"/></svg></span><span class="si-t">Transparenz</span><span class="si-v">${["Stark", "Leicht", "Aus"][S.set.glass ?? 1]}</span><span class="si-ch" aria-hidden="true">›</span></button>
     <button class="set-item" data-act="splashSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)">${THEME_IC.sparkle}</span><span class="si-t">Startanimation</span><span class="si-v">${splashLabel()}</span><span class="si-ch" aria-hidden="true">›</span></button>
-  </div>
-  <div class="set-list">
-    <button class="set-item" data-act="cardsSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)">${ICONS.learn}</span><span class="si-t">Karten</span><span class="si-v">${({s:"Klein",m:"Mittel",l:"Groß"})[S.set.textSize || "m"]} · ${gradeSet().length} Stufen</span><span class="si-ch" aria-hidden="true">›</span></button>
   </div>
   <div class="set-list">
     <button class="set-item" data-act="soundSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></span><span class="si-t">Töne</span><span class="si-v" id="sndV">${S.set.sound === 0 ? "Aus" : "An"}</span><span class="si-ch" aria-hidden="true">›</span></button>
