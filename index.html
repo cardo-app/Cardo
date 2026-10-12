@@ -699,7 +699,6 @@ body.selecting #main{padding-bottom:170px}
 .dev-row{gap:12px}
 .dev-row .si-t{display:flex;flex-direction:column;gap:3px;min-width:0}
 .set-list .dev-row .si-t{font-size:17px}
-.dev-n small{font-size:14px;color:var(--muted);font-weight:500}
 .dev-me{font-style:normal;font-size:12.5px;font-weight:700;color:var(--accent-text);background:var(--accent-soft);padding:2px 7px;border-radius:99px;margin-left:4px;vertical-align:2px;white-space:nowrap}
 .dev-st{display:flex;align-items:flex-start;font-size:14px;color:var(--muted);font-weight:500;line-height:1.3}
 .dev-st .si-dot{width:8px;height:8px;margin:5px 7px 0 0;flex:none}
@@ -4170,11 +4169,6 @@ function devName(){
   if (/CrOS/.test(ua)) return "Chromebook";
   return /Linux/.test(ua) ? "Linux-PC" : "Gerät";
 }
-function devApp(){
-  if (navigator.standalone === true || matchMedia("(display-mode: standalone)").matches) return "App";
-  const ua = navigator.userAgent;
-  return /Edg\//.test(ua) ? "Edge" : /Firefox|FxiOS/.test(ua) ? "Firefox" : /Brave/.test(ua) || navigator.brave ? "Brave" : /Chrome|CriOS/.test(ua) ? "Chrome" : /Safari/.test(ua) ? "Safari" : "Browser";
-}
 const RL_DEV = (() => { try { let d = localStorage.getItem("cardo-dev"); if (!d) { d = Math.random().toString(36).slice(2, 8); localStorage.setItem("cardo-dev", d); } return d; } catch { return "x"; } })();
 let RL = null, rlT = 0, rlBusy = false;
 const rlCloud = () => !!(SB && USER && USER.id && S.mode === "cloud" && USER.id !== "vorschau");
@@ -4333,7 +4327,7 @@ function makeStore(sb, uid){
       if (!navigator.onLine || document.visibilityState === "hidden") return;
       const n = Object.keys(pending).length, key = seenMax + "|" + n;
       if (key === repLast && Date.now() - repAt < 5 * 60000) return;
-      const d = { name: devName(), app: devApp(), seen: Date.now(), max: seenMax, pend: n };
+      const d = { name: devName(), seen: Date.now(), max: seenMax, pend: n };
       try { const r = await sb.from("docs").upsert({ user_id: uid, path: "devices/" + RL_DEV, data: d, updated_at: new Date().toISOString() }); if (r.error) throw r.error; repLast = key; repAt = Date.now(); rows.set("devices/" + RL_DEV, d); emit(); } catch (e) { console.warn("device", e); }
     }, now ? 0 : 3000);
   }
@@ -4709,7 +4703,7 @@ const devIc = n => /iPhone|Handy/.test(n) ? DEV_IC.phone : /iPad|Tablet/.test(n)
 let syncAcc = 0;
 function syncListHTML(){
   const sy = DB && DB.sync, me = RL_DEV;
-  const live = { name: devName(), app: devApp(), seen: Date.now(), max: sy ? sy.seen() : 0, pend: DB && DB.pendingSlow ? DB.pendingSlow() : 0 };
+  const live = { name: devName(), seen: Date.now(), max: sy ? sy.seen() : 0, pend: DB && DB.pendingSlow ? DB.pendingSlow() : 0 };
   const devs = { ...(S.devices || {}), [me]: live };
   const acc = Math.max(syncAcc, ...Object.values(devs).map(d => +d.max || 0));
   const ids = Object.keys(devs).sort((a, b) => a === me ? -1 : b === me ? 1 : (devs[b].seen || 0) - (devs[a].seen || 0));
@@ -4721,7 +4715,7 @@ function syncListHTML(){
     else if (+d.pend) st = ["local", mine ? "Wird gespeichert …" : "Hat noch nicht hochgeladene Änderungen"];
     else st = ok ? ["", "Auf dem neuesten Stand"] : ["local", "Nicht auf dem neuesten Stand"];
     return `<div class="set-item static dev-row"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)">${devIc(d.name || "")}</span>
-      <span class="si-t"><span class="dev-n">${esc(d.name || "Gerät")}${d.app ? `<small> · ${esc(d.app)}</small>` : ""}${mine ? ' <em class="dev-me">Dieses Gerät</em>' : ""}</span>
+      <span class="si-t"><span class="dev-n">${esc(d.name || "Gerät")}${mine ? ' <em class="dev-me">Dieses Gerät</em>' : ""}</span>
       <small class="dev-st"><i class="si-dot ${st[0]}"></i><span>${st[1]}</span></small>${mine ? "" : `<small class="dev-st">${ok ? "Aktiv" : "Zuletzt verbunden"}: ${devAgo(d.seen || 0)}</small>`}</span>
       ${mine ? "" : `<button type="button" class="dev-x" data-dev="${esc(id)}" aria-label="Aus der Liste entfernen" title="Aus der Liste entfernen">${IC.close}</button>`}</div>`;
   }).join("");
