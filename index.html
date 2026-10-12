@@ -4169,6 +4169,16 @@ function devName(){
   return /Linux/.test(ua) ? "Linux-PC" : "Gerät";
 }
 const RL_DEV = (() => { try { let d = localStorage.getItem("cardo-dev"); if (!d) { d = Math.random().toString(36).slice(2, 8); localStorage.setItem("cardo-dev", d); } return d; } catch { return "x"; } })();
+// Geräte-Kennung für die Geräteliste: aus Gerätetyp, Bildschirm, Pixeldichte und Zeitzone berechnet (keine Zufallszahl).
+// So zählen Browser und Home-Bildschirm-App auf demselben Gerät als ein Gerät (sie haben getrennte Speicher, also unterschiedliche RL_DEV).
+const DEV_KEY = (() => {
+  let tz = ""; try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch {}
+  // Am Computer ändern Browser-Zoom und zweite Bildschirme die Bildschirmwerte → dort nur Gerätetyp und Zeitzone
+  const n = devName(), w = screen.width, h = screen.height, mobile = /iPhone|iPad|Android/.test(n);
+  const t = (mobile ? [n, Math.min(w, h), Math.max(w, h), devicePixelRatio || 1, tz] : [n, tz]).join("|");
+  let a = 5381; for (let i = 0; i < t.length; i++) a = (a * 33 + t.charCodeAt(i)) >>> 0;
+  return "d" + a.toString(36);
+})();
 let RL = null, rlT = 0, rlBusy = false;
 const rlCloud = () => !!(SB && USER && USER.id && S.mode === "cloud" && USER.id !== "vorschau");
 function rlLoad(){
@@ -4327,7 +4337,11 @@ function makeStore(sb, uid){
       const n = Object.keys(pending).length, key = seenMax + "|" + n;
       if (key === repLast && Date.now() - repAt < 5 * 60000) return;
       const d = { name: devName(), seen: Date.now(), max: seenMax, pend: n };
-      try { const r = await sb.from("docs").upsert({ user_id: uid, path: "devices/" + RL_DEV, data: d, updated_at: new Date().toISOString() }); if (r.error) throw r.error; repLast = key; repAt = Date.now(); rows.set("devices/" + RL_DEV, d); emit(); } catch (e) { console.warn("device", e); }
+      try {
+        const r = await sb.from("docs").upsert({ user_id: uid, path: "devices/" + DEV_KEY, data: d, updated_at: new Date().toISOString() }); if (r.error) throw r.error; repLast = key; repAt = Date.now(); rows.set("devices/" + DEV_KEY, d);
+        if (rows.has("devices/" + RL_DEV)) { await sb.from("docs").delete().eq("user_id", uid).eq("path", "devices/" + RL_DEV); rows.delete("devices/" + RL_DEV); saveCache(); } /* alter Eintrag mit zufälliger Kennung */
+        emit();
+      } catch (e) { console.warn("device", e); }
     }, now ? 0 : 3000);
   }
   // Neueste Änderung im ganzen Konto (ohne Gerätemeldungen und Lernverlauf)
@@ -4701,7 +4715,7 @@ const DEV_IC = {
 const devIc = n => /iPhone|Handy/.test(n) ? DEV_IC.phone : /iPad|Tablet/.test(n) ? DEV_IC.tablet : DEV_IC.pc;
 let syncAcc = 0;
 function syncListHTML(){
-  const sy = DB && DB.sync, me = RL_DEV;
+  const sy = DB && DB.sync, me = DEV_KEY;
   const live = { name: devName(), seen: Date.now(), max: sy ? sy.seen() : 0, pend: DB && DB.pendingSlow ? DB.pendingSlow() : 0 };
   const devs = { ...(S.devices || {}), [me]: live };
   const acc = Math.max(syncAcc, ...Object.values(devs).map(d => +d.max || 0));
