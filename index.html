@@ -696,6 +696,16 @@ button.set-item:hover{background:color-mix(in oklab,var(--ink) 4%,transparent)}
 .si-ch{color:var(--muted);font-size:24px;line-height:1;margin-left:2px}
 .si-dot{width:10px;height:10px;border-radius:50%;background:var(--good);margin:0 11px}
 .si-dot.local{background:var(--hard)}
+.dev-row{gap:12px}
+.dev-row .si-t{display:flex;flex-direction:column;gap:3px;min-width:0}
+.set-list .dev-row .si-t{font-size:17px}
+.dev-n small{font-size:14px;color:var(--muted);font-weight:500}
+.dev-me{font-style:normal;font-size:12.5px;font-weight:700;color:var(--accent-text);background:var(--accent-soft);padding:2px 7px;border-radius:99px;margin-left:4px;vertical-align:2px;white-space:nowrap}
+.dev-st{display:flex;align-items:flex-start;font-size:14px;color:var(--muted);font-weight:500;line-height:1.3}
+.dev-st .si-dot{width:8px;height:8px;margin:5px 7px 0 0;flex:none}
+.dev-x{flex:none;display:grid;place-items:center;min-width:34px;height:34px;padding:0 8px;border-radius:99px;color:var(--muted);font-size:13.5px;font-weight:700}
+.dev-x svg{width:15px;height:15px}
+.dev-x.armed{background:var(--again);color:#fff}
 .theme-ic.sm{width:32px;height:32px;box-shadow:inset 0 0 0 1px rgba(128,128,128,.25)}
 .theme-ic.sm svg{width:16px;height:16px}
 .set-group{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:18px;margin-bottom:18px;max-width:720px}
@@ -1353,6 +1363,26 @@ const I18N = {
   "Zurück": ["Back", "Indietro"],
   "Weiter": ["Next", "Avanti"],
   "Kopieren": ["Copy", "Copia"],
+  "Geräte, auf denen du mit diesem Konto angemeldet bist. Ein Gerät holt sich neue Änderungen, sobald Cardo dort geöffnet ist.": ["Devices signed in to this account. A device fetches new changes as soon as Cardo is open on it.", "Dispositivi collegati a questo account. Un dispositivo riceve le nuove modifiche appena Cardo è aperto."],
+  "Dieses Gerät": ["This device", "Questo dispositivo"],
+  "Aktiv: {}": ["Active: {}", "Attivo: {}"],
+  "Zuletzt verbunden: {}": ["Last connected: {}", "Ultima connessione: {}"],
+  "gerade eben": ["just now", "proprio ora"],
+  "vor {} Min.": ["{} min ago", "{} min fa"],
+  "vor {} Std.": ["{} h ago", "{} h fa"],
+  "Gerät": ["Device", "Dispositivo"],
+  "Android-Handy": ["Android phone", "Telefono Android"],
+  "Android-Tablet": ["Android tablet", "Tablet Android"],
+  "Windows-PC": ["Windows PC", "PC Windows"],
+  "Linux-PC": ["Linux PC", "PC Linux"],
+  "Auf dem neuesten Stand": ["Up to date", "Aggiornato"],
+  "Nicht auf dem neuesten Stand": ["Not up to date", "Non aggiornato"],
+  "Hat noch nicht hochgeladene Änderungen": ["Has changes not uploaded yet", "Ha modifiche non ancora caricate"],
+  "Aus der Liste entfernen": ["Remove from list", "Rimuovi dall'elenco"],
+  "Entfernen?": ["Remove?", "Rimuovere?"],
+  "Wirklich entfernen?": ["Really remove?", "Rimuovere davvero?"],
+  "Gerät entfernt": ["Device removed", "Dispositivo rimosso"],
+  "Entfernen fehlgeschlagen": ["Removing failed", "Rimozione non riuscita"],
   "Ausschneiden": ["Cut", "Taglia"],
   "Duplizieren": ["Duplicate", "Duplica"],
   "Formel kopiert": ["Formula copied", "Formula copiata"],
@@ -4127,6 +4157,22 @@ function logReview(fid, cid, wasNew){
    Supabase: ein kleines Dokument pro Tag und Gerät „revlog/JJJJ-MM-TT/<Gerät>“ – wird nur geschrieben, beim Start NICHT geladen
    (load/loadSince/Realtime überspringen „revlog/“) → kostet praktisch keinen Datenverkehr. Lokal bleibt nur, was noch hochgeladen werden muss
    (ohne Konto: die letzten 400 Tage). Prüfungsmodus wird nicht mitgeschrieben. */
+// Gerätename für die Geräteliste (Synchronisierung)
+function devName(){
+  const ua = navigator.userAgent;
+  if (/iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) return "iPad";
+  if (/iPhone|iPod/.test(ua)) return "iPhone";
+  if (/Android/.test(ua)) return /Mobile/.test(ua) ? "Android-Handy" : "Android-Tablet";
+  if (/Macintosh|Mac OS X/.test(ua)) return "Mac";
+  if (/Windows/.test(ua)) return "Windows-PC";
+  if (/CrOS/.test(ua)) return "Chromebook";
+  return /Linux/.test(ua) ? "Linux-PC" : "Gerät";
+}
+function devApp(){
+  if (navigator.standalone === true || matchMedia("(display-mode: standalone)").matches) return "App";
+  const ua = navigator.userAgent;
+  return /Edg\//.test(ua) ? "Edge" : /Firefox|FxiOS/.test(ua) ? "Firefox" : /Brave/.test(ua) || navigator.brave ? "Brave" : /Chrome|CriOS/.test(ua) ? "Chrome" : /Safari/.test(ua) ? "Safari" : "Browser";
+}
 const RL_DEV = (() => { try { let d = localStorage.getItem("cardo-dev"); if (!d) { d = Math.random().toString(36).slice(2, 8); localStorage.setItem("cardo-dev", d); } return d; } catch { return "x"; } })();
 let RL = null, rlT = 0, rlBusy = false;
 const rlCloud = () => !!(SB && USER && USER.id && S.mode === "cloud" && USER.id !== "vorschau");
@@ -4217,6 +4263,12 @@ let SB = null, USER = null;
 function makeStore(sb, uid){
   const CK = "cardo-cache-" + uid, PK = "cardo-pending-" + uid;
   let rows = new Map(), pending = {}, flushing = false, t = 0;
+  // Synchronisierungs-Stand: Zeitpunkt der neuesten Änderung, die dieses Gerät kennt (empfangen oder selbst hochgeladen).
+  // Verglichen werden nur Zeitstempel aus der Datenbank – so stören abweichende Geräte-Uhren nicht.
+  const SK = "cardo-synced-" + uid; let seenMax = 0;
+  try { seenMax = +localStorage.getItem(SK) || 0; } catch {}
+  const dataPath = p => !!p && !p.startsWith("revlog/") && !p.startsWith("devices/");
+  const bump = (p, u) => { const v = Date.parse(u || ""); if (dataPath(p) && v > seenMax) { seenMax = v; try { localStorage.setItem(SK, String(v)); } catch {} } };
   try { rows = new Map(Object.entries(JSON.parse(localStorage.getItem(CK) || "{}"))); } catch {}
   try { pending = JSON.parse(localStorage.getItem(PK) || "{}"); } catch {}
   Object.entries(pending).forEach(([p, d]) => d === null ? rows.delete(p) : rows.set(p, d));
@@ -4232,47 +4284,66 @@ function makeStore(sb, uid){
       for (const [path, data] of Object.entries(pending)) {
         const r = data === null
           ? await sb.from("docs").delete().eq("user_id", uid).eq("path", path)
-          : await sb.from("docs").upsert({ user_id: uid, path, data, updated_at: new Date().toISOString() });
+          : await sb.from("docs").upsert({ user_id: uid, path, data, updated_at: new Date().toISOString() }).select("updated_at");
         if (r.error) throw r.error;
+        if (data !== null && r.data && r.data[0]) bump(path, r.data[0].updated_at);
         if (pending[path] === data) { delete pending[path]; savePending(); }
       }
       S.syncErr = false;
     } catch (e) { console.warn("sync", e); S.syncErr = true; setTimeout(flush, 8000); }
-    flushing = false; if (Object.keys(pending).length && !S.syncErr) flush(); render();
+    flushing = false; if (Object.keys(pending).length && !S.syncErr) flush(); else report(); render();
   }
   function write(path, data){ data === null ? rows.delete(path) : rows.set(path, data); pending[path] = data; savePending(); saveCache(); emit(); flush(); return Promise.resolve(); }
   async function load(){
     const all = [], t0 = Date.now(); let from = 0;
     while (true) {
-      const r = await sb.from("docs").select("path,data").not("path", "like", "revlog/%").range(from, from + 999);
+      const r = await sb.from("docs").select("path,data,updated_at").not("path", "like", "revlog/%").range(from, from + 999);
       if (r.error) throw r.error; all.push(...r.data); if (r.data.length < 1000) break; from += 1000;
     }
-    rows = new Map(all.map(x => [x.path, x.data]));
+    rows = new Map(all.map(x => [x.path, x.data])); all.forEach(x => bump(x.path, x.updated_at));
     Object.entries(pending).forEach(([p, d]) => d === null ? rows.delete(p) : rows.set(p, d));
-    saveCache(); emit(); syncT = t0;
+    saveCache(); emit(); syncT = t0; report();
   }
   // Nur geänderte Dokumente seit dem letzten Abgleich holen (z. B. neues Tageslimit vom Mac) – spart Datenvolumen.
   // 2 Minuten Überlappung, weil die Uhren der Geräte leicht abweichen können.
   let syncT = Date.now();
   async function loadSince(){
     const t0 = Date.now(), since = new Date(syncT - 120000).toISOString();
-    const r = await sb.from("docs").select("path,data").not("path", "like", "revlog/%").gt("updated_at", since).limit(1000);
+    const r = await sb.from("docs").select("path,data,updated_at").not("path", "like", "revlog/%").gt("updated_at", since).limit(1000);
     if (r.error) throw r.error;
-    let ch = 0; r.data.forEach(x => { if (x.path in pending) return; if (JSON.stringify(rows.get(x.path)) !== JSON.stringify(x.data)) { rows.set(x.path, x.data); ch++; } });
-    syncT = t0; if (ch) { saveCache(); emit(); }
+    let ch = 0; r.data.forEach(x => { if (!(x.path in pending)) bump(x.path, x.updated_at); if (x.path in pending) return; if (JSON.stringify(rows.get(x.path)) !== JSON.stringify(x.data)) { rows.set(x.path, x.data); ch++; } });
+    syncT = t0; if (ch) { saveCache(); emit(); } report();
   }
   sb.channel("docs-" + uid).on("postgres_changes", { event: "*", schema: "public", table: "docs", filter: "user_id=eq." + uid }, ev => {
     const path = (ev.new && ev.new.path) || (ev.old && ev.old.path); if (!path || path in pending || path.startsWith("revlog/")) return;
-    if (ev.eventType === "DELETE") rows.delete(path); else rows.set(path, ev.new.data);
-    saveCache(); emit();
+    if (ev.eventType === "DELETE") rows.delete(path); else { rows.set(path, ev.new.data); bump(path, ev.new.updated_at); }
+    saveCache(); emit(); if (dataPath(path)) report();
   }).subscribe();
+  // Dieses Gerät meldet seinen Stand (Name, zuletzt aktiv, neueste bekannte Änderung, noch nicht hochgeladene Änderungen).
+  // Direkt in die Datenbank (nicht über „pending“), nur wenn sich etwas geändert hat oder die letzte Meldung über 5 Minuten her ist.
+  let repT = 0, repLast = "", repAt = 0;
+  function report(now){
+    clearTimeout(repT);
+    repT = setTimeout(async () => {
+      if (!navigator.onLine || document.visibilityState === "hidden") return;
+      const n = Object.keys(pending).length, key = seenMax + "|" + n;
+      if (key === repLast && Date.now() - repAt < 5 * 60000) return;
+      const d = { name: devName(), app: devApp(), seen: Date.now(), max: seenMax, pend: n };
+      try { const r = await sb.from("docs").upsert({ user_id: uid, path: "devices/" + RL_DEV, data: d, updated_at: new Date().toISOString() }); if (r.error) throw r.error; repLast = key; repAt = Date.now(); rows.set("devices/" + RL_DEV, d); emit(); } catch (e) { console.warn("device", e); }
+    }, now ? 0 : 3000);
+  }
+  // Neueste Änderung im ganzen Konto (ohne Gerätemeldungen und Lernverlauf)
+  async function accountMax(){
+    const r = await sb.from("docs").select("updated_at").not("path", "like", "revlog/%").not("path", "like", "devices/%").order("updated_at", { ascending: false }).limit(1);
+    if (r.error) throw r.error; return r.data && r.data[0] ? Date.parse(r.data[0].updated_at) : 0;
+  }
   addEventListener("online", () => { flush(); load().catch(() => {}); });
   let lastLoad = Date.now(); // beim Zurückwechseln nur neu laden, wenn länger als 5 Minuten her (spart Datenvolumen)
   let lastQuick = 0;
   const refresh = () => {
     if (document.visibilityState !== "visible" || !navigator.onLine) return;
     if (Date.now() - lastLoad > 5 * 60000) { lastLoad = lastQuick = Date.now(); load().catch(() => {}); return; }
-    if (Date.now() - lastQuick > 8000) { lastQuick = Date.now(); loadSince().catch(() => {}); }
+    if (Date.now() - lastQuick > 8000) { lastQuick = Date.now(); loadSince().catch(() => {}); } else report();
   };
   document.addEventListener("visibilitychange", refresh); addEventListener("focus", refresh); addEventListener("pageshow", refresh);
   const api = {
@@ -4280,6 +4351,8 @@ function makeStore(sb, uid){
       onSnapshot: cb => { subs.push({ path, cb }); cb(docSnap(path)); return () => {}; } }),
     collection: col => ({ onSnapshot: cb => { subs.push({ col, cb }); cb(colSnap(col)); return () => {}; } }),
     load, flush, pendingCount: () => Object.keys(pending).length, cached: () => rows.size > 0, has: path => rows.has(path),
+    sync: { seen: () => seenMax, accountMax, loadSince, report,
+      remove: async id => { const r = await sb.from("docs").delete().eq("user_id", uid).eq("path", "devices/" + id); if (r.error) throw r.error; rows.delete("devices/" + id); saveCache(); emit(); } },
     bulk: entries => { entries.forEach(([p, d]) => { rows.set(p, d); pending[p] = d; }); savePending(); saveCache(); emit(); return flush(); }
   };
   return api;
@@ -4330,6 +4403,7 @@ function startApp(){
   document.body.classList.remove("authing");
   DB = makeStore(SB, USER.id); AS = null; S.mode = DB.cached() ? "cloud" : "loading";
   if (S.mode === "loading") $("#main").innerHTML = '<div class="loading">Deine Karten werden geladen …</div>';
+  DB.collection("devices").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = d.data(); }); S.devices = o; syncRefresh(); });
   DB.doc("settings/main").onSnapshot(d => { if (!d.exists) return; const v = normSet(d.data()); if (!v) return; S.set = v; try { localStorage.setItem("kartenfach-settings", JSON.stringify(S.set)); } catch {} if (setLang(S.set.lang)) { if (!$("#sheet").hidden) closeSheet(); schedulePrerender(); } applyTheme(); render(); });
   DB.collection("sections").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = d.data(); }); S.sections = o; render(); });
   DB.collection("folders").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = d.data(); }); S.folders = o; S.loaded.f = true; render(); });
@@ -4616,6 +4690,56 @@ function accountSheet(){
     <button class="pw-forgot" style="display:block;margin:18px auto 0;color:var(--again)" data-act="deleteAccount" type="button">Konto löschen</button>`, root => {
     $("#logout", root).addEventListener("click", async () => { if (!SB) { toast("In der Vorschau gibt es kein Konto."); return; } try { localStorage.removeItem("cardo-cache-" + USER.id); } catch {} await SB.auth.signOut(); location.reload(); });
   });
+}
+/* ---------- Synchronisierung: verbundene Geräte und ihr Stand ----------
+   Jedes Gerät meldet sich als Dokument devices/<Geräte-ID> (siehe makeStore → report). „Auf dem neuesten Stand“ heißt:
+   nichts mehr hochzuladen und die neueste Änderung im Konto schon erhalten. */
+const devAgo = t => { const m = Math.round((Date.now() - t) / 60000); return m < 2 ? "gerade eben" : m < 60 ? `vor ${m} Min.` : m < 1440 ? `vor ${Math.round(m / 60)} Std.` : `vor ${Math.round(m / 1440)} T.`; };
+const DEV_IC = {
+  phone: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></svg>',
+  tablet: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2.5" width="16" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></svg>',
+  pc: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="11.5" rx="2"/><path d="M2 19.5h20"/></svg>'
+};
+const devIc = n => /iPhone|Handy/.test(n) ? DEV_IC.phone : /iPad|Tablet/.test(n) ? DEV_IC.tablet : DEV_IC.pc;
+let syncAcc = 0;
+function syncListHTML(){
+  const sy = DB && DB.sync, me = RL_DEV;
+  const live = { name: devName(), app: devApp(), seen: Date.now(), max: sy ? sy.seen() : 0, pend: DB && DB.pendingCount ? DB.pendingCount() : 0 };
+  const devs = { ...(S.devices || {}), [me]: live };
+  const acc = Math.max(syncAcc, ...Object.values(devs).map(d => +d.max || 0));
+  const ids = Object.keys(devs).sort((a, b) => a === me ? -1 : b === me ? 1 : (devs[b].seen || 0) - (devs[a].seen || 0));
+  return ids.map(id => {
+    const d = devs[id], mine = id === me, ok = !(+d.pend) && (+d.max || 0) >= acc;
+    let st;
+    if (mine && !navigator.onLine) st = ["local", "Offline – wird nachgeholt"];
+    else if (mine && S.syncErr) st = ["local", "Wird erneut versucht"];
+    else if (+d.pend) st = ["local", mine ? "Wird gespeichert …" : "Hat noch nicht hochgeladene Änderungen"];
+    else st = ok ? ["", "Auf dem neuesten Stand"] : ["local", "Nicht auf dem neuesten Stand"];
+    return `<div class="set-item static dev-row"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)">${devIc(d.name || "")}</span>
+      <span class="si-t"><span class="dev-n">${esc(d.name || "Gerät")}${d.app ? `<small> · ${esc(d.app)}</small>` : ""}${mine ? ' <em class="dev-me">Dieses Gerät</em>' : ""}</span>
+      <small class="dev-st"><i class="si-dot ${st[0]}"></i><span>${st[1]}</span></small>${mine ? "" : `<small class="dev-st">${ok ? "Aktiv" : "Zuletzt verbunden"}: ${devAgo(d.seen || 0)}</small>`}</span>
+      ${mine ? "" : `<button type="button" class="dev-x" data-dev="${esc(id)}" aria-label="Aus der Liste entfernen" title="Aus der Liste entfernen">${IC.close}</button>`}</div>`;
+  }).join("");
+}
+function syncRefresh(){ const l = document.getElementById("syncList"); if (l && l.isConnected) l.innerHTML = syncListHTML(); }
+function syncSheet(){
+  const sy = DB && DB.sync;
+  openSheet(`${head("Synchronisierung")}
+    <p class="muted" style="margin:0 0 14px;font-size:15.5px">Geräte, auf denen du mit diesem Konto angemeldet bist. Ein Gerät holt sich neue Änderungen, sobald Cardo dort geöffnet ist.</p>
+    <div class="set-list" id="syncList" style="margin:0">${syncListHTML()}</div>`, root => {
+    root.addEventListener("click", async e => {
+      const b = e.target.closest("[data-dev]"); if (!b || !sy) return;
+      if (!b.classList.contains("armed")) { b.classList.add("armed"); b.setAttribute("aria-label", "Wirklich entfernen?"); b.textContent = "Entfernen?"; setTimeout(() => { if (b.isConnected) { b.classList.remove("armed"); b.innerHTML = IC.close; } }, 3500); return; }
+      try { await sy.remove(b.dataset.dev); toast("Gerät entfernt"); } catch { toast("Entfernen fehlgeschlagen"); }
+      syncRefresh();
+    });
+    const tick = setInterval(() => { if (!root.isConnected) { clearInterval(tick); return; } if (!root.querySelector(".dev-x.armed")) syncRefresh(); }, 5000);
+  });
+  if (sy && navigator.onLine) {
+    sy.accountMax().then(m => { syncAcc = m; syncRefresh(); }).catch(() => {});
+    sy.loadSince().then(syncRefresh).catch(() => {});
+    sy.report(true);
+  }
 }
 /* Konto löschen: Bilder (Storage) → Datenbank-Funktion delete_my_account (löscht Karten, geteilte Decks und das Konto) → Gerät aufräumen */
 function deleteAccountSheet(){
@@ -5468,7 +5592,7 @@ function settingsHTML(){
   </div>
   <div class="set-list">
     <button class="set-item" data-act="dataSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg></span><span class="si-t">Daten sichern</span><span class="si-ch" aria-hidden="true">›</span></button>
-    <div class="set-item static"><span class="si-dot ${!navigator.onLine || S.syncErr || (DB && DB.pendingCount && DB.pendingCount()) ? 'local' : ''}"></span><span class="si-t">Synchronisierung</span><span class="si-v">${!navigator.onLine ? "Offline – wird nachgeholt" : S.syncErr ? "Wird erneut versucht" : (DB && DB.pendingCount && DB.pendingCount()) ? "Wird gespeichert …" : "Aktuell"}</span></div>
+    <button class="set-item" data-act="syncSheet"><span class="si-dot ${!navigator.onLine || S.syncErr || (DB && DB.pendingCount && DB.pendingCount()) ? 'local' : ''}"></span><span class="si-t">Synchronisierung</span><span class="si-v">${!navigator.onLine ? "Offline – wird nachgeholt" : S.syncErr ? "Wird erneut versucht" : (DB && DB.pendingCount && DB.pendingCount()) ? "Wird gespeichert …" : "Aktuell"}</span><span class="si-ch" aria-hidden="true">›</span></button>
   </div>
   <div class="set-list">
     <button class="set-item" data-act="accountSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span><span class="si-t">Konto</span><span class="si-v">${esc(USER && USER.email || "")}</span><span class="si-ch" aria-hidden="true">›</span></button>
@@ -6291,6 +6415,7 @@ document.addEventListener("click", e => {
   if (a === "dataSheet") { dataSheet(); return; }
   if (a === "remindLater") { try { localStorage.setItem("cardo-remind-snooze", String(Date.now() + 7 * DAY)); } catch {} render(); return; }
   if (a === "accountSheet") { accountSheet(); return; }
+  if (a === "syncSheet") { syncSheet(); return; }
   if (a === "deleteAccount") { deleteAccountSheet(); return; }
   if (a === "changePw") { changePasswordSheet(); return; }
   if (a === "authMode") { showAuth(b.dataset.v); return; }
