@@ -1739,6 +1739,8 @@ const I18N = {
   "Kein Effekt, die nächste Karte kommt direkt.": ["No effect, the next card appears straight away.", "Nessun effetto, la scheda successiva arriva subito."],
   "Tippe auf eine Bewertung, um zu sehen, wie die Karte reagiert.": ["Tap a rating to see how the card reacts.", "Tocca una valutazione per vedere come reagisce la scheda."],
   "Töne": ["Sounds", "Suoni"],
+  "Töne beim Bewerten": ["Sounds when rating", "Suoni durante la valutazione"],
+  "Kurze Töne, wenn du eine Karte bewertest. Auf dem iPhone bleiben sie stumm, wenn der Lautlos-Schalter an ist.": ["Short sounds when you rate a card. On iPhone they stay silent when the silent switch is on.", "Brevi suoni quando valuti una scheda. Su iPhone restano muti se l'interruttore silenzioso è attivo."],
   "Lernplan": ["Study plan", "Piano di studio"],
   "{} % behalten": ["{} % retention", "{} % ricordato"],
   "Wenige Wiederholungen – du vergisst aber mehr": ["Few reviews – but you forget more", "Pochi ripassi, ma dimentichi di più"],
@@ -5557,6 +5559,11 @@ function splashPickerHTML(){
   const cur = S.set.splash || "daily";
   return `<div class="gs-list" role="radiogroup" aria-label="Startanimation">${SPLASH_OPTS.map(([k, l, d]) => `<button class="gs-opt fx-opt ${cur === k ? 'on' : ''}" data-act="setSplash" data-v="${k}" role="radio" aria-checked="${cur === k}"><span class="fx-t"><b>${l}</b><span>${d}</span></span><span class="gs-ck" aria-hidden="true">${cur === k ? '✓' : ''}</span></button>`).join("")}</div>`;
 }
+function soundSheet(){
+  const on = S.set.sound !== 0;
+  openSheet(`${head("Töne")}<p class="muted" style="margin:0 0 16px;font-size:15.5px">Kurze Töne, wenn du eine Karte bewertest. Auf dem iPhone bleiben sie stumm, wenn der Lautlos-Schalter an ist.</p>
+    <div class="set-list" style="margin:0"><button class="set-item ex-sw" data-act="toggleSound" role="switch" aria-checked="${on}"><span class="si-t">Töne beim Bewerten</span><span class="switch ${on ? 'on' : ''}" id="sndSw" aria-hidden="true"><i></i></span></button></div>`);
+}
 function splashSheet(){ openSheet(`${head("Startanimation")}<p class="muted" style="margin:0 0 16px;font-size:15.5px">Die Animation beim Öffnen von Cardo. Antippen überspringt sie jederzeit.</p><div id="spPick">${splashPickerHTML()}</div><button class="btn block" style="margin-top:14px;justify-content:center" data-act="playIntro">Intro ansehen</button>`); }
 const GLASS_L = ["Stark", "Leicht", "Aus"];
 function glassLabelsHTML(){ const g = S.set.glass ?? 1; return ["Stark", "Leicht", "Keine"].map((l, i) => `<span class="${i === g ? 'on' : ''}">${l}</span>`).join(""); }
@@ -5598,7 +5605,7 @@ function settingsHTML(){
   </div>
   <div class="set-list">
     <button class="set-item" data-act="accountSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span><span class="si-t">Konto</span><span class="si-v">${esc(USER && USER.email || "")}</span><span class="si-ch" aria-hidden="true">›</span></button>
-    <button class="set-item" data-act="toggleSound"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></span><span class="si-t">Töne</span><span class="si-v" id="sndV">${S.set.sound === 0 ? "Aus" : "An"}</span></button>
+    <button class="set-item" data-act="soundSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></span><span class="si-t">Töne</span><span class="si-v" id="sndV">${S.set.sound === 0 ? "Aus" : "An"}</span><span class="si-ch" aria-hidden="true">›</span></button>
     <button class="set-item" data-act="langSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z"/></svg></span><span class="si-t">Sprache</span><span class="si-v" translate="no">${esc((LANGS.find(l => l[0] === LANG) || LANGS[0])[1])}</span><span class="si-ch" aria-hidden="true">›</span></button>
   </div>
   <div class="set-list">
@@ -6426,7 +6433,8 @@ document.addEventListener("click", e => {
   if (a === "gradeSetSheet") { gradeSetSheet(); return; }
   if (a === "animSheet") { animSheet(); return; }
   if (a === "demoGrade") { demoGrade(+b.dataset.g); return; }
-  if (a === "toggleSound") { saveSettings({ sound: S.set.sound === 0 ? 1 : 0 }); const sv = $("#sndV"); if (sv) sv.textContent = S.set.sound === 0 ? "Aus" : "An"; if (S.set.sound !== 0) gradeSound(2); return; }
+  if (a === "soundSheet") { soundSheet(); return; }
+  if (a === "toggleSound") { saveSettings({ sound: S.set.sound === 0 ? 1 : 0 }); const on = S.set.sound !== 0, sv = $("#sndV"), sw = $("#sndSw"); if (sv) sv.textContent = on ? "An" : "Aus"; if (sw) sw.classList.toggle("on", on); b.setAttribute("aria-checked", on); if (on) gradeSound(2); return; }
   if (a === "setFxMode") { saveSettings({ fxMode: b.dataset.v }); const ap = $("#anPick"); if (ap) ap.innerHTML = animPickerHTML(); return; }
   if (a === "setLayout") { saveSettings({ layout: b.dataset.v }); return; }
   if (a === "setSide") { setSide(id, b.dataset.v); return; }
