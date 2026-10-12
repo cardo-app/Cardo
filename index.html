@@ -707,6 +707,8 @@ body.selecting #main{padding-bottom:170px}
 .cm-dev{display:flex;align-items:center;gap:14px;border-top:0;padding:16px 18px}
 .cm-dev b{font-size:18px;font-weight:750;line-height:1.3;overflow-wrap:anywhere}
 .cm-dev .cm-ic{background:var(--surface-2);color:var(--ink)}
+.cm-dev .cm-name{flex:1;min-width:0;font-size:17px;font-weight:650;padding:9px 12px}
+#cmenu input{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
 .theme-ic.sm{width:32px;height:32px;box-shadow:inset 0 0 0 1px rgba(128,128,128,.25)}
 .theme-ic.sm svg{width:16px;height:16px}
 .set-group{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:18px;margin-bottom:18px;max-width:720px}
@@ -1366,6 +1368,11 @@ const I18N = {
   "Kopieren": ["Copy", "Copia"],
   "Geräte, auf denen du mit diesem Konto angemeldet bist. Ein Gerät holt sich neue Änderungen, sobald Cardo dort geöffnet ist.": ["Devices signed in to this account. A device fetches new changes as soon as Cardo is open on it.", "Dispositivi collegati a questo account. Un dispositivo riceve le nuove modifiche appena Cardo è aperto."],
   "Dieses Gerät": ["This device", "Questo dispositivo"],
+  "Umbenennen": ["Rename", "Rinomina"],
+  "Gerät umbenannt": ["Device renamed", "Dispositivo rinominato"],
+  "Name zurückgesetzt": ["Name reset", "Nome ripristinato"],
+  "Umbenennen fehlgeschlagen": ["Renaming failed", "Rinomina non riuscita"],
+  "Gerätename": ["Device name", "Nome del dispositivo"],
   "Aktiv: {}": ["Active: {}", "Attivo: {}"],
   "Zuletzt verbunden: {}": ["Last connected: {}", "Ultima connessione: {}"],
   "gerade eben": ["just now", "proprio ora"],
@@ -4354,10 +4361,14 @@ function makeStore(sb, uid){
       if (!navigator.onLine || document.visibilityState === "hidden") return;
       const n = Object.keys(pending).length, key = seenMax + "|" + n;
       if (key === repLast && Date.now() - repAt < 5 * 60000) return;
-      const d = { name: devLabel(), type: devName(), seen: Date.now(), max: seenMax, pend: n };
+      const old = rows.get("devices/" + DEV_KEY) || {}, d = { name: devLabel(), type: devName(), seen: Date.now(), max: seenMax, pend: n };
+      if (old.custom) d.custom = old.custom;
       try {
         const r = await sb.from("docs").upsert({ user_id: uid, path: "devices/" + DEV_KEY, data: d, updated_at: new Date().toISOString() }); if (r.error) throw r.error; repLast = key; repAt = Date.now(); rows.set("devices/" + DEV_KEY, d);
-        if (rows.has("devices/" + RL_DEV)) { await sb.from("docs").delete().eq("user_id", uid).eq("path", "devices/" + RL_DEV); rows.delete("devices/" + RL_DEV); saveCache(); } /* alter Eintrag mit zufälliger Kennung */
+        // Alte Einträge dieses Geräts (frühere Version: zufällige Kennung, ohne „type“; z. B. von Browser bzw. App) entfernen
+        for (const [p, x] of [...rows]) if (p.startsWith("devices/") && p !== "devices/" + DEV_KEY && x && (p === "devices/" + RL_DEV || (!x.type && x.name === devName()))) {
+          await sb.from("docs").delete().eq("user_id", uid).eq("path", p); rows.delete(p); saveCache();
+        }
         emit();
       } catch (e) { console.warn("device", e); }
     }, now ? 0 : 3000);
@@ -4382,6 +4393,9 @@ function makeStore(sb, uid){
     collection: col => ({ onSnapshot: cb => { subs.push({ col, cb }); cb(colSnap(col)); return () => {}; } }),
     load, flush, pendingCount: () => Object.keys(pending).length, pendingSlow, cached: () => rows.size > 0, has: path => rows.has(path),
     sync: { seen: () => seenMax, accountMax, loadSince, report,
+      rename: async (id, name) => {
+        const p = "devices/" + id, d = { ...(rows.get(p) || {}) }; if (name) d.custom = name; else delete d.custom;
+        const r = await sb.from("docs").upsert({ user_id: uid, path: p, data: d, updated_at: new Date().toISOString() }); if (r.error) throw r.error; rows.set(p, d); saveCache(); emit(); },
       remove: async id => { const r = await sb.from("docs").delete().eq("user_id", uid).eq("path", "devices/" + id); if (r.error) throw r.error; rows.delete("devices/" + id); saveCache(); emit(); } },
     bulk: entries => { entries.forEach(([p, d]) => { rows.set(p, d); pending[p] = d; }); savePending(); saveCache(); emit(); return flush(); }
   };
@@ -4735,8 +4749,9 @@ const devIcOf = d => devIc(d.type || d.name || "");
 let syncAcc = 0;
 function syncListHTML(){
   const sy = DB && DB.sync, me = DEV_KEY;
-  const live = { name: devLabel(), type: devName(), seen: Date.now(), max: sy ? sy.seen() : 0, pend: DB && DB.pendingSlow ? DB.pendingSlow() : 0 };
+  const live = { ...((S.devices || {})[me] || {}), name: devLabel(), type: devName(), seen: Date.now(), max: sy ? sy.seen() : 0, pend: DB && DB.pendingSlow ? DB.pendingSlow() : 0 };
   const devs = { ...(S.devices || {}), [me]: live };
+  Object.keys(devs).forEach(id => { const x = devs[id]; if (id !== me && x && !x.type && x.name === live.type) delete devs[id]; }); /* alter Eintrag dieses Geräts, wird beim nächsten Melden gelöscht */
   const acc = Math.max(syncAcc, ...Object.values(devs).map(d => +d.max || 0));
   const ids = Object.keys(devs).sort((a, b) => a === me ? -1 : b === me ? 1 : (devs[b].seen || 0) - (devs[a].seen || 0));
   return ids.map(id => {
@@ -4746,8 +4761,8 @@ function syncListHTML(){
     else if (mine && S.syncErr) st = ["local", "Wird erneut versucht"];
     else if (+d.pend) st = ["local", mine ? "Wird gespeichert …" : "Hat noch nicht hochgeladene Änderungen"];
     else st = ok ? ["", "Auf dem neuesten Stand"] : ["local", "Nicht auf dem neuesten Stand"];
-    return `<div class="set-item static dev-row"${mine ? "" : ` data-dev-row="${esc(id)}"`}><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)">${devIcOf(d)}</span>
-      <span class="si-t"><span class="dev-n">${esc(d.name || "Gerät")}${mine ? ' <em class="dev-me">Dieses Gerät</em>' : ""}</span>
+    return `<div class="set-item static dev-row" data-dev-row="${esc(id)}"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)">${devIcOf(d)}</span>
+      <span class="si-t"><span class="dev-n">${esc(d.custom || d.name || "Gerät")}${mine ? ' <em class="dev-me">Dieses Gerät</em>' : ""}</span>
       <small class="dev-st"><i class="si-dot ${st[0]}"></i><span>${st[1]}</span></small>${mine ? "" : `<small class="dev-st">${ok ? "Aktiv" : "Zuletzt verbunden"}: ${devAgo(d.seen || 0)}</small>`}</span>
 </div>`;
   }).join("");
@@ -4761,19 +4776,35 @@ function syncSheet(){
     // Gerät lange drücken (oder Rechtsklick) → Menü mit „Löschen“
     let lp = null, until = 0;
     const open = row => {
-      const id = row.dataset.devRow, d = (S.devices || {})[id] || {};
+      const id = row.dataset.devRow, mine = id === DEV_KEY, d = mine ? { ...((S.devices || {})[id] || {}), name: devLabel(), type: devName() } : (S.devices || {})[id] || {};
       until = Date.now() + 600; row.classList.remove("press"); haptic();
       closeMenu(); cmClose(true);
       const el = document.createElement("div"); el.id = "cmenu";
-      el.innerHTML = `<div class="cm-box" role="dialog" aria-modal="true" aria-label="Gerät"><div class="cm-card cm-dev"><span class="cm-ic">${devIcOf(d)}</span><b>${esc(d.name || "Gerät")}</b></div>
-        <div class="cm-list" role="menu"><button type="button" data-cm="del" class="cm-del" role="menuitem"><span class="cm-ic">${CM_IC.del}</span><span>Entfernen</span></button></div></div>`;
+      const opt = (k, l, ic, cls = "") => `<button type="button" data-cm="${k}" class="${cls}" role="menuitem"><span class="cm-ic">${ic}</span><span>${l}</span></button>`;
+      el.innerHTML = `<div class="cm-box" role="dialog" aria-modal="true" aria-label="Gerät"><div class="cm-card cm-dev"><span class="cm-ic">${devIcOf(d)}</span><b>${esc(d.custom || d.name || "Gerät")}</b></div>
+        <div class="cm-list" role="menu">${opt("ren", "Umbenennen", CM_IC.edit)}${mine ? "" : opt("del", "Entfernen", CM_IC.del, "cm-del")}</div></div>`;
       document.body.appendChild(el);
-      // erst nach dem Loslassen des Fingers scharf schalten (sonst landet der Klick gleich auf „Entfernen“)
+      // erst nach dem Loslassen des Fingers scharf schalten (sonst landet der Klick gleich auf einer Option)
       let armed = false; const arm = () => { setTimeout(() => { armed = true; }, 60); removeEventListener("touchend", arm); removeEventListener("mouseup", arm); }; addEventListener("touchend", arm); addEventListener("mouseup", arm);
+      const sy = DB && DB.sync;
+      const save = () => {
+        const v = (el.querySelector(".cm-name").value || "").trim().slice(0, 40); cmClose(); if (!sy) return;
+        sy.rename(id, v && v !== d.name ? v : "").then(() => toast(v ? "Gerät umbenannt" : "Name zurückgesetzt"), () => toast("Umbenennen fehlgeschlagen")).finally(syncRefresh);
+      };
       el.addEventListener("click", e => {
         e.stopPropagation(); if (!armed) return;
-        if (!e.target.closest("[data-cm]")) { if (!e.target.closest(".cm-box")) cmClose(); return; }
-        cmClose(); const sy = DB && DB.sync; if (!sy) return;
+        const b = e.target.closest("[data-cm]");
+        if (!b) { if (!e.target.closest(".cm-box")) cmClose(); return; }
+        if (b.dataset.cm === "ren") {
+          // Name direkt im Fenster ändern; leer = automatischer Name
+          el.querySelector(".cm-dev").innerHTML = `<span class="cm-ic">${devIcOf(d)}</span><input class="in cm-name" maxlength="40" value="${esc(d.custom || d.name || "")}" placeholder="${esc(d.name || "Gerät")}" aria-label="Gerätename" enterkeyhint="done">`;
+          el.querySelector(".cm-list").innerHTML = `<button type="button" data-cm="save" role="menuitem"><span class="cm-ic">${CM_IC.edit}</span><span>Speichern</span></button>`;
+          const inp = el.querySelector(".cm-name"); inp.focus(); inp.select();
+          inp.addEventListener("keydown", ev => { if (ev.key === "Enter") { ev.preventDefault(); save(); } });
+          return;
+        }
+        if (b.dataset.cm === "save") { save(); return; }
+        cmClose(); if (!sy) return;
         sy.remove(id).then(() => toast("Gerät entfernt"), () => toast("Entfernen fehlgeschlagen")).finally(syncRefresh);
       });
     };
