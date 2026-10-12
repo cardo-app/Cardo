@@ -690,7 +690,7 @@ body.selecting #main{padding-bottom:170px}
 #main .set-list,.peek .set-list,.set-top{margin-left:auto;margin-right:auto;max-width:720px}
 .set-item{display:flex;align-items:center;gap:12px;width:100%;padding:12px 16px;text-align:left;border-top:1px solid var(--line);min-height:58px}
 .set-item:first-child{border-top:0}
-button.set-item:hover{background:color-mix(in oklab,var(--ink) 4%,transparent)}
+@media (hover:hover){button.set-item:hover{background:color-mix(in oklab,var(--ink) 4%,transparent)}}
 .si-t{font-weight:600;flex:1}
 .si-v{color:var(--muted);font-size:15.5px}
 .si-ch{color:var(--muted);font-size:24px;line-height:1;margin-left:2px}
@@ -4293,7 +4293,10 @@ function makeStore(sb, uid){
     } catch (e) { console.warn("sync", e); S.syncErr = true; setTimeout(flush, 8000); }
     flushing = false; if (Object.keys(pending).length && !S.syncErr) flush(); else report(); render();
   }
-  function write(path, data){ data === null ? rows.delete(path) : rows.set(path, data); pending[path] = data; savePending(); saveCache(); emit(); flush(); return Promise.resolve(); }
+  // Kurzes Speichern (unter 2 s) wird nicht angezeigt – erst wenn es länger dauert, steht „Wird gespeichert …“ da
+  let pendSince = Object.keys(pending).length ? Date.now() : 0;
+  const pendingSlow = () => { if (!Object.keys(pending).length) { pendSince = 0; return 0; } return Date.now() - pendSince >= 2000 ? Object.keys(pending).length : 0; };
+  function write(path, data){ if (!Object.keys(pending).length) { pendSince = Date.now(); setTimeout(() => { if (Object.keys(pending).length) render(); }, 2100); } data === null ? rows.delete(path) : rows.set(path, data); pending[path] = data; savePending(); saveCache(); emit(); flush(); return Promise.resolve(); }
   async function load(){
     const all = [], t0 = Date.now(); let from = 0;
     while (true) {
@@ -4350,7 +4353,7 @@ function makeStore(sb, uid){
     doc: path => ({ set: d => write(path, JSON.parse(JSON.stringify(d))), delete: () => write(path, null),
       onSnapshot: cb => { subs.push({ path, cb }); cb(docSnap(path)); return () => {}; } }),
     collection: col => ({ onSnapshot: cb => { subs.push({ col, cb }); cb(colSnap(col)); return () => {}; } }),
-    load, flush, pendingCount: () => Object.keys(pending).length, cached: () => rows.size > 0, has: path => rows.has(path),
+    load, flush, pendingCount: () => Object.keys(pending).length, pendingSlow, cached: () => rows.size > 0, has: path => rows.has(path),
     sync: { seen: () => seenMax, accountMax, loadSince, report,
       remove: async id => { const r = await sb.from("docs").delete().eq("user_id", uid).eq("path", "devices/" + id); if (r.error) throw r.error; rows.delete("devices/" + id); saveCache(); emit(); } },
     bulk: entries => { entries.forEach(([p, d]) => { rows.set(p, d); pending[p] = d; }); savePending(); saveCache(); emit(); return flush(); }
@@ -4704,7 +4707,7 @@ const devIc = n => /iPhone|Handy/.test(n) ? DEV_IC.phone : /iPad|Tablet/.test(n)
 let syncAcc = 0;
 function syncListHTML(){
   const sy = DB && DB.sync, me = RL_DEV;
-  const live = { name: devName(), app: devApp(), seen: Date.now(), max: sy ? sy.seen() : 0, pend: DB && DB.pendingCount ? DB.pendingCount() : 0 };
+  const live = { name: devName(), app: devApp(), seen: Date.now(), max: sy ? sy.seen() : 0, pend: DB && DB.pendingSlow ? DB.pendingSlow() : 0 };
   const devs = { ...(S.devices || {}), [me]: live };
   const acc = Math.max(syncAcc, ...Object.values(devs).map(d => +d.max || 0));
   const ids = Object.keys(devs).sort((a, b) => a === me ? -1 : b === me ? 1 : (devs[b].seen || 0) - (devs[a].seen || 0));
@@ -5591,7 +5594,7 @@ function settingsHTML(){
   </div>
   <div class="set-list">
     <button class="set-item" data-act="dataSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg></span><span class="si-t">Daten sichern</span><span class="si-ch" aria-hidden="true">›</span></button>
-    <button class="set-item" data-act="syncSheet"><span class="si-dot ${!navigator.onLine || S.syncErr || (DB && DB.pendingCount && DB.pendingCount()) ? 'local' : ''}"></span><span class="si-t">Synchronisierung</span><span class="si-v">${!navigator.onLine ? "Offline – wird nachgeholt" : S.syncErr ? "Wird erneut versucht" : (DB && DB.pendingCount && DB.pendingCount()) ? "Wird gespeichert …" : "Aktuell"}</span><span class="si-ch" aria-hidden="true">›</span></button>
+    <button class="set-item" data-act="syncSheet"><span class="si-dot ${!navigator.onLine || S.syncErr || (DB && DB.pendingSlow && DB.pendingSlow()) ? 'local' : ''}"></span><span class="si-t">Synchronisierung</span><span class="si-v">${!navigator.onLine ? "Offline – wird nachgeholt" : S.syncErr ? "Wird erneut versucht" : (DB && DB.pendingSlow && DB.pendingSlow()) ? "Wird gespeichert …" : "Aktuell"}</span><span class="si-ch" aria-hidden="true">›</span></button>
   </div>
   <div class="set-list">
     <button class="set-item" data-act="accountSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span><span class="si-t">Konto</span><span class="si-v">${esc(USER && USER.email || "")}</span><span class="si-ch" aria-hidden="true">›</span></button>
