@@ -704,8 +704,9 @@ body.selecting #main{padding-bottom:170px}
 .dev-st .si-dot{width:8px;height:8px;margin:5px 7px 0 0;flex:none}
 .dev-row{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;transition:background .15s ease}
 .dev-row.press{background:color-mix(in oklab,var(--ink) 6%,transparent)}
-#menu button.mdel,#menu button.mdel .mi{color:var(--again)}
-#menu .mt svg{width:16px;height:16px}
+.cm-dev{display:flex;align-items:center;gap:14px;border-top:0;padding:16px 18px}
+.cm-dev b{font-size:18px;font-weight:750;line-height:1.3;overflow-wrap:anywhere}
+.cm-dev .cm-ic{background:var(--surface-2);color:var(--ink)}
 .theme-ic.sm{width:32px;height:32px;box-shadow:inset 0 0 0 1px rgba(128,128,128,.25)}
 .theme-ic.sm svg{width:16px;height:16px}
 .set-group{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:18px;margin-bottom:18px;max-width:720px}
@@ -3127,7 +3128,6 @@ const MI = {
   grid: MI_P('<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>'),
   list: MI_P('<path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" stroke-width="2.4"/>'),
   check: MI_P('<path d="M5 12.5l4.5 4.5L19 7.5" stroke-width="2.4"/>'),
-  trash: MI_P('<path d="M4 6.5h16M9.5 6.5V4.5h5v2M6.5 6.5l.9 12.2A2 2 0 0 0 9.4 20.5h5.2a2 2 0 0 0 2-1.8l.9-12.2"/><path d="M10 10.5v6M14 10.5v6"/>'),
   none: '<span class="mi" aria-hidden="true"></span>'
 };
 /* Auswahl-Einträge: Häkchen links im Symbolplatz (wie bei iOS), sonst leerer Platz → Text bleibt bündig */
@@ -4169,6 +4169,24 @@ function devName(){
   return /Linux/.test(ua) ? "Linux-PC" : "Gerät";
 }
 const RL_DEV = (() => { try { let d = localStorage.getItem("cardo-dev"); if (!d) { d = Math.random().toString(36).slice(2, 8); localStorage.setItem("cardo-dev", d); } return d; } catch { return "x"; } })();
+// Genauer Gerätename für die Geräteliste. iPhone/iPad: aus Bildschirmgröße (in Punkt) und Pixeldichte erraten –
+// Webseiten bekommen das Modell nicht direkt; Modelle mit gleichem Bildschirm lassen sich nicht unterscheiden.
+// Android (Chrome): Modell über userAgentData. Mac/PC: nur der Typ.
+const IPHONES = { "320x568": "iPhone SE (1. Gen.)", "375x667": "iPhone SE / 6–8", "414x736": "iPhone 6–8 Plus", "375x812": "iPhone X / XS / 11 Pro / mini",
+  "414x896@2": "iPhone XR / 11", "414x896@3": "iPhone XS Max / 11 Pro Max", "390x844": "iPhone 12–14 / 16e", "428x926": "iPhone 12/13 Pro Max / 14 Plus",
+  "393x852": "iPhone 14 Pro / 15 / 15 Pro / 16", "430x932": "iPhone 14 Pro Max / 15 Plus / 15 Pro Max / 16 Plus", "402x874": "iPhone 16 Pro / 17 / 17 Pro",
+  "440x956": "iPhone 16 Pro Max / 17 Pro Max", "420x912": "iPhone Air" };
+const IPADS = { "744x1133": "iPad mini", "768x1024": "iPad", "810x1080": "iPad (7.–9. Gen.)", "820x1180": "iPad Air / iPad (10. Gen.)", "834x1112": "iPad Air (3. Gen.) / iPad Pro 10,5″",
+  "834x1194": "iPad Pro 11″", "834x1210": "iPad Pro 11″ (M4)", "1024x1366": "iPad Pro 12,9″ / iPad Air 13″", "1032x1376": "iPad Pro 13″ (M4)" };
+let devModelName = "";
+function devLabel(){
+  const n = devName(), w = Math.min(screen.width, screen.height), h = Math.max(screen.width, screen.height), k = w + "x" + h, r = Math.round(devicePixelRatio || 1);
+  if (n === "iPhone") return IPHONES[k + "@" + r] || IPHONES[k] || n;
+  if (n === "iPad") return IPADS[k] || n;
+  return devModelName || n;
+}
+try { if (/Android/.test(navigator.userAgent) && navigator.userAgentData && navigator.userAgentData.getHighEntropyValues)
+  navigator.userAgentData.getHighEntropyValues(["model"]).then(v => { if (v && v.model && v.model.trim()) devModelName = v.model.trim(); }).catch(() => {}); } catch {}
 // Geräte-Kennung für die Geräteliste: aus Gerätetyp, Bildschirm, Pixeldichte und Zeitzone berechnet (keine Zufallszahl).
 // So zählen Browser und Home-Bildschirm-App auf demselben Gerät als ein Gerät (sie haben getrennte Speicher, also unterschiedliche RL_DEV).
 const DEV_KEY = (() => {
@@ -4336,7 +4354,7 @@ function makeStore(sb, uid){
       if (!navigator.onLine || document.visibilityState === "hidden") return;
       const n = Object.keys(pending).length, key = seenMax + "|" + n;
       if (key === repLast && Date.now() - repAt < 5 * 60000) return;
-      const d = { name: devName(), seen: Date.now(), max: seenMax, pend: n };
+      const d = { name: devLabel(), type: devName(), seen: Date.now(), max: seenMax, pend: n };
       try {
         const r = await sb.from("docs").upsert({ user_id: uid, path: "devices/" + DEV_KEY, data: d, updated_at: new Date().toISOString() }); if (r.error) throw r.error; repLast = key; repAt = Date.now(); rows.set("devices/" + DEV_KEY, d);
         if (rows.has("devices/" + RL_DEV)) { await sb.from("docs").delete().eq("user_id", uid).eq("path", "devices/" + RL_DEV); rows.delete("devices/" + RL_DEV); saveCache(); } /* alter Eintrag mit zufälliger Kennung */
@@ -4713,10 +4731,11 @@ const DEV_IC = {
   pc: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="11.5" rx="2"/><path d="M2 19.5h20"/></svg>'
 };
 const devIc = n => /iPhone|Handy/.test(n) ? DEV_IC.phone : /iPad|Tablet/.test(n) ? DEV_IC.tablet : DEV_IC.pc;
+const devIcOf = d => devIc(d.type || d.name || "");
 let syncAcc = 0;
 function syncListHTML(){
   const sy = DB && DB.sync, me = DEV_KEY;
-  const live = { name: devName(), seen: Date.now(), max: sy ? sy.seen() : 0, pend: DB && DB.pendingSlow ? DB.pendingSlow() : 0 };
+  const live = { name: devLabel(), type: devName(), seen: Date.now(), max: sy ? sy.seen() : 0, pend: DB && DB.pendingSlow ? DB.pendingSlow() : 0 };
   const devs = { ...(S.devices || {}), [me]: live };
   const acc = Math.max(syncAcc, ...Object.values(devs).map(d => +d.max || 0));
   const ids = Object.keys(devs).sort((a, b) => a === me ? -1 : b === me ? 1 : (devs[b].seen || 0) - (devs[a].seen || 0));
@@ -4727,7 +4746,7 @@ function syncListHTML(){
     else if (mine && S.syncErr) st = ["local", "Wird erneut versucht"];
     else if (+d.pend) st = ["local", mine ? "Wird gespeichert …" : "Hat noch nicht hochgeladene Änderungen"];
     else st = ok ? ["", "Auf dem neuesten Stand"] : ["local", "Nicht auf dem neuesten Stand"];
-    return `<div class="set-item static dev-row"${mine ? "" : ` data-dev-row="${esc(id)}"`}><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)">${devIc(d.name || "")}</span>
+    return `<div class="set-item static dev-row"${mine ? "" : ` data-dev-row="${esc(id)}"`}><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)">${devIcOf(d)}</span>
       <span class="si-t"><span class="dev-n">${esc(d.name || "Gerät")}${mine ? ' <em class="dev-me">Dieses Gerät</em>' : ""}</span>
       <small class="dev-st"><i class="si-dot ${st[0]}"></i><span>${st[1]}</span></small>${mine ? "" : `<small class="dev-st">${ok ? "Aktiv" : "Zuletzt verbunden"}: ${devAgo(d.seen || 0)}</small>`}</span>
 </div>`;
@@ -4742,10 +4761,21 @@ function syncSheet(){
     // Gerät lange drücken (oder Rechtsklick) → Menü mit „Löschen“
     let lp = null, until = 0;
     const open = row => {
-      const d = (S.devices || {})[row.dataset.devRow] || {}, m = $("#menu");
+      const id = row.dataset.devRow, d = (S.devices || {})[id] || {};
       until = Date.now() + 600; row.classList.remove("press"); haptic();
-      m.innerHTML = `<div class="mt">${devIc(d.name || "")}<b>${esc(d.name || "Gerät")}</b></div><hr><button data-act="devDel" data-id="${esc(row.dataset.devRow)}" role="menuitem" class="mdel">${MI.trash}Löschen</button>`;
-      m.hidden = false; placeMenu(m, row);
+      closeMenu(); cmClose(true);
+      const el = document.createElement("div"); el.id = "cmenu";
+      el.innerHTML = `<div class="cm-box" role="dialog" aria-modal="true" aria-label="Gerät"><div class="cm-card cm-dev"><span class="cm-ic">${devIcOf(d)}</span><b>${esc(d.name || "Gerät")}</b></div>
+        <div class="cm-list" role="menu"><button type="button" data-cm="del" class="cm-del" role="menuitem"><span class="cm-ic">${CM_IC.del}</span><span>Entfernen</span></button></div></div>`;
+      document.body.appendChild(el);
+      // erst nach dem Loslassen des Fingers scharf schalten (sonst landet der Klick gleich auf „Entfernen“)
+      let armed = false; const arm = () => { setTimeout(() => { armed = true; }, 60); removeEventListener("touchend", arm); removeEventListener("mouseup", arm); }; addEventListener("touchend", arm); addEventListener("mouseup", arm);
+      el.addEventListener("click", e => {
+        e.stopPropagation(); if (!armed) return;
+        if (!e.target.closest("[data-cm]")) { if (!e.target.closest(".cm-box")) cmClose(); return; }
+        cmClose(); const sy = DB && DB.sync; if (!sy) return;
+        sy.remove(id).then(() => toast("Gerät entfernt"), () => toast("Entfernen fehlgeschlagen")).finally(syncRefresh);
+      });
     };
     const cancel = () => { if (lp) { clearTimeout(lp.t); lp.row.classList.remove("press"); lp = null; } };
     const down = (t, x, y) => { cancel(); const row = t.closest && t.closest("[data-dev-row]"); if (!row) return; row.classList.add("press"); lp = { row, x, y, t: setTimeout(() => { const r = lp && lp.row; lp = null; if (r) open(r); }, 480) }; };
@@ -4758,7 +4788,7 @@ function syncSheet(){
     root.addEventListener("contextmenu", e => { const row = e.target.closest("[data-dev-row]"); if (!row) return; e.preventDefault(); cancel(); if (Date.now() > until) open(row); });
     // Der Klick beim Loslassen darf das gerade geöffnete Menü nicht gleich wieder schließen
     root.addEventListener("click", e => { if (Date.now() < until) { e.stopPropagation(); e.preventDefault(); } }, true);
-    const tick = setInterval(() => { if (!root.isConnected) { clearInterval(tick); return; } if ($("#menu").hidden && !lp) syncRefresh(); }, 5000);
+    const tick = setInterval(() => { if (!root.isConnected) { clearInterval(tick); return; } if (!$("#cmenu") && !lp) syncRefresh(); }, 5000);
   });
   if (sy && navigator.onLine) {
     sy.accountMax().then(m => { syncAcc = m; syncRefresh(); }).catch(() => {});
@@ -6448,7 +6478,6 @@ document.addEventListener("click", e => {
   if (a === "remindLater") { try { localStorage.setItem("cardo-remind-snooze", String(Date.now() + 7 * DAY)); } catch {} render(); return; }
   if (a === "accountSheet") { accountSheet(); return; }
   if (a === "syncSheet") { syncSheet(); return; }
-  if (a === "devDel") { const sy = DB && DB.sync; if (sy) sy.remove(id).then(() => toast("Gerät entfernt"), () => toast("Entfernen fehlgeschlagen")).finally(syncRefresh); return; }
   if (a === "deleteAccount") { deleteAccountSheet(); return; }
   if (a === "changePw") { changePasswordSheet(); return; }
   if (a === "authMode") { showAuth(b.dataset.v); return; }
