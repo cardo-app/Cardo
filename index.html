@@ -5322,7 +5322,6 @@ function fxSheet(){
   openSheet(`${headBack("Kartenbewertung", "cardsSheet")}<div class="set-list" style="margin:0">
     <button class="set-item" data-act="gradeSetSheet"><span class="si-t">Bewertungsstufen</span><span class="si-v">${gradeSet().map(o => tr(o.l)).join(" · ")}</span><span class="si-ch" aria-hidden="true">›</span></button>
     <button class="set-item" data-act="animSheet"><span class="si-t">Animationen</span><span class="si-v">${fxName()}</span><span class="si-ch" aria-hidden="true">›</span></button>
-    <button class="set-item" data-act="toggleSound"><span class="si-t">Töne</span><span class="si-v" id="sndV">${S.set.sound === 0 ? "Aus" : "An"}</span></button>
   </div>`);
 }
 /* Lernmenge pro Tag für einen Ordner: feste Anzahl (Voreinstellung oder eigene Zahl) oder Prüfungsplan mit Datum */
@@ -5596,6 +5595,7 @@ function settingsHTML(){
   </div>
   <div class="set-list">
     <button class="set-item" data-act="accountSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span><span class="si-t">Konto</span><span class="si-v">${esc(USER && USER.email || "")}</span><span class="si-ch" aria-hidden="true">›</span></button>
+    <button class="set-item" data-act="toggleSound"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></span><span class="si-t">Töne</span><span class="si-v" id="sndV">${S.set.sound === 0 ? "Aus" : "An"}</span></button>
     <button class="set-item" data-act="langSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z"/></svg></span><span class="si-t">Sprache</span><span class="si-v" translate="no">${esc((LANGS.find(l => l[0] === LANG) || LANGS[0])[1])}</span><span class="si-ch" aria-hidden="true">›</span></button>
   </div>
   <div class="set-list">
