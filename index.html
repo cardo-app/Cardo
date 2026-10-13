@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Cardo</title>
 <meta name="description" content="Cardo – Karteikarten lernen mit Spaced Repetition">
-<meta name="theme-color" content="#1B1D23">
-<meta name="color-scheme" content="dark"><!-- beim Start immer dunkel wie App-Icon und Startbild (helle Statusleisten-Schrift); nach dem Start setzt applyTheme() die echte Farbe -->
+<meta name="theme-color" content="#FFFFFF">
+<meta name="color-scheme" content="light"><!-- beim Start immer hell (weiße Statusleiste wie das Startbild); nach dem Start setzt applyTheme() die echte Farbe -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -35,12 +35,12 @@
 @font-face { font-family: 'Figtree'; font-style: normal; font-weight: 700; font-display: swap; src: url(fonts/figtree-latin.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 </style>
 <style>
-/* Start: alles sofort dunkel (#1B1D23) wie App-Icon und Startbild von iOS (auch hinter der Statusleiste) – kein schwarzer Rand, kein Zucken */
+/* Start: alles sofort weiß wie das Startbild von iOS (auch hinter der Statusleiste) – kein schwarzer Rand, kein Zucken */
 :root{--tc:0px}
 /* iOS 26+: In der installierten App legt iOS einen Weichzeichner („Liquid Glass“) über die Statusleiste und ca. 40 pt darunter.
    Dieser Streifen bleibt deshalb einfarbig (Hintergrund), der Inhalt beginnt erst darunter – so wird nichts verschwommen. */
 /* (v67: hier stand ein 40-px-Abstand unter der Statusleiste; seit v68 Statusleisten-Stil „default“ → nicht mehr nötig. Bei Rückkehr zu black-translucent: --tc:40px nur für iOS-Installation) */
-html{padding-top:calc(env(safe-area-inset-top,0px) + var(--tc));background:#1B1D23}
+html{padding-top:calc(env(safe-area-inset-top,0px) + var(--tc));background:#fff}
 html:has(> body.splashing:not(.intro-day):not(.splash-quick)){animation:htmlNight .9s cubic-bezier(.45,0,.55,1) .95s forwards} /* wird dunkel, wenn der Startbildschirm Nacht wird */
 @keyframes htmlNight{to{background-color:#07090F}}
 /* Kein Zoomen: Doppeltipp-Zoom aus */
@@ -873,7 +873,7 @@ body.authing #tabs{display:none}
 .auth{max-width:420px;margin:0 auto;padding-top:6vh}
 @media (max-width:700px){body.authing #main{padding-bottom:0}.auth{padding-top:max(3vh,calc(100svh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 18px - 614px))}.auth-msg:empty{display:none}}
 .auth-logo{text-align:center;margin-bottom:24px}
-.auth-mark{width:84px;height:84px;margin:0 auto 16px;border-radius:19px;background:#1B1D23;box-shadow:0 1px 2px rgba(0,0,0,.08),0 12px 30px -8px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.07);overflow:hidden}
+.auth-mark{width:84px;height:84px;margin:0 auto 16px;border-radius:19px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.08),0 12px 30px -8px rgba(0,0,0,.3),inset 0 0 0 1px rgba(0,0,0,.05);overflow:hidden}
 .auth-mark svg{width:100%;height:100%;display:block}
 .auth-logo h1{font-size:37.5px;font-weight:800}
 .auth-seg{grid-template-columns:repeat(3,1fr);margin-bottom:18px}
@@ -939,8 +939,8 @@ a.set-item{color:inherit;text-decoration:none}
 .sheet .gs-pill{font-size:14px}
 .sheet .seg button{font-size:16px}
 /* ---------- Startbildschirm (App-Icon mit Animation) ---------- */
-/* Start: dunkler Bildschirm mit hellem „C“ (= iOS-Startbild) → C+Punkt drehen 90° gegen den Uhrzeigersinn → Punkt fliegt hoch ins „Weltall“, Bildschirm wird dunkel → Punkt fällt in die Tab-Leiste und wird zu ihr */
-#splash{position:fixed;inset:0;z-index:200;display:grid;place-items:center;background:#1B1D23;overflow:hidden;transition:opacity .35s ease,visibility .35s;box-shadow:0 260px 0 #1B1D23} /* Schatten = Verlängerung nach unten, falls iOS den Bildschirm anfangs zu kurz misst */
+/* Start: weißer Bildschirm mit Lotus (= iOS-Startbild) → die Blüte atmet einmal auf → die Frucht fliegt hoch ins „Weltall“, Bildschirm wird dunkel → Punkt fällt in die Tab-Leiste und wird zu ihr */
+#splash{position:fixed;inset:0;z-index:200;display:grid;place-items:center;background:#fff;overflow:hidden;transition:opacity .35s ease,visibility .35s;box-shadow:0 260px 0 #fff} /* Schatten = weiße Verlängerung nach unten, falls iOS den Bildschirm anfangs zu kurz misst */
 body:not(.intro-day):not(.splash-quick) #splash{animation:splashNightEdge .9s cubic-bezier(.45,0,.55,1) .95s forwards}
 @keyframes splashNightEdge{to{box-shadow:0 260px 0 #07090F}}
 #splash.out{opacity:0;visibility:hidden;pointer-events:none}
@@ -952,7 +952,7 @@ body:not(.intro-day):not(.splash-quick) #splash{animation:splashNightEdge .9s cu
 #splash.reveal-sky::after{animation:spStarsOut .35s ease forwards}
 @keyframes spNightOut{from{opacity:1}to{opacity:0}}
 @keyframes spStarsOut{from{opacity:.85}to{opacity:0}}
-/* Die Drehung läuft auf dem ganzen Icon-Element (nicht im SVG), damit sie auch während des Ladens weich bleibt */
+/* Die Bewegung läuft auf dem ganzen Icon-Element (nicht im SVG), damit sie auch während des Ladens weich bleibt */
 /* iPhone-App: Logo an fester Stelle ab oben (genau wie im iOS-Startbild), damit es nicht springt, falls iOS die Fensterhöhe beim Start nachträglich anpasst */
 html[style*="--spcy"] #splash{place-items:start center}
 html[style*="--spcy"] #splash .sp-stage{margin-top:calc(var(--spcy) - 56px)}
@@ -964,40 +964,40 @@ html[style*="--spcy"] #splash .sp-ball{top:calc(var(--spcy) - 7.875px)}
 .sp-dot{animation:spHide 0s linear .9s forwards}
 .sp-pill{position:absolute;z-index:2;will-change:transform,opacity;overflow:hidden}
 .sp-pill i{position:absolute;inset:0;background:#FF5A36;will-change:opacity}
-.sp-ball{position:absolute;z-index:2;left:calc(50% - 7.875px);top:calc(50% - 7.875px);width:15.75px;height:15.75px;border-radius:50%;background:radial-gradient(75% 75% at 38% 32%,#FF7A55,#F2491F);opacity:0;will-change:transform;animation:spLaunch .85s cubic-bezier(.22,.72,.2,1) .9s forwards}
+.sp-ball{position:absolute;z-index:2;left:calc(50% - 12.075px);top:calc(50% - 7.875px);width:24.15px;height:24.15px;border-radius:50%;background:radial-gradient(75% 75% at 36% 30%,#FFBB2A,#F55600);opacity:0;will-change:transform;animation:spLaunch .85s cubic-bezier(.22,.72,.2,1) .9s forwards}
 .sp-ball::after{content:"";position:absolute;inset:-9px;border-radius:50%;background:radial-gradient(circle,rgba(255,90,54,.55) 0,rgba(255,90,54,.18) 45%,transparent 70%);opacity:0;animation:spGlow .6s ease 1.2s forwards}
 .sp-ball.landed::after{display:none}
 .sp-ball.morph{z-index:3;animation:none;opacity:1;transform-origin:0 0}
 body.splashing #tabs{opacity:0}
 /* Fester, deckender Streifen hinter der Statusleiste: iOS übernimmt dessen Farbe oben (statt eines grauen Verlaufs) */
 #edgeTop{position:fixed;left:0;right:0;top:0;height:calc(env(safe-area-inset-top,0px) + var(--tc));z-index:45;background:var(--paper);pointer-events:none}
-body.splashing #edgeTop,html:has(> body > #intro:not(.out):not(.out-fast)) #edgeTop{z-index:215;background:#1B1D23}
+body.splashing #edgeTop,html:has(> body > #intro:not(.out):not(.out-fast)) #edgeTop{z-index:215;background:#fff}
 body.splashing:not(.intro-day):not(.splash-quick) #edgeTop{animation:htmlNight .9s cubic-bezier(.45,0,.55,1) .95s forwards}
-body.intro-day #splash::before,body.intro-day #splash::after{display:none} /* erstes Öffnen: kein Nachthimmel, das Intro hat die Farbe des App-Icons */
+body.intro-day #splash::before,body.intro-day #splash::after{display:none} /* erstes Öffnen: kein Nachthimmel, das Intro ist weiß wie das App-Icon */
 /* Intro beim ersten Anmelden: Kugel → Karteikarten-Fächer → Logo */
-#intro{position:fixed;inset:0;z-index:210;overflow:hidden;touch-action:none;animation:inIn .35s ease both;background:#1B1D23;box-shadow:0 260px 0 #1B1D23}
-#intro .in-sky{position:absolute;inset:0;background:#1B1D23}
-#intro .in-card{position:absolute;z-index:1;border-radius:14px;background:#F5F6F8;box-shadow:0 14px 28px -12px rgba(0,0,0,.7);padding:16px 16px 0;display:flex;flex-direction:column;gap:9px;opacity:0;will-change:transform,opacity}
-#intro .in-card i{display:block;height:9px;border-radius:5px;background:rgba(27,29,35,.16)}
-#intro .in-card i:first-child{width:62%;height:11px;background:#1B1D23}
+#intro{position:fixed;inset:0;z-index:210;overflow:hidden;touch-action:none;animation:inIn .35s ease both;background:#fff;box-shadow:0 260px 0 #fff}
+#intro .in-sky{position:absolute;inset:0;background:#fff}
+#intro .in-card{position:absolute;z-index:1;border-radius:14px;background:#1B1D23;box-shadow:0 14px 28px -12px rgba(27,29,35,.55);padding:16px 16px 0;display:flex;flex-direction:column;gap:9px;opacity:0;will-change:transform,opacity}
+#intro .in-card i{display:block;height:9px;border-radius:5px;background:rgba(255,255,255,.22)}
+#intro .in-card i:first-child{width:62%;height:11px;background:#fff}
 #intro .in-card i:nth-child(2){width:88%}
 #intro .in-card i:nth-child(3){width:54%;background:#FF5A36}
-#intro .in-mark{position:absolute;z-index:6;background:#1B1D23;opacity:0;will-change:transform,opacity} /* ohne Rand/Schatten: Kachel hat die Farbe des Hintergrunds */
+#intro .in-mark{position:absolute;z-index:6;background:#fff;opacity:0;will-change:transform,opacity} /* ohne Rand/Schatten: auf Weiß kein dunkler Rahmen */
 #intro .in-mark svg{width:100%;height:100%;display:block}
-#intro .in-ball{position:absolute;z-index:7;border-radius:50%;background:radial-gradient(75% 75% at 38% 32%,#FF7A55,#F2491F);will-change:transform}
-#intro .in-skip{position:absolute;left:0;right:0;bottom:calc(22px + env(safe-area-inset-bottom,0px));text-align:center;font-size:13px;color:rgba(255,255,255,.45);animation:inIn 1s ease 1.2s both}
+#intro .in-ball{position:absolute;z-index:7;border-radius:50%;background:radial-gradient(75% 75% at 36% 30%,#FFBB2A,#F55600);will-change:transform}
+#intro .in-skip{position:absolute;left:0;right:0;bottom:calc(22px + env(safe-area-inset-bottom,0px));text-align:center;font-size:13px;color:rgba(27,29,35,.4);animation:inIn 1s ease 1.2s both}
 #intro.out{transition:background-color .55s ease,box-shadow .55s ease;background-color:transparent;box-shadow:0 260px 0 transparent}
 #intro.out .in-sky,#intro.out .in-card,#intro.out .in-skip{transition:opacity .55s ease;opacity:0!important}
 #intro.out .in-mark{transition:opacity .3s ease .3s;opacity:0!important}
 #intro.out-fast{transition:opacity .28s ease;opacity:0}
 @keyframes inIn{from{opacity:0}to{opacity:1}}
-/* Kurzstart (Startanimation „Einmal am Tag“ ab dem 2. Öffnen oder „Nie“): nur das Icon, das in die App überblendet */
+/* Kurzstart (Startanimation „Einmal am Tag“ ab dem 2. Öffnen oder „Nie“): nur das weiße Icon, das in die App überblendet */
 body.splash-quick #splash::before,body.splash-quick #splash::after,body.splash-quick .sp-ball{display:none}
 body.splash-quick .sp-stage,body.splash-quick .sp-l{animation:none}
 body.splash-quick #splash{transition:opacity .28s ease,visibility .28s}
 @keyframes spNight{to{opacity:1}}
 @keyframes spStars{to{opacity:.85}}
-@keyframes spRot{0%{transform:rotate(0)}100%{transform:rotate(-90deg)}}
+@keyframes spRot{0%{transform:scale(1)}55%{transform:scale(1.07)}100%{transform:scale(1)}} /* Blüte atmet auf */
 @keyframes spArcOut{to{opacity:0;transform:scale(.88)}} /* verblasst an Ort und Stelle (um die Kreismitte des C) */
 @keyframes spHide{to{opacity:0}}
 @keyframes spGlow{to{opacity:1}}
@@ -1015,8 +1015,8 @@ body.splash-quick #splash{transition:opacity .28s ease,visibility .28s}
 @media (min-width:700px){.selbar{bottom:calc(96px + env(safe-area-inset-bottom,0px) - var(--vgap,0px))}}
 #toast{bottom:calc(92px + env(safe-area-inset-bottom,0px) - var(--vgap,0px))}
 #splash,#intro,.peek,#sheet{bottom:calc(0px - var(--vgap,0px))}
-/* Während des Intros bleibt der Rand hinter allem in Icon-Farbe (sonst blitzt unten im Dunkelmodus ein dunkler Streifen auf) */
-html:has(> body > #intro:not(.out):not(.out-fast)){background-color:#1B1D23!important}
+/* Während des Intros bleibt der Rand hinter allem weiß (sonst blitzt unten im Dunkelmodus ein dunkler Streifen auf) */
+html:has(> body > #intro:not(.out):not(.out-fast)){background-color:#fff!important}
 /* iOS 26: in der installierten App ist die bemalbare Fläche zu kurz, wenn html nur 100% hoch ist – mit 100lvh reicht sie bis zum unteren Rand */
 @media (display-mode: standalone){html{height:100lvh;min-height:100lvh}body{min-height:100lvh}}
 html.ios-standalone{height:100lvh;min-height:100lvh}
@@ -1079,8 +1079,8 @@ body.m-dark{--bb-pill:rgba(255,255,255,.09);--bb-shade:.45;--bb-line:rgba(255,25
 html.ios-standalone #tabs{padding-bottom:4px}
 @media (min-width:700px){#tabs{left:50%;right:auto;width:400px;bottom:calc(16px + env(safe-area-inset-bottom,0px) - var(--vgap,0px));border:0;padding:4px}}
 /* Drücken auf einen Tab: die ganze Leiste wird kurz etwas größer und federt zurück (eigene „scale“-Eigenschaft, damit translateX auf dem iPad/Mac erhalten bleibt) */
-#tabs{--se:cubic-bezier(.3,1.1,.4,1);--spring:cubic-bezier(.3,1.5,.5,1); /* Knopf ⇄ Leiste: genau ein weicher Rückprall, dann ruhig */scale:1;transition:--pill .45s cubic-bezier(.34,1.35,.55,1),--sx .45s cubic-bezier(.34,1.35,.55,1),--k .45s var(--spring),scale .4s cubic-bezier(.34,1.6,.55,1)}
-#tabs:has(button:active){scale:1.05;transition:--pill .45s cubic-bezier(.34,1.35,.55,1),--sx .45s cubic-bezier(.34,1.35,.55,1),--k .45s var(--spring),scale .14s ease-out}
+#tabs{--se:cubic-bezier(.3,1.1,.4,1);--spring:cubic-bezier(.3,1.5,.5,1); /* Knopf ⇄ Leiste: genau ein weicher Rückprall, dann ruhig */scale:1;transition:--pill .45s cubic-bezier(.34,1.35,.55,1),--sx .45s cubic-bezier(.34,1.35,.55,1),--k .45s var(--spring),scale .4s cubic-bezier(.34,1.6,.55,1),background-color .3s ease}
+#tabs:has(button:active){scale:1.05;background-color:color-mix(in srgb,var(--gl-bg),#fff 5%); /* beim Drücken nur ganz leicht heller */transition:--pill .45s cubic-bezier(.34,1.35,.55,1),--sx .45s cubic-bezier(.34,1.35,.55,1),--k .45s var(--spring),scale .14s ease-out,background-color .1s ease-out}
 /* Im Ordner: Leiste schrumpft zu einem runden Knopf, nur das Bibliothek-Symbol in der Mitte (Tippen = zurück zur Bibliothek); beim Seitenwischen wieder ganz.
    Alles hängt an einem Wert --k (0 = ganze Leiste, 1 = Knopf), damit Leiste, Tabs und Blase genau gleich laufen. */
 @property --sx{syntax:"<number>";inherits:true;initial-value:0}
@@ -1370,7 +1370,7 @@ sup .ms-bx,sub .ms-bx{width:.8em;height:.9em}
 </head>
 <body>
 
-<div id="edgeTop" aria-hidden="true"></div><div id="splash" aria-hidden="true"><script>document.body.classList.add("splashing");document.documentElement.style.colorScheme="dark";try{var ua=navigator.userAgent,sa=navigator.standalone===true||matchMedia("(display-mode: standalone)").matches;if(/iPhone|iPod/.test(ua)&&sa){var SH=Math.max(screen.width,screen.height),dd=SH-innerHeight,sb=dd>=0&&dd<=70?dd:(SH>=852?62:SH>=812?47:20);document.documentElement.style.setProperty("--spcy",Math.round((SH-sb)/2)+"px")}}catch(e){}try{if(!localStorage.getItem("cardo-intro-seen")&&!localStorage.getItem("sb-rormgkvthvisrctcsjrg-auth-token"))document.body.classList.add("intro-day");var cs=JSON.parse(localStorage.getItem("kartenfach-settings")||"{}")||{},cm=cs.splash||"daily",cd=new Date(),ck=cd.getFullYear()+"-"+(cd.getMonth()+1)+"-"+cd.getDate();if(cm==="never"||(cm==="daily"&&localStorage.getItem("cardo-splash-day")===ck))document.body.classList.add("splash-quick");else localStorage.setItem("cardo-splash-day",ck)}catch(e){}</script><div class="sp-stage"><div class="sp-l sp-arc"><svg viewBox="0 0 512 512"><defs><filter id="csa" filterUnits="userSpaceOnUse" x="0" y="0" width="512" height="512"><feDropShadow dx="0" dy="7" stdDeviation="9" flood-color="#000000" flood-opacity=".38"/></filter></defs><g transform="translate(256 256) scale(1.24) translate(-256 -256)"><g filter="url(#csa)"><path d="M332.17 165.22A118.5 118.5 0 1 0 332.17 346.78" fill="none" stroke="#F5F6F8" stroke-width="55" stroke-linecap="round"/></g></g></svg></div><div class="sp-l sp-dot"><svg viewBox="0 0 512 512"><defs><filter id="csb" filterUnits="userSpaceOnUse" x="0" y="0" width="512" height="512"><feDropShadow dx="0" dy="7" stdDeviation="9" flood-color="#000000" flood-opacity=".38"/></filter><radialGradient id="cdb" cx=".38" cy=".32" r=".75"><stop offset="0" stop-color="#FF7A55"/><stop offset="1" stop-color="#F2491F"/></radialGradient></defs><g transform="translate(256 256) scale(1.24) translate(-256 -256)"><g filter="url(#csb)"><circle cx="256" cy="256" r="29" fill="url(#cdb)"/></g></g></svg></div></div><div class="sp-ball"></div></div>
+<div id="edgeTop" aria-hidden="true"></div><div id="splash" aria-hidden="true"><script>document.body.classList.add("splashing");document.documentElement.style.colorScheme="light";try{var ua=navigator.userAgent,sa=navigator.standalone===true||matchMedia("(display-mode: standalone)").matches;if(/iPhone|iPod/.test(ua)&&sa){var SH=Math.max(screen.width,screen.height),dd=SH-innerHeight,sb=dd>=0&&dd<=70?dd:(SH>=852?62:SH>=812?47:20);document.documentElement.style.setProperty("--spcy",Math.round((SH-sb)/2)+"px")}}catch(e){}try{if(!localStorage.getItem("cardo-intro-seen")&&!localStorage.getItem("sb-rormgkvthvisrctcsjrg-auth-token"))document.body.classList.add("intro-day");var cs=JSON.parse(localStorage.getItem("kartenfach-settings")||"{}")||{},cm=cs.splash||"daily",cd=new Date(),ck=cd.getFullYear()+"-"+(cd.getMonth()+1)+"-"+cd.getDate();if(cm==="never"||(cm==="daily"&&localStorage.getItem("cardo-splash-day")===ck))document.body.classList.add("splash-quick");else localStorage.setItem("cardo-splash-day",ck)}catch(e){}</script><div class="sp-stage"><div class="sp-l sp-arc"><svg viewBox="0 0 512 512"><defs><linearGradient id="sap0" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="94.5" y2="353.7"><stop offset="0" stop-color="#8A021C"/><stop offset=".26" stop-color="#D27B00"/><stop offset="1" stop-color="#007F35"/></linearGradient><linearGradient id="sap1" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="417.5" y2="353.7"><stop offset="0" stop-color="#8C062F"/><stop offset=".26" stop-color="#DB7900"/><stop offset="1" stop-color="#308328"/></linearGradient><linearGradient id="sap2" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="118.8" y2="247.7"><stop offset="0" stop-color="#970815"/><stop offset=".26" stop-color="#D98C00"/><stop offset="1" stop-color="#218B30"/></linearGradient><linearGradient id="sap3" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="393.2" y2="247.7"><stop offset="0" stop-color="#930027"/><stop offset=".26" stop-color="#DE8200"/><stop offset="1" stop-color="#008B45"/></linearGradient><linearGradient id="sap4" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="256.0" y2="168.0"><stop offset="0" stop-color="#A2041C"/><stop offset=".26" stop-color="#DB9500"/><stop offset="1" stop-color="#37911F"/></linearGradient><linearGradient id="sap10" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="181.1" y2="316.8"><stop offset="0" stop-color="#B0062D"/><stop offset=".26" stop-color="#E99700"/><stop offset="1" stop-color="#53AA2D"/></linearGradient><linearGradient id="sap11" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="330.9" y2="316.8"><stop offset="0" stop-color="#B31415"/><stop offset=".26" stop-color="#E59F00"/><stop offset="1" stop-color="#27B24F"/></linearGradient><radialGradient id="saf" cx=".36" cy=".3" r=".8"><stop offset="0" stop-color="#FFBB2A"/><stop offset="1" stop-color="#F55600"/></radialGradient></defs><g transform="translate(256 256) scale(1.2) translate(-256 -284)"><path d="M256.0 400.0 C 219.8 453.0 112.5 425.2 94.5 353.7 C 147.6 302.6 253.4 335.9 256.0 400.0 Z" fill="url(#sap0)"/><path d="M256.0 400.0 C 258.6 335.9 364.4 302.6 417.5 353.7 C 399.5 425.2 292.2 453.0 256.0 400.0 Z" fill="url(#sap1)"/><path d="M256.0 400.0 C 188.0 428.1 95.1 329.8 118.8 247.7 C 203.0 232.6 291.0 335.3 256.0 400.0 Z" fill="url(#sap2)"/><path d="M256.0 400.0 C 221.0 335.3 309.0 232.6 393.2 247.7 C 416.9 329.8 324.0 428.1 256.0 400.0 Z" fill="url(#sap3)"/><path d="M256.0 400.0 C 180.4 372.2 176.8 219.0 256.0 168.0 C 335.2 219.0 331.6 372.2 256.0 400.0 Z" fill="url(#sap4)"/></g></svg></div><div class="sp-l sp-dot"><svg viewBox="0 0 512 512"><defs><linearGradient id="sbp0" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="94.5" y2="353.7"><stop offset="0" stop-color="#8A021C"/><stop offset=".26" stop-color="#D27B00"/><stop offset="1" stop-color="#007F35"/></linearGradient><linearGradient id="sbp1" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="417.5" y2="353.7"><stop offset="0" stop-color="#8C062F"/><stop offset=".26" stop-color="#DB7900"/><stop offset="1" stop-color="#308328"/></linearGradient><linearGradient id="sbp2" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="118.8" y2="247.7"><stop offset="0" stop-color="#970815"/><stop offset=".26" stop-color="#D98C00"/><stop offset="1" stop-color="#218B30"/></linearGradient><linearGradient id="sbp3" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="393.2" y2="247.7"><stop offset="0" stop-color="#930027"/><stop offset=".26" stop-color="#DE8200"/><stop offset="1" stop-color="#008B45"/></linearGradient><linearGradient id="sbp4" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="256.0" y2="168.0"><stop offset="0" stop-color="#A2041C"/><stop offset=".26" stop-color="#DB9500"/><stop offset="1" stop-color="#37911F"/></linearGradient><linearGradient id="sbp10" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="181.1" y2="316.8"><stop offset="0" stop-color="#B0062D"/><stop offset=".26" stop-color="#E99700"/><stop offset="1" stop-color="#53AA2D"/></linearGradient><linearGradient id="sbp11" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="330.9" y2="316.8"><stop offset="0" stop-color="#B31415"/><stop offset=".26" stop-color="#E59F00"/><stop offset="1" stop-color="#27B24F"/></linearGradient><radialGradient id="sbf" cx=".36" cy=".3" r=".8"><stop offset="0" stop-color="#FFBB2A"/><stop offset="1" stop-color="#F55600"/></radialGradient></defs><g transform="translate(256 256) scale(1.2) translate(-256 -284)"><circle cx="256" cy="300" r="46" fill="url(#sbf)"/><ellipse cx="240" cy="283" rx="13" ry="8" transform="rotate(-35 240 283)" fill="#FFFFFF" opacity=".55"/></g></svg></div><div class="sp-l sp-arc"><svg viewBox="0 0 512 512"><defs><linearGradient id="scp0" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="94.5" y2="353.7"><stop offset="0" stop-color="#8A021C"/><stop offset=".26" stop-color="#D27B00"/><stop offset="1" stop-color="#007F35"/></linearGradient><linearGradient id="scp1" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="417.5" y2="353.7"><stop offset="0" stop-color="#8C062F"/><stop offset=".26" stop-color="#DB7900"/><stop offset="1" stop-color="#308328"/></linearGradient><linearGradient id="scp2" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="118.8" y2="247.7"><stop offset="0" stop-color="#970815"/><stop offset=".26" stop-color="#D98C00"/><stop offset="1" stop-color="#218B30"/></linearGradient><linearGradient id="scp3" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="393.2" y2="247.7"><stop offset="0" stop-color="#930027"/><stop offset=".26" stop-color="#DE8200"/><stop offset="1" stop-color="#008B45"/></linearGradient><linearGradient id="scp4" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="256.0" y2="168.0"><stop offset="0" stop-color="#A2041C"/><stop offset=".26" stop-color="#DB9500"/><stop offset="1" stop-color="#37911F"/></linearGradient><linearGradient id="scp10" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="181.1" y2="316.8"><stop offset="0" stop-color="#B0062D"/><stop offset=".26" stop-color="#E99700"/><stop offset="1" stop-color="#53AA2D"/></linearGradient><linearGradient id="scp11" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="330.9" y2="316.8"><stop offset="0" stop-color="#B31415"/><stop offset=".26" stop-color="#E59F00"/><stop offset="1" stop-color="#27B24F"/></linearGradient><radialGradient id="scf" cx=".36" cy=".3" r=".8"><stop offset="0" stop-color="#FFBB2A"/><stop offset="1" stop-color="#F55600"/></radialGradient></defs><g transform="translate(256 256) scale(1.2) translate(-256 -284)"><path d="M256.0 400.0 C 212.7 420.9 161.6 367.5 181.1 316.8 C 233.5 302.7 281.3 359.1 256.0 400.0 Z" fill="url(#scp10)"/><path d="M256.0 400.0 C 230.7 359.1 278.5 302.7 330.9 316.8 C 350.4 367.5 299.3 420.9 256.0 400.0 Z" fill="url(#scp11)"/></g></svg></div></div><div class="sp-ball"></div></div>
 <div id="app">
   <main id="main"><div class="loading">Cardo lädt …</div></main>
 </div>
@@ -3306,14 +3306,14 @@ function fadeSplash(el){ el.classList.add("out"); document.body.classList.remove
 const INTRO_KEY = "cardo-intro-seen";
 let introSkip = null;
 function wantIntro(){ try { if (localStorage.getItem(INTRO_KEY)) return false; } catch { return false; } return !matchMedia("(prefers-reduced-motion: reduce)").matches; }
-/* iOS färbt die Statusleiste nach dem obersten deckenden Element der Seite – das halbtransparent ausblendende Intro zählt dort bis zum Schluss als „dunkel“ (Icon-Farbe).
+/* iOS färbt die Statusleiste nach dem obersten deckenden Element der Seite – das halbtransparent ausblendende Intro zählt dort bis zum Schluss als „weiß“.
    Deshalb liegt beim Ausblenden oben ein schmaler deckender Streifen, dessen Farbe in jedem Bild genau der Mischfarbe der Überblendung entspricht. */
 function fadeTopStrip(dur, fast){
   const bgOf = el => { const c = getComputedStyle(el).backgroundColor; return c && c !== "transparent" && !/rgba\(.*,\s*0\)$/.test(c) ? c : ""; };
   const to = hexColor(bgOf(document.body) || bgOf(document.documentElement) || "#fff"), m = /^#(..)(..)(..)$/.exec(to); if (!m) return null;
   const T = m.slice(1).map(h => parseInt(h, 16));
   const st = document.createElement("div"); st.setAttribute("aria-hidden", "true");
-  st.style.cssText = "position:fixed;left:0;right:0;top:0;height:24px;z-index:230;pointer-events:none;background:#1B1D23";
+  st.style.cssText = "position:fixed;left:0;right:0;top:0;height:24px;z-index:230;pointer-events:none;background:#fff";
   document.body.appendChild(st);
   // CSS-„ease“ (cubic-bezier(.25,.1,.25,1))
   const bez = x => { let a = 0, b = 1, t = x; for (let i = 0; i < 18; i++) { t = (a + b) / 2; const bx = 3 * (1 - t) * (1 - t) * t * .25 + 3 * (1 - t) * t * t * .25 + t * t * t; if (bx < x) a = t; else b = t; } return 3 * (1 - t) * (1 - t) * t * .1 + 3 * (1 - t) * t * t + t * t * t; };
@@ -3321,8 +3321,8 @@ function fadeTopStrip(dur, fast){
   const step = () => {
     if (!st.isConnected) return;
     const x = Math.min(1, (performance.now() - t0) / dur), e = bez(x);
-    const w = fast ? 1 - e : 1 - e * e; // Anteil Icon-Farbe: Himmel und Intro-Hintergrund blenden beide aus → 1 − e²
-    const F = [27, 29, 35], c = T.map((v, k) => Math.round(F[k] * w + v * (1 - w)));
+    const w = fast ? 1 - e : 1 - e * e; // Anteil Weiß: Himmel und Intro-Hintergrund blenden beide aus → 1 − e²
+    const c = T.map(v => Math.round(255 * w + v * (1 - w)));
     st.style.background = `rgb(${c[0]},${c[1]},${c[2]})`;
     if (x < 1) requestAnimationFrame(step);
   };
@@ -3338,9 +3338,9 @@ function playIntro(opts = {}){
   const CW = Math.round(Math.min(W * .42, 180)), CH = Math.round(CW * .64), TS = Math.round(Math.min(W * .3, 120)), BD = 22;
   const N = 5, ANG = [-26, -13, 0, 13, 26];
   const ov = document.createElement("div"); ov.id = "intro"; ov.setAttribute("aria-hidden", "true");
-  ov.innerHTML = `<div class="in-sky"></div>${ANG.map(() => `<div class="in-card"><i></i><i></i><i></i></div>`).join("")}<div class="in-mark"><svg viewBox="0 0 512 512"><defs><filter id="csc" filterUnits="userSpaceOnUse" x="0" y="0" width="512" height="512"><feDropShadow dx="0" dy="7" stdDeviation="9" flood-color="#000000" flood-opacity=".38"/></filter><radialGradient id="cdc" cx=".38" cy=".32" r=".75"><stop offset="0" stop-color="#FF7A55"/><stop offset="1" stop-color="#F2491F"/></radialGradient></defs><g transform="translate(256 256) scale(1.24) translate(-256 -256)"><g filter="url(#csc)"><path d="M332.17 165.22A118.5 118.5 0 1 0 332.17 346.78" fill="none" stroke="#F5F6F8" stroke-width="55" stroke-linecap="round"/><circle cx="256" cy="256" r="29" fill="url(#cdc)" opacity="0"/></g></g></svg></div><div class="in-ball"></div>${opts.noSkip ? "" : `<div class="in-skip">Tippen zum Überspringen</div>`}`;
+  ov.innerHTML = `<div class="in-sky"></div>${ANG.map(() => `<div class="in-card"><i></i><i></i><i></i></div>`).join("")}<div class="in-mark"><svg viewBox="0 0 512 512"><defs><linearGradient id="icp0" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="94.5" y2="353.7"><stop offset="0" stop-color="#8A021C"/><stop offset=".26" stop-color="#D27B00"/><stop offset="1" stop-color="#007F35"/></linearGradient><linearGradient id="icp1" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="417.5" y2="353.7"><stop offset="0" stop-color="#8C062F"/><stop offset=".26" stop-color="#DB7900"/><stop offset="1" stop-color="#308328"/></linearGradient><linearGradient id="icp2" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="118.8" y2="247.7"><stop offset="0" stop-color="#970815"/><stop offset=".26" stop-color="#D98C00"/><stop offset="1" stop-color="#218B30"/></linearGradient><linearGradient id="icp3" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="393.2" y2="247.7"><stop offset="0" stop-color="#930027"/><stop offset=".26" stop-color="#DE8200"/><stop offset="1" stop-color="#008B45"/></linearGradient><linearGradient id="icp4" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="256.0" y2="168.0"><stop offset="0" stop-color="#A2041C"/><stop offset=".26" stop-color="#DB9500"/><stop offset="1" stop-color="#37911F"/></linearGradient><linearGradient id="icp10" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="181.1" y2="316.8"><stop offset="0" stop-color="#B0062D"/><stop offset=".26" stop-color="#E99700"/><stop offset="1" stop-color="#53AA2D"/></linearGradient><linearGradient id="icp11" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="330.9" y2="316.8"><stop offset="0" stop-color="#B31415"/><stop offset=".26" stop-color="#E59F00"/><stop offset="1" stop-color="#27B24F"/></linearGradient><radialGradient id="icf" cx=".36" cy=".3" r=".8"><stop offset="0" stop-color="#FFBB2A"/><stop offset="1" stop-color="#F55600"/></radialGradient></defs><g transform="translate(256 256) scale(1.2) translate(-256 -284)"><g class="in-pb"><path d="M256.0 400.0 C 219.8 453.0 112.5 425.2 94.5 353.7 C 147.6 302.6 253.4 335.9 256.0 400.0 Z" fill="url(#icp0)"/><path d="M256.0 400.0 C 258.6 335.9 364.4 302.6 417.5 353.7 C 399.5 425.2 292.2 453.0 256.0 400.0 Z" fill="url(#icp1)"/><path d="M256.0 400.0 C 188.0 428.1 95.1 329.8 118.8 247.7 C 203.0 232.6 291.0 335.3 256.0 400.0 Z" fill="url(#icp2)"/><path d="M256.0 400.0 C 221.0 335.3 309.0 232.6 393.2 247.7 C 416.9 329.8 324.0 428.1 256.0 400.0 Z" fill="url(#icp3)"/><path d="M256.0 400.0 C 180.4 372.2 176.8 219.0 256.0 168.0 C 335.2 219.0 331.6 372.2 256.0 400.0 Z" fill="url(#icp4)"/></g><g class="in-fr" opacity="0"><circle cx="256" cy="300" r="46" fill="url(#icf)"/><ellipse cx="240" cy="283" rx="13" ry="8" transform="rotate(-35 240 283)" fill="#FFFFFF" opacity=".55"/></g><g class="in-pf"><path d="M256.0 400.0 C 212.7 420.9 161.6 367.5 181.1 316.8 C 233.5 302.7 281.3 359.1 256.0 400.0 Z" fill="url(#icp10)"/><path d="M256.0 400.0 C 230.7 359.1 278.5 302.7 330.9 316.8 C 350.4 367.5 299.3 420.9 256.0 400.0 Z" fill="url(#icp11)"/></g></g></svg></div><div class="in-ball"></div>${opts.noSkip ? "" : `<div class="in-skip">Tippen zum Überspringen</div>`}`;
   document.body.appendChild(ov);
-  const cards = [...ov.querySelectorAll(".in-card")], mk = ov.querySelector(".in-mark"), arc = mk.querySelector("path"), dotEl = mk.querySelector("circle"), ball = ov.querySelector(".in-ball");
+  const cards = [...ov.querySelectorAll(".in-card")], mk = ov.querySelector(".in-mark"), petB = mk.querySelector(".in-pb"), petF = mk.querySelector(".in-pf"), dotEl = mk.querySelector(".in-fr"), ball = ov.querySelector(".in-ball");
   let done = false; const anims = [], timers = [];
   const end = fast => {
     if (done) return; done = true; introSkip = null; timers.forEach(clearTimeout);
@@ -3396,14 +3396,15 @@ function playIntro(opts = {}){
     { opacity: 1, transform: "scale(1)" }
   ], { delay: 1480, duration: 360 });
   // 5) Die Kugel hüpft in die Kachel und wird zum Punkt, das C zeichnet sich
-  const dx = 0, dy = 0, kd = TS * 72 / 512 / BD; /* Punkt sitzt mittig im C */
+  const dx = 0, dy = TS * 19.2 / 512, kd = TS * 110.4 / 512 / BD; /* Frucht sitzt in der Blüte (etwas unter der Mitte) */
   A(ball, [
     { transform: T(0, -CH * .82, 1, 1), easing: "cubic-bezier(.3,0,.4,1)" },
     { offset: .55, transform: T(dx * .6, -CH * 1.05, 1, 1), easing: "cubic-bezier(.6,0,.8,.6)" },
     { transform: T(dx, dy, kd, kd) }
   ], { delay: 1520, duration: 520, fill: "forwards" });
-  const len = arc.getTotalLength ? arc.getTotalLength() : 600; arc.style.strokeDasharray = len;
-  A(arc, [{ strokeDashoffset: len, opacity: 0, easing: "cubic-bezier(.45,0,.2,1)" }, { offset: .06, opacity: 1 }, { strokeDashoffset: 0, opacity: 1 }], { delay: 1640, duration: 520 });
+  // Die Blüte geht auf: erst die hinteren Blätter, dann die vorderen (wachsen vom Blütengrund aus)
+  [petB, petF].forEach((g, i) => { g.style.transformBox = "view-box"; g.style.transformOrigin = "256px 400px";
+    A(g, [{ opacity: 0, transform: "scale(.35)", easing: "cubic-bezier(.2,.9,.3,1.25)" }, { offset: .4, opacity: 1 }, { opacity: 1, transform: "scale(1)" }], { delay: 1600 + i * 140, duration: 520 }); });
   timers.push(setTimeout(() => { dotEl.setAttribute("opacity", "1"); ball.style.visibility = "hidden"; }, 2045));
   // 6) Logo gleitet an seinen Platz auf der Anmeldeseite (bzw. bleibt in der Mitte)
   const a = !opts.center && document.querySelector(".auth-mark"), r = a && a.getBoundingClientRect();
@@ -4142,13 +4143,13 @@ function applyTheme(){
 function applyTop(){
   const b = document.body, dark = isDark(), sky = b.matches(".starry,.beach,.aurora,.autumn") && skyTop;
   const r = document.documentElement.style, paper = sky || getComputedStyle(b).getPropertyValue("--paper").trim();
-  // Solange der Startbildschirm läuft, bleibt alles dunkel wie das iOS-Startbild (sonst blitzt oben z. B. im Dunkelmodus Schwarz auf)
+  // Solange der Startbildschirm läuft, bleibt alles weiß wie das iOS-Startbild (sonst blitzt oben z. B. im Dunkelmodus Schwarz auf)
   const booting = document.body.classList.contains("splashing");
   const et = document.getElementById("edgeTop"); if (et) et.style.background = !booting && sky || "";
-  r.backgroundColor = booting ? "" : paper; // "" → CSS-Startfarbe (Icon-Farbe bzw. Nacht wie der Startbildschirm)
-  r.colorScheme = booting ? "dark" : dark ? "dark" : "light"; // beim Start dunkel wie das Startbild
-  const cs = document.querySelector('meta[name="color-scheme"]'); if (cs) cs.setAttribute("content", booting ? "dark" : dark ? "dark" : "light");
-  const tc = document.querySelector('meta[name="theme-color"]'); if (tc) { const c = getComputedStyle(b).backgroundColor; tc.setAttribute("content", booting ? "#1B1D23" : sky ? sky : c && c !== "rgba(0, 0, 0, 0)" ? hexColor(c) : (dark ? "#0F1115" : "#F5F6F8")); }
+  r.backgroundColor = booting ? "" : paper; // "" → CSS-Startfarbe (weiß bzw. Nacht wie der Startbildschirm)
+  r.colorScheme = booting ? "light" : dark ? "dark" : "light"; // beim Start hell, sonst blitzt die Statusleiste im Dunkelmodus schwarz auf
+  const cs = document.querySelector('meta[name="color-scheme"]'); if (cs) cs.setAttribute("content", booting ? "light" : dark ? "dark" : "light");
+  const tc = document.querySelector('meta[name="theme-color"]'); if (tc) { const c = getComputedStyle(b).backgroundColor; tc.setAttribute("content", booting ? "#FFFFFF" : sky ? sky : c && c !== "rgba(0, 0, 0, 0)" ? hexColor(c) : (dark ? "#0F1115" : "#F5F6F8")); }
 }
 // theme-color als #rrggbb (iOS versteht oklab()/color-mix() in der Statusleiste evtl. nicht)
 function hexColor(c){ try { const cv = hexColor.cv || (hexColor.cv = document.createElement("canvas")); cv.width = cv.height = 1; const x = cv.getContext("2d"); x.clearRect(0, 0, 1, 1); x.fillStyle = "#000"; x.fillStyle = c; x.fillRect(0, 0, 1, 1); const d = x.getImageData(0, 0, 1, 1).data; return "#" + [d[0], d[1], d[2]].map(v => v.toString(16).padStart(2, "0")).join(""); } catch { return c; } }
@@ -4708,7 +4709,7 @@ function showAuth(mode = "in"){
   S.mode = "auth"; document.body.classList.add("authing"); hideSplash();
   $("#tabs").innerHTML = ""; $("#tabs").dataset.h = "";
   $("#main").innerHTML = `<div class="auth">
-    <div class="auth-logo"><div class="auth-mark" aria-hidden="true"><svg viewBox="0 0 512 512"><defs><filter id="cse" filterUnits="userSpaceOnUse" x="0" y="0" width="512" height="512"><feDropShadow dx="0" dy="7" stdDeviation="9" flood-color="#000000" flood-opacity=".38"/></filter><radialGradient id="cde" cx=".38" cy=".32" r=".75"><stop offset="0" stop-color="#FF7A55"/><stop offset="1" stop-color="#F2491F"/></radialGradient></defs><g transform="translate(256 256) scale(1.24) translate(-256 -256)"><g filter="url(#cse)"><path d="M332.17 165.22A118.5 118.5 0 1 0 332.17 346.78" fill="none" stroke="#F5F6F8" stroke-width="55" stroke-linecap="round"/><circle cx="256" cy="256" r="29" fill="url(#cde)"/></g></g></svg></div><h1>Cardo</h1><p class="muted">Karteikarten, synchron auf all deinen Geräten.</p></div>
+    <div class="auth-logo"><div class="auth-mark" aria-hidden="true"><svg viewBox="0 0 512 512"><defs><linearGradient id="aep0" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="94.5" y2="353.7"><stop offset="0" stop-color="#8A021C"/><stop offset=".26" stop-color="#D27B00"/><stop offset="1" stop-color="#007F35"/></linearGradient><linearGradient id="aep1" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="417.5" y2="353.7"><stop offset="0" stop-color="#8C062F"/><stop offset=".26" stop-color="#DB7900"/><stop offset="1" stop-color="#308328"/></linearGradient><linearGradient id="aep2" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="118.8" y2="247.7"><stop offset="0" stop-color="#970815"/><stop offset=".26" stop-color="#D98C00"/><stop offset="1" stop-color="#218B30"/></linearGradient><linearGradient id="aep3" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="393.2" y2="247.7"><stop offset="0" stop-color="#930027"/><stop offset=".26" stop-color="#DE8200"/><stop offset="1" stop-color="#008B45"/></linearGradient><linearGradient id="aep4" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="256.0" y2="168.0"><stop offset="0" stop-color="#A2041C"/><stop offset=".26" stop-color="#DB9500"/><stop offset="1" stop-color="#37911F"/></linearGradient><linearGradient id="aep10" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="181.1" y2="316.8"><stop offset="0" stop-color="#B0062D"/><stop offset=".26" stop-color="#E99700"/><stop offset="1" stop-color="#53AA2D"/></linearGradient><linearGradient id="aep11" gradientUnits="userSpaceOnUse" x1="256" y1="400" x2="330.9" y2="316.8"><stop offset="0" stop-color="#B31415"/><stop offset=".26" stop-color="#E59F00"/><stop offset="1" stop-color="#27B24F"/></linearGradient><radialGradient id="aef" cx=".36" cy=".3" r=".8"><stop offset="0" stop-color="#FFBB2A"/><stop offset="1" stop-color="#F55600"/></radialGradient></defs><g transform="translate(256 256) scale(1.2) translate(-256 -284)"><path d="M256.0 400.0 C 219.8 453.0 112.5 425.2 94.5 353.7 C 147.6 302.6 253.4 335.9 256.0 400.0 Z" fill="url(#aep0)"/><path d="M256.0 400.0 C 258.6 335.9 364.4 302.6 417.5 353.7 C 399.5 425.2 292.2 453.0 256.0 400.0 Z" fill="url(#aep1)"/><path d="M256.0 400.0 C 188.0 428.1 95.1 329.8 118.8 247.7 C 203.0 232.6 291.0 335.3 256.0 400.0 Z" fill="url(#aep2)"/><path d="M256.0 400.0 C 221.0 335.3 309.0 232.6 393.2 247.7 C 416.9 329.8 324.0 428.1 256.0 400.0 Z" fill="url(#aep3)"/><path d="M256.0 400.0 C 180.4 372.2 176.8 219.0 256.0 168.0 C 335.2 219.0 331.6 372.2 256.0 400.0 Z" fill="url(#aep4)"/><circle cx="256" cy="300" r="46" fill="url(#aef)"/><ellipse cx="240" cy="283" rx="13" ry="8" transform="rotate(-35 240 283)" fill="#FFFFFF" opacity=".55"/><path d="M256.0 400.0 C 212.7 420.9 161.6 367.5 181.1 316.8 C 233.5 302.7 281.3 359.1 256.0 400.0 Z" fill="url(#aep10)"/><path d="M256.0 400.0 C 230.7 359.1 278.5 302.7 330.9 316.8 C 350.4 367.5 299.3 420.9 256.0 400.0 Z" fill="url(#aep11)"/></g></svg></div><h1>Cardo</h1><p class="muted">Karteikarten, synchron auf all deinen Geräten.</p></div>
     <div class="seg auth-seg" role="tablist"><button class="${mode === 'in' ? 'on' : ''}" data-act="authMode" data-v="in">Anmelden</button><button class="${mode === 'up' ? 'on' : ''}" data-act="authMode" data-v="up">Registrieren</button><button class="${mode === 'reset' ? 'on' : ''}" data-act="authMode" data-v="reset">Passwort vergessen</button></div>
     <form id="authForm" class="auth-form" novalidate>
       <div class="field"><label for="aEmail">E-Mail</label><input class="in" id="aEmail" type="email" autocomplete="email" inputmode="email" required></div>
