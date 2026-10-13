@@ -2850,9 +2850,12 @@ function mountRichEditor(root, host, initial){
     state();
   });
   field.addEventListener("click", e => {
-    const mb = e.target.closest(".ed-mk [data-mk]"); if (mb && field.contains(mb)) { e.preventDefault(); markWith(mb.dataset.mk); host.dispatchEvent(new Event("input", { bubbles: true })); state(); return; }
+    const mb = e.target.closest(".ed-mk [data-mk]"); if (mb && field.contains(mb)) { e.preventDefault(); try { localStorage.setItem("cardo-mark-color", mb.dataset.mk); } catch {} markWith(mb.dataset.mk); host.dispatchEvent(new Event("input", { bubbles: true })); state(); return; }
     const b = e.target.closest(".ed-bar [data-ed], .ed-sub [data-ed]"); if (!b || !field.contains(b)) return; e.preventDefault(); const k = b.dataset.ed;
-    if (k === "mark") { const pk = field.querySelector(".ed-mk"); pk.hidden = !pk.hidden; b.setAttribute("aria-expanded", String(!pk.hidden)); state(); return; } /* Markieren-Knopf öffnet nur die Farbauswahl rechts daneben */
+    if (k === "mark") { /* Markieren-Knopf öffnet die Farbauswahl rechts daneben und markiert gleich mit der zuletzt benutzten Farbe */
+      const pk = field.querySelector(".ed-mk"); pk.hidden = !pk.hidden; b.setAttribute("aria-expanded", String(!pk.hidden));
+      const rr = restore(); if (!pk.hidden && !inMark(rr.startContainer) && !inMark(rr.endContainer)) { let c = "y"; try { c = localStorage.getItem("cardo-mark-color") || "y"; } catch {} if (!pk.querySelector(`[data-mk="${c}"]`)) c = "y"; markWith(c); host.dispatchEvent(new Event("input", { bubbles: true })); }
+      state(); return; }
     const r = restore(), inCell = !!cellOf(r.startContainer);
     if (k === "b" || k === "i" || k === "mark") toggleFmt(k);
     else if (k === "ul" || k === "ol") { if (inCell) { toast("In einer Tabelle gehen keine Listen."); return; } const off = caretOffset(); exec(k === "ul" ? "insertUnorderedList" : "insertOrderedList"); if (off != null) setCaretOffset(off); }
