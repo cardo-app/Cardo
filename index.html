@@ -1076,8 +1076,8 @@ body.m-dark{--bb-pill:rgba(255,255,255,.09);--bb-shade:.45;--bb-line:rgba(255,25
 html.ios-standalone #tabs{padding-bottom:4px}
 @media (min-width:700px){#tabs{left:50%;right:auto;width:400px;bottom:calc(16px + env(safe-area-inset-bottom,0px) - var(--vgap,0px));border:0;padding:4px}}
 /* Drücken auf einen Tab: die ganze Leiste wird kurz etwas größer und federt zurück (eigene „scale“-Eigenschaft, damit translateX auf dem iPad/Mac erhalten bleibt) */
-#tabs{--se:cubic-bezier(.3,1.1,.4,1);--spring:linear(0,.22 6%,.62 14%,.96 22%,1.13 30%,1.16 35%,1.1 42%,1 52%,.965 60%,.98 72%,1.003 85%,1); /* Feder mit Rückprall für Knopf ⇄ Leiste */scale:1;transition:--pill .45s cubic-bezier(.34,1.35,.55,1),--sx .45s cubic-bezier(.34,1.35,.55,1),--k .75s var(--spring),scale .4s cubic-bezier(.34,1.6,.55,1)}
-#tabs:has(button:active){scale:1.05;transition:--pill .45s cubic-bezier(.34,1.35,.55,1),--sx .45s cubic-bezier(.34,1.35,.55,1),--k .75s var(--spring),scale .14s ease-out}
+#tabs{--se:cubic-bezier(.3,1.1,.4,1);--spring:cubic-bezier(.3,1.5,.5,1); /* Knopf ⇄ Leiste: genau ein weicher Rückprall, dann ruhig */scale:1;transition:--pill .45s cubic-bezier(.34,1.35,.55,1),--sx .45s cubic-bezier(.34,1.35,.55,1),--k .6s var(--spring),scale .4s cubic-bezier(.34,1.6,.55,1)}
+#tabs:has(button:active){scale:1.05;transition:--pill .45s cubic-bezier(.34,1.35,.55,1),--sx .45s cubic-bezier(.34,1.35,.55,1),--k .6s var(--spring),scale .14s ease-out}
 /* Im Ordner: Leiste schrumpft zu einem runden Knopf, nur das Bibliothek-Symbol in der Mitte (Tippen = zurück zur Bibliothek); beim Seitenwischen wieder ganz.
    Alles hängt an einem Wert --k (0 = ganze Leiste, 1 = Knopf), damit Leiste, Tabs und Blase genau gleich laufen. */
 @property --sx{syntax:"<number>";inherits:true;initial-value:0}
@@ -1086,8 +1086,8 @@ body:not(.swiping) #tabs.solo{--k:1;--sx:0}
 #tabs{--kb:calc(clamp(0, var(--k), 1) + (var(--k) - clamp(0, var(--k), 1)) * .3)} /* Größe der Leiste: Nachfedern gedämpft, damit der Knopf nur leicht über das Ziel schwingt */
 @media (max-width:699px){#tabs{left:calc(32px + (50% - 64px) * var(--kb));right:calc(32px + (50% - 64px) * var(--kb))}}
 #tabs button{min-width:0;overflow:hidden}
-#tabs button:not(.on){flex-grow:calc(1 - clamp(0, var(--k), 1));opacity:clamp(0, 1 - var(--k) * 1.8, 1)}
-#tabs button.on span{white-space:nowrap;opacity:clamp(0, 1 - var(--k) * 2.5, 1)}
+#tabs button:not(.on){flex-grow:calc(1 - clamp(0, var(--k), 1));opacity:clamp(0, 1 - var(--k) * 3, 1)}
+#tabs button.on span{white-space:nowrap;opacity:clamp(0, 1 - var(--k) * 3, 1)}
 #tabs button.on svg{translate:0 calc(clamp(0, var(--k), 1) * var(--solo-dy, 8px))}
 #tabs::before{width:calc(100% / (3 - 2 * clamp(0, var(--k), 1)))} /* beim Nachfedern nie breiter als die Leiste */
 body:not(.swiping) #tabs.solo button:not(.on){pointer-events:none}
@@ -6690,7 +6690,7 @@ function pillTo(from, to, p, dur, ease, off = 0){ /* Glas-Pille läuft zeitgleic
   if (i0 < 0 || i1 < 0) return;
   /* Die Blase bleibt in der Leiste: Zug über den Rand hinaus drückt sie an der Wand zusammen */
   const v = i0 + (i1 - i0) * p + off, n = bs.length - 1, pos = Math.max(0, Math.min(n, v)), ov = v - pos, sp = `${dur}ms cubic-bezier(.3,1.12,.5,1)`; /* Blase: nur ein Hauch Nachfedern */
-  tb.style.transition = (dur ? `--pill ${sp}, --sq ${sp}` : "--pill 0s, --sq 0s, --sx 0s") + ", --k .75s var(--spring)"; /* --k: Leiste geht beim Wischen aus dem Ordner weich auf */ tb.style.setProperty("--pill", pos.toFixed(4)); tb.style.setProperty("--sq", Math.abs(ov).toFixed(4));
+  tb.style.transition = (dur ? `--pill ${sp}, --sq ${sp}` : "--pill 0s, --sq 0s, --sx 0s") + ", --k .6s var(--spring)"; /* --k: Leiste geht beim Wischen aus dem Ordner weich auf */ tb.style.setProperty("--pill", pos.toFixed(4)); tb.style.setProperty("--sq", Math.abs(ov).toFixed(4));
   if (ov) tb.style.setProperty("--so", ov < 0 ? "left" : "right");
 }
 function clearTabStyles(){ const tb = $("#tabs"); tb.style.transition = ""; ["--pill", "--sq", "--so"].forEach(k => tb.style.removeProperty(k)); document.querySelectorAll("#tabs button, #tabs svg, #tabs span").forEach(el => { el.style.transition = ""; el.style.transform = ""; el.style.strokeWidth = ""; el.style.color = ""; el.style.fontWeight = ""; }); }
