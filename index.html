@@ -1181,7 +1181,7 @@ body[data-glass="2"] :is(#tabs,#sheet.glass .sheet,.glp-bar,#menu){-webkit-backd
 .rich ul,.rich ol{display:table;margin:0 auto;padding-left:1.25em;text-align:left;font-size:.86em}
 .rich li{margin:.14em 0;padding-left:.1em}
 .rich li::marker{color:var(--muted);font-weight:700}
-.rich mark,.rl mark,.cf mark,.cb mark,.cm-card mark,.exam-miss mark,.dv-cards mark{background:color-mix(in oklab,var(--g-hard,#FFE600) 55%,transparent);color:inherit;border-radius:.2em;padding:0 .12em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.rich mark,.rl mark,.cf mark,.cb mark,.cm-card mark,.exam-miss mark,.dv-cards mark{background:color-mix(in oklab,var(--mk,var(--g-hard,#FFE600)) 55%,transparent);color:inherit;border-radius:.2em;padding:0 .12em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 .rich b{font-weight:800}
 .rich .rt-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;display:flex;justify-content:center}
 .rich table{border-collapse:separate;border-spacing:0;font-size:.62em;font-weight:550;line-height:1.3;text-align:left;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:0 auto;min-width:min(100%,260px)}
@@ -1241,7 +1241,19 @@ body[data-glass="2"] :is(#tabs,#sheet.glass .sheet,.glp-bar,#menu){-webkit-backd
 .ed-area.empty[data-ph]:not([data-ph=""])::before{content:attr(data-ph);position:absolute;left:16px;top:14px;color:var(--muted);opacity:.8;pointer-events:none}
 .ed-area:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent}
 .ed-area b,.ed-area strong{font-weight:800}
-.ed-area mark{background:color-mix(in oklab,var(--g-hard,#FFE600) 55%,transparent);color:inherit;border-radius:.2em;padding:0 .1em}
+/* Markierfarben: ==Text== = Gelb (Standard), =={g}Text== = Grün usw. */
+mark.mk-g,.ed-mk [data-mk="g"]{--mk:#3DDC84}mark.mk-b,.ed-mk [data-mk="b"]{--mk:#5AA9FF}mark.mk-p,.ed-mk [data-mk="p"]{--mk:#FF6FB5}mark.mk-o,.ed-mk [data-mk="o"]{--mk:#FF9F43}mark.mk-v,.ed-mk [data-mk="v"]{--mk:#B18CFF}
+.ed-mk{display:flex;align-items:center;gap:5px;flex:0 1 auto;min-width:0;padding:0 2px 0 6px;margin-left:2px;border-left:1px solid var(--line);transform-origin:left center;animation:mkIn .26s cubic-bezier(.3,1.25,.5,1)}
+.ed-mk[hidden]{display:none}
+@keyframes mkIn{from{opacity:0;transform:translateX(-8px) scaleX(.6)}to{opacity:1;transform:none}}
+.ed-mk button{flex:1 1 26px;min-width:18px;max-width:26px;aspect-ratio:1;height:auto;border-radius:50%;border:0;padding:0;background:color-mix(in oklab,var(--mk,var(--g-hard,#FFE600)) 80%,transparent);box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);transition:transform .15s ease,box-shadow .15s ease;-webkit-user-select:none;user-select:none;touch-action:manipulation;cursor:pointer}
+.ed-mk button:active{transform:scale(.88)}
+.ed-mk button.on{box-shadow:0 0 0 2px var(--surface-2),0 0 0 4px color-mix(in oklab,var(--mk,var(--g-hard,#FFE600)) 90%,var(--ink))}
+.ed-mk [data-mk="none"]{background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);display:grid;place-items:center;color:var(--muted)}
+.ed-mk [data-mk="none"] svg{width:15px;height:15px}
+@media (prefers-reduced-motion:reduce){.ed-mk{animation:none}}
+.ed-sub:has(.ed-mk:not([hidden])) .ed-b{min-width:36px} /* Platz für die Farben */
+.ed-area mark{background:color-mix(in oklab,var(--mk,var(--g-hard,#FFE600)) 55%,transparent);color:inherit;border-radius:.2em;padding:0 .1em}
 .ed-area ul,.ed-area ol{margin:.15em 0;padding-left:1.5em;white-space:normal}
 .ed-area li{margin:.1em 0}
 .ed-area table{border-collapse:collapse;width:100%;margin:.35em 0;font-size:16px;white-space:normal}
@@ -2008,6 +2020,8 @@ const I18N = {
   "Fett": ["Bold", "Grassetto"],
   "Kursiv": ["Italic", "Corsivo"],
   "Markieren": ["Highlight", "Evidenzia"],
+  "Markierung entfernen": ["Remove highlight", "Rimuovi evidenziazione"],
+  "Gelb": ["Yellow", "Giallo"], "Grün": ["Green", "Verde"], "Blau": ["Blue", "Blu"], "Rosa": ["Pink", "Rosa"], "Orange": ["Orange", "Arancione"], "Lila": ["Purple", "Viola"],
   "Aufzählung": ["Bulleted list", "Elenco puntato"],
   "Nummerierte Liste": ["Numbered list", "Elenco numerato"],
   "{} Karten": ["{} cards", "{} schede"],
@@ -2276,7 +2290,7 @@ function fmtText(t){
     .replace(/\*\*(?=\S)(.*?\S)\*\*/g, "<b>$1</b>")
     .replace(/(^|[^\w*])\*(?=[^\s*])([^*\n]*?[^\s*])?\*(?![\w*])/g, (m, a, b, off, all) => b === undefined ? m : `${a}<i>${b}</i>`)
     .replace(/(^|[^\w_])_(?=[^\s_])([^_\n]*?[^\s_])?_(?![\w_])/g, (m, a, b) => b === undefined ? m : `${a}<i>${b}</i>`)
-    .replace(/==(?=\S)((?:[^=\n]|=(?!=))*?\S)==/g, "<mark>$1</mark>");
+    .replace(/==(?=\S)((?:[^=\n]|=(?!=))*?\S)==/g, (m, t) => { const c = /^\{([gbpov])\}(?=\S)/.exec(t); return c ? `<mark class="mk-${c[1]}">${t.slice(3)}</mark>` : `<mark>${t}</mark>`; });
 }
 function inlHTML(s, blocks, opt){
   // Formeln und Bilder zuerst durch Platzhalter ersetzen, damit **fett** auch um eine Formel herum funktioniert
@@ -2401,7 +2415,7 @@ function edHTML(id, ph, label){
   const g = (k, t, ic) => `<button type="button" class="ed-b ed-g" data-grp-open="${k}" title="${t}" aria-label="${t}" aria-expanded="false">${ic}<svg class="ed-chev" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m2.5 4 2.5 2.5L7.5 4"/></svg></button>`;
   return `<div class="field ed-field"><label for="${id}">${label}</label>
     <div class="ed-bar" data-for="${id}" role="toolbar" aria-label="Formatierung">${g("text", "Schrift: fett, kursiv, markieren", ED_IC.grpText)}${g("list", "Listen und Tabelle", ED_IC.ul)}<span class="ed-sep"></span>${b("tex", "Mathe", ED_IC.tex)}${b("img", "Bild", ED_IC.img)}<input type="file" accept="image/*" hidden class="ed-file"></div>
-    <div class="ed-sub" data-grp="text" hidden>${b("b", "Fett", ED_IC.b)}${b("i", "Kursiv", ED_IC.i)}${b("mark", "Markieren", ED_IC.mark)}</div>
+    <div class="ed-sub" data-grp="text" hidden>${b("b", "Fett", ED_IC.b)}${b("i", "Kursiv", ED_IC.i)}${b("mark", "Markieren", ED_IC.mark)}<span class="ed-mk" hidden>${[["y", "Gelb"], ["g", "Grün"], ["b", "Blau"], ["p", "Rosa"], ["o", "Orange"], ["v", "Lila"]].map(([k, t]) => `<button type="button" data-mk="${k}" title="${t}" aria-label="${t}"></button>`).join("")}<button type="button" data-mk="none" title="Markierung entfernen" aria-label="Markierung entfernen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></span></div>
     <div class="ed-sub" data-grp="list" hidden>${b("ul", "Aufzählung", ED_IC.ul)}${b("ol", "Nummerierte Liste", ED_IC.ol)}${b("table", "Tabelle", ED_IC.table)}</div>
     <div class="ed-tbar" hidden>${tb("rowAdd", "＋ Zeile")}${tb("rowDel", "− Zeile")}${tb("colAdd", "＋ Spalte")}${tb("colDel", "− Spalte")}${tb("head", "Kopfzeile")}${tb("tblDel", "Tabelle löschen")}</div>
     <div class="in ed-area" id="${id}" contenteditable="true" role="textbox" aria-multiline="true" data-ph="${esc(ph)}" spellcheck="true"></div></div>`;
@@ -2410,6 +2424,7 @@ function edHTML(id, ph, label){
 function richEdit(raw){ return rich(raw, { edit: true }); }
 function chipHTML(latex){ return `<span class="mchip" contenteditable="false" data-latex="${esc(latex)}">${texHTML("\\displaystyle " + latex, false)}</span>`; }
 // Editor-HTML → Karten-Text
+const mkColor = el => { const c = /(?:^|\s)mk-([gbpov])(?:\s|$)/.exec(el.className || ""); return c ? c[1] : "y"; }; /* Farbe einer Markierung: y = Gelb (Standard) */
 function edEscape(t){ return t.replace(/[\\*_=$|\[\]]/g, "\\$&"); }
 function edRunsStr(runs){
   const m = [];
@@ -2420,7 +2435,7 @@ function edRunsStr(runs){
     if (r.tex != null) { if (r.tex.trim()) out += "$" + r.tex.trim() + "$"; return; }
     const lead = r.t.match(/^\s*/)[0], rest = r.t.slice(lead.length), trail = rest.match(/\s*$/)[0], core = rest.slice(0, rest.length - trail.length);
     if (!core) { out += r.t; return; }
-    let c = edEscape(core); if (r.i) c = "_" + c + "_"; if (r.b) c = "**" + c + "**"; if (r.m) c = "==" + c + "==";
+    let c = edEscape(core); if (r.i) c = "_" + c + "_"; if (r.b) c = "**" + c + "**"; if (r.m) c = "==" + (typeof r.m === "string" && r.m !== "y" ? "{" + r.m + "}" : "") + c + "==";
     out += lead + c + trail;
   });
   return out;
@@ -2433,7 +2448,7 @@ function edSer(host){
   const fmt = (el, f) => {
     const t = el.tagName, st = el.style || {}, bg = st.backgroundColor || "";
     return { b: f.b || t === "B" || t === "STRONG" || /^(bold|bolder|[6-9]00)$/.test(st.fontWeight || ""), i: f.i || t === "I" || t === "EM" || st.fontStyle === "italic",
-      m: f.m || t === "MARK" || (!!bg && !/transparent|rgba\(0, 0, 0, 0\)|initial|inherit/.test(bg)) };
+      m: t === "MARK" ? mkColor(el) : f.m || (!!bg && !/transparent|rgba\(0, 0, 0, 0\)|initial|inherit/.test(bg)) };
   };
   const walk = (n, f) => {
     if (n.nodeType === 3) { const t = n.nodeValue.replace(/[​﻿]/g, "").replace(/ /g, " ").replace(/[\r\n]+/g, " "); if (t) add({ t, b: f.b, i: f.i, m: f.m }); return; }
@@ -2710,6 +2725,7 @@ function mountRichEditor(root, host, initial){
     const q = c => { try { return document.queryCommandState(c); } catch { return false; } };
     const on = { b: !!fmtAnc(r.startContainer, "b") || q("bold"), i: !!fmtAnc(r.startContainer, "i") || q("italic"), mark: !!inMark(r.startContainer), ul: q("insertUnorderedList"), ol: q("insertOrderedList") };
     field.querySelectorAll("[data-ed]").forEach(b => b.classList.toggle("on", !!on[b.dataset.ed]));
+    const mkEl = inMark(r.startContainer), pk = field.querySelector(".ed-mk"); if (pk) { if (!pk.hidden) field.querySelector('[data-ed="mark"]').classList.add("on"); pk.querySelectorAll("[data-mk]").forEach(x => x.classList.toggle("on", !!mkEl && x.dataset.mk === mkColor(mkEl))); }
     field.querySelectorAll("[data-grp-open]").forEach(b => { const sub = field.querySelector(`.ed-sub[data-grp="${b.dataset.grpOpen}"]`); b.classList.toggle("used", !!sub.querySelector(".on")); });
     const c = cellOf(r.startContainer); tbar.hidden = !c;
     host.querySelectorAll(".cur").forEach(x => x !== c && x.classList.remove("cur")); if (c) c.classList.add("cur");
@@ -2746,6 +2762,23 @@ function mountRichEditor(root, host, initial){
     if (m) { const p = m.parentNode; const first = m.firstChild, last = m.lastChild; while (m.firstChild) p.insertBefore(m.firstChild, m); m.remove(); if (first && last) { const nr = document.createRange(); nr.setStartBefore(first); nr.setEndAfter(last); const s = getSelection(); s.removeAllRanges(); s.addRange(nr); } return; }
     const frag = r.extractContents(); frag.querySelectorAll("mark").forEach(x => x.replaceWith(...x.childNodes));
     const mk = document.createElement("mark"); mk.appendChild(frag); r.insertNode(mk);
+    const nr = document.createRange(); nr.selectNodeContents(mk); const s = getSelection(); s.removeAllRanges(); s.addRange(nr);
+  }
+  /* Markieren mit Farbe c (y g b p o v) bzw. "none" = Markierung entfernen; gleiche Farbe nochmal = entfernen, andere Farbe = umfärben */
+  const setMk = (el, c) => { el.classList.remove("mk-g", "mk-b", "mk-p", "mk-o", "mk-v"); if (c !== "y") el.classList.add("mk-" + c); };
+  function markWith(c){
+    const r = restore(), m = inMark(r.startContainer) || inMark(r.endContainer);
+    if (m && (c === "none" || mkColor(m) === c)) {
+      if (r.collapsed) { typeToggle("mark", r); return; }
+      const p = m.parentNode, first = m.firstChild, last = m.lastChild; while (m.firstChild) p.insertBefore(m.firstChild, m); m.remove();
+      if (first && last) { const nr = document.createRange(); nr.setStartBefore(first); nr.setEndAfter(last); const s = getSelection(); s.removeAllRanges(); s.addRange(nr); }
+      return;
+    }
+    if (m) { setMk(m, c); return; }
+    if (c === "none") return;
+    if (r.collapsed) { typeToggle("mark", r); const n = inMark(getSelection().anchorNode); if (n) setMk(n, c); return; }
+    const frag = r.extractContents(); frag.querySelectorAll("mark").forEach(x => x.replaceWith(...x.childNodes));
+    const mk = document.createElement("mark"); setMk(mk, c); mk.appendChild(frag); r.insertNode(mk);
     const nr = document.createRange(); nr.selectNodeContents(mk); const s = getSelection(); s.removeAllRanges(); s.addRange(nr);
   }
   function insertBlock(el, caretIn, noFocus){
@@ -2820,7 +2853,9 @@ function mountRichEditor(root, host, initial){
     state();
   });
   field.addEventListener("click", e => {
+    const mb = e.target.closest(".ed-mk [data-mk]"); if (mb && field.contains(mb)) { e.preventDefault(); markWith(mb.dataset.mk); host.dispatchEvent(new Event("input", { bubbles: true })); state(); return; }
     const b = e.target.closest(".ed-bar [data-ed], .ed-sub [data-ed]"); if (!b || !field.contains(b)) return; e.preventDefault(); const k = b.dataset.ed;
+    if (k === "mark") { const pk = field.querySelector(".ed-mk"); pk.hidden = !pk.hidden; b.setAttribute("aria-expanded", String(!pk.hidden)); state(); return; } /* Markieren-Knopf öffnet nur die Farbauswahl rechts daneben */
     const r = restore(), inCell = !!cellOf(r.startContainer);
     if (k === "b" || k === "i" || k === "mark") toggleFmt(k);
     else if (k === "ul" || k === "ol") { if (inCell) { toast("In einer Tabelle gehen keine Listen."); return; } const off = caretOffset(); exec(k === "ul" ? "insertUnorderedList" : "insertOrderedList"); if (off != null) setCaretOffset(off); }
