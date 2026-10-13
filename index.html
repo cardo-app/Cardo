@@ -7003,7 +7003,7 @@ addEventListener("scroll", updCrumbs, { passive: true });
   addEventListener("scroll", () => {
     if (!inFolder()) { if (isEnd()) set(false); return; }
     if (!isEnd()) { if (scrollY > 0 && atEnd()) set(true); }
-    else if (scrollY < endY - 12) set(false);
+    else if (scrollY < endY - 120) set(false); /* erst nach einem Stück Hochscrollen wieder Knopf */
     else if (scrollY > endY) endY = scrollY;
   }, { passive: true });
   /* Seite zu kurz zum Scrollen: Ziehen nach oben am Ende zählt als Anstoßen, Ziehen nach unten holt den Knopf zurück */
@@ -7012,7 +7012,7 @@ addEventListener("scroll", updCrumbs, { passive: true });
     if (ty === null || !inFolder() || document.body.classList.contains("swiping")) return;
     const dy = e.touches[0].clientY - ty;
     if (!isEnd() && dy < -40 && atEnd()) { set(true); ty = null; }
-    else if (isEnd() && dy > 30 && scrollY <= endY) { set(false); ty = null; }
+    else if (isEnd() && dy > 90 && scrollY <= endY) { set(false); ty = null; }
   }, { passive: true });
   addEventListener("wheel", e => {
     if (!inFolder()) return;
