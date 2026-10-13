@@ -1040,17 +1040,25 @@ body{--gl-bg:color-mix(in srgb,var(--surface) 38%,transparent);--gl-edge:rgba(25
 body.m-dark{--gl-bg:color-mix(in srgb,var(--surface) 42%,transparent);--gl-edge:rgba(255,255,255,.22);--gl-rim:rgba(255,255,255,.14);--gl-pill:rgba(255,255,255,.07);--gl-spec:.30;--gl-caus:.20;--gl-deep:.35;--gl-drop:0 10px 30px rgba(0,0,0,.45),0 2px 6px rgba(0,0,0,.3)}
 #tabs{left:10px;right:10px;bottom:calc(max(8px,env(safe-area-inset-bottom,0px) - 26px) - var(--vgap,0px));padding:4px;border:0;border-radius:999px;
   background:var(--gl-bg);-webkit-backdrop-filter:blur(var(--gl-blur,8px)) saturate(190%) brightness(1.04);backdrop-filter:blur(var(--gl-blur,8px)) saturate(190%) brightness(1.04);
-  box-shadow:inset 0 0 0 .5px var(--gl-rim),inset 1.5px 1.5px 1px -1px var(--gl-edge),inset -1.5px -1.5px 1px -1px var(--gl-edge),inset 0 0 10px rgba(255,255,255,.07),var(--gl-drop)}
+  box-shadow:inset 0 0 0 .5px var(--gl-rim),inset 1.5px 1.5px 1px -1px var(--gl-edge),inset -1.5px -1.5px 1px -1px var(--gl-edge),inset 0 1px 0 rgba(255,255,255,calc(var(--gl-spec) * .5)),inset 0 0 10px rgba(255,255,255,.07),inset 0 -6px 12px -8px rgba(0,0,0,calc(var(--gl-deep) * .8)),var(--gl-drop)}
 /* Glas-Pille: Position über --pill (0/1/2); beim Seitenwischen setzt place() den Wert direkt, damit sie mit dem Finger mitläuft */
 @property --pill{syntax:"<number>";inherits:true;initial-value:0}
 @property --sq{syntax:"<number>";inherits:true;initial-value:0}
 #tabs{--pill:0;transition:--pill .45s cubic-bezier(.34,1.35,.55,1)}
 #tabs:has(button.on:nth-child(2)){--pill:1}
 #tabs:has(button.on:nth-child(3)){--pill:2}
-/* Wasserblase: klarer Kern, Glanzpunkt oben, Lichtsaum unten */
+/* Wasserblase (räumlich wie Apples Liquid Glass): Glanzbogen oben, Wölbung hell→dunkel, Lichtsaum unten, helle Glaskante rundum, Schatten darunter */
+body{--bb-pill:rgba(130,136,150,.16);--bb-shade:.13;--bb-line:rgba(0,0,0,.10);--bb-hi:1}
+@media (prefers-color-scheme:dark){body:not(.m-light){--bb-pill:rgba(255,255,255,.09);--bb-shade:.45;--bb-line:rgba(255,255,255,.10);--bb-hi:.55}}
+body.m-dark{--bb-pill:rgba(255,255,255,.09);--bb-shade:.45;--bb-line:rgba(255,255,255,.10);--bb-hi:.55}
 #tabs::before{content:"";position:absolute;top:0;bottom:0; /* Blase oben, unten und in den Endstellungen seitlich bündig mit der Leiste */left:0;width:calc(100% / 3);border-radius:999px;
-  background:radial-gradient(ellipse 55% 38% at 50% 16%,rgba(255,255,255,var(--gl-spec)),transparent 72%),radial-gradient(ellipse 85% 55% at 50% 118%,rgba(255,255,255,var(--gl-caus)),transparent 70%),var(--gl-pill);
-  box-shadow:inset 0 0 0 .5px var(--gl-rim),inset 0 1.5px 1px -.5px var(--gl-edge),inset 0 -2px 3px -1px rgba(255,255,255,var(--gl-caus)),inset 0 -8px 12px -8px rgba(0,0,0,var(--gl-deep)),0 4px 12px rgba(0,0,0,.10);
+  background:radial-gradient(ellipse 58% 24% at 50% 12%,rgba(255,255,255,calc(var(--bb-hi) * .95)),rgba(255,255,255,0) 100%),
+    linear-gradient(180deg,rgba(255,255,255,calc(var(--bb-hi) * .35)) 0%,rgba(255,255,255,0) 42%,rgba(0,0,0,calc(var(--bb-shade) * .6)) 100%),
+    radial-gradient(ellipse 70% 38% at 50% 104%,rgba(255,255,255,calc(var(--bb-hi) * .55)),transparent 75%),var(--bb-pill);
+  box-shadow:inset 0 0 0 .5px var(--bb-line),inset 0 1.5px 0 rgba(255,255,255,calc(var(--bb-hi) * .95)),inset 0 -1.5px 0 rgba(255,255,255,calc(var(--bb-hi) * .45)),
+    inset 5px 0 6px -5px rgba(255,255,255,calc(var(--bb-hi) * .8)),inset -5px 0 6px -5px rgba(255,255,255,calc(var(--bb-hi) * .8)),
+    inset 0 -12px 14px -10px rgba(0,0,0,var(--bb-shade)),
+    0 10px 22px -8px rgba(0,0,0,calc(var(--bb-shade) * 1.6)),0 2px 4px rgba(0,0,0,calc(var(--bb-shade) * .5));
   -webkit-backdrop-filter:saturate(1.8) brightness(1.08);backdrop-filter:saturate(1.8) brightness(1.08);
   /* Nachfedern über ein Ende hinaus: statt hinauszuragen wird die Blase an der Wand zusammengedrückt (Verschiebung hält sie bündig an der Wand) */
   --ov:max(0, var(--pill) - 2, 0 - var(--pill));
@@ -1058,6 +1066,7 @@ body.m-dark{--gl-bg:color-mix(in srgb,var(--surface) 42%,transparent);--gl-edge:
 #tabs:not(:has(button.on))::before{opacity:0}
 #tabs::before{will-change:transform} /* eigene Ebene: Mitlaufen beim Wischen ohne Neuzeichnen */
 #tabs button{z-index:1;padding:10px 0 9px;border-radius:999px;font-size:12.5px}
+#tabs button.on svg{filter:drop-shadow(0 1px 1px rgba(0,0,0,calc(.08 + var(--gl-deep) * .4)))} /* Symbol in der Blase leicht angehoben */
 #tabs svg{width:26px;height:26px}
 html.ios-standalone #tabs{padding-bottom:4px}
 @media (min-width:700px){#tabs{left:50%;right:auto;width:400px;bottom:calc(16px + env(safe-area-inset-bottom,0px) - var(--vgap,0px));border:0;padding:4px}}
