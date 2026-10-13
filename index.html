@@ -1076,14 +1076,15 @@ body.m-dark{--bb-pill:rgba(255,255,255,.09);--bb-shade:.45;--bb-line:rgba(255,25
 html.ios-standalone #tabs{padding-bottom:4px}
 @media (min-width:700px){#tabs{left:50%;right:auto;width:400px;bottom:calc(16px + env(safe-area-inset-bottom,0px) - var(--vgap,0px));border:0;padding:4px}}
 /* Drücken auf einen Tab: die ganze Leiste wird kurz etwas größer und federt zurück (eigene „scale“-Eigenschaft, damit translateX auf dem iPad/Mac erhalten bleibt) */
-#tabs{--se:cubic-bezier(.3,1.1,.4,1);--spring:cubic-bezier(.3,1.5,.5,1); /* Knopf ⇄ Leiste: genau ein weicher Rückprall, dann ruhig */scale:1;transition:--pill .45s cubic-bezier(.34,1.35,.55,1),--sx .45s cubic-bezier(.34,1.35,.55,1),--k .45s var(--spring),scale .4s cubic-bezier(.34,1.6,.55,1)}
-#tabs:has(button:active){scale:1.05;transition:--pill .45s cubic-bezier(.34,1.35,.55,1),--sx .45s cubic-bezier(.34,1.35,.55,1),--k .45s var(--spring),scale .14s ease-out}
+#tabs{--se:cubic-bezier(.3,1.1,.4,1);--spring:cubic-bezier(.3,1.6,.45,1); /* Knopf ⇄ Leiste: ein kräftiger Rückprall, dann ruhig */--ps:1;scale:var(--ps) calc(var(--ps) * (1 + var(--ov) * 2.2));transition:--pill .45s cubic-bezier(.34,1.35,.55,1),--sx .45s cubic-bezier(.34,1.35,.55,1),--k .45s var(--spring),scale .4s cubic-bezier(.34,1.6,.55,1)}
+#tabs:has(button:active){--ps:1.05;transition:--pill .45s cubic-bezier(.34,1.35,.55,1),--sx .45s cubic-bezier(.34,1.35,.55,1),--k .45s var(--spring),scale .14s ease-out}
 /* Im Ordner: Leiste schrumpft zu einem runden Knopf, nur das Bibliothek-Symbol in der Mitte (Tippen = zurück zur Bibliothek); beim Seitenwischen wieder ganz.
    Alles hängt an einem Wert --k (0 = ganze Leiste, 1 = Knopf), damit Leiste, Tabs und Blase genau gleich laufen. */
 @property --sx{syntax:"<number>";inherits:true;initial-value:0}
 @property --k{syntax:"<number>";inherits:true;initial-value:0}
 body:not(.swiping) #tabs.solo:not(.end){--k:1;--sx:0} /* .end: im Ordner unten angestoßen → ganze Leiste */
-#tabs{--kb:calc(clamp(0, var(--k), 1) + (var(--k) - clamp(0, var(--k), 1)) * .3)} /* Größe der Leiste: Nachfedern gedämpft, damit der Knopf nur leicht über das Ziel schwingt */
+/* Physik wie bei einer Blase: Beim Zusammenziehen schießt sie durch den Schwung seitlich über das Ziel hinaus (kurz schmaler) und wird dafür höher, beim Aufgehen kurz breiter und flacher – das Volumen bleibt gleich. --ov = Überschwung */
+#tabs{--ov:calc(var(--k) - clamp(0, var(--k), 1));--kb:calc(clamp(0, var(--k), 1) + var(--ov) * .6)}
 @media (max-width:699px){#tabs{left:calc(32px + (50% - 64px) * var(--kb));right:calc(32px + (50% - 64px) * var(--kb))}}
 #tabs button{min-width:0;overflow:hidden}
 #tabs button:not(.on){flex-grow:calc(1 - clamp(0, var(--k), 1));opacity:clamp(0, 1 - var(--k) * 3, 1)}
@@ -1093,12 +1094,6 @@ body:not(.swiping) #tabs.solo:not(.end){--k:1;--sx:0} /* .end: im Ordner unten a
 body:not(.swiping) #tabs.solo:not(.end) button:not(.on){pointer-events:none}
 #tabs button span{white-space:nowrap}
 @media (min-width:700px){#tabs{width:calc(400px - 336px * var(--kb))}}
-/* Blasen-Effekt beim Wechsel Leiste ⇄ Knopf: ein einziger kräftiger Rückprall – Knopf bzw. Leiste wird beim Ankommen platt gedrückt und federt in einem Zug zurück */
-@keyframes tbPopIn{0%,26%{scale:1 1;animation-timing-function:cubic-bezier(.2,.9,.3,1)}48%{scale:1.28 .78;animation-timing-function:cubic-bezier(.3,.55,.35,1)}100%{scale:1 1}}
-@keyframes tbPopOut{0%,30%{scale:1 1;animation-timing-function:cubic-bezier(.2,.9,.3,1)}55%{scale:1.035 .76;animation-timing-function:cubic-bezier(.3,.55,.35,1)}100%{scale:1 1}}
-#tabs.pop-in{animation:tbPopIn .62s cubic-bezier(.33,0,.4,1)}
-#tabs.pop-out{animation:tbPopOut .62s cubic-bezier(.33,0,.4,1)}
-@media (prefers-reduced-motion:reduce){#tabs.pop-in,#tabs.pop-out{animation:none}}
 @media (prefers-reduced-motion:reduce){#tabs{transition:none}}
 /* ---------- Liquid Glass (Test): Untermenüs der Einstellungen, Stil wie die Tab-Leiste ---------- */
 body{--gl-card:rgba(255,255,255,.42);--gl-sheet:color-mix(in srgb,var(--surface) 55%,transparent)}
@@ -6999,17 +6994,6 @@ function updCrumbs(){
   bar.classList.toggle("stuck", scrollY > 6);
 }
 addEventListener("scroll", updCrumbs, { passive: true });
-/* Blasen-Effekt auslösen, sobald die Leiste zwischen ganz und Knopf wechselt (Ordner, unten anstoßen, Seitenwischen) */
-(() => {
-  const tb = $("#tabs"); let was;
-  const check = () => {
-    const solo = tb.classList.contains("solo") && !tb.classList.contains("end") && !document.body.classList.contains("swiping");
-    if (was !== undefined && solo !== was && !document.body.classList.contains("splashing")) { tb.classList.remove("pop-in", "pop-out"); void tb.offsetWidth; tb.classList.add(solo ? "pop-in" : "pop-out"); }
-    was = solo;
-  };
-  tb.addEventListener("animationend", e => { if (e.target === tb) tb.classList.remove("pop-in", "pop-out"); });
-  const mo = new MutationObserver(check); mo.observe(tb, { attributes: true, attributeFilter: ["class"] }); mo.observe(document.body, { attributes: true, attributeFilter: ["class"] });
-})();
 /* Im Ordner unten anstoßen → die ganze Leiste kommt zurück; beim Hochscrollen wird sie wieder zum Knopf */
 (() => {
   let endY = 0, ty = null;
