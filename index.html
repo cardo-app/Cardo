@@ -1249,8 +1249,6 @@ mark.mk-r,.ed-mk [data-mk="r"]{--mk:#FF4B4B}mark.mk-g,.ed-mk [data-mk="g"]{--mk:
 .ed-mk button{flex:0 1 28px;width:28px;min-width:20px;aspect-ratio:1;height:auto;border-radius:50%;border:0;padding:0;background:color-mix(in oklab,var(--mk,var(--g-hard,#FFE600)) 80%,transparent);box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);transition:transform .15s ease,box-shadow .15s ease;-webkit-user-select:none;user-select:none;touch-action:manipulation;cursor:pointer}
 .ed-mk button:active{transform:scale(.88)}
 .ed-mk button.on{box-shadow:0 0 0 2px var(--surface-2),0 0 0 4px color-mix(in oklab,var(--mk,var(--g-hard,#FFE600)) 90%,var(--ink))}
-.ed-mk [data-mk="none"]{background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);display:grid;place-items:center;color:var(--muted)}
-.ed-mk [data-mk="none"] svg{width:15px;height:15px}
 @media (prefers-reduced-motion:reduce){.ed-mk{animation:none}}
 .ed-sub:has(.ed-mk:not([hidden])) .ed-b{min-width:36px} /* Platz für die Farben */
 .ed-area mark{background:color-mix(in oklab,var(--mk,var(--g-hard,#FFE600)) 55%,transparent);color:inherit;border-radius:.2em;padding:0 .1em}
@@ -2020,7 +2018,6 @@ const I18N = {
   "Fett": ["Bold", "Grassetto"],
   "Kursiv": ["Italic", "Corsivo"],
   "Markieren": ["Highlight", "Evidenzia"],
-  "Markierung entfernen": ["Remove highlight", "Rimuovi evidenziazione"],
   "Rot": ["Red", "Rosso"], "Grün": ["Green", "Verde"], "Gelb": ["Yellow", "Giallo"], "Blau": ["Blue", "Blu"],
   "Aufzählung": ["Bulleted list", "Elenco puntato"],
   "Nummerierte Liste": ["Numbered list", "Elenco numerato"],
@@ -2415,7 +2412,7 @@ function edHTML(id, ph, label){
   const g = (k, t, ic) => `<button type="button" class="ed-b ed-g" data-grp-open="${k}" title="${t}" aria-label="${t}" aria-expanded="false">${ic}<svg class="ed-chev" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m2.5 4 2.5 2.5L7.5 4"/></svg></button>`;
   return `<div class="field ed-field"><label for="${id}">${label}</label>
     <div class="ed-bar" data-for="${id}" role="toolbar" aria-label="Formatierung">${g("text", "Schrift: fett, kursiv, markieren", ED_IC.grpText)}${g("list", "Listen und Tabelle", ED_IC.ul)}<span class="ed-sep"></span>${b("tex", "Mathe", ED_IC.tex)}${b("img", "Bild", ED_IC.img)}<input type="file" accept="image/*" hidden class="ed-file"></div>
-    <div class="ed-sub" data-grp="text" hidden>${b("b", "Fett", ED_IC.b)}${b("i", "Kursiv", ED_IC.i)}${b("mark", "Markieren", ED_IC.mark)}<span class="ed-mk" hidden>${[["r", "Rot"], ["g", "Grün"], ["y", "Gelb"], ["b", "Blau"]].map(([k, t]) => `<button type="button" data-mk="${k}" title="${t}" aria-label="${t}"></button>`).join("")}<button type="button" data-mk="none" title="Markierung entfernen" aria-label="Markierung entfernen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></span></div>
+    <div class="ed-sub" data-grp="text" hidden>${b("b", "Fett", ED_IC.b)}${b("i", "Kursiv", ED_IC.i)}${b("mark", "Markieren", ED_IC.mark)}<span class="ed-mk" hidden>${[["r", "Rot"], ["g", "Grün"], ["y", "Gelb"], ["b", "Blau"]].map(([k, t]) => `<button type="button" data-mk="${k}" title="${t}" aria-label="${t}"></button>`).join("")}</span></div>
     <div class="ed-sub" data-grp="list" hidden>${b("ul", "Aufzählung", ED_IC.ul)}${b("ol", "Nummerierte Liste", ED_IC.ol)}${b("table", "Tabelle", ED_IC.table)}</div>
     <div class="ed-tbar" hidden>${tb("rowAdd", "＋ Zeile")}${tb("rowDel", "− Zeile")}${tb("colAdd", "＋ Spalte")}${tb("colDel", "− Spalte")}${tb("head", "Kopfzeile")}${tb("tblDel", "Tabelle löschen")}</div>
     <div class="in ed-area" id="${id}" contenteditable="true" role="textbox" aria-multiline="true" data-ph="${esc(ph)}" spellcheck="true"></div></div>`;
@@ -2764,7 +2761,7 @@ function mountRichEditor(root, host, initial){
     const mk = document.createElement("mark"); mk.appendChild(frag); r.insertNode(mk);
     const nr = document.createRange(); nr.selectNodeContents(mk); const s = getSelection(); s.removeAllRanges(); s.addRange(nr);
   }
-  /* Markieren mit Farbe c (r g y b) bzw. "none" = Markierung entfernen; gleiche Farbe nochmal = entfernen, andere Farbe = umfärben */
+  /* Markieren mit Farbe c (r g y b); gleiche Farbe nochmal = Markierung entfernen, andere Farbe = umfärben */
   const setMk = (el, c) => { el.classList.remove("mk-r", "mk-g", "mk-b", "mk-p", "mk-o", "mk-v"); if (c !== "y") el.classList.add("mk-" + c); };
   function markWith(c){
     const r = restore(), m = inMark(r.startContainer) || inMark(r.endContainer);
