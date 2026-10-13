@@ -1070,9 +1070,9 @@ body.m-dark{--bb-pill:rgba(255,255,255,.09);--bb-shade:.45;--bb-line:rgba(255,25
   transform:translateX(calc(clamp(0, var(--pill), 2) * 100% + (max(0, var(--pill) - 2) - max(0, 0 - var(--pill))) * 40%)) scaleX(calc(1 - (var(--sq) + var(--ov)) * .8));transform-origin:var(--so,center);}
 #tabs:not(:has(button.on))::before{opacity:0}
 #tabs::before{will-change:transform} /* eigene Ebene: Mitlaufen beim Wischen ohne Neuzeichnen */
-#tabs button{z-index:1;padding:10px 0 9px;border-radius:999px;font-size:12.5px}
+#tabs button{z-index:1;padding:6px 0 5px;border-radius:999px;font-size:12px;gap:1px} /* flacher als früher (10px/9px) */
 #tabs button.on svg{filter:drop-shadow(0 1px 1px rgba(0,0,0,calc(.08 + var(--gl-deep) * .4)))} /* Symbol in der Blase leicht angehoben */
-#tabs svg{width:26px;height:26px}
+#tabs svg{width:24px;height:24px}
 html.ios-standalone #tabs{padding-bottom:4px}
 @media (min-width:700px){#tabs{left:50%;right:auto;width:400px;bottom:calc(16px + env(safe-area-inset-bottom,0px) - var(--vgap,0px));border:0;padding:4px}}
 /* Drücken auf einen Tab: die ganze Leiste wird kurz etwas größer und federt zurück (eigene „scale“-Eigenschaft, damit translateX auf dem iPad/Mac erhalten bleibt) */
