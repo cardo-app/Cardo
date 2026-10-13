@@ -1082,7 +1082,7 @@ html.ios-standalone #tabs{padding-bottom:4px}
    Alles hängt an einem Wert --k (0 = ganze Leiste, 1 = Knopf), damit Leiste, Tabs und Blase genau gleich laufen. */
 @property --sx{syntax:"<number>";inherits:true;initial-value:0}
 @property --k{syntax:"<number>";inherits:true;initial-value:0}
-body:not(.swiping) #tabs.solo{--k:1;--sx:0}
+body:not(.swiping) #tabs.solo:not(.end){--k:1;--sx:0} /* .end: im Ordner unten angestoßen → ganze Leiste */
 #tabs{--kb:calc(clamp(0, var(--k), 1) + (var(--k) - clamp(0, var(--k), 1)) * .3)} /* Größe der Leiste: Nachfedern gedämpft, damit der Knopf nur leicht über das Ziel schwingt */
 @media (max-width:699px){#tabs{left:calc(32px + (50% - 64px) * var(--kb));right:calc(32px + (50% - 64px) * var(--kb))}}
 #tabs button{min-width:0;overflow:hidden}
@@ -1090,7 +1090,7 @@ body:not(.swiping) #tabs.solo{--k:1;--sx:0}
 #tabs button.on span{white-space:nowrap;opacity:clamp(0, 1 - var(--k) * 3, 1)}
 #tabs button.on svg{translate:0 calc(clamp(0, var(--k), 1) * var(--solo-dy, 8px))}
 #tabs::before{width:calc(100% / (3 - 2 * clamp(0, var(--k), 1)))} /* beim Nachfedern nie breiter als die Leiste */
-body:not(.swiping) #tabs.solo button:not(.on){pointer-events:none}
+body:not(.swiping) #tabs.solo:not(.end) button:not(.on){pointer-events:none}
 #tabs button span{white-space:nowrap}
 @media (min-width:700px){#tabs{width:calc(400px - 336px * var(--kb))}}
 @media (prefers-reduced-motion:reduce){#tabs{transition:none}}
@@ -5087,7 +5087,7 @@ function draw(){
   S.gen = (S.gen || 0) + 1; schedulePrerender && schedulePrerender();
   saveUi(); updScroll();
 }
-function go(view, fid = null, anim = "fade"){ S.anim = anim; if (S.view === "lib") S.libFid = S.fid; S.view = view; S.fid = fid; S.q = ""; S.sel = null; if (fid) pathOf(fid).forEach(f => S.open.add(f.id)); render(); window.scrollTo(0, 0); }
+function go(view, fid = null, anim = "fade"){ $("#tabs").classList.remove("end"); S.anim = anim; if (S.view === "lib") S.libFid = S.fid; S.view = view; S.fid = fid; S.q = ""; S.sel = null; if (fid) pathOf(fid).forEach(f => S.open.add(f.id)); render(); window.scrollTo(0, 0); }
 
 function syncPill(){ return S.mode === "cloud" ? '<span class="pill-sync"><i></i>Synchronisiert</span>' : '<span class="pill-sync local"><i></i>Nur dieses Gerät</span>'; }
 
@@ -6993,6 +6993,33 @@ function updCrumbs(){
   bar.classList.toggle("stuck", scrollY > 6);
 }
 addEventListener("scroll", updCrumbs, { passive: true });
+/* Im Ordner unten anstoßen → die ganze Leiste kommt zurück; beim Hochscrollen wird sie wieder zum Knopf */
+(() => {
+  let endY = 0, ty = null;
+  const inFolder = () => S.view === "lib" && !!S.fid && !S.sel;
+  const isEnd = () => $("#tabs").classList.contains("end");
+  const atEnd = () => { const m = $("#main"); return !!m && m.getBoundingClientRect().bottom <= innerHeight + 4; };
+  const set = on => { $("#tabs").classList.toggle("end", on); endY = scrollY; };
+  addEventListener("scroll", () => {
+    if (!inFolder()) { if (isEnd()) set(false); return; }
+    if (!isEnd()) { if (scrollY > 0 && atEnd()) set(true); }
+    else if (scrollY < endY - 12) set(false);
+    else if (scrollY > endY) endY = scrollY;
+  }, { passive: true });
+  /* Seite zu kurz zum Scrollen: Ziehen nach oben am Ende zählt als Anstoßen, Ziehen nach unten holt den Knopf zurück */
+  addEventListener("touchstart", e => { ty = e.touches.length === 1 ? e.touches[0].clientY : null; }, { passive: true });
+  addEventListener("touchmove", e => {
+    if (ty === null || !inFolder() || document.body.classList.contains("swiping")) return;
+    const dy = e.touches[0].clientY - ty;
+    if (!isEnd() && dy < -40 && atEnd()) { set(true); ty = null; }
+    else if (isEnd() && dy > 30 && scrollY <= endY) { set(false); ty = null; }
+  }, { passive: true });
+  addEventListener("wheel", e => {
+    if (!inFolder()) return;
+    if (!isEnd() && e.deltaY > 0 && atEnd()) set(true);
+    else if (isEnd() && e.deltaY < 0 && scrollY <= 0) set(false);
+  }, { passive: true });
+})();
 if (window.MutationObserver) new MutationObserver(updCrumbs).observe($("#main"), { childList: true });
 if (window.ResizeObserver) new ResizeObserver(updScroll).observe($("#main"));
 try { history.scrollRestoration = "manual"; } catch {} window.scrollTo(0, 0); // Bibliothek öffnet immer oben
