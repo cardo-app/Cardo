@@ -1093,9 +1093,9 @@ body:not(.swiping) #tabs.solo:not(.end){--k:1;--sx:0} /* .end: im Ordner unten a
 body:not(.swiping) #tabs.solo:not(.end) button:not(.on){pointer-events:none}
 #tabs button span{white-space:nowrap}
 @media (min-width:700px){#tabs{width:calc(400px - 336px * var(--kb))}}
-/* Blasen-Effekt beim Wechsel Leiste ⇄ Knopf: wie eine Seifenblase – Knopf landet, wird platt gedrückt und wabbelt nach; beim Aufgehen bläht er sich erst kurz auf */
-@keyframes tbPopIn{0%,28%{scale:1 1}46%{scale:1.2 .84}62%{scale:.9 1.12}77%{scale:1.05 .96}90%{scale:.99 1.01}100%{scale:1 1}}
-@keyframes tbPopOut{0%{scale:1 1}16%{scale:1.18 1.18}36%{scale:1 1}58%{scale:1.025 .88}74%{scale:.995 1.06}88%{scale:1.003 .98}100%{scale:1 1}}
+/* Blasen-Effekt beim Wechsel Leiste ⇄ Knopf: ein einziger kräftiger Rückprall – Knopf bzw. Leiste wird beim Ankommen platt gedrückt und federt in einem Zug zurück */
+@keyframes tbPopIn{0%,26%{scale:1 1;animation-timing-function:cubic-bezier(.2,.9,.3,1)}48%{scale:1.28 .78;animation-timing-function:cubic-bezier(.3,.55,.35,1)}100%{scale:1 1}}
+@keyframes tbPopOut{0%,30%{scale:1 1;animation-timing-function:cubic-bezier(.2,.9,.3,1)}55%{scale:1.035 .76;animation-timing-function:cubic-bezier(.3,.55,.35,1)}100%{scale:1 1}}
 #tabs.pop-in{animation:tbPopIn .62s cubic-bezier(.33,0,.4,1)}
 #tabs.pop-out{animation:tbPopOut .62s cubic-bezier(.33,0,.4,1)}
 @media (prefers-reduced-motion:reduce){#tabs.pop-in,#tabs.pop-out{animation:none}}
