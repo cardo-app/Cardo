@@ -1076,15 +1076,14 @@ body.m-dark{--bb-pill:rgba(255,255,255,.09);--bb-shade:.45;--bb-line:rgba(255,25
 html.ios-standalone #tabs{padding-bottom:4px}
 @media (min-width:700px){#tabs{left:50%;right:auto;width:400px;bottom:calc(16px + env(safe-area-inset-bottom,0px) - var(--vgap,0px));border:0;padding:4px}}
 /* Drücken auf einen Tab: die ganze Leiste wird kurz etwas größer und federt zurück (eigene „scale“-Eigenschaft, damit translateX auf dem iPad/Mac erhalten bleibt) */
-#tabs{--se:cubic-bezier(.3,1.1,.4,1);--spring:cubic-bezier(.3,1.6,.45,1); /* Knopf ⇄ Leiste: ein kräftiger Rückprall, dann ruhig */--ps:1;scale:var(--ps) calc(var(--ps) * (1 + var(--ov) * 2.2));transition:--pill .45s cubic-bezier(.34,1.35,.55,1),--sx .45s cubic-bezier(.34,1.35,.55,1),--k .45s var(--spring),scale .4s cubic-bezier(.34,1.6,.55,1)}
-#tabs:has(button:active){--ps:1.05;transition:--pill .45s cubic-bezier(.34,1.35,.55,1),--sx .45s cubic-bezier(.34,1.35,.55,1),--k .45s var(--spring),scale .14s ease-out}
+#tabs{--se:cubic-bezier(.3,1.1,.4,1);--spring:cubic-bezier(.3,1.5,.5,1); /* Knopf ⇄ Leiste: genau ein weicher Rückprall, dann ruhig */scale:1;transition:--pill .45s cubic-bezier(.34,1.35,.55,1),--sx .45s cubic-bezier(.34,1.35,.55,1),--k .45s var(--spring),scale .4s cubic-bezier(.34,1.6,.55,1)}
+#tabs:has(button:active){scale:1.05;transition:--pill .45s cubic-bezier(.34,1.35,.55,1),--sx .45s cubic-bezier(.34,1.35,.55,1),--k .45s var(--spring),scale .14s ease-out}
 /* Im Ordner: Leiste schrumpft zu einem runden Knopf, nur das Bibliothek-Symbol in der Mitte (Tippen = zurück zur Bibliothek); beim Seitenwischen wieder ganz.
    Alles hängt an einem Wert --k (0 = ganze Leiste, 1 = Knopf), damit Leiste, Tabs und Blase genau gleich laufen. */
 @property --sx{syntax:"<number>";inherits:true;initial-value:0}
 @property --k{syntax:"<number>";inherits:true;initial-value:0}
 body:not(.swiping) #tabs.solo:not(.end){--k:1;--sx:0} /* .end: im Ordner unten angestoßen → ganze Leiste */
-/* Physik wie bei einer Blase: Beim Zusammenziehen schießt sie durch den Schwung seitlich über das Ziel hinaus (kurz schmaler) und wird dafür höher, beim Aufgehen kurz breiter und flacher – das Volumen bleibt gleich. --ov = Überschwung */
-#tabs{--ov:calc(var(--k) - clamp(0, var(--k), 1));--kb:calc(clamp(0, var(--k), 1) + var(--ov) * .6)}
+#tabs{--kb:calc(clamp(0, var(--k), 1) + (var(--k) - clamp(0, var(--k), 1)) * .3)} /* Größe der Leiste: Nachfedern gedämpft, damit der Knopf nur leicht über das Ziel schwingt */
 @media (max-width:699px){#tabs{left:calc(32px + (50% - 64px) * var(--kb));right:calc(32px + (50% - 64px) * var(--kb))}}
 #tabs button{min-width:0;overflow:hidden}
 #tabs button:not(.on){flex-grow:calc(1 - clamp(0, var(--k), 1));opacity:clamp(0, 1 - var(--k) * 3, 1)}
