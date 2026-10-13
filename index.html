@@ -232,6 +232,9 @@ body.studying #main{max-width:760px;padding-bottom:24px}
 body.reordering,body.reordering *{cursor:grabbing!important}
 .art{aspect-ratio:16/11;position:relative;background-color:var(--c,#888);background-size:cover;background-position:center}
 .art.col{background-image:radial-gradient(circle at 85% 0%,color-mix(in oklab,var(--c) 45%,white) 0,transparent 60%),radial-gradient(circle at 0% 100%,color-mix(in oklab,var(--c) 70%,black) 0,transparent 55%)}
+/* Ordnerkacheln ohne Titelbild: ganz leichtes Karomuster, oben rechts am deutlichsten, nach unten links auslaufend */
+.art.col::before{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;background-image:linear-gradient(rgba(255,255,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px);background-size:16px 16px;
+  -webkit-mask-image:radial-gradient(circle at 80% 15%,#000 0,transparent 80%);mask-image:radial-gradient(circle at 80% 15%,#000 0,transparent 80%)}
 .art-emoji{position:absolute;left:12px;bottom:10px;font-size:37.5px;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.18))}
 .art.has-cover .art-emoji{background:rgba(255,255,255,.92);border-radius:12px;padding:5px;font-size:26.5px}
 .due-badge{position:absolute;top:10px;left:10px;background:var(--surface);color:var(--ink);font-size:13px;font-weight:700;border-radius:99px;padding:3px 9px;box-shadow:var(--shadow)}
