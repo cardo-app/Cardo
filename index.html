@@ -1074,6 +1074,9 @@ body.m-dark{--bb-pill:rgba(255,255,255,.09);--bb-shade:.45;--bb-line:rgba(255,25
 #tabs svg{width:26px;height:26px}
 html.ios-standalone #tabs{padding-bottom:4px}
 @media (min-width:700px){#tabs{left:50%;right:auto;width:400px;bottom:calc(16px + env(safe-area-inset-bottom,0px) - var(--vgap,0px));border:0;padding:4px}}
+/* Drücken auf einen Tab: die ganze Leiste wird kurz etwas größer und federt zurück (eigene „scale“-Eigenschaft, damit translateX auf dem iPad/Mac erhalten bleibt) */
+#tabs{scale:1;transition:--pill .45s cubic-bezier(.34,1.35,.55,1),scale .4s cubic-bezier(.34,1.6,.55,1)}
+#tabs:has(button:active){scale:1.05;transition:--pill .45s cubic-bezier(.34,1.35,.55,1),scale .14s ease-out}
 @media (prefers-reduced-motion:reduce){#tabs{transition:none}}
 /* ---------- Liquid Glass (Test): Untermenüs der Einstellungen, Stil wie die Tab-Leiste ---------- */
 body{--gl-card:rgba(255,255,255,.42);--gl-sheet:color-mix(in srgb,var(--surface) 55%,transparent)}
