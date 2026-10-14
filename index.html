@@ -1264,6 +1264,7 @@ mark.mk-r,.ed-mk [data-mk="r"]{--mk:#FF4B4B}mark.mk-g,.ed-mk [data-mk="g"]{--mk:
 .ed-area img.cimg{display:block;max-width:100%;max-height:220px;object-fit:contain;border-radius:12px;margin:.3em 0;cursor:pointer;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .ed-area img.cimg.sized{max-height:none;height:auto}
 .ed-area img.cimg{margin:.3em auto}
+img.cimg.fh,#imgzoom img.fh,.crop-stage img.fh,.ed-ghost.fh{scale:-1 1}img.cimg.fv,#imgzoom img.fv,.crop-stage img.fv,.ed-ghost.fv{scale:1 -1}img.cimg.fh.fv,#imgzoom img.fh.fv,.crop-stage img.fh.fv,.ed-ghost.fh.fv{scale:-1 -1}
 .ed-area img.cimg.fl-l,.rich img.cimg.fl-l{float:left;margin:.2em .9em .5em 0;max-width:60%}
 .ed-area img.cimg.fl-r,.rich img.cimg.fl-r{float:right;margin:.2em 0 .5em .9em;max-width:60%}
 .ed-area img.cimg.fl-l:not(.sized),.ed-area img.cimg.fl-r:not(.sized),.rich img.cimg.fl-l:not(.sized),.rich img.cimg.fl-r:not(.sized){width:45%}
@@ -1278,6 +1279,7 @@ mark.mk-r,.ed-mk [data-mk="r"]{--mk:#FF4B4B}mark.mk-g,.ed-mk [data-mk="g"]{--mk:
 .ed-drop{position:absolute;z-index:6;height:3px;border-radius:2px;background:var(--accent);pointer-events:none;box-shadow:0 0 0 2px color-mix(in oklab,var(--surface) 70%,transparent)}
 .ed-imgbar button.on{background:var(--accent-soft);color:var(--accent-text)}
 .ed-imgbar .sep{width:1px;background:var(--line);margin:4px 2px}
+.ed-imgbar.tight{gap:2px}.ed-imgbar.tight button{padding:0 8px}.ed-imgbar.tight .lb{display:none}
 .ed-field{position:relative}
 .ed-imgbox{position:absolute;z-index:4;border:2px solid var(--accent);border-radius:12px;pointer-events:none;box-shadow:0 0 0 1px color-mix(in oklab,var(--surface) 70%,transparent)}
 .ed-imgbox .h{position:absolute;width:24px;height:24px;border-radius:50%;background:var(--surface);border:2.5px solid var(--accent);pointer-events:auto;touch-action:none;box-shadow:0 2px 6px rgba(0,0,0,.25)}
@@ -1603,6 +1605,8 @@ const I18N = {
   "Bild entfernen": ["Remove image", "Rimuovi immagine"],
   "Bild zuschneiden": ["Crop image", "Ritaglia immagine"],
   "Zuschneiden": ["Crop", "Ritaglia"],
+  "Waagrecht spiegeln": ["Flip horizontally", "Rifletti orizzontalmente"],
+  "Senkrecht spiegeln": ["Flip vertically", "Rifletti verticalmente"],
   "Zuschneiden hat nicht geklappt.": ["Cropping didn't work.", "Ritaglio non riuscito."],
   "Dieses Bild kann nicht zugeschnitten werden.": ["This image can't be cropped.", "Questa immagine non può essere ritagliata."],
   "Ziehe an den Ecken oder verschiebe den Rahmen.": ["Drag the corners or move the frame.", "Trascina gli angoli o sposta la cornice."],
@@ -2282,6 +2286,8 @@ function texHTML(src, display){
 // Alt-Text: „w60“ = Breite 60 %, „l“/„r“ = links/rechts (Text fließt daneben), sonst mittig
 const imgW = a => { const m = /(?:^|\s)w(\d{1,3})(?=\s|$)/.exec(a || ""); return m ? Math.max(10, Math.min(100, +m[1])) : 0; };
 const imgAl = a => /(?:^|\s)([lr])(?=\s|$)/.test(a || "") ? /(?:^|\s)([lr])(?=\s|$)/.exec(a)[1] : "";
+const imgFl = a => (/(?:^|\s)fh(?=\s|$)/.test(a || "") ? "h" : "") + (/(?:^|\s)fv(?=\s|$)/.test(a || "") ? "v" : ""); /* gespiegelt: h = waagrecht, v = senkrecht */
+const flCls = fl => (fl.includes("h") ? " fh" : "") + (fl.includes("v") ? " fv" : "");
 const imgSrc = s => s.startsWith("cimg:") ? `${SB_URL}/storage/v1/object/public/${IMG_BUCKET}/${s.slice(5)}` : s;
 const IMG_RE_SRC = String.raw`!\[([^\]\n]*)\]\(((?:cimg:[\w\-./]+)|(?:https:\/\/[^)\s]+)|(?:data:image\/[a-z+]+;base64,[A-Za-z0-9+/=]+))\)`;
 const INL_RE = new RegExp(IMG_RE_SRC + String.raw`|\u0000(\d+)\u0000|\\\((.+?)\\\)|(?<![\\$])\$([^\s$](?:[^$\n]*?[^\s\\$])?)\$(?![\d$])|\\([\\*_=$|\[\]\-•.)])`, "g");
@@ -2298,7 +2304,7 @@ function inlHTML(s, blocks, opt){
   const t = s.replace(INL_RE, (...m) => {
     let h; const ed = opt && opt.edit;
     if (m[6] != null) h = esc(m[6]);
-    else if (m[2]) { const w = imgW(m[1]), al = imgAl(m[1]); h = opt && opt.line ? '<span class="rl-img" aria-label="Bild">🖼</span>' : `<img class="cimg${w ? " sized" : ""}${al ? " fl-" + al : ""}" src="${esc(imgSrc(m[2]))}"${ed ? ` data-src="${esc(m[2])}"` : ""}${al ? ` data-al="${al}"` : ""}${w ? ` data-w="${w}" style="width:${w}%"` : ""} crossorigin="anonymous" alt="Bild" loading="lazy" decoding="async" draggable="false">`; }
+    else if (m[2]) { const w = imgW(m[1]), al = imgAl(m[1]), fl = imgFl(m[1]); h = opt && opt.line ? '<span class="rl-img" aria-label="Bild">🖼</span>' : `<img class="cimg${w ? " sized" : ""}${al ? " fl-" + al : ""}${flCls(fl)}" src="${esc(imgSrc(m[2]))}"${ed ? ` data-src="${esc(m[2])}"` : ""}${al ? ` data-al="${al}"` : ""}${fl ? ` data-fl="${fl}"` : ""}${w ? ` data-w="${w}" style="width:${w}%"` : ""} crossorigin="anonymous" alt="Bild" loading="lazy" decoding="async" draggable="false">`; }
     else if (ed) h = chipHTML(m[3] != null ? (blocks[+m[3]] || "") : m[4] != null ? m[4] : m[5]);
     else if (m[3] != null) h = texHTML(blocks[+m[3]] || "", !(opt && opt.line));
     else h = texHTML((opt && opt.line ? "" : "\\displaystyle ") + (m[4] != null ? m[4] : m[5]), false);
@@ -2386,9 +2392,9 @@ async function uploadCardImage(file){
 }
 
 /* ---------- Bild groß anzeigen ---------- */
-function openImgZoom(src){
+function openImgZoom(src, fl){
   const el = document.createElement("div"); el.id = "imgzoom"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "Bild");
-  el.innerHTML = `<img src="${esc(src)}" crossorigin="anonymous" alt=""><button class="xbtn" aria-label="Schließen">${IC.close}</button>`;
+  el.innerHTML = `<img src="${esc(src)}"${fl ? ` class="${flCls(fl).trim()}"` : ""} crossorigin="anonymous" alt=""><button class="xbtn" aria-label="Schließen">${IC.close}</button>`;
   const close = () => { el.classList.add("out"); setTimeout(() => el.remove(), 180); document.removeEventListener("keydown", key, true); };
   const key = e => { if (e.key === "Escape") { e.stopPropagation(); e.preventDefault(); close(); } };
   el.addEventListener("click", e => { e.stopPropagation(); close(); });
@@ -2455,7 +2461,7 @@ function edSer(host){
     if (n.nodeType !== 1) return;
     const tg = n.tagName;
     if (n.classList.contains("mchip")) { add({ tex: n.dataset.latex || "" }); return; }
-    if (tg === "IMG") { if (n.dataset.src) { if (flat) add({ raw: "" }); else { push(); lines.push(`![${[n.dataset.w ? "w" + n.dataset.w : "", n.dataset.al || ""].filter(Boolean).join(" ")}](${n.dataset.src})`); } } return; }
+    if (tg === "IMG") { if (n.dataset.src) { if (flat) add({ raw: "" }); else { push(); lines.push(`![${[n.dataset.w ? "w" + n.dataset.w : "", n.dataset.al || "", (n.dataset.fl || "").includes("h") ? "fh" : "", (n.dataset.fl || "").includes("v") ? "fv" : ""].filter(Boolean).join(" ")}](${n.dataset.src})`); } } return; }
     if (tg === "BR") { if (flat) add({ t: " ", b: f.b, i: f.i, m: f.m }); else if (runs) push(); else lines.push(""); return; }
     if (tg === "UL" || tg === "OL") {
       push(); let k = 0;
@@ -2659,7 +2665,7 @@ function cropImage(im, done){
   const draw = () => { Object.assign(box.style, { left: R.x * 100 + "%", top: R.y * 100 + "%", width: R.w * 100 + "%", height: R.h * 100 + "%" }); };
   img.onload = () => { R = { x: .05, y: .05, w: .9, h: .9 }; draw(); };
   img.onerror = () => { toast("Bild konnte nicht geladen werden."); close(); };
-  img.src = im.src;
+  img.src = im.src; const fl = im.dataset.fl || ""; img.className = flCls(fl).trim();
   const close = () => { el.classList.add("closing"); setTimeout(() => el.remove(), 230); };
   const MIN = .06;
   box.addEventListener("pointerdown", e => {
@@ -2688,7 +2694,7 @@ function cropImage(im, done){
       if (R.x < .002 && R.y < .002 && R.w > .996 && R.h > .996) { close(); return; }
       a.disabled = true; toast("Bild wird zugeschnitten …");
       try {
-        const nw = img.naturalWidth, nh = img.naturalHeight, sx = Math.round(R.x * nw), sy = Math.round(R.y * nh), sw = Math.max(1, Math.round(R.w * nw)), sh = Math.max(1, Math.round(R.h * nh));
+        const nw = img.naturalWidth, nh = img.naturalHeight, sx = Math.round((fl.includes("h") ? 1 - R.x - R.w : R.x) * nw), sy = Math.round((fl.includes("v") ? 1 - R.y - R.h : R.y) * nh), sw = Math.max(1, Math.round(R.w * nw)), sh = Math.max(1, Math.round(R.h * nh));
         const cv = document.createElement("canvas"); cv.width = sw; cv.height = sh; const cx = cv.getContext("2d"); cx.fillStyle = "#fff"; cx.fillRect(0, 0, sw, sh); cx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
         let blob = await new Promise(r => cv.toBlob(r, "image/webp", .9)); if (!blob || blob.type !== "image/webp") blob = await new Promise(r => cv.toBlob(r, "image/jpeg", .9));
         const tok = await uploadCardImage(blob), src = tok.slice(4, -1);
@@ -2871,11 +2877,14 @@ function mountRichEditor(root, host, initial){
   /* ---- Bild antippen: Rahmen mit Ecken zum Größerziehen + Zuschneiden / Entfernen ---- */
   let imgSel = null, imgBox = null, imgBar = null;
   const CROP_IC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg>';
+  const FLH_IC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M8 7 3 17h5z"/><path d="M16 7l5 10h-5z" fill="currentColor" fill-opacity=".25"/></svg>';
+  const FLV_IC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g transform="rotate(90 12 12)"><path d="M12 3v18"/><path d="M8 7 3 17h5z"/><path d="M16 7l5 10h-5z" fill="currentColor" fill-opacity=".25"/></g></svg>';
   const DEL_IC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>';
   const hideImg = () => { imgSel = null; if (imgBox) { imgBox.remove(); imgBox = null; } if (imgBar) { imgBar.remove(); imgBar = null; } };
   const placeImg = () => {
     if (!imgSel || !imgSel.isConnected) { hideImg(); return; }
     const f = field.getBoundingClientRect(), r = imgSel.getBoundingClientRect();
+    imgBar.classList.remove("tight"); if (imgBar.offsetWidth > f.width) imgBar.classList.add("tight"); /* zu schmal: „Zuschneiden“ nur als Symbol */
     Object.assign(imgBox.style, { left: (r.left - f.left) + "px", top: (r.top - f.top) + "px", width: r.width + "px", height: r.height + "px" });
     const bw = imgBar.offsetWidth; imgBar.style.left = Math.max(0, Math.min(f.width - bw, r.left - f.left + r.width / 2 - bw / 2)) + "px";
     imgBar.style.top = (r.bottom - f.top + 14) + "px"; // unter dem Bild, damit der Text darüber sichtbar bleibt
@@ -2894,7 +2903,7 @@ function mountRichEditor(root, host, initial){
     imgBox = document.createElement("div"); imgBox.className = "ed-imgbox"; imgBox.innerHTML = '<i class="mv"></i><i class="h tl" data-c="tl"></i><i class="h tr" data-c="tr"></i><i class="h bl" data-c="bl"></i><i class="h br" data-c="br"></i><span class="pct"></span>';
     imgBar = document.createElement("div"); imgBar.className = "ed-imgbar";
     const AL = [["l", "Links, Text daneben", '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="8" height="8" rx="1.5"/><path d="M14 6h7M14 10h7M14 14h7M3 18h18"/></svg>'], ["", "Mittig", '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="7" y="4" width="10" height="9" rx="1.5"/><path d="M3 17h18M6 21h12"/></svg>'], ["r", "Rechts, Text daneben", '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="13" y="5" width="8" height="8" rx="1.5"/><path d="M3 6h7M3 10h7M3 14h7M3 18h18"/></svg>']];
-    imgBar.innerHTML = AL.map(([k, t, ic]) => `<button type="button" data-al="${k}" title="${t}" aria-label="${t}" class="${(im.dataset.al || "") === k ? "on" : ""}">${ic}</button>`).join("") + `<span class="sep"></span><button type="button" data-im="crop">${CROP_IC}Zuschneiden</button><button type="button" data-im="del" class="del" aria-label="Entfernen" title="Entfernen">${DEL_IC}</button>`;
+    imgBar.innerHTML = AL.map(([k, t, ic]) => `<button type="button" data-al="${k}" title="${t}" aria-label="${t}" class="${(im.dataset.al || "") === k ? "on" : ""}">${ic}</button>`).join("") + `<span class="sep"></span><button type="button" data-im="fh" title="Waagrecht spiegeln" aria-label="Waagrecht spiegeln">${FLH_IC}</button><button type="button" data-im="fv" title="Senkrecht spiegeln" aria-label="Senkrecht spiegeln">${FLV_IC}</button><button type="button" data-im="crop" title="Zuschneiden" aria-label="Zuschneiden">${CROP_IC}<span class="lb">Zuschneiden</span></button><button type="button" data-im="del" class="del" aria-label="Entfernen" title="Entfernen">${DEL_IC}</button>`;
     field.append(imgBox, imgBar); placeImg();
     // Ecken/Bild ziehen: Seite darf nicht mitscrollen (iOS)
     imgBox.addEventListener("touchmove", e => { if (e.cancelable) e.preventDefault(); }, { passive: false });
@@ -2952,7 +2961,7 @@ function mountRichEditor(root, host, initial){
         lx = ev.clientX; ly = ev.clientY;
         if (moved || Math.hypot(lx - x0, ly - y0) < 6) return;
         moved = true; r0 = im.getBoundingClientRect();
-        ghost = im.cloneNode(false); ghost.className = "ed-ghost"; ghost.removeAttribute("style");
+        ghost = im.cloneNode(false); ghost.className = "ed-ghost" + flCls(im.dataset.fl || ""); ghost.removeAttribute("style");
         Object.assign(ghost.style, { left: r0.left + "px", top: r0.top + "px", width: r0.width + "px", height: r0.height + "px" });
         document.body.appendChild(ghost);
         blk.classList.add("ed-mvsrc"); host.classList.add("ed-moving");
@@ -2984,6 +2993,12 @@ function mountRichEditor(root, host, initial){
       const a = e.target.closest("[data-al]"); if (a) { e.preventDefault(); setAlign(im, a.dataset.al); return; }
       const b = e.target.closest("[data-im]"); if (!b) return; e.preventDefault();
       if (b.dataset.im === "del") { const blk = im.parentNode; im.remove(); hideImg(); if (blk !== host && ED_BLOCK.test(blk.tagName) && edIsEmpty(blk) && !blk.querySelector("br")) blk.appendChild(document.createElement("br")); if (!host.firstChild) host.appendChild(edEmptyDiv()); host.dispatchEvent(new Event("input", { bubbles: true })); return; }
+      if (b.dataset.im === "fh" || b.dataset.im === "fv") {
+        const d = b.dataset.im[1], o = im.dataset.fl || "", fl = (o.includes("h") !== (d === "h") ? "h" : "") + (o.includes("v") !== (d === "v") ? "v" : "");
+        if (fl) im.dataset.fl = fl; else delete im.dataset.fl;
+        im.classList.toggle("fh", fl.includes("h")); im.classList.toggle("fv", fl.includes("v"));
+        host.dispatchEvent(new Event("input", { bubbles: true })); return;
+      }
       if (b.dataset.im === "crop") { const target = im; hideImg(); cropImage(target, () => { host.dispatchEvent(new Event("input", { bubbles: true })); imgTools(target); }); }
     });
   }
@@ -6532,7 +6547,7 @@ document.addEventListener("pointermove", e => { if (tip.hidden) return; const w 
 
 /* ---------- Events ---------- */
 document.addEventListener("click", e => {
-  const zim = e.target.closest(".flash.flipped .rich img.cimg"); if (zim && $("#sheet").hidden) { openImgZoom(zim.src); return; }
+  const zim = e.target.closest(".flash.flipped .rich img.cimg"); if (zim && $("#sheet").hidden) { openImgZoom(zim.src, zim.dataset.fl || imgFl([...zim.classList].map(c => c === "fh" || c === "fv" ? c : "").join(" "))); return; }
   if (S.view === "study" && S.study && !S.study.flipped && curCard() && !e.target.closest("button,a,input,textarea,select") && $("#sheet").hidden) {
     S.study.flipped = true; S.study.justFlipped = true; render(); return;
   }
