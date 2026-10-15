@@ -4393,7 +4393,13 @@ function makeStore(sb, uid){
   const colSnap = name => ({ docs: [...rows].filter(([p]) => { const a = p.split("/"); return a.length === 2 && a[0] === name; }).map(([p, d]) => ({ id: p.split("/")[1], data: () => d })) });
   const docSnap = path => ({ exists: rows.has(path), data: () => rows.get(path) });
   const emit = () => { clearTimeout(t); t = setTimeout(() => subs.forEach(s => s.cb(s.col ? colSnap(s.col) : docSnap(s.path))), 0); };
+  // Änderungen gesammelt hochladen: 4 s nach der letzten Änderung, spätestens 15 s nach der ersten
+  // (beim Lernen sonst eine Anfrage pro Karte). Lokal ist alles sofort gespeichert; beim Verlassen der App wird gleich hochgeladen.
+  let flT = 0, flFirst = 0;
+  function flushSoon(){ const now = Date.now(); if (!flFirst) flFirst = now; clearTimeout(flT); flT = setTimeout(flush, Math.max(0, Math.min(4000, flFirst + 15000 - now))); }
   async function flush(){
+    clearTimeout(flT); flFirst = 0;
+    if (pendSince > Date.now()) { pendSince = Date.now(); setTimeout(() => { if (Object.keys(pending).length) render(); }, 2100); }
     if (flushing || !navigator.onLine) return; flushing = true;
     try {
       for (const [path, data] of Object.entries(pending)) {
@@ -4406,12 +4412,13 @@ function makeStore(sb, uid){
       }
       S.syncErr = false;
     } catch (e) { console.warn("sync", e); S.syncErr = true; setTimeout(flush, 8000); }
-    flushing = false; if (Object.keys(pending).length && !S.syncErr) flush(); else report(); render();
+    flushing = false; if (Object.keys(pending).length && !S.syncErr) flushSoon(); else report(); render();
   }
-  // Kurzes Speichern (unter 2 s) wird nicht angezeigt – erst wenn es länger dauert, steht „Wird gespeichert …“ da
+  // Kurzes Speichern (unter 2 s ab dem Hochladen) wird nicht angezeigt – erst wenn es länger dauert, steht „Wird gespeichert …“ da.
+  // Solange die Änderungen nur gesammelt werden, liegt pendSince in der Zukunft.
   let pendSince = Object.keys(pending).length ? Date.now() : 0;
   const pendingSlow = () => { if (!Object.keys(pending).length) { pendSince = 0; return 0; } return Date.now() - pendSince >= 2000 ? Object.keys(pending).length : 0; };
-  function write(path, data){ if (!Object.keys(pending).length) { pendSince = Date.now(); setTimeout(() => { if (Object.keys(pending).length) render(); }, 2100); } data === null ? rows.delete(path) : rows.set(path, data); pending[path] = data; savePending(); saveCache(); emit(); flush(); return Promise.resolve(); }
+  function write(path, data){ if (!Object.keys(pending).length) pendSince = Infinity; data === null ? rows.delete(path) : rows.set(path, data); pending[path] = data; savePending(); saveCache(); emit(); flushSoon(); return Promise.resolve(); }
   async function load(){
     const all = [], t0 = Date.now(); let from = 0;
     while (true) {
@@ -4464,6 +4471,8 @@ function makeStore(sb, uid){
     if (r.error) throw r.error; return r.data && r.data[0] ? Date.parse(r.data[0].updated_at) : 0;
   }
   addEventListener("online", () => { flush(); load().catch(() => {}); });
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden" && Object.keys(pending).length) flush(); });
+  addEventListener("pagehide", () => { if (Object.keys(pending).length) flush(); });
   let lastLoad = Date.now(); // beim Zurückwechseln nur neu laden, wenn länger als 5 Minuten her (spart Datenvolumen)
   let lastQuick = 0;
   const refresh = () => {
@@ -4817,7 +4826,7 @@ function accountSheet(){
     <button class="btn block" style="margin-top:14px" data-act="changePw">Passwort ändern</button>
     <button class="btn danger block" style="margin-top:8px" id="logout">Abmelden</button>
     <button class="pw-forgot" style="display:block;margin:18px auto 0;color:var(--again)" data-act="deleteAccount" type="button">Konto löschen</button>`, root => {
-    $("#logout", root).addEventListener("click", async () => { if (!SB) { toast("In der Vorschau gibt es kein Konto."); return; } try { localStorage.removeItem("cardo-cache-" + USER.id); } catch {} await SB.auth.signOut(); location.reload(); });
+    $("#logout", root).addEventListener("click", async () => { if (!SB) { toast("In der Vorschau gibt es kein Konto."); return; } try { if (DB && DB.flush) await DB.flush(); } catch {} try { localStorage.removeItem("cardo-cache-" + USER.id); } catch {} await SB.auth.signOut(); location.reload(); });
   });
 }
 /* ---------- Synchronisierung: verbundene Geräte und ihr Stand ----------
