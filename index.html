@@ -507,6 +507,13 @@ button.mrow:hover .nm span:last-child{text-decoration:underline;text-decoration-
 .pw-forgot:disabled{opacity:.4}
 .field>label,.lbl{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .in{width:100%;padding:11px 13px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2)}
+.pw-wrap{position:relative}
+.pw-wrap .in{padding-right:48px}
+.pw-eye{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:40px;height:40px;display:grid;place-items:center;border-radius:10px;color:var(--muted);-webkit-tap-highlight-color:transparent}
+.pw-eye svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.pw-eye .eye-off,.pw-eye.on .eye-on{display:none}
+.pw-eye.on .eye-off{display:block}
+.pw-eye:active{color:var(--ink)}
 textarea.in{min-height:92px;resize:vertical;line-height:1.4}
 .in:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent}
 .emojis{display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:6px}
@@ -1841,6 +1848,8 @@ const I18N = {
   "Passwort vergessen": ["Forgot password", "Password dimenticata"],
   "Passwort vergessen?": ["Forgot password?", "Password dimenticata?"],
   "Passwort ändern": ["Change password", "Cambia password"],
+  "Passwort anzeigen": ["Show password", "Mostra password"],
+  "Passwort verbergen": ["Hide password", "Nascondi password"],
   "Neues Passwort": ["New password", "Nuova password"],
   "Aktuelles Passwort": ["Current password", "Password attuale"],
   "Code aus der E-Mail": ["Code from the email", "Codice dall'email"],
@@ -4728,6 +4737,17 @@ function authErr(e){
   if (/fetch|network/i.test(m)) return "Keine Verbindung. Prüfe dein Internet.";
   return m || "Das hat nicht geklappt.";
 }
+/* Passwortfeld mit Auge-Knopf zum Anzeigen/Verbergen */
+const PW_EYE = `<button class="pw-eye" type="button" data-pweye aria-label="Passwort anzeigen"><svg class="eye-on" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><svg class="eye-off" viewBox="0 0 24 24"><path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-2.6 3.5M6.6 6.6C3.7 8.4 2 12 2 12s3.6 7 10 7a9.6 9.6 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="M3 3l18 18"/></svg></button>`;
+const pwInput = attrs => `<div class="pw-wrap"><input class="in" type="password" ${attrs}>${PW_EYE}</div>`;
+document.addEventListener("pointerdown", e => { if (e.target.closest("[data-pweye]")) e.preventDefault(); /* Fokus/Tastatur im Feld behalten */ });
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-pweye]"); if (!b) return;
+  const inp = b.parentNode.querySelector("input"), show = inp.type === "password", a = inp.selectionStart, z = inp.selectionEnd;
+  inp.type = show ? "text" : "password"; b.classList.toggle("on", show);
+  if (document.activeElement === inp && a != null) { const keep = () => { try { inp.setSelectionRange(a, z); } catch {} }; keep(); requestAnimationFrame(keep); setTimeout(keep, 60); } /* Cursor bleibt, wo er war */
+  b.setAttribute("aria-label", show ? "Passwort verbergen" : "Passwort anzeigen");
+});
 function showAuth(mode = "in"){
   S.mode = "auth"; document.body.classList.add("authing"); hideSplash();
   $("#tabs").innerHTML = ""; $("#tabs").dataset.h = "";
@@ -4736,7 +4756,7 @@ function showAuth(mode = "in"){
     <div class="seg auth-seg" role="tablist"><button class="${mode === 'in' ? 'on' : ''}" data-act="authMode" data-v="in">Anmelden</button><button class="${mode === 'up' ? 'on' : ''}" data-act="authMode" data-v="up">Registrieren</button><button class="${mode === 'reset' ? 'on' : ''}" data-act="authMode" data-v="reset">Passwort vergessen</button></div>
     <form id="authForm" class="auth-form" novalidate>
       <div class="field"><label for="aEmail">E-Mail</label><input class="in" id="aEmail" type="email" autocomplete="email" inputmode="email" required></div>
-      ${mode === 'reset' ? '' : `<div class="field"><label for="aPw">Passwort</label><input class="in" id="aPw" type="password" autocomplete="${mode === 'up' ? 'new-password' : 'current-password'}" minlength="6" required></div>`}
+      ${mode === 'reset' ? '' : `<div class="field"><label for="aPw">Passwort</label>${pwInput(`id="aPw" autocomplete="${mode === 'up' ? 'new-password' : 'current-password'}" minlength="6" required`)}</div>`}
       <button class="btn primary block" type="submit" id="aGo">${mode === 'in' ? 'Anmelden' : mode === 'up' ? 'Konto erstellen' : 'Link zum Zurücksetzen senden'}</button>
       <p class="muted auth-msg" id="aMsg">${mode === 'up' ? 'Mindestens 6 Zeichen. Jede Person bekommt ihre eigene Bibliothek.' : ''}</p>
       ${mode === 'up' ? '<p class="muted auth-legal-note">Mit dem Erstellen des Kontos werden deine Daten wie in der <a href="datenschutz.html">Datenschutzerklärung</a> beschrieben verarbeitet.</p>' : ''}
@@ -4763,7 +4783,7 @@ function showAuth(mode = "in"){
   });
 }
 function newPasswordSheet(){
-  openSheet(`${head("Neues Passwort")}<div class="field"><label for="npw">Neues Passwort</label><input class="in" id="npw" type="password" autocomplete="new-password" minlength="6"></div>
+  openSheet(`${head("Neues Passwort")}<div class="field"><label for="npw">Neues Passwort</label>${pwInput(`id="npw" autocomplete="new-password" minlength="6"`)}</div>
     <button class="btn primary block" id="npwGo">Speichern</button><p class="muted" id="npwMsg" style="font-size:14.5px"></p>`, root => {
     $("#npwGo", root).addEventListener("click", async () => {
       const r = await SB.auth.updateUser({ password: $("#npw", root).value }); $("#npwMsg", root).textContent = r.error ? authErr(r.error) : "Gespeichert.";
@@ -4774,7 +4794,7 @@ function newPasswordSheet(){
 /* Passwort ändern (angemeldet): altes Passwort bestätigen – oder „Passwort vergessen?“ → Code per E-Mail */
 function changePasswordSheet(){
   const email = USER && USER.email || "";
-  const pwField = (id, label, ac) => `<div class="field"><label for="${id}">${label}</label><input class="in" id="${id}" type="password" autocomplete="${ac}" minlength="6"></div>`;
+  const pwField = (id, label, ac) => `<div class="field"><label for="${id}">${label}</label>${pwInput(`id="${id}" autocomplete="${ac}" minlength="6"`)}</div>`;
   const step1 = () => `${head("Passwort ändern")}${pwField("opw", "Aktuelles Passwort", "current-password")}${pwField("npw", "Neues Passwort", "new-password")}
     <button class="btn primary block" id="pwGo">Speichern</button><p class="muted" id="pwMsg" style="font-size:14.5px;min-height:1em;margin:10px 2px 0"></p>
     <button class="pw-forgot" id="pwForgot" type="button">Passwort vergessen?</button>`;
