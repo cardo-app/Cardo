@@ -3507,7 +3507,7 @@ const THEMES = [
     bases:{ "b-paper":"#EAF8F8", "b-surface":"#FFFFFF", "b-surface-2":"#F1FAFA", "b-line":"#CDE6E6", "b-muted":"#4E7378", "b-ink":"#0E2E33", "b-ink-2":"#24484D" }, flat:true, beach:true }
 ];
 const NEUTRAL = [["auto","System"],["light","Hell"],["dark","Dunkel"],["black","Dunkel +"]];
-S.set = { look: "auto", layout: "grid", textSize: "m", fxMode: "full", gradeSet: "4", newPerDay: 20, splash: "daily", glass: 1, retain: 90, sound: 1 };
+S.set = { look: "auto", layout: "grid", textSize: "m", fxMode: "full", gradeSet: "4", newPerDay: 20, splash: "daily", glass: 1, retain: 90, sound: 0 };
 S.seen = {}; S.extraNew = {}; S.lastExport = 0; S.fdays = {}; S.prog = {}; // pro Tag und Hauptordner: heute gelernte Karten (IDs) / Zusatzkontingent
 const NEW_OPTS = [5, 10, 15, 20, 30, 50, 0]; // 0 = unbegrenzt
 const RETAIN_OPTS = [80, 85, 90, 95];
@@ -3515,7 +3515,7 @@ const newLimit = () => (S.set.newPerDay ?? 20);
 const newLimitLabel = k => k === 0 ? "Unbegrenzt" : String(k);
 function normSet(v){ // accepts old {mode, theme} and new {look, layout}
   if (!v) return null;
-  const layout = v.layout === "list" ? "list" : "grid", textSize = ["s","m","l"].includes(v.textSize) ? v.textSize : "m", fxMode = ["full","color","off"].includes(v.fxMode) ? v.fxMode : (v.gradeFx === false ? "off" : "full"), gradeSet = ["4","3","2"].includes(String(v.gradeSet)) ? String(v.gradeSet) : "4", newPerDay = NEW_OPTS.includes(+v.newPerDay) ? +v.newPerDay : 20, splash = ["daily","always","never"].includes(v.splash) ? v.splash : "daily", glass = [0,1,2].includes(+v.glass) ? +v.glass : 1, retain = RETAIN_OPTS.includes(+v.retain) ? +v.retain : 90, sound = v.sound === 0 ? 0 : 1, lang = LOCALES[v.lang] ? v.lang : undefined;
+  const layout = v.layout === "list" ? "list" : "grid", textSize = ["s","m","l"].includes(v.textSize) ? v.textSize : "m", fxMode = ["full","color","off"].includes(v.fxMode) ? v.fxMode : (v.gradeFx === false ? "off" : "full"), gradeSet = ["4","3","2"].includes(String(v.gradeSet)) ? String(v.gradeSet) : "4", newPerDay = NEW_OPTS.includes(+v.newPerDay) ? +v.newPerDay : 20, splash = ["daily","always","never"].includes(v.splash) ? v.splash : "daily", glass = [0,1,2].includes(+v.glass) ? +v.glass : 1, retain = RETAIN_OPTS.includes(+v.retain) ? +v.retain : 90, sound = v.sound === 1 ? 1 : 0, lang = LOCALES[v.lang] ? v.lang : undefined;
   if (v.look) return { look: ["light","dark","black","auto"].includes(v.look) || THEMES.some(t => t.k === v.look) ? v.look : "auto", layout, textSize, fxMode, gradeSet, newPerDay, splash, glass, retain, sound, lang };
   if (v.theme && v.theme !== "koralle" && THEMES.some(t => t.k === v.theme)) return { look: v.theme, layout, textSize, fxMode, gradeSet, newPerDay, splash, glass, retain, sound, lang };
   return v.mode ? { look: v.mode, layout, textSize, fxMode, gradeSet, newPerDay, splash, glass, retain, sound, lang } : null;
@@ -4181,7 +4181,7 @@ new MutationObserver(() => { if (!document.body.classList.contains("splashing") 
 function saveSettings(patch){
   S.set = { ...S.set, ...patch }; setLang(S.set.lang); applyTheme(); render();
   try { localStorage.setItem("kartenfach-settings", JSON.stringify(S.set)); } catch {}
-  if (DB) enqueue("settings/main", () => DB.doc("settings/main").set({ look: S.set.look, layout: S.set.layout, textSize: S.set.textSize, fxMode: S.set.fxMode || "full", gradeSet: S.set.gradeSet || "4", newPerDay: newLimit(), splash: S.set.splash || "daily", glass: S.set.glass ?? 1, retain: S.set.retain || 90, sound: S.set.sound === 0 ? 0 : 1, lang: S.set.lang || LANG }));
+  if (DB) enqueue("settings/main", () => DB.doc("settings/main").set({ look: S.set.look, layout: S.set.layout, textSize: S.set.textSize, fxMode: S.set.fxMode || "full", gradeSet: S.set.gradeSet || "4", newPerDay: newLimit(), splash: S.set.splash || "daily", glass: S.set.glass ?? 1, retain: S.set.retain || 90, sound: S.set.sound === 1 ? 1 : 0, lang: S.set.lang || LANG }));
 }
 darkMQ.addEventListener && darkMQ.addEventListener("change", applyTheme);
 new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
@@ -5756,7 +5756,7 @@ function splashPickerHTML(){
   return `<div class="gs-list" role="radiogroup" aria-label="Startanimation">${SPLASH_OPTS.map(([k, l, d]) => `<button class="gs-opt fx-opt ${cur === k ? 'on' : ''}" data-act="setSplash" data-v="${k}" role="radio" aria-checked="${cur === k}"><span class="fx-t"><b>${l}</b><span>${d}</span></span><span class="gs-ck" aria-hidden="true">${cur === k ? '✓' : ''}</span></button>`).join("")}</div>`;
 }
 function soundSheet(){
-  const on = S.set.sound !== 0;
+  const on = S.set.sound === 1;
   openSheet(`${head("Töne")}<p class="muted" style="margin:0 0 16px;font-size:15.5px">Kurze Töne, wenn du eine Karte bewertest. Auf dem iPhone bleiben sie stumm, wenn der Lautlos-Schalter an ist.</p>
     <div class="set-list" style="margin:0"><button class="set-item ex-sw" data-act="toggleSound" role="switch" aria-checked="${on}"><span class="si-t">Töne beim Bewerten</span><span class="switch ${on ? 'on' : ''}" id="sndSw" aria-hidden="true"><i></i></span></button></div>`);
 }
@@ -5796,7 +5796,7 @@ function settingsHTML(){
     <button class="set-item" data-act="splashSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)">${THEME_IC.sparkle}</span><span class="si-t">Startanimation</span><span class="si-v">${splashLabel()}</span><span class="si-ch" aria-hidden="true">›</span></button>
   </div>
   <div class="set-list">
-    <button class="set-item" data-act="soundSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></span><span class="si-t">Töne</span><span class="si-v" id="sndV">${S.set.sound === 0 ? "Aus" : "An"}</span><span class="si-ch" aria-hidden="true">›</span></button>
+    <button class="set-item" data-act="soundSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></span><span class="si-t">Töne</span><span class="si-v" id="sndV">${S.set.sound === 1 ? "An" : "Aus"}</span><span class="si-ch" aria-hidden="true">›</span></button>
     <button class="set-item" data-act="langSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z"/></svg></span><span class="si-t">Sprache</span><span class="si-v" translate="no">${esc((LANGS.find(l => l[0] === LANG) || LANGS[0])[1])}</span><span class="si-ch" aria-hidden="true">›</span></button>
   </div>
   <div class="set-list">
@@ -5919,7 +5919,7 @@ function sfxPlay(ac, ch, v){
 }
 /* Töne beim Bewerten: in der App erzeugt (keine Dateien). Auf dem iPhone stumm, wenn der Lautlos-Schalter an ist. */
 function gradeSound(v){
-  if (S.set.sound === 0) return;
+  if (S.set.sound !== 1) return;
   try {
     AC = AC || new (window.AudioContext || window.webkitAudioContext)();
     if (AC.state === "suspended") AC.resume();
@@ -6632,7 +6632,7 @@ document.addEventListener("click", e => {
   if (a === "animSheet") { animSheet(); return; }
   if (a === "demoGrade") { demoGrade(+b.dataset.g); return; }
   if (a === "soundSheet") { soundSheet(); return; }
-  if (a === "toggleSound") { saveSettings({ sound: S.set.sound === 0 ? 1 : 0 }); const on = S.set.sound !== 0, sv = $("#sndV"), sw = $("#sndSw"); if (sv) sv.textContent = on ? "An" : "Aus"; if (sw) sw.classList.toggle("on", on); b.setAttribute("aria-checked", on); if (on) gradeSound(2); return; }
+  if (a === "toggleSound") { saveSettings({ sound: S.set.sound === 1 ? 0 : 1 }); const on = S.set.sound === 1, sv = $("#sndV"), sw = $("#sndSw"); if (sv) sv.textContent = on ? "An" : "Aus"; if (sw) sw.classList.toggle("on", on); b.setAttribute("aria-checked", on); if (on) gradeSound(2); return; }
   if (a === "setFxMode") { saveSettings({ fxMode: b.dataset.v }); const ap = $("#anPick"); if (ap) ap.innerHTML = animPickerHTML(); return; }
   if (a === "setLayout") { saveSettings({ layout: b.dataset.v }); return; }
   if (a === "setSide") { setSide(id, b.dataset.v); return; }
