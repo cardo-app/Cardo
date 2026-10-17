@@ -7072,7 +7072,7 @@ document.addEventListener("touchcancel", () => { if (sw && sw.drag) { sw.pts = s
     const el = e.target.closest("#tabs, #tabBack"); if (!el || g || e.button > 0) return;
     if (el._elBack) { cancelAnimationFrame(el._elBack); el._elBack = 0; el.style.scale = ""; el.style.translate = ""; } /* Rückfedern unterbrechen */
     if (busy(el) || document.body.classList.contains("swiping")) return;
-    g = { el, x: e.clientX, y: e.clientY, dx: 0, dy: 0, on: false, far: false, raf: 0, tr: el.style.transition, id: e.pointerId, sh: null };
+    g = { el, x: e.clientX, y: e.clientY, dx: 0, dy: 0, on: false, far: false, raf: 0, tr: el.style.transition, id: e.pointerId, sh: null, t0: performance.now(), tgt: e.target };
   }, true);
   addEventListener("pointermove", e => {
     if (!g || e.pointerId !== g.id) return;
@@ -7090,7 +7090,18 @@ document.addEventListener("touchcancel", () => { if (sw && sw.drag) { sw.pts = s
       g.pb = pressed; put(g.el, g.sh, 1, pressed, W, H);
     });
   }, { passive: true });
-  const up = e => { if (!g || (e && e.pointerId !== g.id)) return; if (g.far) farUntil = performance.now() + 400; release(); };
+  /* Kurzer Tipp auf die Knöpfe unten: kommt kein Klick (iOS verschluckt ihn z. B., während die Seite noch nachscrollt), selbst auslösen */
+  let tapClicked = false;
+  document.addEventListener("click", () => { tapClicked = true; }, true);
+  const up = e => {
+    if (!g || (e && e.pointerId !== g.id)) return;
+    if (g.far) farUntil = performance.now() + 400;
+    else if (e && e.type === "pointerup" && performance.now() - g.t0 < 600) {
+      const tgt = g.tgt; tapClicked = false;
+      setTimeout(() => { if (tapClicked || !tgt.isConnected) return; const bt = tgt.closest("button, [data-act]"); if (bt) bt.click(); }, 100);
+    }
+    release();
+  };
   addEventListener("pointerup", up, { passive: true }); addEventListener("pointercancel", up, { passive: true });
   let farUntil = 0; /* weit gezogen → Knopf beim Loslassen nicht auslösen */
   document.addEventListener("click", e => { if (performance.now() < farUntil && e.target.closest("#tabs, #tabBack")) { e.preventDefault(); e.stopPropagation(); farUntil = 0; } }, true);
