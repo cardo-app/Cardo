@@ -7072,7 +7072,7 @@ document.addEventListener("touchcancel", () => { if (sw && sw.drag) { sw.pts = s
       if (el.style.width || el.style.clipPath) return; /* eine Teilungs-Animation hat übernommen */
       const p = Math.min(1, (now - t0) / 380), k = 1 - SPRING(p); /* zurück, einmal über die Ruhelage hinaus; Drück-Vergrößerung läuft mit aus */
       put(el, sh, k, 1 + (pb - 1) * k, W, H);
-      if (p < 1) el._elBack = requestAnimationFrame(frame); else { el._elBack = 0; el.style.scale = ""; el.style.translate = ""; el.style.transition = s0.tr; }
+      if (p < 1) el._elBack = requestAnimationFrame(frame); else { el._elBack = 0; el.style.scale = ""; el.style.translate = ""; if (el.style.transition === s0.myTr) el.style.transition = s0.tr; } /* fremde Übergänge (Blase) nicht überschreiben */
     };
     el._elBack = requestAnimationFrame(frame);
   };
@@ -7085,11 +7085,11 @@ document.addEventListener("touchcancel", () => { if (sw && sw.drag) { sw.pts = s
   }, true);
   addEventListener("pointermove", e => {
     if (!g || e.pointerId !== g.id) return;
-    if (document.body.classList.contains("swiping")) { release(); return; } /* Seitenwischen hat übernommen */
+    if (document.body.classList.contains("swiping") && !g.vOnly) { release(); return; } /* Seitenwischen hat übernommen (beim Ziehen der Blase dehnt sich die Leiste weiter) */
     g.dx = g.vOnly ? 0 : e.clientX - g.x; g.dy = e.clientY - g.y;
     if (!g.on && Math.hypot(g.dx, g.dy) < 3) return;
-    if (Math.hypot(g.dx, g.dy) > 12) g.far = true;
-    if (!g.on) { g.on = true; g.el.style.transition = (g.el.id === "tabs" ? TB_TRANS : "none"); }
+    if (Math.hypot(e.clientX - g.x, e.clientY - g.y) > 12) g.far = true; /* echte Fingerstrecke (auch seitlich beim Ziehen der Blase) */
+    if (!g.on) { g.on = true; g.myTr = g.el.id === "tabs" ? TB_TRANS : "none"; g.el.style.transition = g.myTr; }
     if (!g.raf) g.raf = requestAnimationFrame(() => {
       if (!g) return; g.raf = 0;
       let pressed = 1; try { pressed = g.el.matches(":active, :has(button:active), .held") ? 1.05 : 1; } catch {}
@@ -7150,8 +7150,7 @@ document.addEventListener("touchcancel", () => { if (sw && sw.drag) { sw.pts = s
     if (!sc || e.pointerId !== sc.id) return;
     const dx = e.clientX - sc.x0, dy = e.clientY - sc.y0;
     if (!sc.on) {
-      if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) { sc = null; return; } /* eher nach oben/unten → nichts ziehen */
-      if (Math.abs(dx) < 6) return;
+      if (Math.abs(dx) < 6) return; /* nach oben/unten dehnt sich nur die Leiste; sobald seitlich gezogen wird, läuft die Blase mit */
       sc.on = true; if (peekGen !== S.gen) prerender(); $("#main").style.willChange = "transform"; document.body.classList.add("swiping");
     }
     const now = performance.now(); sc.pts.push([e.clientX, now]); while (sc.pts.length > 2 && now - sc.pts[0][1] > 90) sc.pts.shift();
