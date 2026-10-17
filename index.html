@@ -7127,53 +7127,17 @@ document.addEventListener("touchcancel", () => { if (sw && sw.drag) { sw.pts = s
   const off = e => { if (hid === null || (e && e.pointerId !== hid)) return; hid = null; $("#tabs").classList.remove("held"); };
   addEventListener("pointerup", off, true); addEventListener("pointercancel", off, true);
 })();
-/* ---------- Ganze Tab-Leiste: auf die Blase drücken und seitlich ziehen → Blase folgt dem Finger, die Seiten wischen in
-   Echtzeit mit (gleiche Mechanik wie das Seitenwischen: place/showPeek/finish). Über mehrere Tabs: beim Erreichen des
-   Nachbarn wird ohne Animation umgeschaltet und weitergezogen. Loslassen: nächster Tab mit Rückprall. ---------- */
+/* ---------- Ganze Tab-Leiste: Blase ziehen bzw. lange auf die Leiste drücken ----------
+   - Auf die Blase drücken und seitlich ziehen: Blase folgt dem Finger, die Seiten wischen in Echtzeit mit (place/showPeek/finish
+     wie beim Seitenwischen). Über mehrere Tabs: beim Erreichen des Nachbarn wird ohne Animation umgeschaltet und weitergezogen.
+   - Lange (0,2 s) auf die Leiste drücken, wo die Blase nicht ist: die Blase gleitet in 0,13 s unter den Finger, die Seiten wischen
+     dabei in Echtzeit mit; danach geht es nahtlos als Ziehen weiter.
+   - Loslassen: nach Strecke und Schwung auf den nächsten Tab (ein Rückprall). */
 (() => {
-  let sc = null, scSwallow = 0, lp = null, fs = null;
+  let sc = null, scSwallow = 0, lp = null;
   const slotW = () => ($("#tabs").getBoundingClientRect().width - 8) / Math.max(1, PAGES.length);
-  document.addEventListener("pointerdown", e => {
-    const tb = $("#tabs"), b = e.target.closest && e.target.closest("#tabs button.on");
-    if (!b || tb.classList.contains("solo") || sc || e.button > 0) return;
-    if (animating) settleSwipe();
-    if (animating || !canSwipe() || !PAGES.includes(S.view)) return;
-    sc = { id: e.pointerId, x0: e.clientX, y0: e.clientY, on: false, d: 0, raf: 0, pts: [[e.clientX, performance.now()]] };
-  }, true);
-  /* Lange auf die Leiste drücken, wo die Blase gerade nicht ist: die Blase gleitet schnell genau unter den Finger (die Seite bleibt),
-     folgt ihm dann; beim Loslassen öffnet sich der Tab, über dem sie steht. */
-  const fingerPos = cx => { const tb = $("#tabs"), r = tb.getBoundingClientRect(), n = PAGES.length, slot = (r.width - 8) / n;
-    let pos = (cx - r.left - 4) / slot - .5; /* Mitte der Blase unter dem Finger */
-    if (pos > n - 1) pos = n - 1 + .3 * Math.tanh((pos - (n - 1)) / .8); else if (pos < 0) pos = -.3 * Math.tanh(-pos / .8);
-    return pos; };
-  const fsShow = (pos, dur) => { const i0 = PAGES.indexOf(S.view), n = PAGES.length, p = Math.max(0, Math.min(n - 1, pos));
-    pillTo(S.view, S.view, 0, dur, EASE, pos - i0); PAGES.forEach((v, i) => tabStyle(v, Math.max(0, 1 - Math.abs(p - i)), dur)); };
-  document.addEventListener("pointerdown", e => {
-    const tb = $("#tabs"), b = e.target.closest && e.target.closest("#tabs button:not(.on)");
-    if (!b || tb.classList.contains("solo") || lp || sc || fs || e.button > 0) return;
-    lp = { id: e.pointerId, x0: e.clientX, y0: e.clientY, cx: e.clientX, cy: e.clientY };
-    lp.t = setTimeout(() => {
-      const l = lp; if (!l || animating || !canSwipe() || !PAGES.includes(S.view)) return;
-      tb._vOnly = true; haptic();
-      fs = { id: l.id, pos: fingerPos(l.cx), raf: 0 }; fsShow(fs.pos, 130); /* schnell unter den Finger gleiten */
-    }, 200);
-  }, true);
-  addEventListener("pointermove", e => {
-    if (lp && e.pointerId === lp.id) { lp.cx = e.clientX; lp.cy = e.clientY; if (!fs && Math.hypot(e.clientX - lp.x0, e.clientY - lp.y0) > 8) { clearTimeout(lp.t); lp = null; } }
-    if (!fs || e.pointerId !== fs.id) return;
-    fs.pos = fingerPos(e.clientX);
-    if (!fs.raf) fs.raf = requestAnimationFrame(() => { if (!fs) return; fs.raf = 0; fsShow(fs.pos, 0); });
-  }, { passive: true });
-  const lpEnd = e => {
-    if (lp && (!e || e.pointerId === lp.id)) { clearTimeout(lp.t); lp = null; }
-    $("#tabs")._vOnly = false;
-    if (!fs || (e && e.pointerId !== fs.id)) return; const f = fs; fs = null; cancelAnimationFrame(f.raf);
-    scSwallow = performance.now() + 400;
-    const n = PAGES.length, t = Math.max(0, Math.min(n - 1, Math.round(f.pos))), i0 = PAGES.indexOf(S.view);
-    pillTo(S.view, S.view, 0, 380, EASE, t - i0); PAGES.forEach((v, i) => tabStyle(v, i === t ? 1 : 0, 280)); /* auf den Tab einrasten, ein Rückprall */
-    setTimeout(() => { if (PAGES[t] !== S.view) go(PAGES[t], null, "fade"); setTimeout(clearTabStyles, 60); }, 340);
-  };
-  addEventListener("pointerup", lpEnd, { passive: true }); addEventListener("pointercancel", lpEnd, { passive: true });
+  const startSc = (id, x, y) => ({ id, x0: x, y0: y, on: false, d: 0, raf: 0, pts: [[x, performance.now()]], glide: 0 });
+  const activate = () => { sc.on = true; if (peekGen !== S.gen) prerender(); $("#main").style.willChange = "transform"; document.body.classList.add("swiping"); };
   /* Nachbar erreicht: sofort dorthin umschalten (Seite ist schon vorgezeichnet) und von dort weiterziehen */
   const hop = dir => {
     const to = neighbour(dir); if (!to) return false;
@@ -7184,25 +7148,55 @@ document.addEventListener("touchcancel", () => { if (sw && sw.drag) { sw.pts = s
     place(0, 0); hidePeek(); clearTabStyles(); prerender();
     return true;
   };
-  addEventListener("pointermove", e => {
-    if (!sc || e.pointerId !== sc.id) return;
-    const dx = e.clientX - sc.x0, dy = e.clientY - sc.y0;
-    if (!sc.on) {
-      if (Math.abs(dx) < 6) return; /* nach oben/unten dehnt sich nur die Leiste; sobald seitlich gezogen wird, läuft die Blase mit */
-      sc.on = true; if (peekGen !== S.gen) prerender(); $("#main").style.willChange = "transform"; document.body.classList.add("swiping");
-    }
-    const now = performance.now(); sc.pts.push([e.clientX, now]); while (sc.pts.length > 2 && now - sc.pts[0][1] > 90) sc.pts.shift();
-    let d = dx / slotW(); /* in Tabs: +1 = einen Tab nach rechts */
+  /* Finger (oder gedachter Finger beim Gleiten) bei x: Blase und Seiten dorthin */
+  const moveTo = x => {
+    let d = (x - sc.x0) / slotW(); /* in Tabs: +1 = einen Tab nach rechts */
     while (d >= 1 && neighbour("left")) { if (!hop("left")) break; sc.x0 += slotW(); d -= 1; if ($("#tabs").classList.contains("solo")) break; }
     while (d <= -1 && neighbour("right")) { if (!hop("right")) break; sc.x0 -= slotW(); d += 1; if ($("#tabs").classList.contains("solo")) break; }
     sc.d = d;
-    if (!sc.raf) sc.raf = requestAnimationFrame(() => {
-      if (!sc) return; sc.raf = 0; const W = innerWidth, x = -sc.d * W, has = showPeek(x < 0 ? "left" : "right");
-      place(has ? x : x / (1 + Math.abs(x) / 120) * .5, 0); /* kein Nachbar: zäh wie ein Gummiband */
-    });
+    const W = innerWidth, px = -d * W, has = showPeek(px < 0 ? "left" : "right");
+    place(has ? px : px / (1 + Math.abs(px) / 120) * .5, 0); /* kein Nachbar: zäh wie ein Gummiband */
+  };
+  const canStart = e => !$("#tabs").classList.contains("solo") && !sc && !lp && e.button <= 0;
+  document.addEventListener("pointerdown", e => {
+    const t = e.target.closest && e.target.closest("#tabs button"); if (!t || !canStart(e)) return;
+    if (animating) settleSwipe();
+    if (animating || !canSwipe() || !PAGES.includes(S.view)) return;
+    if (t.classList.contains("on")) { sc = startSc(e.pointerId, e.clientX, e.clientY); return; } /* auf der Blase */
+    /* daneben: lange drücken → Blase gleitet zum Finger */
+    lp = { id: e.pointerId, x0: e.clientX, y0: e.clientY, cx: e.clientX };
+    lp.t = setTimeout(() => {
+      const l = lp; if (!l || animating || !canSwipe() || !PAGES.includes(S.view)) return;
+      const tb = $("#tabs"), r = tb.getBoundingClientRect(), i0 = PAGES.indexOf(S.view), slot = slotW();
+      const fromX = r.left + 4 + slot * (i0 + .5); /* Mitte der Blase jetzt */
+      tb._vOnly = true; haptic();
+      sc = startSc(l.id, fromX, l.y0); activate(); sc.pts = [[l.cx, performance.now()]];
+      const t0 = performance.now(), G = 130;
+      const glide = now => {
+        if (!sc || sc.id !== l.id) return;
+        const q = Math.min(1, (now - t0) / G), e2 = 1 - Math.pow(1 - q, 3), target = lp ? lp.cx : l.cx;
+        moveTo(fromX + (target - fromX) * e2);
+        if (q < 1) sc.glide = requestAnimationFrame(glide); else sc.glide = 0;
+      };
+      sc.glide = requestAnimationFrame(glide);
+    }, 200);
+  }, true);
+  addEventListener("pointermove", e => {
+    if (lp && e.pointerId === lp.id) { lp.cx = e.clientX; if (!sc && Math.hypot(e.clientX - lp.x0, e.clientY - lp.y0) > 8) { clearTimeout(lp.t); lp = null; } }
+    if (!sc || e.pointerId !== sc.id) return;
+    if (!sc.on) {
+      if (Math.abs(e.clientX - sc.x0) < 6) return; /* nach oben/unten dehnt sich nur die Leiste; seitlich läuft die Blase mit */
+      activate();
+    }
+    const now = performance.now(); sc.pts.push([e.clientX, now]); while (sc.pts.length > 2 && now - sc.pts[0][1] > 90) sc.pts.shift();
+    if (sc.glide) return; /* gleitet noch zum Finger – das Gleiten zielt schon auf die neue Position */
+    const x = e.clientX;
+    if (!sc.raf) sc.raf = requestAnimationFrame(() => { if (!sc) return; sc.raf = 0; moveTo(x); });
   }, { passive: true });
   const end = e => {
-    if (!sc || (e && e.pointerId !== sc.id)) return; const s0 = sc; sc = null; cancelAnimationFrame(s0.raf);
+    if (lp && (!e || e.pointerId === lp.id)) { clearTimeout(lp.t); lp = null; }
+    $("#tabs")._vOnly = false;
+    if (!sc || (e && e.pointerId !== sc.id)) return; const s0 = sc; sc = null; cancelAnimationFrame(s0.raf); cancelAnimationFrame(s0.glide);
     if (!s0.on) return;
     scSwallow = performance.now() + 400; /* der Klick vom Loslassen soll nichts zusätzlich auslösen */
     const W = innerWidth, x = -s0.d * W, dir = x < 0 ? "left" : "right";
