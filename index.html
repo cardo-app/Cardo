@@ -1065,7 +1065,7 @@ body.m-dark{--gl-bg:color-mix(in srgb,var(--surface) 42%,transparent);--gl-edge:
 body{--bb-pill:rgba(130,136,150,.16);--bb-shade:.13;--bb-line:rgba(0,0,0,.10);--bb-hi:1}
 @media (prefers-color-scheme:dark){body:not(.m-light){--bb-pill:rgba(255,255,255,.09);--bb-shade:.45;--bb-line:rgba(255,255,255,.10);--bb-hi:.4}}
 body.m-dark{--bb-pill:rgba(255,255,255,.09);--bb-shade:.45;--bb-line:rgba(255,255,255,.10);--bb-hi:.4}
-#tabs::before{content:"";position:absolute;top:0;bottom:0; /* Blase oben, unten und in den Endstellungen seitlich bündig mit der Leiste */left:0;width:calc(100% / 3);border-radius:999px;
+#tabs::before,#tabBack::before{content:"";position:absolute;top:0;bottom:0; /* Blase oben, unten und in den Endstellungen seitlich bündig mit der Leiste */left:0;width:calc(100% / 3);border-radius:999px;
   background:radial-gradient(ellipse 58% 24% at calc(50% - var(--sx) * 16%) 12%,rgba(255,255,255,calc(var(--bb-hi) * .95)),rgba(255,255,255,0) 100%),
     linear-gradient(90deg,rgba(0,0,0,calc(var(--bb-shade) * max(0, 0 - var(--sx)) * .35)) 0%,rgba(0,0,0,0) 42%,rgba(0,0,0,0) 58%,rgba(0,0,0,calc(var(--bb-shade) * max(0, var(--sx)) * .35)) 100%),
     linear-gradient(180deg,rgba(255,255,255,calc(var(--bb-hi) * .35)) 0%,rgba(255,255,255,0) 42%,rgba(0,0,0,calc(var(--bb-shade) * .3)) 100%),
@@ -1088,13 +1088,13 @@ html.ios-standalone #tabs{padding-bottom:4px}
 /* Drücken auf einen Tab: die ganze Leiste wird kurz etwas größer und federt zurück (eigene „scale“-Eigenschaft, damit translateX auf dem iPad/Mac erhalten bleibt) */
 #tabs{--se:cubic-bezier(.3,1.1,.4,1);--spring:cubic-bezier(.3,1.5,.5,1); /* Knopf ⇄ Leiste: genau ein weicher Rückprall, dann ruhig */scale:1;transition:--pill .45s cubic-bezier(.34,1.35,.55,1),--sx .45s cubic-bezier(.34,1.35,.55,1),--k .45s var(--spring),scale .4s cubic-bezier(.34,1.6,.55,1),background-color .3s ease}
 #tabs:has(button:active){scale:1.05;background-color:color-mix(in srgb,var(--gl-bg),#fff 5%); /* beim Drücken nur ganz leicht heller */transition:--pill .45s cubic-bezier(.34,1.35,.55,1),--sx .45s cubic-bezier(.34,1.35,.55,1),--k .45s var(--spring),scale .14s ease-out,background-color .1s ease-out}
-/* Im Ordner: Leiste schrumpft zu einem runden Knopf, nur das Bibliothek-Symbol in der Mitte (Tippen = zurück zur Bibliothek); beim Seitenwischen wieder ganz.
+/* Im Ordner: Leiste schrumpft zu einer Pille (im Unterordner geteilt in zwei runde Knöpfe), nur das Bibliothek-Symbol in der Mitte (Tippen = zurück zur Bibliothek); beim Seitenwischen wieder ganz.
    Alles hängt an einem Wert --k (0 = ganze Leiste, 1 = Knopf), damit Leiste, Tabs und Blase genau gleich laufen. */
 @property --sx{syntax:"<number>";inherits:true;initial-value:0}
 @property --k{syntax:"<number>";inherits:true;initial-value:0}
 body:not(.swiping) #tabs.solo:not(.end){--k:1;--sx:0} /* .end: im Ordner unten angestoßen → ganze Leiste */
 #tabs{--kb:calc(clamp(0, var(--k), 1) + (var(--k) - clamp(0, var(--k), 1)) * .3)} /* Größe der Leiste: Nachfedern gedämpft, damit der Knopf nur leicht über das Ziel schwingt */
-@media (max-width:699px){#tabs{left:calc(32px + (50% - 64px) * var(--kb));right:calc(32px + (50% - 64px) * var(--kb))}}
+@media (max-width:699px){#tabs{left:calc(32px + (50% - 96px) * var(--kb));right:calc(32px + (50% - 96px) * var(--kb))}} /* im Ordner: Pille, 128 px breit */
 #tabs button{min-width:0;overflow:hidden}
 #tabs button:not(.on){flex-grow:calc(1 - clamp(0, var(--k), 1));opacity:clamp(0, 1 - var(--k) * 3, 1)}
 #tabs button.on span{white-space:nowrap;opacity:clamp(0, 1 - var(--k) * 3, 1)}
@@ -1102,7 +1102,32 @@ body:not(.swiping) #tabs.solo:not(.end){--k:1;--sx:0} /* .end: im Ordner unten a
 #tabs::before{width:calc(100% / (3 - 2 * clamp(0, var(--k), 1)))} /* beim Nachfedern nie breiter als die Leiste */
 body:not(.swiping) #tabs.solo:not(.end) button:not(.on){pointer-events:none}
 #tabs button span{white-space:nowrap}
-@media (min-width:700px){#tabs{width:calc(400px - 336px * var(--kb))}}
+@media (min-width:700px){#tabs{width:calc(400px - 272px * var(--kb))}}
+/* Leiste und Pille: Enden minimal runder (elliptisch, 6 px breiter gerundet als ein Halbkreis); die Auswahl-Blase folgt */
+#tabs{border-radius:36.7px / 50%}
+#tabs::before{border-radius:inherit}
+body:not(.swiping) #tabs.solo.split:not(.end){border-radius:999px} /* geteilt: exakt rund */
+/* Im Unterordner (.split): Pille ist geteilt – Bibliothek-Knopf rund rechts, Zurück-Knopf rund links (je 64 px, 10 px Abstand) */
+@media (max-width:699px){body:not(.swiping) #tabs.solo.split:not(.end){left:calc(50% + 5px);right:calc(50% - 69px)}}
+@media (min-width:700px){body:not(.swiping) #tabs.solo.split:not(.end){width:64px;left:calc(50% + 37px)}}
+/* Im Unterordner: runder Zurück-Knopf links neben dem Bibliothek-Knopf (gleiches Glas), führt in den übergeordneten Ordner */
+#tabBack{position:fixed;z-index:20;--sx:0;bottom:calc(max(20px,env(safe-area-inset-bottom,0px) - 14px) - var(--vgap,0px));right:calc(50% + 5px);width:64px;height:61.4px;border-radius:999px;display:grid;place-items:center;color:var(--accent-text);
+  background:var(--gl-bg);-webkit-backdrop-filter:blur(var(--gl-blur,8px)) saturate(190%) brightness(1.04);backdrop-filter:blur(var(--gl-blur,8px)) saturate(190%) brightness(1.04);
+  box-shadow:inset 0 0 0 .5px var(--gl-rim),inset 1.5px 1.5px 1px -1px var(--gl-edge),inset -1.5px -1.5px 1px -1px var(--gl-edge),inset 0 .5px .5px rgba(255,255,255,calc(var(--bb-hi) * .9)),inset 0 7px 9px -6px rgba(255,255,255,calc(var(--bb-hi) * 1.1)),inset 0 -6px 8px -6px rgba(255,255,255,calc(var(--bb-hi) * .6)),inset 7px 0 9px -7px rgba(255,255,255,calc(var(--bb-hi) * .7)),inset -7px 0 9px -7px rgba(255,255,255,calc(var(--bb-hi) * .7)),inset 0 0 10px rgba(255,255,255,.07),inset 0 -6px 12px -8px rgba(0,0,0,calc(var(--gl-deep) * .8)),var(--gl-drop);
+  opacity:0;scale:.55;translate:37px 0;pointer-events:none;transition:opacity .15s ease,scale .3s ease,translate .3s cubic-bezier(.4,0,.6,1)} /* gleich groß und gleich gestaltet wie der Bibliothek-Knopf (Leiste + Auswahl-Blase); versteckt in ihm */
+#tabBack::before{width:100%;border-radius:inherit}
+#tabs,#tabBack{touch-action:none} /* Ziehen auf Leiste/Knöpfen scrollt nicht die Seite (für den Gummiband-Effekt) */
+#tabBack .tb-ghost{position:absolute;z-index:1;left:52px;top:50%;width:24px;height:24px;margin-top:calc(-12px + var(--icon-dy,0px));pointer-events:none}
+#tabBack > svg{translate:0 var(--icon-dy,0px)} /* Pfeil auf exakt derselben Höhe wie das Ordner-Symbol im Bibliothek-Knopf */ /* Ordner-Symbol des Bibliothek-Knopfs während der Teilung */
+#tabBack .tb-ghost svg{display:block;width:24px;height:24px;stroke-width:2.9}
+#tabBack svg{position:relative;z-index:1;width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.9;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 1px 1px rgba(0,0,0,calc(.08 + var(--gl-deep) * .4)))}
+body:not(.swiping):not(.studying):not(.authing) #tabs.solo.sub:not(.end) ~ #tabBack{opacity:1;scale:1;translate:0 0;pointer-events:auto;transition:opacity .2s ease .1s,translate .55s cubic-bezier(.3,1.35,.5,1) .1s,scale .4s cubic-bezier(.34,1.6,.55,1),background-color .3s ease}
+/* Drücken wie beim Bibliothek-Knopf: Knopf wird kurz etwas größer und heller, das Symbol drückt sich leicht ein */
+body:not(.swiping):not(.studying):not(.authing) #tabs.solo.sub:not(.end) ~ #tabBack:active{scale:1.05;background-color:color-mix(in srgb,var(--gl-bg),#fff 5%);transition:opacity .12s ease,translate .55s cubic-bezier(.3,1.35,.5,1),scale .14s ease-out,background-color .1s ease-out}
+#tabBack svg{transition:transform .22s cubic-bezier(.34,1.45,.55,1)}
+#tabBack:active svg{transform:scale(.92);transition-duration:.08s}
+@media (min-width:700px){#tabBack{bottom:calc(16px + env(safe-area-inset-bottom,0px) - var(--vgap,0px))}}
+@media (prefers-reduced-motion:reduce){#tabBack,#tabBack svg{transition:opacity .15s ease!important;animation:none!important}}
 @media (prefers-reduced-motion:reduce){#tabs{transition:none}}
 /* ---------- Liquid Glass (Test): Untermenüs der Einstellungen, Stil wie die Tab-Leiste ---------- */
 body{--gl-card:rgba(255,255,255,.42);--gl-sheet:color-mix(in srgb,var(--surface) 55%,transparent)}
@@ -1383,7 +1408,7 @@ sup .ms-bx,sub .ms-bx{width:.8em;height:.9em}
 <div id="app">
   <main id="main"><div class="loading">Cardo lädt …</div></main>
 </div>
-<nav id="tabs" aria-label="Hauptnavigation"></nav>
+<nav id="tabs" aria-label="Hauptnavigation"></nav><button id="tabBack" type="button" data-act="up" aria-label="Zurück"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
 <div id="sheet" hidden></div>
 <div id="toast" aria-live="polite"></div>
 <div id="tip" hidden></div>
@@ -5155,7 +5180,12 @@ function draw(){
   if (S.sel && (S.view !== "lib" || !S.fid)) S.sel = null;
   document.body.classList.toggle("selecting", !!S.sel);
   const tbh = LANG + tabsHTML(), tb = $("#tabs"); if (tb.dataset.h !== tbh) { tb.innerHTML = tbh.slice(LANG.length); tb.dataset.h = tbh; } /* nur neu bauen, wenn sich etwas ändert – sonst laufen die Übergänge der Leiste nicht */
+  const wasSolo = tb.classList.contains("solo"), wasSub = tb.classList.contains("sub");
   tb.classList.toggle("solo", S.view === "lib" && !!S.fid);
+  { const f = S.view === "lib" && S.fid && !S.sel && S.folders[S.fid]; tb.classList.toggle("sub", !!(f && f.parentId && S.folders[f.parentId])); } /* Unterordner → Zurück-Knopf neben dem Bibliothek-Knopf */
+  const calm = !tb.classList.contains("end") && !document.body.classList.contains("swiping");
+  if (!wasSub && tb.classList.contains("sub")) { if (calm) splitBack(wasSolo ? 0 : 460); else stopSplit(); } /* Pille teilt sich in zwei runde Knöpfe */
+  else if (wasSub && !tb.classList.contains("sub")) { if (calm && tb.classList.contains("solo")) mergeBack(); else stopSplit(); } /* … und wird wieder eine Pille */
   if (S.lastTab !== S.view && S.view !== "study") { S.lastTab = S.view; } // kein Hüpfen der Tab-Icons beim Seitenwechsel
   if (draw.reuse) { const src = draw.reuse; draw.reuse = null; $("#main").replaceChildren(...src.childNodes); } // Seitenwischen: fertig vorgezeichnete Seite übernehmen
   else $("#main").innerHTML = S.view === "study" ? studyHTML() : S.view === "settings" ? settingsHTML() : S.view === "stats" ? statsHTML() : (S.fid ? folderHTML(S.fid) : libHTML());
@@ -5177,6 +5207,118 @@ const emo = f => (f && f.emoji != null) ? f.emoji : "📁";
 function dotHTML(f, cls = "dot"){
   const u = coverUrl(f);
   return `<span class="${cls}" style="background-color:${esc(colorOf(f))};${u ? `background-image:url('${esc(u)}');background-position:${cposCss(f)}` : ''}">${u ? '' : esc(emo(f))}</span>`;
+}
+/* Zurück-Knopf entsteht aus dem Bibliothek-Knopf: dessen linke Wand wandert nach links (der Knopf wird zur langen Pille),
+   die Pille schnürt sich in der Mitte ein und teilt sich – der linke Teil ist der Zurück-Knopf. Während der Animation zeigt
+   #tabBack die ganze Glasform (mit Ordner-Symbol), der echte Bibliothek-Knopf ist so lange unsichtbar; nach der Teilung
+   übernehmen beide echten Knöpfe nahtlos. Die Wand läuft über dieselbe Federkurve wie Leiste und Knöpfe → genau ein Rückprall. */
+const cubicBez = (x1, y1, x2, y2) => x => {
+  if (x <= 0) return 0; if (x >= 1) return 1;
+  const bx = t => 3 * (1 - t) * (1 - t) * t * x1 + 3 * (1 - t) * t * t * x2 + t * t * t, by = t => 3 * (1 - t) * (1 - t) * t * y1 + 3 * (1 - t) * t * t * y2 + t * t * t;
+  let lo = 0, hi = 1, t = x; for (let i = 0; i < 24; i++) { t = (lo + hi) / 2; if (bx(t) < x) lo = t; else hi = t; }
+  return by(t);
+};
+const SPRING = cubicBez(.3, 1.5, .5, 1);
+let splitRaf = 0;
+const TB_TRANS = "--pill .45s cubic-bezier(.34,1.35,.55,1),--sx .45s cubic-bezier(.34,1.35,.55,1),--k .45s var(--spring),scale 0s,translate 0s,background-color .3s ease"; /* wie im CSS, nur scale/translate sofort (per JS geführt) */
+/* sync: Bibliothek-Knopf an den Zustand anpassen (.split = geteilt, wenn im Unterordner) */
+function stopSplit(sync = true){
+  const b = $("#tabBack"), tb = $("#tabs"); if (!b || !tb) return;
+  cancelAnimationFrame(splitRaf); clearTimeout(splitBack.t);
+  b.querySelector(".tb-ghost")?.remove(); const arrow = b.querySelector("svg");
+  ["opacity", "width", "right", "clipPath", "translate", "scale", "pointerEvents", "transformOrigin", "borderRadius"].forEach(k => b.style[k] = "");
+  ["opacity", "transition", "position", "left", "top", "marginTop"].forEach(k => arrow.style[k] = ""); ["opacity", "translate", "scale", "transition"].forEach(k => tb.style[k] = "");
+  if (sync) tb.classList.toggle("split", tb.classList.contains("sub"));
+  syncIconDy();
+  b.style.transition = "none"; void b.offsetWidth; b.style.transition = ""; /* ohne Übergang in den Ruhezustand */
+}
+/* Höhe des Ordner-Symbols im Bibliothek-Knopf messen (es sitzt wegen des unsichtbaren Schriftzugs nicht exakt mittig) und
+   Pfeil/Ersatz-Symbol genau darauf ausrichten – dann springt beim Übergeben nichts */
+function syncIconDy(){
+  const b = $("#tabBack"), tb = $("#tabs"), ic = tb && tb.querySelector("button.on svg"); if (!b || !ic || !tb.classList.contains("solo") || tb.classList.contains("end")) return;
+  const r = tb.getBoundingClientRect(), q = ic.getBoundingClientRect(); if (!r.height || !q.height) return;
+  b.style.setProperty("--icon-dy", ((q.top + q.height / 2) - (r.top + r.height / 2)).toFixed(2) + "px");
+}
+/* Glasform aus zwei Knöpfen (links Zurück, rechts Bibliothek) mit Taille der Höhe h; w = Gesamtbreite */
+function pillClip(w, h, H, KW, GAP, ro = H / 2, ri = H / 2){ /* ro: Rundung der äußeren Enden, ri: der inneren Seiten */
+  const R = H / 2, f1 = v => v.toFixed(1), lw = w - KW - GAP, xm = lw + GAP / 2, x0 = lw / 2, x1 = w - KW / 2;
+  const cap = (a, z, rl, rr) => `M${f1(a + rl)} 0H${f1(z - rr)}A${f1(rr)} ${f1(R)} 0 0 1 ${f1(z - rr)} ${f1(H)}H${f1(a + rl)}A${f1(rl)} ${f1(R)} 0 0 1 ${f1(a + rl)} 0Z`;
+  return `path("${cap(0, Math.max(2 * R, lw), ro, ri)} ${cap(w - KW, w, ri, ro)} M${f1(x0)} 0Q${f1(xm)} ${f1(H - h)} ${f1(x1)} 0L${f1(x1)} ${f1(H)}Q${f1(xm)} ${f1(h)} ${f1(x0)} ${f1(H)}Z")`;
+}
+/* #tabBack zeigt die ganze Pille (mit Ordner-Symbol, Pfeil links), der echte Bibliothek-Knopf ist so lange unsichtbar */
+function morphStart(b, tb, w){
+  syncIconDy();
+  const ghost = document.createElement("span"); ghost.className = "tb-ghost"; ghost.innerHTML = ICONS.lib; b.appendChild(ghost);
+  const arrow = b.querySelector("svg"); Object.assign(arrow.style, { position: "absolute", left: "20px", top: "50%", marginTop: "-12px" });
+  b.style.transition = "none"; b.style.translate = "0px 0px"; b.style.scale = "1"; b.style.right = `calc(50% - ${(w / 2).toFixed(1)}px)`; b.style.width = w.toFixed(1) + "px"; b.style.opacity = "1";
+  b.style.borderRadius = `${(tb.getBoundingClientRect().height / 2 + PILL_EXTRA).toFixed(1)}px / 50%`; /* wie die Pille */
+  tb.style.opacity = "0"; return ghost;
+}
+const PILL_EXTRA = 6; /* wie im CSS: Pillen-Enden 6 px runder als ein Halbkreis */
+const tbStop = (tb) => !tb.classList.contains("solo") || tb.classList.contains("end") || document.body.classList.contains("swiping");
+const tbBump = ts => ts < 70 ? 1 - Math.pow(1 - ts / 70, 2) : 1 - SPRING(Math.min(1, (ts - 70) / 380)); /* kurzer Ausschlag, dann ein Rückprall */
+/* Pille teilt sich in der Mitte: Taille schnürt sich ein, beide Hälften rücken auseinander, das Ordner-Symbol wandert in die
+   rechte Hälfte, links blendet der Pfeil ein. Danach schwingen beide runden Knöpfe kurz auseinander und federn zurück. */
+function splitBack(delay){
+  const b = $("#tabBack"), tb = $("#tabs"); if (!b || !tb) return;
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) { stopSplit(); return; }
+  stopSplit(false); tb.classList.remove("split"); const arrow = b.querySelector("svg");
+  b.style.transition = "none"; b.style.opacity = "0";
+  splitBack.t = setTimeout(() => {
+    const H = tb.getBoundingClientRect().height, KW = 64, GAP = 10, PW = KW * 2;
+    const ghost = morphStart(b, tb, PW); arrow.style.opacity = "0";
+    const t0 = performance.now(), PT = 130; let split = false;
+    const f1 = v => v.toFixed(1), f4 = v => v.toFixed(4), ez = x => x < .5 ? 2 * x * x : 1 - 2 * (1 - x) * (1 - x);
+    const frame = now => {
+      if (!tb.classList.contains("sub") || tbStop(tb)) { stopSplit(); return; }
+      const t = now - t0;
+      if (t < PT) {
+        const q = t / PT, g = GAP * ez(q), w = PW + g, h = H * (1 - Math.pow(q, 1.4)), R = H / 2, ro = R + PILL_EXTRA * (1 - q), ri = R * q;
+        b.style.width = f1(w) + "px"; b.style.right = `calc(50% - ${f1(w / 2)}px)`; b.style.borderRadius = `${f1(ro)}px / 50%`; b.style.clipPath = pillClip(w, h, H, KW, g, ro, ri);
+        ghost.style.left = f1(w / 2 + (w / 2 - KW / 2) * ez(q) - 12) + "px"; arrow.style.opacity = f4(q * q);
+      } else {
+        if (!split) { /* geteilt: echte Knöpfe übernehmen */
+          split = true; ghost.remove(); ["clipPath", "right", "width", "borderRadius"].forEach(k => b.style[k] = ""); ["position", "left", "top", "marginTop"].forEach(k => arrow.style[k] = "");
+          arrow.style.opacity = "1"; tb.classList.add("split"); tb.style.opacity = "";
+        }
+        const ts = t - PT, k = tbBump(ts); /* beide schwingen kurz auseinander, ein Rückprall */
+        b.style.translate = `${f1(-3 * k)}px 0px`; b.style.scale = `${f4(1 + .035 * k)} ${f4(1 - .018 * k)}`;
+        tb.style.transition = TB_TRANS; tb.style.translate = `${f1(3 * k)}px 0px`; tb.style.scale = `${f4(1 + .035 * k)} ${f4(1 - .018 * k)}`;
+        if (ts >= 450) { stopSplit(); return; }
+      }
+      splitRaf = requestAnimationFrame(frame);
+    };
+    splitRaf = requestAnimationFrame(frame);
+  }, delay);
+}
+/* Rückweg: beide runden Knöpfe gleiten aufeinander zu, bis sie sich berühren (Pfeil blendet aus) – dann sind sie eine Pille,
+   das Ordner-Symbol wandert in die Mitte, die Pille federt einmal nach. */
+function mergeBack(){
+  const b = $("#tabBack"), tb = $("#tabs"); if (!b || !tb) return;
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) { stopSplit(); return; }
+  stopSplit(false); const arrow = b.querySelector("svg");
+  const KW = 64, GAP = 10, PW = KW * 2;
+  b.style.transition = "none"; b.style.opacity = "1"; b.style.translate = "0px 0px"; b.style.scale = "1"; b.style.pointerEvents = "none";
+  arrow.style.transition = "opacity .08s ease"; arrow.style.opacity = "0";
+  const t0 = performance.now(), A = 90, MV = 160; let ghost = null;
+  const f1 = v => v.toFixed(1), f4 = v => v.toFixed(4), ez = x => x < .5 ? 2 * x * x : 1 - 2 * (1 - x) * (1 - x);
+  const frame = now => {
+    if (tb.classList.contains("sub") || tbStop(tb)) { stopSplit(); return; }
+    const t = now - t0;
+    if (t < A) { /* aufeinander zu, bis sich die Wände berühren */
+      const e = Math.pow(t / A, 2) * GAP / 2;
+      b.style.translate = `${f1(e)}px 0px`; tb.style.transition = TB_TRANS; tb.style.translate = `${f1(-e)}px 0px`;
+    } else {
+      if (!ghost) { ghost = morphStart(b, tb, PW); arrow.style.opacity = "0"; tb.style.translate = ""; tb.classList.remove("split"); } /* Berührung → eine Pille */
+      const ts = t - A, k = tbBump(ts), Rh = b.getBoundingClientRect().height / 2;
+      b.style.borderRadius = `${f1(Rh + PILL_EXTRA * ez(Math.min(1, ts / MV)))}px / 50%`; /* Enden werden von Halbkreis zu Pillen-Rundung */
+      ghost.style.left = f1(PW - KW / 2 - (PW / 2 - KW / 2) * ez(Math.min(1, ts / MV)) - 12) + "px"; /* Ordner-Symbol in die Mitte */
+      b.style.scale = `${f4(1 - .03 * k)} ${f4(1 + .015 * k)}`; /* Aufprall: kurz gestaucht, ein Rückprall */
+      if (ts >= 450) { stopSplit(); return; }
+    }
+    splitRaf = requestAnimationFrame(frame);
+  };
+  splitRaf = requestAnimationFrame(frame);
 }
 function tabsHTML(){
   const t = (v, label) => `<button class="${S.view === v ? 'on' : ''}" data-act="nav" data-v="${v}" ${S.view === v ? 'aria-current="page"' : ''}>${ICONS[v]}<span>${label}</span></button>`;
@@ -6652,6 +6794,7 @@ document.addEventListener("click", e => {
   if (a === "pickAll") { const vis = visibleIds(), all = vis.every(x => S.sel.has(x)); vis.forEach(x => all ? S.sel.delete(x) : S.sel.add(x)); render(); return; }
   if (a === "pickCancel") { S.sel = null; render(); return; }
   if (a === "pickDelete") { armDelete(b, () => { const n = S.sel.size, d = { ...(S.decks[S.fid] || {}) }; S.sel.forEach(x => delete d[x]); S.decks[S.fid] = d; S.sel = null; render(); writeDeck(S.fid); toast(plural(n, "Karte", "Karten") + " gelöscht"); }); return; }
+  if (a === "up") { const f = S.folders[S.fid]; go("lib", f && f.parentId && S.folders[f.parentId] ? f.parentId : null, "pop"); return; }
   if (a === "nav") { go(b.dataset.v, null, S.view === "lib" && b.dataset.v === "lib" && S.fid ? "pop" : "fade"); }
   else if (a === "open") { const deeper = !S.fid || (S.view === "lib" && descendants(S.fid).includes(id)); go("lib", id, S.view !== "lib" ? "fade" : deeper ? "push" : "pop"); }
   else if (a === "toggle") { S.open.has(id) ? S.open.delete(id) : S.open.add(id); render(); }
@@ -6853,6 +6996,105 @@ function endSwipe(e){
 }
 document.addEventListener("touchend", endSwipe, { passive: true });
 document.addEventListener("touchcancel", () => { if (sw && sw.drag) { sw.pts = sw.pts.slice(-1); endSwipe(null); } sw = null; }, { passive: true });
+
+/* ---------- Im Ordner vom linken Rand wischen = einen Ordner zurück (wie bei iOS) ----------
+   Das Seitenwischen oben lässt die äußersten 18 px aus, darum kommen sich die beiden nicht in die Quere.
+   Android hat dafür die System-Zurück-Geste, Safari (nicht installiert) sein eigenes Rand-Wischen → dort aus. */
+(() => {
+  if (isAndroid || (isIOS && !isStandalone())) return;
+  let g = null, gx = 0, graf = 0;
+  const can = () => S.view === "lib" && !!S.fid && !S.sel && $("#sheet").hidden && $("#menu").hidden && !RD.on && !animating && !document.body.classList.contains("swiping");
+  const els = () => [$("#main"), $("#crumbbar")].filter(Boolean);
+  const put = (x, dur, ease = "cubic-bezier(.2,.8,.25,1)") => els().forEach(el => { el.style.transition = dur ? `transform ${dur}ms ${ease}` : "none"; el.style.transform = x ? `translate3d(${x}px,0,0)` : ""; });
+  const done = () => { els().forEach(el => { el.style.transition = ""; el.style.transform = ""; el.style.willChange = ""; }); document.body.classList.remove("edgeback"); };
+  document.addEventListener("touchstart", e => {
+    g = null; if (e.touches.length !== 1 || !can()) return;
+    const t = e.touches[0]; if (t.clientX >= 18) return;
+    g = { x: t.clientX, y: t.clientY, drag: false, pts: [[t.clientX, performance.now()]] };
+  }, { passive: true });
+  document.addEventListener("touchmove", e => {
+    if (!g) return; const t = e.touches[0], dx = t.clientX - g.x, dy = t.clientY - g.y;
+    if (!g.drag) {
+      if (Math.abs(dy) > 8 && Math.abs(dy) > Math.abs(dx)) { g = null; return; }
+      if (dx < 6) return;
+      g.drag = true; document.body.classList.add("edgeback"); els().forEach(el => el.style.willChange = "transform");
+    }
+    e.preventDefault();
+    const now = performance.now(); g.pts.push([t.clientX, now]); while (g.pts.length > 2 && now - g.pts[0][1] > 90) g.pts.shift();
+    gx = Math.max(0, dx); if (!graf) graf = requestAnimationFrame(() => { graf = 0; if (g) put(gx, 0); });
+  }, { passive: false });
+  const end = () => {
+    if (!g) return; const g0 = g; g = null; cancelAnimationFrame(graf); graf = 0; if (!g0.drag) return;
+    const a = g0.pts[0], b = g0.pts[g0.pts.length - 1], v = (b[0] - a[0]) / Math.max(1, b[1] - a[1]), W = innerWidth;
+    const commit = gx > 30 && gx + v * 200 > W * .35; /* wie beim Seitenwischen: Schwung zählt mit */
+    if (!commit) { put(0, 320); setTimeout(done, 336); return; }
+    const dur = Math.round(Math.max(220, Math.min(420, (W - gx) / Math.max(.6, v)))); put(W, dur);
+    setTimeout(() => {
+      const f = S.folders[S.fid]; go("lib", f && f.parentId && S.folders[f.parentId] ? f.parentId : null, "pop");
+      draw(); if (raf) { cancelAnimationFrame(raf); raf = 0; } done();
+    }, dur + 16);
+  };
+  document.addEventListener("touchend", end, { passive: true });
+  document.addEventListener("touchcancel", () => { if (g && g.drag) { gx = 0; end(); } g = null; }, { passive: true });
+})();
+
+/* ---------- Leiste, Pille und runde Knöpfe unten: drücken, halten und ziehen → die Blase dehnt sich zum Finger hin (wie bei iOS) ----------
+   Sie bleibt an ihrem Platz: die dem Finger abgewandte Seite steht fest, die zugewandte wächst (Gummiband, höchstens ca. 3,5 px),
+   quer dazu wird sie minimal schmaler. Beim Loslassen ein Rückprall (gleiche Federkurve wie überall).
+   Seitliches Ziehen auf der Leiste bleibt das Seitenwischen – sobald das übernimmt, federt der Effekt sofort zurück. */
+(() => {
+  let g = null;
+  const grow = d => 3.5 * Math.tanh(Math.abs(d) / 60); /* zusätzliche Länge in px (dezent) */
+  const busy = el => !!(el.style.translate || el.style.width || el.style.clipPath || el.style.opacity); /* Teilungs-Animation läuft */
+
+  /* Dehnung um die Mitte skalieren und so verschieben, dass die abgewandte Kante genau dort bleibt, wo sie ohne Dehnung wäre
+     (auch während der Knopf gedrückt etwas größer ist) – das Objekt selbst bewegt sich nicht */
+  const put = (el, sh, k, base, W, H) => {
+    const sx = 1 + sh.ax * k, sy = 1 + sh.ay * k;
+    const tx = sh.ox === "left" ? (sx - 1) * base * W / 2 : sh.ox === "right" ? -(sx - 1) * base * W / 2 : 0;
+    const ty = sh.oy === "top" ? (sy - 1) * base * H / 2 : sh.oy === "bottom" ? -(sy - 1) * base * H / 2 : 0;
+    el.style.scale = `${(base * sx).toFixed(4)} ${(base * sy).toFixed(4)}`; el.style.translate = `${tx.toFixed(2)}px ${ty.toFixed(2)}px`;
+  };
+  const release = () => {
+    if (!g) return; const s0 = g; g = null; cancelAnimationFrame(s0.raf);
+    if (!s0.on) return;
+    const el = s0.el, t0 = performance.now(), sh = s0.sh, pb = s0.pb || 1, W = s0.base.width || 1, H = s0.base.height || 1;
+    if (!sh) return;
+    const frame = now => {
+      if (el.style.width || el.style.clipPath) return; /* eine Teilungs-Animation hat übernommen */
+      const p = Math.min(1, (now - t0) / 380), k = 1 - SPRING(p); /* zurück, einmal über die Ruhelage hinaus; Drück-Vergrößerung läuft mit aus */
+      put(el, sh, k, 1 + (pb - 1) * k, W, H);
+      if (p < 1) el._elBack = requestAnimationFrame(frame); else { el._elBack = 0; el.style.scale = ""; el.style.translate = ""; el.style.transition = s0.tr; }
+    };
+    el._elBack = requestAnimationFrame(frame);
+  };
+  document.addEventListener("pointerdown", e => {
+    const el = e.target.closest("#tabs, #tabBack"); if (!el || g || e.button > 0) return;
+    if (el._elBack) { cancelAnimationFrame(el._elBack); el._elBack = 0; el.style.scale = ""; el.style.translate = ""; } /* Rückfedern unterbrechen */
+    if (busy(el) || document.body.classList.contains("swiping")) return;
+    g = { el, x: e.clientX, y: e.clientY, dx: 0, dy: 0, on: false, far: false, raf: 0, tr: el.style.transition, id: e.pointerId, sh: null };
+  }, true);
+  addEventListener("pointermove", e => {
+    if (!g || e.pointerId !== g.id) return;
+    if (document.body.classList.contains("swiping")) { release(); return; } /* Seitenwischen hat übernommen */
+    g.dx = e.clientX - g.x; g.dy = e.clientY - g.y;
+    if (!g.on && Math.hypot(g.dx, g.dy) < 3) return;
+    if (Math.hypot(g.dx, g.dy) > 12) g.far = true;
+    if (!g.on) { g.on = true; g.el.style.transition = (g.el.id === "tabs" ? TB_TRANS : "none"); }
+    if (!g.raf) g.raf = requestAnimationFrame(() => {
+      if (!g) return; g.raf = 0;
+      let pressed = 1; try { pressed = g.el.matches(":active, :has(button:active)") ? 1.05 : 1; } catch {}
+      if (!g.base) { const sc = g.el.style.scale; g.el.style.scale = ""; g.base = g.el.getBoundingClientRect(); g.el.style.scale = sc; } /* Größe ohne Dehnung */
+      const W = g.base.width || 1, H = g.base.height || 1, ex = grow(g.dx) / W, ey = grow(g.dy) / H;
+      g.sh = { ox: Math.abs(g.dx) < 2 ? "center" : g.dx > 0 ? "left" : "right", oy: Math.abs(g.dy) < 2 ? "center" : g.dy < 0 ? "bottom" : "top", ax: ex - ey * .15, ay: ey - ex * .15 };
+      g.pb = pressed; put(g.el, g.sh, 1, pressed, W, H);
+    });
+  }, { passive: true });
+  const up = e => { if (!g || (e && e.pointerId !== g.id)) return; if (g.far) farUntil = performance.now() + 400; release(); };
+  addEventListener("pointerup", up, { passive: true }); addEventListener("pointercancel", up, { passive: true });
+  let farUntil = 0; /* weit gezogen → Knopf beim Loslassen nicht auslösen */
+  document.addEventListener("click", e => { if (performance.now() < farUntil && e.target.closest("#tabs, #tabBack")) { e.preventDefault(); e.stopPropagation(); farUntil = 0; } }, true);
+})();
 
 /* ---------- Ordner umsortieren: lange drücken, dann ziehen (Bibliothek, Bereiche und Unterordner) ---------- */
 const RD = { t: 0, st: null, on: false, swallow: 0, raf: 0, x: 0, y: 0 };
