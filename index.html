@@ -1115,6 +1115,9 @@ body:not(.swiping) #tabs.solo:not(.end) button:not(.on){pointer-events:none}
 #tabs{border-radius:36.7px / 50%}
 #tabs::before{border-radius:inherit}
 body:not(.swiping) #tabs.solo.split:not(.end){border-radius:999px} /* geteilt: exakt rund */
+/* Drücken: sichtbar etwa gleich stark größer wie die breite Leiste (die wächst bei 1,05 um ca. 17 px) – Pille 1,08, runde Knöpfe 1,15 */
+#tabs.solo:has(button:active),#tabs.solo.held{scale:1.08}
+#tabs.solo.split:has(button:active),#tabs.solo.split.held{scale:1.15}
 /* Im Unterordner (.split): Pille ist geteilt – Bibliothek-Knopf rund rechts, Zurück-Knopf rund links (je 64 px, 10 px Abstand) */
 @media (max-width:699px){body:not(.swiping) #tabs.solo.split:not(.end){left:calc(50% + 5px);right:calc(50% - 69px)}}
 @media (min-width:700px){body:not(.swiping) #tabs.solo.split:not(.end){width:64px;left:calc(50% + 37px)}}
@@ -1131,7 +1134,7 @@ body:not(.swiping) #tabs.solo.split:not(.end){border-radius:999px} /* geteilt: e
 #tabBack svg{position:relative;z-index:1;width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.9;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 1px 1px rgba(0,0,0,calc(.08 + var(--gl-deep) * .4)))}
 body:not(.swiping):not(.studying):not(.authing) #tabs.solo.sub:not(.end) ~ #tabBack{opacity:1;scale:1;translate:0 0;pointer-events:auto;transition:opacity .2s ease .1s,translate .55s cubic-bezier(.3,1.35,.5,1) .1s,scale .4s cubic-bezier(.34,1.6,.55,1),background-color .3s ease}
 /* Drücken wie beim Bibliothek-Knopf: Knopf wird kurz etwas größer und heller, das Symbol drückt sich leicht ein */
-body:not(.swiping):not(.studying):not(.authing) #tabs.solo.sub:not(.end) ~ #tabBack:active{scale:1.05;background-color:color-mix(in srgb,var(--gl-bg),#fff 5%);transition:opacity .12s ease,translate .55s cubic-bezier(.3,1.35,.5,1),scale .14s ease-out,background-color .1s ease-out}
+body:not(.swiping):not(.studying):not(.authing) #tabs.solo.sub:not(.end) ~ #tabBack:active{scale:1.15;background-color:color-mix(in srgb,var(--gl-bg),#fff 5%);transition:opacity .12s ease,translate .55s cubic-bezier(.3,1.35,.5,1),scale .14s ease-out,background-color .1s ease-out}
 #tabBack svg{transition:transform .22s cubic-bezier(.34,1.45,.55,1)}
 #tabBack:active svg{transform:scale(.92);transition-duration:.08s}
 @media (min-width:700px){#tabBack{bottom:calc(16px + env(safe-area-inset-bottom,0px) - var(--vgap,0px))}}
@@ -7093,7 +7096,7 @@ document.addEventListener("touchcancel", () => { if (sw && sw.drag) { sw.pts = s
     if (!g.on) { g.on = true; g.myTr = g.el.id === "tabs" ? TB_TRANS : "none"; g.el.style.transition = g.myTr; }
     if (!g.raf) g.raf = requestAnimationFrame(() => {
       if (!g) return; g.raf = 0;
-      let pressed = 1; try { pressed = g.el.matches(":active, :has(button:active), .held") ? 1.05 : 1; } catch {}
+      let pressed = 1; try { if (g.el.matches(":active, :has(button:active), .held")) pressed = g.el.id === "tabBack" || g.el.classList.contains("split") ? 1.15 : g.el.classList.contains("solo") ? 1.08 : 1.05; } catch {} /* wie im CSS */
       if (!g.base) { const sc = g.el.style.scale; g.el.style.scale = ""; g.base = g.el.getBoundingClientRect(); g.el.style.scale = sc; } /* Größe ohne Dehnung */
       const W = g.base.width || 1, H = g.base.height || 1, ex = grow(g.dx) / W, ey = grow(g.dy) / H;
       g.sh = { ox: Math.abs(g.dx) < 2 ? "center" : g.dx > 0 ? "left" : "right", oy: Math.abs(g.dy) < 2 ? "center" : g.dy < 0 ? "bottom" : "top", ax: ex - ey * .15, ay: ey - ex * .15 };
