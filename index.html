@@ -6970,7 +6970,7 @@ document.addEventListener("touchstart", e => {
   sw = null; if (e.touches.length !== 1) return;
   if (animating) settleSwipe();
   if (animating || !canSwipe() || RD.on) return;
-  if (e.target.closest("input,textarea,select,#czoom,#mathsheet,.ed-area,.ed-imgbox,.ed-imgbar,[data-noswipe]")) return;
+  if (e.target.closest("input,textarea,select,#czoom,#mathsheet,.ed-area,.ed-imgbox,.ed-imgbar,[data-noswipe],#tabs:not(.solo) button.on")) return; /* auf der Blase: Blase ziehen statt Seite wischen */
   const t = e.touches[0]; if (t.clientX < 18 || t.clientX > innerWidth - 18) return; // leave system edge gestures alone
   if (peekGen !== S.gen) prerender();
   $("#main").style.willChange = "transform"; // Ebene schon beim Aufsetzen anlegen, damit der Start des Wischens nicht ruckelt
@@ -7078,6 +7078,7 @@ document.addEventListener("touchcancel", () => { if (sw && sw.drag) { sw.pts = s
   };
   document.addEventListener("pointerdown", e => {
     const el = e.target.closest("#tabs, #tabBack"); if (!el || g || e.button > 0) return;
+    if (el.id === "tabs" && !el.classList.contains("solo") && e.target.closest("button.on")) return; /* Blase der ganzen Leiste: wird gezogen (siehe unten) */
     if (el._elBack) { cancelAnimationFrame(el._elBack); el._elBack = 0; el.style.scale = ""; el.style.translate = ""; } /* Rückfedern unterbrechen */
     if (busy(el) || document.body.classList.contains("swiping")) return;
     g = { el, x: e.clientX, y: e.clientY, dx: 0, dy: 0, on: false, far: false, raf: 0, tr: el.style.transition, id: e.pointerId, sh: null, t0: performance.now(), tgt: e.target };
@@ -7113,6 +7114,54 @@ document.addEventListener("touchcancel", () => { if (sw && sw.drag) { sw.pts = s
   addEventListener("pointerup", up, { passive: true }); addEventListener("pointercancel", up, { passive: true });
   let farUntil = 0; /* weit gezogen → Knopf beim Loslassen nicht auslösen */
   document.addEventListener("click", e => { if (performance.now() < farUntil && e.target.closest("#tabs, #tabBack")) { e.preventDefault(); e.stopPropagation(); farUntil = 0; } }, true);
+})();
+
+/* ---------- Ganze Tab-Leiste: auf die Blase drücken und seitlich ziehen → die Blase folgt dem Finger (wie bei iOS) ----------
+   Hervorhebung der Symbole läuft mit; an den Enden wird die Blase leicht gestaucht. Loslassen: Blase springt auf den nächsten
+   Tab (ein Rückprall) und der Tab öffnet sich. */
+(() => {
+  let sc = null, scSwallow = 0;
+  const views = () => [...$("#tabs").querySelectorAll("button")].map(b => b.dataset.v);
+  document.addEventListener("pointerdown", e => {
+    const tb = $("#tabs"), b = e.target.closest && e.target.closest("#tabs button.on");
+    if (!b || tb.classList.contains("solo") || sc || e.button > 0 || document.body.classList.contains("swiping")) return;
+    const r = tb.getBoundingClientRect(), vs = views(), i0 = vs.indexOf(S.view);
+    if (i0 < 0) return;
+    sc = { id: e.pointerId, x0: e.clientX, y0: e.clientY, r, vs, i0, on: false, pos: i0, raf: 0 };
+  }, true);
+  addEventListener("pointermove", e => {
+    if (!sc || e.pointerId !== sc.id) return;
+    const dx = e.clientX - sc.x0, dy = e.clientY - sc.y0;
+    if (!sc.on) {
+      if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) { sc = null; return; } /* eher nach oben/unten → kein Ziehen der Blase */
+      if (Math.abs(dx) < 6) return;
+      sc.on = true;
+    }
+    const n = sc.vs.length, slot = (sc.r.width - 8) / n; /* 4 px Innenabstand der Leiste */
+    let pos = sc.i0 + dx / slot; /* über die Enden hinaus nur zäh (Gummiband) – die Blase wird höchstens leicht gestaucht */
+    if (pos > n - 1) pos = n - 1 + .3 * Math.tanh((pos - (n - 1)) / .8); else if (pos < 0) pos = -.3 * Math.tanh(-pos / .8);
+    sc.pos = pos;
+    if (!sc.raf) sc.raf = requestAnimationFrame(() => {
+      if (!sc) return; sc.raf = 0;
+      pillTo(S.view, S.view, 0, 0, EASE, sc.pos - sc.i0); /* über die Enden hinaus: an der Wand gestaucht */
+      const p = Math.max(0, Math.min(n - 1, sc.pos));
+      sc.vs.forEach((v, i) => tabStyle(v, Math.max(0, 1 - Math.abs(p - i)), 0));
+    });
+  }, { passive: true });
+  const end = e => {
+    if (!sc || (e && e.pointerId !== sc.id)) return; const s0 = sc; sc = null; cancelAnimationFrame(s0.raf);
+    if (!s0.on) return;
+    scSwallow = performance.now() + 400; /* der Klick vom Loslassen soll nichts zusätzlich auslösen */
+    const n = s0.vs.length, t = Math.max(0, Math.min(n - 1, Math.round(s0.pos)));
+    pillTo(S.view, S.view, 0, 420, EASE, t - s0.i0); /* auf den Tab springen, ein Rückprall */
+    s0.vs.forEach((v, i) => tabStyle(v, i === t ? 1 : 0, 300));
+    setTimeout(() => {
+      if (s0.vs[t] !== S.view) go(s0.vs[t], null, "fade"); /* wie Antippen des Tabs */
+      setTimeout(clearTabStyles, 60);
+    }, 380);
+  };
+  addEventListener("pointerup", end, { passive: true }); addEventListener("pointercancel", end, { passive: true });
+  document.addEventListener("click", e => { if (performance.now() < scSwallow && e.target.closest && e.target.closest("#tabs")) { e.preventDefault(); e.stopPropagation(); scSwallow = 0; } }, true);
 })();
 
 /* ---------- Ordner umsortieren: lange drücken, dann ziehen (Bibliothek, Bereiche und Unterordner) ---------- */
