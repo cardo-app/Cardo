@@ -6973,7 +6973,7 @@ document.addEventListener("touchstart", e => {
   sw = null; if (e.touches.length !== 1) return;
   if (animating) settleSwipe();
   if (animating || !canSwipe() || RD.on) return;
-  if (e.target.closest("input,textarea,select,#czoom,#mathsheet,.ed-area,.ed-imgbox,.ed-imgbar,[data-noswipe],#tabs:not(.solo)")) return; /* auf der ganzen Leiste: Blase ziehen bzw. langes Drücken statt Seite wischen */
+  if (e.target.closest("input,textarea,select,#czoom,#mathsheet,.ed-area,.ed-imgbox,.ed-imgbar,[data-noswipe],#tabs,#tabBack")) return; /* auf Leiste, Pille und Zurück-/Bibliothek-Knopf nie Seite wischen (dort: Blase ziehen, langes Drücken, Dehnen) */
   const t = e.touches[0]; if (t.clientX < 18 || t.clientX > innerWidth - 18) return; // leave system edge gestures alone
   if (peekGen !== S.gen) prerender();
   $("#main").style.willChange = "transform"; // Ebene schon beim Aufsetzen anlegen, damit der Start des Wischens nicht ruckelt
