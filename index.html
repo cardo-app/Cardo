@@ -7319,7 +7319,12 @@ if ("serviceWorker" in navigator && location.protocol === "https:") navigator.se
 addEventListener("online", () => render()); addEventListener("offline", () => render());
 // Merken, ob die Seite überhaupt scrollbar ist (dann darf sie am Rand weich nachfedern)
 const appEl = () => document.getElementById("app");
-function toTop(){ const a = appEl(); if (a) a.scrollTop = 0; }
+/* Nach oben – und ein noch laufendes Ausrollen (iOS) sicher stoppen: Scrollen kurz abschalten, dann wieder freigeben */
+function toTop(){
+  const a = appEl(); if (!a) return;
+  a.style.overflowY = "hidden"; a.scrollTop = 0;
+  requestAnimationFrame(() => requestAnimationFrame(() => { a.scrollTop = 0; a.style.overflowY = ""; a.scrollTop = 0; }));
+}
 function updScroll(){
   // Maßgeblich ist, wo der Inhalt wirklich endet – nicht die Dokumenthöhe (die ist in der installierten iOS-App wegen 100lvh größer als der Bildschirm)
   const r = document.documentElement, m = $("#main"); if (!m) return;
