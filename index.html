@@ -7078,15 +7078,15 @@ document.addEventListener("touchcancel", () => { if (sw && sw.drag) { sw.pts = s
   };
   document.addEventListener("pointerdown", e => {
     const el = e.target.closest("#tabs, #tabBack"); if (!el || g || e.button > 0) return;
-    if (el.id === "tabs" && !el.classList.contains("solo") && e.target.closest("button.on")) return; /* Blase der ganzen Leiste: wird gezogen (siehe unten) */
     if (el._elBack) { cancelAnimationFrame(el._elBack); el._elBack = 0; el.style.scale = ""; el.style.translate = ""; } /* Rückfedern unterbrechen */
     if (busy(el) || document.body.classList.contains("swiping")) return;
-    g = { el, x: e.clientX, y: e.clientY, dx: 0, dy: 0, on: false, far: false, raf: 0, tr: el.style.transition, id: e.pointerId, sh: null, t0: performance.now(), tgt: e.target };
+    g = { el, x: e.clientX, y: e.clientY, dx: 0, dy: 0, on: false, far: false, raf: 0, tr: el.style.transition, id: e.pointerId, sh: null, t0: performance.now(), tgt: e.target,
+      vOnly: el.id === "tabs" && !el.classList.contains("solo") && !!e.target.closest("button.on") }; /* Blase der ganzen Leiste: seitlich wird die Blase gezogen, nach oben/unten dehnt sich die Leiste */
   }, true);
   addEventListener("pointermove", e => {
     if (!g || e.pointerId !== g.id) return;
     if (document.body.classList.contains("swiping")) { release(); return; } /* Seitenwischen hat übernommen */
-    g.dx = e.clientX - g.x; g.dy = e.clientY - g.y;
+    g.dx = g.vOnly ? 0 : e.clientX - g.x; g.dy = e.clientY - g.y;
     if (!g.on && Math.hypot(g.dx, g.dy) < 3) return;
     if (Math.hypot(g.dx, g.dy) > 12) g.far = true;
     if (!g.on) { g.on = true; g.el.style.transition = (g.el.id === "tabs" ? TB_TRANS : "none"); }
