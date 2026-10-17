@@ -7116,49 +7116,57 @@ document.addEventListener("touchcancel", () => { if (sw && sw.drag) { sw.pts = s
   document.addEventListener("click", e => { if (performance.now() < farUntil && e.target.closest("#tabs, #tabBack")) { e.preventDefault(); e.stopPropagation(); farUntil = 0; } }, true);
 })();
 
-/* ---------- Ganze Tab-Leiste: auf die Blase drücken und seitlich ziehen → die Blase folgt dem Finger (wie bei iOS) ----------
-   Hervorhebung der Symbole läuft mit; an den Enden wird die Blase leicht gestaucht. Loslassen: Blase springt auf den nächsten
-   Tab (ein Rückprall) und der Tab öffnet sich. */
+/* ---------- Ganze Tab-Leiste: auf die Blase drücken und seitlich ziehen → Blase folgt dem Finger, die Seiten wischen in
+   Echtzeit mit (gleiche Mechanik wie das Seitenwischen: place/showPeek/finish). Über mehrere Tabs: beim Erreichen des
+   Nachbarn wird ohne Animation umgeschaltet und weitergezogen. Loslassen: nächster Tab mit Rückprall. ---------- */
 (() => {
   let sc = null, scSwallow = 0;
-  const views = () => [...$("#tabs").querySelectorAll("button")].map(b => b.dataset.v);
+  const slotW = () => ($("#tabs").getBoundingClientRect().width - 8) / Math.max(1, PAGES.length);
   document.addEventListener("pointerdown", e => {
     const tb = $("#tabs"), b = e.target.closest && e.target.closest("#tabs button.on");
-    if (!b || tb.classList.contains("solo") || sc || e.button > 0 || document.body.classList.contains("swiping")) return;
-    const r = tb.getBoundingClientRect(), vs = views(), i0 = vs.indexOf(S.view);
-    if (i0 < 0) return;
-    sc = { id: e.pointerId, x0: e.clientX, y0: e.clientY, r, vs, i0, on: false, pos: i0, raf: 0 };
+    if (!b || tb.classList.contains("solo") || sc || e.button > 0) return;
+    if (animating) settleSwipe();
+    if (animating || !canSwipe() || !PAGES.includes(S.view)) return;
+    sc = { id: e.pointerId, x0: e.clientX, y0: e.clientY, on: false, d: 0, raf: 0, pts: [[e.clientX, performance.now()]] };
   }, true);
+  /* Nachbar erreicht: sofort dorthin umschalten (Seite ist schon vorgezeichnet) und von dort weiterziehen */
+  const hop = dir => {
+    const to = neighbour(dir); if (!to) return false;
+    const fresh = peekGen === S.gen && PK()[dir].firstElementChild.childNodes.length;
+    go(to, to === "lib" ? libTarget() : null, "none");
+    if (fresh) draw.reuse = PK()[dir].firstElementChild;
+    draw(); if (raf) { cancelAnimationFrame(raf); raf = 0; }
+    place(0, 0); hidePeek(); clearTabStyles(); prerender();
+    return true;
+  };
   addEventListener("pointermove", e => {
     if (!sc || e.pointerId !== sc.id) return;
     const dx = e.clientX - sc.x0, dy = e.clientY - sc.y0;
     if (!sc.on) {
-      if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) { sc = null; return; } /* eher nach oben/unten → kein Ziehen der Blase */
+      if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) { sc = null; return; } /* eher nach oben/unten → nichts ziehen */
       if (Math.abs(dx) < 6) return;
-      sc.on = true;
+      sc.on = true; if (peekGen !== S.gen) prerender(); $("#main").style.willChange = "transform"; document.body.classList.add("swiping");
     }
-    const n = sc.vs.length, slot = (sc.r.width - 8) / n; /* 4 px Innenabstand der Leiste */
-    let pos = sc.i0 + dx / slot; /* über die Enden hinaus nur zäh (Gummiband) – die Blase wird höchstens leicht gestaucht */
-    if (pos > n - 1) pos = n - 1 + .3 * Math.tanh((pos - (n - 1)) / .8); else if (pos < 0) pos = -.3 * Math.tanh(-pos / .8);
-    sc.pos = pos;
+    const now = performance.now(); sc.pts.push([e.clientX, now]); while (sc.pts.length > 2 && now - sc.pts[0][1] > 90) sc.pts.shift();
+    let d = dx / slotW(); /* in Tabs: +1 = einen Tab nach rechts */
+    while (d >= 1 && neighbour("left")) { if (!hop("left")) break; sc.x0 += slotW(); d -= 1; if ($("#tabs").classList.contains("solo")) break; }
+    while (d <= -1 && neighbour("right")) { if (!hop("right")) break; sc.x0 -= slotW(); d += 1; if ($("#tabs").classList.contains("solo")) break; }
+    sc.d = d;
     if (!sc.raf) sc.raf = requestAnimationFrame(() => {
-      if (!sc) return; sc.raf = 0;
-      pillTo(S.view, S.view, 0, 0, EASE, sc.pos - sc.i0); /* über die Enden hinaus: an der Wand gestaucht */
-      const p = Math.max(0, Math.min(n - 1, sc.pos));
-      sc.vs.forEach((v, i) => tabStyle(v, Math.max(0, 1 - Math.abs(p - i)), 0));
+      if (!sc) return; sc.raf = 0; const W = innerWidth, x = -sc.d * W, has = showPeek(x < 0 ? "left" : "right");
+      place(has ? x : x / (1 + Math.abs(x) / 120) * .5, 0); /* kein Nachbar: zäh wie ein Gummiband */
     });
   }, { passive: true });
   const end = e => {
     if (!sc || (e && e.pointerId !== sc.id)) return; const s0 = sc; sc = null; cancelAnimationFrame(s0.raf);
     if (!s0.on) return;
     scSwallow = performance.now() + 400; /* der Klick vom Loslassen soll nichts zusätzlich auslösen */
-    const n = s0.vs.length, t = Math.max(0, Math.min(n - 1, Math.round(s0.pos)));
-    pillTo(S.view, S.view, 0, 420, EASE, t - s0.i0); /* auf den Tab springen, ein Rückprall */
-    s0.vs.forEach((v, i) => tabStyle(v, i === t ? 1 : 0, 300));
-    setTimeout(() => {
-      if (s0.vs[t] !== S.view) go(s0.vs[t], null, "fade"); /* wie Antippen des Tabs */
-      setTimeout(clearTabStyles, 60);
-    }, 380);
+    const W = innerWidth, x = -s0.d * W, dir = x < 0 ? "left" : "right";
+    const a = s0.pts[0], b = s0.pts[s0.pts.length - 1], still = performance.now() - b[1] > 80; /* Finger stand zuletzt still → kein Schwung */
+    const v = still ? 0 : -((b[0] - a[0]) / Math.max(1, b[1] - a[1])) * (W / slotW()); /* Finger-Tempo → Seiten-Tempo */
+    const proj = x + v * 120, commit = !!neighbour(dir) && Math.sign(proj) === Math.sign(x) && Math.abs(proj) > W * .5;
+    if (peekDir || x) place(peekDir ? x : curX, 0);
+    finish(commit, dir, v);
   };
   addEventListener("pointerup", end, { passive: true }); addEventListener("pointercancel", end, { passive: true });
   document.addEventListener("click", e => { if (performance.now() < scSwallow && e.target.closest && e.target.closest("#tabs")) { e.preventDefault(); e.stopPropagation(); scSwallow = 0; } }, true);
