@@ -6970,7 +6970,7 @@ document.addEventListener("touchstart", e => {
   sw = null; if (e.touches.length !== 1) return;
   if (animating) settleSwipe();
   if (animating || !canSwipe() || RD.on) return;
-  if (e.target.closest("input,textarea,select,#czoom,#mathsheet,.ed-area,.ed-imgbox,.ed-imgbar,[data-noswipe],#tabs:not(.solo) button.on")) return; /* auf der Blase: Blase ziehen statt Seite wischen */
+  if (e.target.closest("input,textarea,select,#czoom,#mathsheet,.ed-area,.ed-imgbox,.ed-imgbar,[data-noswipe],#tabs:not(.solo)")) return; /* auf der ganzen Leiste: Blase ziehen bzw. langes Drücken statt Seite wischen */
   const t = e.touches[0]; if (t.clientX < 18 || t.clientX > innerWidth - 18) return; // leave system edge gestures alone
   if (peekGen !== S.gen) prerender();
   $("#main").style.willChange = "transform"; // Ebene schon beim Aufsetzen anlegen, damit der Start des Wischens nicht ruckelt
@@ -7085,6 +7085,7 @@ document.addEventListener("touchcancel", () => { if (sw && sw.drag) { sw.pts = s
   }, true);
   addEventListener("pointermove", e => {
     if (!g || e.pointerId !== g.id) return;
+    if (g.el._vOnly && !g.vOnly) { g.vOnly = true; g.dx = 0; } /* nach langem Drücken: Blase ist dort, seitlich wird sie gezogen */
     if (document.body.classList.contains("swiping") && !g.vOnly) { release(); return; } /* Seitenwischen hat übernommen (beim Ziehen der Blase dehnt sich die Leiste weiter) */
     g.dx = g.vOnly ? 0 : e.clientX - g.x; g.dy = e.clientY - g.y;
     if (!g.on && Math.hypot(g.dx, g.dy) < 3) return;
@@ -7127,7 +7128,7 @@ document.addEventListener("touchcancel", () => { if (sw && sw.drag) { sw.pts = s
    Echtzeit mit (gleiche Mechanik wie das Seitenwischen: place/showPeek/finish). Über mehrere Tabs: beim Erreichen des
    Nachbarn wird ohne Animation umgeschaltet und weitergezogen. Loslassen: nächster Tab mit Rückprall. ---------- */
 (() => {
-  let sc = null, scSwallow = 0;
+  let sc = null, scSwallow = 0, lp = null;
   const slotW = () => ($("#tabs").getBoundingClientRect().width - 8) / Math.max(1, PAGES.length);
   document.addEventListener("pointerdown", e => {
     const tb = $("#tabs"), b = e.target.closest && e.target.closest("#tabs button.on");
@@ -7136,6 +7137,21 @@ document.addEventListener("touchcancel", () => { if (sw && sw.drag) { sw.pts = s
     if (animating || !canSwipe() || !PAGES.includes(S.view)) return;
     sc = { id: e.pointerId, x0: e.clientX, y0: e.clientY, on: false, d: 0, raf: 0, pts: [[e.clientX, performance.now()]] };
   }, true);
+  /* Lange auf einen anderen Tab drücken: die Blase wandert dorthin (Tab öffnet sich), danach kann sie ohne Loslassen weitergezogen werden */
+  document.addEventListener("pointerdown", e => {
+    const tb = $("#tabs"), b = e.target.closest && e.target.closest("#tabs button:not(.on)");
+    if (!b || tb.classList.contains("solo") || lp || sc || e.button > 0) return;
+    lp = { id: e.pointerId, x0: e.clientX, y0: e.clientY, cx: e.clientX, cy: e.clientY, v: b.dataset.v };
+    lp.t = setTimeout(() => {
+      const l = lp; if (!l || animating || !canSwipe()) return;
+      tb._vOnly = true; haptic();
+      go(l.v, null, "fade"); /* Blase gleitet mit ihrem Rückprall hinüber, Seite wechselt */
+      sc = { id: l.id, x0: l.cx, y0: l.cy, on: false, d: 0, raf: 0, pts: [[l.cx, performance.now()]] }; /* ab hier wie Ziehen der Blase */
+    }, 300);
+  }, true);
+  addEventListener("pointermove", e => { if (!lp || e.pointerId !== lp.id) return; lp.cx = e.clientX; lp.cy = e.clientY; if (!sc && Math.hypot(e.clientX - lp.x0, e.clientY - lp.y0) > 8) { clearTimeout(lp.t); lp = null; } }, { passive: true });
+  const lpEnd = e => { if (lp && (!e || e.pointerId === lp.id)) { clearTimeout(lp.t); lp = null; } $("#tabs")._vOnly = false; };
+  addEventListener("pointerup", lpEnd, { passive: true }); addEventListener("pointercancel", lpEnd, { passive: true });
   /* Nachbar erreicht: sofort dorthin umschalten (Seite ist schon vorgezeichnet) und von dort weiterziehen */
   const hop = dir => {
     const to = neighbour(dir); if (!to) return false;
