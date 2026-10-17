@@ -6886,7 +6886,7 @@ let gestPre = false;
 document.addEventListener("pointerdown", () => { gestPre = !inApp(); }, true);
 const canSwipe = () => inApp() && !gestPre && S.view !== "study" && $("#sheet").hidden && $("#menu").hidden && !S.sel;
 const neighbour = dir => { const i = PAGES.indexOf(S.view), j = i + (dir === "left" ? 1 : -1); return i < 0 || j < 0 || j >= PAGES.length ? null : PAGES[j]; };
-const libTarget = () => (S.libFid && S.folders[S.libFid] ? S.libFid : null);
+const libTarget = () => null; /* zurück zur Bibliothek (Wischen, Zurück-Taste) landet immer in der Bibliothek selbst, nicht im zuletzt offenen Ordner (17.10.2026) */
 function pageHTML(view){
   if (view === "stats") return statsHTML(); if (view === "settings") return settingsHTML();
   const f = libTarget(); return f ? folderHTML(f) : libHTML();
