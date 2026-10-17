@@ -1127,7 +1127,13 @@ body:not(.swiping) #tabs.solo.split:not(.end){border-radius:999px} /* geteilt: e
   box-shadow:inset 0 0 0 .5px var(--gl-rim),inset 1.5px 1.5px 1px -1px var(--gl-edge),inset -1.5px -1.5px 1px -1px var(--gl-edge),inset 0 .5px .5px rgba(255,255,255,calc(var(--bb-hi) * .9)),inset 0 7px 9px -6px rgba(255,255,255,calc(var(--bb-hi) * 1.1)),inset 0 -6px 8px -6px rgba(255,255,255,calc(var(--bb-hi) * .6)),inset 7px 0 9px -7px rgba(255,255,255,calc(var(--bb-hi) * .7)),inset -7px 0 9px -7px rgba(255,255,255,calc(var(--bb-hi) * .7)),inset 0 0 10px rgba(255,255,255,.07),inset 0 -6px 12px -8px rgba(0,0,0,calc(var(--gl-deep) * .8)),var(--gl-drop);
   opacity:0;scale:.55;translate:37px 0;pointer-events:none;transition:opacity .15s ease,scale .3s ease,translate .3s cubic-bezier(.4,0,.6,1)} /* gleich groß und gleich gestaltet wie der Bibliothek-Knopf (Leiste + Auswahl-Blase); versteckt in ihm */
 #tabBack::before{width:100%;border-radius:inherit}
-#tabs,#tabBack{touch-action:none} /* Ziehen auf Leiste/Knöpfen scrollt nicht die Seite (für den Gummiband-Effekt) */
+#tabs,#tabBack{touch-action:none}
+/* Rand-Wischen: übergeordneter Ordner liegt schon dahinter (leicht versetzt, abgedunkelt), die aktuelle Seite schiebt sich darüber weg */
+@property --dim{syntax:"<number>";inherits:true;initial-value:0}
+#peekBack{z-index:auto;visibility:visible}
+#peekBack::after{content:"";position:absolute;inset:0;background:#000;opacity:var(--dim,0);pointer-events:none}
+body.edgeback #app{background:var(--paper);box-shadow:-12px 0 28px -6px rgba(0,0,0,.35)}
+body.edgeback:is(.starry,.beach,.aurora,.autumn) #app{background:transparent} /* Ziehen auf Leiste/Knöpfen scrollt nicht die Seite (für den Gummiband-Effekt) */
 #tabBack .tb-ghost{position:absolute;z-index:1;left:52px;top:50%;width:24px;height:24px;margin-top:calc(-12px + var(--icon-dy,0px));pointer-events:none}
 #tabBack > svg{translate:0 var(--icon-dy,0px)} /* Pfeil auf exakt derselben Höhe wie das Ordner-Symbol im Bibliothek-Knopf */ /* Ordner-Symbol des Bibliothek-Knopfs während der Teilung */
 #tabBack .tb-ghost svg{display:block;width:24px;height:24px;stroke-width:2.9}
@@ -7009,15 +7015,24 @@ document.addEventListener("touchend", endSwipe, { passive: true });
 document.addEventListener("touchcancel", () => { if (sw && sw.drag) { sw.pts = sw.pts.slice(-1); endSwipe(null); } sw = null; }, { passive: true });
 
 /* ---------- Im Ordner vom linken Rand wischen = einen Ordner zurück (wie bei iOS) ----------
-   Das Seitenwischen oben lässt die äußersten 18 px aus, darum kommen sich die beiden nicht in die Quere.
+   Der übergeordnete Ordner ist schon dahinter zu sehen (#peekBack, vorgezeichnet): anfangs ein Drittel nach links versetzt und
+   abgedunkelt, er gleitet mit dem Finger an seinen Platz. Am Ende wird die vorgezeichnete Seite übernommen (kein Neuaufbau).
+   Das Seitenwischen lässt die äußersten 18 px aus, darum kommen sich die beiden nicht in die Quere.
    Android hat dafür die System-Zurück-Geste, Safari (nicht installiert) sein eigenes Rand-Wischen → dort aus. */
 (() => {
   if (isAndroid || (isIOS && !isStandalone())) return;
   let g = null, gx = 0, graf = 0;
   const can = () => S.view === "lib" && !!S.fid && !S.sel && $("#sheet").hidden && $("#menu").hidden && !RD.on && !animating && !document.body.classList.contains("swiping");
-  const els = () => [$("#main"), $("#crumbbar")].filter(Boolean);
-  const put = (x, dur, ease = "cubic-bezier(.2,.8,.25,1)") => els().forEach(el => { el.style.transition = dur ? `transform ${dur}ms ${ease}` : "none"; el.style.transform = x ? `translate3d(${x}px,0,0)` : ""; });
-  const done = () => { els().forEach(el => { el.style.transition = ""; el.style.transform = ""; el.style.willChange = ""; }); document.body.classList.remove("edgeback"); };
+  const els = () => [$("#app"), $("#crumbbar")].filter(Boolean);
+  const pk = () => { let el = $("#peekBack"); if (!el) { el = document.createElement("div"); el.id = "peekBack"; el.className = "peek"; el.hidden = true; el.setAttribute("aria-hidden", "true"); el.innerHTML = '<div class="pg"></div>'; $("#app").before(el); } return el; };
+  const parentOf = () => { const f = S.folders[S.fid]; return f && f.parentId && S.folders[f.parentId] ? f.parentId : null; };
+  const put = (x, dur, ease = "cubic-bezier(.2,.8,.25,1)") => {
+    const W = innerWidth, p = Math.min(1, Math.max(0, x / W)), t = dur ? `transform ${dur}ms ${ease}` : "none", b = pk();
+    els().forEach(el => { el.style.transition = t; el.style.transform = x ? `translate3d(${x}px,0,0)` : ""; });
+    b.style.transition = dur ? `transform ${dur}ms ${ease}, --dim ${dur}ms ${ease}` : "none";
+    b.style.transform = `translate3d(${(-W * .3 * (1 - p)).toFixed(1)}px,0,0)`; b.style.setProperty("--dim", (.18 * (1 - p)).toFixed(3));
+  };
+  const done = () => { els().forEach(el => { el.style.transition = ""; el.style.transform = ""; el.style.willChange = ""; }); const b = pk(); b.hidden = true; b.firstElementChild.innerHTML = ""; b.style.cssText = ""; document.body.classList.remove("edgeback"); };
   document.addEventListener("touchstart", e => {
     g = null; if (e.touches.length !== 1 || !can()) return;
     const t = e.touches[0]; if (t.clientX >= 18) return;
@@ -7028,7 +7043,9 @@ document.addEventListener("touchcancel", () => { if (sw && sw.drag) { sw.pts = s
     if (!g.drag) {
       if (Math.abs(dy) > 8 && Math.abs(dy) > Math.abs(dx)) { g = null; return; }
       if (dx < 6) return;
-      g.drag = true; document.body.classList.add("edgeback"); els().forEach(el => el.style.willChange = "transform");
+      g.drag = true; const pid = parentOf(), b = pk();
+      b.firstElementChild.innerHTML = pid ? folderHTML(pid) : libHTML(); b.hidden = false; /* darunterliegende Seite vorzeichnen */
+      document.body.classList.add("edgeback"); els().forEach(el => el.style.willChange = "transform"); put(0, 0);
     }
     e.preventDefault();
     const now = performance.now(); g.pts.push([t.clientX, now]); while (g.pts.length > 2 && now - g.pts[0][1] > 90) g.pts.shift();
@@ -7041,7 +7058,8 @@ document.addEventListener("touchcancel", () => { if (sw && sw.drag) { sw.pts = s
     if (!commit) { put(0, 320); setTimeout(done, 336); return; }
     const dur = Math.round(Math.max(220, Math.min(420, (W - gx) / Math.max(.6, v)))); put(W, dur);
     setTimeout(() => {
-      const f = S.folders[S.fid]; go("lib", f && f.parentId && S.folders[f.parentId] ? f.parentId : null, "pop");
+      go("lib", parentOf(), "none");
+      draw.reuse = pk().firstElementChild; /* die vorgezeichnete Seite übernehmen – sieht genau so aus wie eben dahinter */
       draw(); if (raf) { cancelAnimationFrame(raf); raf = 0; } done();
     }, dur + 16);
   };
