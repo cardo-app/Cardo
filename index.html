@@ -7318,17 +7318,21 @@ function updCrumbs(){
 }
 addEventListener("scroll", updCrumbs, { passive: true });
 /* (Früher: im Ordner unten anstoßen → ganze Leiste. Vom Nutzer abgestellt, 17.10.2026 – die Pille bzw. die zwei Knöpfe bleiben.) */
-/* Tippen, während die Seite noch nachscrollt: iOS stoppt dann nur das Scrollen und verschluckt den Tipp. Kam nach einem kurzen,
-   ruhigen Tipp kein Klick, lösen wir ihn selbst aus (kam doch einer, passiert nichts doppelt). */
+/* Tippen, während die Seite noch nachscrollt (Ordner, Unterordner, Kartenlisten): iOS stoppt dann nur das Scrollen und
+   verschluckt den Tipp. Kam nach einem kurzen, ruhigen Tipp kein Klick, lösen wir ihn selbst aus (kam doch einer, passiert
+   nichts doppelt). „Scrollt noch“ = Scroll-Ereignis vor kurzem oder die Seite bewegt sich gerade (auch in inneren Listen). */
 (() => {
-  let lastScroll = 0, tap = null, clicked = false;
+  let lastScroll = 0, tap = null, clicked = false, lastY = scrollY, lastT = performance.now(), vel = 0;
   addEventListener("scroll", () => { lastScroll = performance.now(); }, { passive: true, capture: true });
+  const track = () => { const now = performance.now(); vel = Math.abs(scrollY - lastY) / Math.max(1, now - lastT); lastY = scrollY; lastT = now; requestAnimationFrame(track); };
+  requestAnimationFrame(track);
   addEventListener("touchstart", e => {
-    tap = null; if (e.touches.length !== 1 || performance.now() - lastScroll > 150) return;
+    tap = null; if (e.touches.length !== 1) return;
+    if (performance.now() - lastScroll > 250 && vel < .05) return; /* Seite stand still → normaler Tipp, der Browser klickt selbst */
     const t = e.touches[0]; tap = { x: t.clientX, y: t.clientY, t0: performance.now(), el: e.target };
   }, { passive: true, capture: true });
   addEventListener("touchmove", e => { if (tap && Math.hypot(e.touches[0].clientX - tap.x, e.touches[0].clientY - tap.y) > 10) tap = null; }, { passive: true, capture: true });
-  addEventListener("touchend", () => {
+  const end = () => {
     const t0 = tap; tap = null; if (!t0 || performance.now() - t0.t0 > 450) return;
     clicked = false;
     setTimeout(() => {
@@ -7336,7 +7340,9 @@ addEventListener("scroll", updCrumbs, { passive: true });
       if (el.closest("input, textarea, select, [contenteditable]")) { el.focus && el.focus(); return; }
       if (el.closest("button, a, label, summary, [data-act], [role=button], [onclick]")) el.click(); /* nur echte Knöpfe – Tipp ins Leere stoppt weiterhin nur das Scrollen */
     }, 80);
-  }, { passive: true, capture: true });
+  };
+  addEventListener("touchend", end, { passive: true, capture: true });
+  addEventListener("touchcancel", end, { passive: true, capture: true }); /* iOS bricht den Tipp beim Stoppen manchmal ab statt ihn zu beenden */
   document.addEventListener("click", () => { clicked = true; }, true);
 })();
 if (window.MutationObserver) new MutationObserver(updCrumbs).observe($("#main"), { childList: true });
