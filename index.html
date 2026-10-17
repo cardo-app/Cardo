@@ -1095,7 +1095,7 @@ html.ios-standalone #tabs{padding-bottom:4px}
 @media (min-width:700px){#tabs{left:50%;right:auto;width:400px;bottom:calc(16px + env(safe-area-inset-bottom,0px) - var(--vgap,0px));border:0;padding:4px}}
 /* Drücken auf einen Tab: die ganze Leiste wird kurz etwas größer und federt zurück (eigene „scale“-Eigenschaft, damit translateX auf dem iPad/Mac erhalten bleibt) */
 #tabs{--se:cubic-bezier(.3,1.1,.4,1);--spring:cubic-bezier(.3,1.5,.5,1); /* Knopf ⇄ Leiste: genau ein weicher Rückprall, dann ruhig */scale:1;transition:--pill .45s cubic-bezier(.34,1.35,.55,1),--sx .45s cubic-bezier(.34,1.35,.55,1),--k .45s var(--spring),scale .4s cubic-bezier(.34,1.6,.55,1),background-color .3s ease}
-#tabs:has(button:active){scale:1.05;background-color:color-mix(in srgb,var(--gl-bg),#fff 5%); /* beim Drücken nur ganz leicht heller */transition:--pill .45s cubic-bezier(.34,1.35,.55,1),--sx .45s cubic-bezier(.34,1.35,.55,1),--k .45s var(--spring),scale .14s ease-out,background-color .1s ease-out}
+#tabs:has(button:active),#tabs.held{scale:1.05;background-color:color-mix(in srgb,var(--gl-bg),#fff 5%); /* beim Drücken nur ganz leicht heller */transition:--pill .45s cubic-bezier(.34,1.35,.55,1),--sx .45s cubic-bezier(.34,1.35,.55,1),--k .45s var(--spring),scale .14s ease-out,background-color .1s ease-out}
 /* Im Ordner: Leiste schrumpft zu einer Pille (im Unterordner geteilt in zwei runde Knöpfe), nur das Bibliothek-Symbol in der Mitte (Tippen = zurück zur Bibliothek); beim Seitenwischen wieder ganz.
    Alles hängt an einem Wert --k (0 = ganze Leiste, 1 = Knopf), damit Leiste, Tabs und Blase genau gleich laufen. */
 @property --sx{syntax:"<number>";inherits:true;initial-value:0}
@@ -7092,7 +7092,7 @@ document.addEventListener("touchcancel", () => { if (sw && sw.drag) { sw.pts = s
     if (!g.on) { g.on = true; g.el.style.transition = (g.el.id === "tabs" ? TB_TRANS : "none"); }
     if (!g.raf) g.raf = requestAnimationFrame(() => {
       if (!g) return; g.raf = 0;
-      let pressed = 1; try { pressed = g.el.matches(":active, :has(button:active)") ? 1.05 : 1; } catch {}
+      let pressed = 1; try { pressed = g.el.matches(":active, :has(button:active), .held") ? 1.05 : 1; } catch {}
       if (!g.base) { const sc = g.el.style.scale; g.el.style.scale = ""; g.base = g.el.getBoundingClientRect(); g.el.style.scale = sc; } /* Größe ohne Dehnung */
       const W = g.base.width || 1, H = g.base.height || 1, ex = grow(g.dx) / W, ey = grow(g.dy) / H;
       g.sh = { ox: Math.abs(g.dx) < 2 ? "center" : g.dx > 0 ? "left" : "right", oy: Math.abs(g.dy) < 2 ? "center" : g.dy < 0 ? "bottom" : "top", ax: ex - ey * .15, ay: ey - ex * .15 };
@@ -7116,6 +7116,13 @@ document.addEventListener("touchcancel", () => { if (sw && sw.drag) { sw.pts = s
   document.addEventListener("click", e => { if (performance.now() < farUntil && e.target.closest("#tabs, #tabBack")) { e.preventDefault(); e.stopPropagation(); farUntil = 0; } }, true);
 })();
 
+/* Leiste bleibt im gedrückten Zustand (größer, heller), solange der Finger unten ist – auch wenn er über andere Symbole fährt */
+(() => {
+  let hid = null;
+  document.addEventListener("pointerdown", e => { const tb = e.target.closest && e.target.closest("#tabs"); if (!tb || e.button > 0) return; hid = e.pointerId; tb.classList.add("held"); }, true);
+  const off = e => { if (hid === null || (e && e.pointerId !== hid)) return; hid = null; $("#tabs").classList.remove("held"); };
+  addEventListener("pointerup", off, true); addEventListener("pointercancel", off, true);
+})();
 /* ---------- Ganze Tab-Leiste: auf die Blase drücken und seitlich ziehen → Blase folgt dem Finger, die Seiten wischen in
    Echtzeit mit (gleiche Mechanik wie das Seitenwischen: place/showPeek/finish). Über mehrere Tabs: beim Erreichen des
    Nachbarn wird ohne Animation umgeschaltet und weitergezogen. Loslassen: nächster Tab mit Rückprall. ---------- */
