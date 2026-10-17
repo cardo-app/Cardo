@@ -145,6 +145,14 @@ h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:-.
 
 /* Layout */
 #app{min-height:100%}
+/* Eigener Scrollbereich (17.10.2026): der Inhalt scrollt in #app, nicht die ganze Seite. Grund: rollt auf dem iPhone die ganze
+   Seite noch aus, verschluckt iOS jeden Tipp – auch auf die Leiste unten. Liegt die Leiste außerhalb des Scrollbereichs, kommen
+   die Tipps an. (Nebenwirkung: Tippen auf die Statusleiste springt nicht mehr nach oben.) */
+html,body{overflow:hidden}
+#app{position:fixed;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + var(--tc));bottom:calc(0px - var(--vgap,0px));min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch}
+html.no-scroll #app{overflow-y:hidden}
+html.android #app{overscroll-behavior-y:none}
+html[style*="overflow: hidden"] #app{overflow:hidden} /* Fenster offen → Inhalt dahinter scrollt nicht */
 #main{padding:18px 16px 110px;max-width:1120px;width:100%;margin:0 auto}
 @media (min-width:900px){ #main{padding:32px 36px 120px} }
 body.studying #tabs{display:none!important}
@@ -5199,7 +5207,7 @@ function draw(){
   S.gen = (S.gen || 0) + 1; schedulePrerender && schedulePrerender();
   saveUi(); updScroll();
 }
-function go(view, fid = null, anim = "fade"){ $("#tabs").classList.remove("end"); S.anim = anim; if (S.view === "lib") S.libFid = S.fid; S.view = view; S.fid = fid; S.q = ""; S.sel = null; if (fid) pathOf(fid).forEach(f => S.open.add(f.id)); render(); window.scrollTo(0, 0); }
+function go(view, fid = null, anim = "fade"){ $("#tabs").classList.remove("end"); S.anim = anim; if (S.view === "lib") S.libFid = S.fid; S.view = view; S.fid = fid; S.q = ""; S.sel = null; if (fid) pathOf(fid).forEach(f => S.open.add(f.id)); render(); toTop(); }
 
 function syncPill(){ return S.mode === "cloud" ? '<span class="pill-sync"><i></i>Synchronisiert</span>' : '<span class="pill-sync local"><i></i>Nur dieses Gerät</span>'; }
 
@@ -5991,7 +5999,7 @@ function startStudy(fid){
   for (let i = 0, ri = 0, ni = 0; i < total; i++) list.push((slots.has(i) && ni < nw.length) || ri >= rev.length ? nw[ni++] : rev[ri++]);
   if (!list.length) { toast("Keine Karten fällig."); return; }
   S.study = { fid: fid || null, queue: list.map(x => ({ fid: x.fid, id: x.c.id, rev: pickSide(x.fid) })), done: 0, flipped: false, back: S.view === "stats" ? "stats" : "lib", backFid: S.fid };
-  S.view = "study"; S.anim = null; render(); window.scrollTo(0, 0);
+  S.view = "study"; S.anim = null; render(); toTop();
 }
 function curCard(){ const st = S.study; while (st && st.queue.length) { const q = st.queue[0]; const c = S.decks[q.fid] && S.decks[q.fid][q.id]; if (c) return { ...q, c }; st.queue.shift(); } return null; }
 function studyHTML(){
@@ -6166,7 +6174,7 @@ function startExam(list, opts){
   S.study = { exam: true, prac: !!opts.prac, fid: opts.fid, resched: !!opts.resched, moved: (prev && prev.exam && prev.moved) || {},
     queue: list.map(x => ({ fid: x.fid, id: x.c.id, rev: pickSide(x.fid) })), total: list.length, first: {}, done: 0, flipped: false,
     back: prev ? prev.back : (S.view === "stats" ? "stats" : "lib"), backFid: prev ? prev.backFid : S.fid };
-  S.view = "study"; S.anim = null; closeSheet(); render(); window.scrollTo(0, 0);
+  S.view = "study"; S.anim = null; closeSheet(); render(); toTop();
 }
 function examApply(g, cur){
   const st = S.study, k = exKey(cur.fid, cur.id);
@@ -6701,7 +6709,7 @@ function sectSheet(id){
   });
 }
 function closeMenu(){ const m = $("#menu"); if (m.hidden) return; m.hidden = true; document.querySelectorAll('[data-act="libMenu"],[data-act="folderMenu"],[data-act="sectMenu"],[data-act="cardSortMenu"],[data-act="learnMenu"]').forEach(b => b.setAttribute("aria-expanded", "false")); }
-window.addEventListener("scroll", closeMenu, { passive: true });
+window.addEventListener("scroll", closeMenu, { passive: true }); document.getElementById("app").addEventListener("scroll", closeMenu, { passive: true });
 window.addEventListener("resize", closeMenu);
 
 /* ---------- Toast & tooltip ---------- */
@@ -7182,7 +7190,7 @@ function rdHit(){
 function rdAuto(){
   const edge = 90, y = RD.y; let v = 0;
   if (y < edge) v = -Math.ceil((edge - y) / 8); else if (y > innerHeight - edge - 20) v = Math.ceil((y - (innerHeight - edge - 20)) / 8);
-  if (v) { scrollBy(0, v); RD.dirty = true; }
+  if (v) { appEl().scrollBy(0, v); RD.dirty = true; }
 }
 function rdUp(){
   if (!RD.on) { rdCancel(); return; }
@@ -7310,12 +7318,14 @@ document.addEventListener("keydown", e => {
 if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
 addEventListener("online", () => render()); addEventListener("offline", () => render());
 // Merken, ob die Seite überhaupt scrollbar ist (dann darf sie am Rand weich nachfedern)
+const appEl = () => document.getElementById("app");
+function toTop(){ const a = appEl(); if (a) a.scrollTop = 0; }
 function updScroll(){
   // Maßgeblich ist, wo der Inhalt wirklich endet – nicht die Dokumenthöhe (die ist in der installierten iOS-App wegen 100lvh größer als der Bildschirm)
   const r = document.documentElement, m = $("#main"); if (!m) return;
-  const need = m.getBoundingClientRect().bottom + scrollY > innerHeight + 2;
+  const a = appEl(), st = a ? a.scrollTop : 0, need = m.getBoundingClientRect().bottom + st > innerHeight + 2;
   r.classList.toggle("can-scroll", need); r.classList.toggle("no-scroll", !need);
-  if (!need && scrollY) window.scrollTo(0, 0);
+  if (!need && st) toTop();
 }
 addEventListener("resize", updScroll);
 // Ordnerpfad in die feste Leiste spiegeln; Schatten, sobald Inhalt darunter durchläuft
@@ -7325,17 +7335,17 @@ function updCrumbs(){
   if (!src || S.view !== "lib") { if (!bar.hidden) bar.hidden = true; return; }
   const h = src.outerHTML; if (bar._h !== h) { bar.innerHTML = h; bar._h = h; }
   if (bar.hidden) { bar.style.transition = "none"; bar.style.transform = $("#main").style.transform || ""; bar.hidden = false; }
-  bar.classList.toggle("stuck", scrollY > 6);
+  bar.classList.toggle("stuck", (appEl() ? appEl().scrollTop : 0) > 6);
 }
-addEventListener("scroll", updCrumbs, { passive: true });
+appEl().addEventListener("scroll", updCrumbs, { passive: true });
 /* (Früher: im Ordner unten anstoßen → ganze Leiste. Vom Nutzer abgestellt, 17.10.2026 – die Pille bzw. die zwei Knöpfe bleiben.) */
 /* Tippen, während die Seite noch nachscrollt (Ordner, Unterordner, Kartenlisten): iOS stoppt dann nur das Scrollen und
    verschluckt den Tipp. Kam nach einem kurzen, ruhigen Tipp kein Klick, lösen wir ihn selbst aus (kam doch einer, passiert
    nichts doppelt). „Scrollt noch“ = Scroll-Ereignis vor kurzem oder die Seite bewegt sich gerade (auch in inneren Listen). */
 (() => {
-  let lastScroll = 0, tap = null, clicked = false, lastY = scrollY, lastT = performance.now(), vel = 0;
+  let lastScroll = 0, tap = null, clicked = false, lastY = 0, lastT = performance.now(), vel = 0;
   addEventListener("scroll", () => { lastScroll = performance.now(); }, { passive: true, capture: true });
-  const track = () => { const now = performance.now(); vel = Math.abs(scrollY - lastY) / Math.max(1, now - lastT); lastY = scrollY; lastT = now; requestAnimationFrame(track); };
+  const track = () => { const now = performance.now(), y = appEl() ? appEl().scrollTop : 0; vel = Math.abs(y - lastY) / Math.max(1, now - lastT); lastY = y; lastT = now; requestAnimationFrame(track); };
   requestAnimationFrame(track);
   addEventListener("touchstart", e => {
     tap = null; if (e.touches.length !== 1) return;
@@ -7358,10 +7368,10 @@ addEventListener("scroll", updCrumbs, { passive: true });
 })();
 if (window.MutationObserver) new MutationObserver(updCrumbs).observe($("#main"), { childList: true });
 if (window.ResizeObserver) new ResizeObserver(updScroll).observe($("#main"));
-try { history.scrollRestoration = "manual"; } catch {} window.scrollTo(0, 0); // Bibliothek öffnet immer oben
+try { history.scrollRestoration = "manual"; } catch {} toTop(); // Bibliothek öffnet immer oben
 // Nach längerer Pause (App im Hintergrund) die Bibliothek wieder oben zeigen
 let hiddenAt = 0;
-document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") hiddenAt = Date.now(); else if (hiddenAt && Date.now() - hiddenAt > 60000 && S.view === "lib" && $("#sheet").hidden) window.scrollTo(0, 0); });
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") hiddenAt = Date.now(); else if (hiddenAt && Date.now() - hiddenAt > 60000 && S.view === "lib" && $("#sheet").hidden) toTop(); });
 requestAnimationFrame(() => setTimeout(boot, 0)); // erst ein Bild zeichnen, damit die Startanimation schon auf der Grafikkarte läuft
 })();
 </script>
