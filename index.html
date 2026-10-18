@@ -4261,11 +4261,12 @@ function applyTop(){
   const r = document.documentElement.style, paper = sky || getComputedStyle(b).getPropertyValue("--paper").trim();
   // Solange der Startbildschirm läuft, bleibt alles dunkel wie das iOS-Startbild (sonst blitzt oben z. B. im Dunkelmodus Schwarz auf)
   const booting = document.body.classList.contains("splashing");
-  const et = document.getElementById("edgeTop"); if (et) et.style.background = !booting && sky || "";
-  r.backgroundColor = booting ? "" : paper; // "" → CSS-Startfarbe (Icon-Farbe bzw. Nacht wie der Startbildschirm)
+  const ab = !booting && b.classList.contains("authing") && document.getElementById("authBg"), abc = ab ? getComputedStyle(ab).backgroundColor : ""; /* Anmeldung: oben durchsichtig, bewegter Hintergrund reicht bis unter die Statusleiste */
+  const et = document.getElementById("edgeTop"); if (et) et.style.background = !booting && (abc ? "transparent" : sky) || "";
+  r.backgroundColor = booting ? "" : abc || paper; // "" → CSS-Startfarbe (Icon-Farbe bzw. Nacht wie der Startbildschirm)
   r.colorScheme = booting ? "dark" : dark ? "dark" : "light"; // beim Start dunkel wie das Startbild
   const cs = document.querySelector('meta[name="color-scheme"]'); if (cs) cs.setAttribute("content", booting ? "dark" : dark ? "dark" : "light");
-  const tc = document.querySelector('meta[name="theme-color"]'); if (tc) { const c = getComputedStyle(b).backgroundColor; tc.setAttribute("content", booting ? "#1B1D23" : sky ? sky : c && c !== "rgba(0, 0, 0, 0)" ? hexColor(c) : (dark ? "#0F1115" : "#F5F6F8")); }
+  const tc = document.querySelector('meta[name="theme-color"]'); if (tc) { const c = getComputedStyle(b).backgroundColor; tc.setAttribute("content", booting ? "#1B1D23" : abc ? hexColor(abc) : sky ? sky : c && c !== "rgba(0, 0, 0, 0)" ? hexColor(c) : (dark ? "#0F1115" : "#F5F6F8")); }
 }
 // theme-color als #rrggbb (iOS versteht oklab()/color-mix() in der Statusleiste evtl. nicht)
 function hexColor(c){ try { const cv = hexColor.cv || (hexColor.cv = document.createElement("canvas")); cv.width = cv.height = 1; const x = cv.getContext("2d"); x.clearRect(0, 0, 1, 1); x.fillStyle = "#000"; x.fillStyle = c; x.fillRect(0, 0, 1, 1); const d = x.getImageData(0, 0, 1, 1).data; return "#" + [d[0], d[1], d[2]].map(v => v.toString(16).padStart(2, "0")).join(""); } catch { return c; } }
@@ -4854,13 +4855,13 @@ const AUTH_LOGO = `<div class="auth-logo"><div class="auth-mark" aria-hidden="tr
 /* Bewegter, unscharfer Karteikarten-Hintergrund nur auf dem Anmeldebildschirm */
 function authBg(on){
   let el = document.getElementById("authBg");
-  if (!on) { if (el) { el.classList.add("out"); setTimeout(() => el.remove(), 650); } return; }
-  if (el) { el.classList.remove("out"); return; }
+  if (!on) { if (el) { el.classList.add("out"); setTimeout(() => el.remove(), 650); } applyTop(); return; }
+  if (el) { el.classList.remove("out"); applyTop(); return; }
   /* [links %, Größe, Dauer s, Drehung °, Unschärfe px, seitliche Drift px] */
   const C = [[12,.8,46,-12,5,40],[78,1.25,38,9,9,-50],[45,.65,54,6,4,30],[28,1.1,42,-7,8,-30],[88,.75,50,14,5,-20],[60,1.4,35,-10,11,40],[6,1.2,40,8,10,50],[52,.9,48,-15,6,-40],[35,.7,58,11,4,25],[70,1,44,-5,7,-35]];
   el = document.createElement("div"); el.id = "authBg"; el.setAttribute("aria-hidden", "true");
   el.innerHTML = '<i class="ab-glow g1"></i><i class="ab-glow g2"></i>' + C.map(([x, s, d, r, b, dx], i) => `<div class="ab-card${i % 4 === 1 ? " hl" : ""}" style="left:${x}%;--s:${s};--r:${r}deg;--b:${b}px;--dx:${dx}px;animation-duration:${d}s;animation-delay:-${(d * ((i * .37 + .1) % 1)).toFixed(1)}s"><b></b><b></b></div>`).join("");
-  document.body.prepend(el);
+  document.body.prepend(el); applyTop();
 }
 /* Sprachwahl schon vor der Anmeldung (oben rechts); die Wahl wird nach dem Anmelden ins Konto übernommen */
 const LANG_PICK = "cardo-lang-picked";
