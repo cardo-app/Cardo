@@ -727,7 +727,7 @@ body.selecting #main{padding-bottom:170px}
 .cm-dev .cm-ic{background:var(--surface-2);color:var(--ink)}
 .cm-dev .cm-name{flex:1;min-width:0;font-size:17px;font-weight:650;padding:9px 12px}
 #cmenu input{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
-.theme-ic.sm{width:32px;height:32px;box-shadow:inset 0 0 0 1px rgba(128,128,128,.25)}
+.theme-ic.sm{flex:none;width:32px;height:32px;box-shadow:inset 0 0 0 1px rgba(128,128,128,.25)}
 .theme-ic.sm svg{width:16px;height:16px}
 .set-group{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:18px;margin-bottom:18px;max-width:720px}
 .set-group h2{font-size:20px;font-weight:800;margin-bottom:2px}
@@ -925,6 +925,7 @@ body.authing{background:transparent}
 .auth-forgot{margin:-6px -4px -6px 0;padding:6px 4px;background:none;border:0;font:inherit;font-size:13.5px;font-weight:600;color:var(--muted);cursor:pointer}
 .auth-msg.err{color:var(--again);font-weight:600}
 .auth-alt{margin-top:6px;color:var(--ink);opacity:1;font-weight:700}
+.auth-spam{display:block;margin-top:8px;font-size:13px;opacity:.8}
 .auth-rc{font-size:15px;margin:0 2px 16px;line-height:1.4}.auth-rc b{color:var(--ink);word-break:break-all}
 .btn.busy{position:relative;color:transparent!important;-webkit-text-fill-color:transparent!important}
 .btn.busy::after{content:"";position:absolute;left:50%;top:50%;width:20px;height:20px;margin:-10px 0 0 -10px;box-sizing:border-box;border-radius:50%;border:2.5px solid var(--accent-ink);border-right-color:transparent;animation:btnSpin .7s linear infinite}
@@ -1948,6 +1949,7 @@ const I18N = {
   "Aktuelles Passwort": ["Current password", "Password attuale"],
   "Code aus der E-Mail": ["Code from the email", "Codice dall'email"],
   "Code erneut senden": ["Resend code", "Invia di nuovo il codice"],
+  "Keine E-Mail? Schau auch im Spam-Ordner nach.": ["No email? Check your spam folder too.", "Nessuna email? Controlla anche la cartella spam."],
   "Code wird gesendet …": ["Sending code …", "Invio codice …"],
   "Neuer Code ist unterwegs.": ["A new code is on its way.", "Un nuovo codice è in arrivo."],
   "Wir haben einen Code an": ["We've sent a code to", "Abbiamo inviato un codice a"],
@@ -4945,8 +4947,9 @@ function resetCodeForm(email){
   const f0 = $("#authForm"); if (!f0) return;
   const f = f0.cloneNode(false); f0.replaceWith(f); /* alten Absenden-Listener loswerden */
   const sub = document.querySelector(".auth-sub p"); if (sub) sub.hidden = true;
+  const sw = document.querySelector(".auth-switch"); if (sw) sw.hidden = true; /* Zurück-Pfeil oben genügt */
   let verified = false;
-  f.innerHTML = `<p class="muted auth-rc">Wir haben einen Code an <b>${esc(email)}</b> geschickt. Gib ihn hier ein und wähle ein neues Passwort.</p>
+  f.innerHTML = `<p class="muted auth-rc">Wir haben einen Code an <b>${esc(email)}</b> geschickt. Gib ihn hier ein und wähle ein neues Passwort.<span class="auth-spam">Keine E-Mail? Schau auch im Spam-Ordner nach.</span></p>
     <div class="field"><label for="rCode">Code aus der E-Mail</label><input class="in" id="rCode" inputmode="numeric" autocomplete="one-time-code" enterkeyhint="next" maxlength="10" style="letter-spacing:.3em;font-weight:700"></div>
     <div class="field"><label for="rPw">Neues Passwort</label>${pwInput(`id="rPw" autocomplete="new-password" enterkeyhint="done" minlength="6"`)}</div>
     <button class="btn primary block" type="submit" id="rGo">Speichern und anmelden</button>
@@ -4954,7 +4957,7 @@ function resetCodeForm(email){
     <button class="pw-forgot" type="button" id="rResend">Code erneut senden</button>`;
   const msg = $("#rMsg"), go = $("#rGo"), code = $("#rCode"), pw = $("#rPw");
   const say = (t, err) => { msg.textContent = t; msg.classList.toggle("err", !!err); };
-  setTimeout(() => code.focus(), 60);
+  setTimeout(() => { code.focus(); const app = $("#app"); if (app) app.scrollTo({ top: app.scrollHeight, behavior: "smooth" }); }, 60); /* ganz nach unten: nichts liegt unter Impressum/Datenschutz */
   code.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); pw.focus(); } });
   $("#rResend").addEventListener("click", async () => {
     try { const r = await SB.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname }); if (r.error) throw r.error; say("Neuer Code ist unterwegs."); } catch (err) { say(authErr(err), true); }
@@ -6116,7 +6119,7 @@ function settingsHTML(){
     <button class="set-item" data-act="dataSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg></span><span class="si-t">Daten sichern</span><span class="si-ch" aria-hidden="true">›</span></button>
   </div>
   <div class="set-list">
-    <button class="set-item" data-act="accountSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span><span class="si-t">Konto</span><span class="si-v">${esc(USER && USER.email || "")}</span><span class="si-ch" aria-hidden="true">›</span></button>
+    <button class="set-item" data-act="accountSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span><span class="si-t">Konto</span><span class="si-ch" aria-hidden="true">›</span></button>
     <button class="set-item" data-act="syncSheet"><span class="si-dot ${!navigator.onLine || S.syncErr || (DB && DB.pendingSlow && DB.pendingSlow()) ? 'local' : ''}"></span><span class="si-t">Synchronisierung</span><span class="si-v">${!navigator.onLine ? "Offline – wird nachgeholt" : S.syncErr ? "Wird erneut versucht" : (DB && DB.pendingSlow && DB.pendingSlow()) ? "Wird gespeichert …" : "Aktuell"}</span><span class="si-ch" aria-hidden="true">›</span></button>
   </div>
   <div class="set-list">
