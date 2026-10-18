@@ -898,7 +898,8 @@ body.authing{background:transparent}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) body:not(.m-light) #authBg{--ab-bg:#1B1D23;--ab-card:#2A2D35;--ab-line:rgba(245,246,248,.2);--ab-g1:.34;--ab-g2:.2}}
 :root[data-theme="dark"] #authBg,body.m-dark #authBg{--ab-bg:#1B1D23;--ab-card:#2A2D35;--ab-line:rgba(245,246,248,.2);--ab-g1:.34;--ab-g2:.2}
 #authBg.out{opacity:0}
-#authBg::after{content:"";position:absolute;inset:0;background:radial-gradient(130% 85% at 50% 42%,transparent 35%,rgba(0,0,0,.28) 100%)}
+#authBg::after{content:"";position:absolute;inset:0;z-index:1;background:radial-gradient(130% 85% at 50% 42%,transparent 35%,rgba(0,0,0,.28) 100%)}
+#authBg::before{content:"";position:absolute;left:0;right:0;top:0;height:120px;z-index:2;background:linear-gradient(var(--ab-bg) 12%,transparent)} /* oben nahtlos in die Statusleistenfarbe (iOS „default“ füllt sie einfarbig) */
 .ab-glow{position:absolute;width:80vmax;height:80vmax;border-radius:50%;opacity:var(--ab-g1);will-change:transform}
 .ab-glow.g1{left:-35vmax;top:-30vmax;background:radial-gradient(circle,#F2491F 0,transparent 62%);animation:abG1 24s ease-in-out infinite alternate}
 .ab-glow.g2{right:-38vmax;bottom:-34vmax;background:radial-gradient(circle,#FF7A55 0,transparent 62%);opacity:var(--ab-g2);animation:abG2 31s ease-in-out infinite alternate}
