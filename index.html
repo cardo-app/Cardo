@@ -519,8 +519,8 @@ button.mrow:hover .nm span:last-child{text-decoration:underline;text-decoration-
 .pw-wrap .in{padding-right:48px}
 .pw-eye{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:40px;height:40px;display:grid;place-items:center;border-radius:10px;color:var(--muted);-webkit-tap-highlight-color:transparent}
 .pw-eye svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.pw-eye .eye-off,.pw-eye.on .eye-on{display:none}
-.pw-eye.on .eye-off{display:block}
+.pw-eye .eye-on,.pw-eye.on .eye-off{display:none} /* verborgen = Auge zu, sichtbar = Auge offen */
+.pw-eye.on .eye-on{display:block}
 .pw-eye:active{color:var(--ink)}
 textarea.in{min-height:92px;resize:vertical;line-height:1.4}
 .in:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent}
@@ -886,17 +886,53 @@ body.selecting #main{padding-bottom:170px}
 /* Login */
 body.authing #tabs{display:none}
 .auth{max-width:420px;margin:0 auto;padding-top:6vh}
-@media (max-width:700px){body.authing #main{padding-bottom:0}.auth{padding-top:max(3vh,calc(100svh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 18px - 614px))}.auth-msg:empty{display:none}}
+@media (max-width:700px){body.authing #main{padding-bottom:0}.auth{padding-top:max(3vh,calc(100svh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 18px - 654px))}.auth-msg:empty{display:none}}
 .auth-logo{text-align:center;margin-bottom:24px}
 .auth-mark{width:84px;height:84px;margin:0 auto 16px;border-radius:19px;background:#1B1D23;box-shadow:0 1px 2px rgba(0,0,0,.08),0 12px 30px -8px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.07);overflow:hidden}
 .auth-mark svg{width:100%;height:100%;display:block}
 .auth-logo h1{font-size:37.5px;font-weight:800}
-.auth-seg{grid-template-columns:repeat(3,1fr);margin-bottom:18px}
-.auth-seg button{font-size:14.5px}
+/* Anmelde-Hintergrund: unscharfe Karteikarten schweben langsam nach oben, dazu warmer/kühler Schimmer */
+body.authing{background:transparent}
+#authBg{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;transition:opacity .6s ease;
+  --ab-bg:#E8E9EC;--ab-card:#F5F6F8;--ab-line:rgba(27,29,35,.16);--ab-g1:.24;--ab-g2:.16;background:var(--ab-bg)} /* Farben wie das App-Icon: #1B1D23, #F5F6F8, Orange #FF7A55→#F2491F */
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) body:not(.m-light) #authBg{--ab-bg:#1B1D23;--ab-card:#2A2D35;--ab-line:rgba(245,246,248,.2);--ab-g1:.34;--ab-g2:.2}}
+:root[data-theme="dark"] #authBg,body.m-dark #authBg{--ab-bg:#1B1D23;--ab-card:#2A2D35;--ab-line:rgba(245,246,248,.2);--ab-g1:.34;--ab-g2:.2}
+#authBg.out{opacity:0}
+#authBg::after{content:"";position:absolute;inset:0;background:radial-gradient(130% 85% at 50% 42%,transparent 35%,rgba(0,0,0,.28) 100%)}
+.ab-glow{position:absolute;width:80vmax;height:80vmax;border-radius:50%;opacity:var(--ab-g1);will-change:transform}
+.ab-glow.g1{left:-35vmax;top:-30vmax;background:radial-gradient(circle,#F2491F 0,transparent 62%);animation:abG1 24s ease-in-out infinite alternate}
+.ab-glow.g2{right:-38vmax;bottom:-34vmax;background:radial-gradient(circle,#FF7A55 0,transparent 62%);opacity:var(--ab-g2);animation:abG2 31s ease-in-out infinite alternate}
+@keyframes abG1{to{transform:translate3d(28vw,26vh,0)}}
+@keyframes abG2{to{transform:translate3d(-24vw,-30vh,0)}}
+.ab-card{position:absolute;top:0;width:150px;height:96px;margin-left:-75px;box-sizing:border-box;padding:20px 18px;display:flex;flex-direction:column;gap:11px;border-radius:15px;background:var(--ab-card);box-shadow:0 14px 34px rgba(0,0,0,.28);filter:blur(var(--b));opacity:.8;will-change:transform;animation:abRise linear infinite}
+.ab-card b{display:block;height:9px;width:64%;border-radius:5px;background:var(--ab-line)}
+.ab-card b+b{height:7px;width:40%;opacity:.65}
+.ab-card.hl::before{content:"";position:absolute;right:15px;top:15px;width:13px;height:13px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#FF7A55,#F2491F 75%)}
+@keyframes abRise{from{transform:translate3d(0,calc(100vh + 140px),0) rotate(var(--r)) scale(var(--s))}to{transform:translate3d(var(--dx),-180px,0) rotate(calc(var(--r) * -1)) scale(var(--s))}}
+@media (prefers-reduced-motion:reduce){#authBg *{animation-play-state:paused}}
+.auth-lang{position:fixed;z-index:5;top:calc(env(safe-area-inset-top,0px) + 12px);right:16px;display:flex;align-items:center;gap:6px;padding:7px 12px 7px 10px;border-radius:999px;font-size:14px;font-weight:650;color:var(--ink);background:color-mix(in srgb,var(--surface) 62%,transparent);border:1px solid color-mix(in oklab,var(--ink) 10%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);cursor:pointer}
+.auth-lang svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:.8}
+.auth-lang select{position:absolute;inset:0;width:100%;height:100%;opacity:0;font-size:16px;cursor:pointer;-webkit-appearance:none;appearance:none}
+.auth-choice{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.auth-choice .btn{padding:15px 14px;font-size:16.5px;font-weight:700}
+.auth-new{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+.auth-sub{position:relative;text-align:center;margin:-6px 0 18px}
+.auth-back{position:absolute;left:-6px;top:-5px;width:38px;height:38px;display:grid;place-items:center;padding:0;background:none;border:0;border-radius:50%;color:var(--muted);cursor:pointer}
+.auth-back svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.auth-switch{margin-top:12px}.auth-sub h2{font-size:21px;font-weight:750;margin:0 0 4px}.auth-sub p{margin:0;font-size:14.5px}
+.auth-lrow{display:flex;justify-content:space-between;align-items:baseline;gap:10px}.auth-lrow>label{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.auth-forgot{margin:-6px -4px -6px 0;padding:6px 4px;background:none;border:0;font:inherit;font-size:13.5px;font-weight:600;color:var(--muted);cursor:pointer}
+.auth-msg.err{color:var(--again);font-weight:600}
+.auth-alt{margin-top:6px;color:var(--ink);opacity:1;font-weight:700}
+.auth-rc{font-size:15px;margin:0 2px 16px;line-height:1.4}.auth-rc b{color:var(--ink);word-break:break-all}
+.btn.busy{position:relative;color:transparent!important;-webkit-text-fill-color:transparent!important}
+.btn.busy::after{content:"";position:absolute;left:50%;top:50%;width:20px;height:20px;margin:-10px 0 0 -10px;box-sizing:border-box;border-radius:50%;border:2.5px solid var(--accent-ink);border-right-color:transparent;animation:btnSpin .7s linear infinite}
+@keyframes btnSpin{to{rotate:360deg}}
 .auth-form{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:18px}
 .auth-msg{font-size:14.5px;margin:12px 2px 0;min-height:1em}
-.auth-legal-note{font-size:13px;margin:8px 2px 0;line-height:1.4}.auth-legal-note a{color:inherit}
-.auth-legal{text-align:center;font-size:13px;margin:26px 0 0;color:var(--muted)}.auth-legal a{color:inherit;text-decoration:none;padding:6px 4px}
+.auth{padding-bottom:56px} /* Platz für Impressum/Datenschutz am unteren Rand */
+.auth-legal{position:fixed;z-index:4;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 6px);margin:0;text-align:center;font-size:12px;color:var(--muted);opacity:.7} /* ganz unten, weit weg von den Knöpfen */
+.auth-legal a{color:inherit;text-decoration:none;padding:8px 6px}
 a.set-item{color:inherit;text-decoration:none}
 #toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:70;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none}
 #toast div{background:var(--ink);color:var(--paper);padding:9px 14px;border-radius:12px;font-weight:600;font-size:15.5px;box-shadow:var(--shadow);max-width:88vw}
@@ -1889,6 +1925,21 @@ const I18N = {
   "Schon ein Konto? Anmelden": ["Already have an account? Log in", "Hai già un account? Accedi"],
   "Passwort vergessen": ["Forgot password", "Password dimenticata"],
   "Passwort vergessen?": ["Forgot password?", "Password dimenticata?"],
+  "Passwort zurücksetzen": ["Reset password", "Reimposta password"],
+  "Mindestens 6 Zeichen": ["At least 6 characters", "Almeno 6 caratteri"],
+  "Ich bin neu bei Cardo": ["I'm new to Cardo", "Sono nuovo su Cardo"],
+  "Ich habe bereits ein Konto": ["I already have an account", "Ho già un account"],
+  "Wir schicken dir einen Code per E-Mail.": ["We'll email you a code.", "Ti inviamo un codice via email."],
+  "Code senden": ["Send code", "Invia codice"],
+  "Zurück zur Anmeldung": ["Back to log in", "Torna all'accesso"],
+  "Speichern und anmelden": ["Save and log in", "Salva e accedi"],
+  "Neues Passwort gespeichert.": ["New password saved.", "Nuova password salvata."],
+  "Diese E-Mail-Adresse sieht nicht richtig aus.": ["This email address doesn't look right.", "Questo indirizzo email non sembra corretto."],
+  "Gib dein Passwort ein.": ["Enter your password.", "Inserisci la tua password."],
+  "Neu bei Cardo? Mit dieser E-Mail registrieren": ["New to Cardo? Sign up with this email", "Nuovo su Cardo? Registrati con questa email"],
+  "Du hattest schon ein Konto – du bist jetzt angemeldet.": ["You already had an account – you're now logged in.", "Avevi già un account – ora hai effettuato l'accesso."],
+  "Für diese E-Mail gibt es schon ein Konto. Gib dein Passwort ein.": ["There's already an account for this email. Enter your password.", "Esiste già un account per questa email. Inserisci la password."],
+  "Das neue Passwort muss sich vom alten unterscheiden.": ["The new password must be different from the old one.", "La nuova password deve essere diversa da quella vecchia."],
   "Passwort ändern": ["Change password", "Cambia password"],
   "Passwort anzeigen": ["Show password", "Mostra password"],
   "Passwort verbergen": ["Hide password", "Nascondi password"],
@@ -3413,7 +3464,7 @@ function playIntro(opts = {}){
     try { localStorage.setItem(INTRO_KEY, "1"); } catch {}
     ov.classList.add(fast ? "out-fast" : "out"); const strip = fadeTopStrip(fast ? 280 : 550, fast); setTimeout(() => { anims.forEach(a => { try { a.cancel(); } catch {} }); ov.remove(); strip && strip.remove(); }, fast ? 300 : 650);
     // Übergang in die Anmeldung: Titel, Untertitel, Tabs und Formular gleiten nacheinander von unten ein, während das Intro ausblendet
-    if (!opts.center) document.querySelectorAll(".auth-logo h1,.auth-logo p,.auth-seg,.auth-form").forEach((e, i) => { try { e.animate([{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "none" }], { duration: 560, delay: (fast ? 0 : 80) + i * 80, easing: "cubic-bezier(.2,.8,.2,1)", fill: "backwards" }); } catch {} });
+    if (!opts.center) document.querySelectorAll(".auth-logo h1,.auth-logo p,.auth-choice,.auth-sub,.auth-form").forEach((e, i) => { try { e.animate([{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "none" }], { duration: 560, delay: (fast ? 0 : 80) + i * 80, easing: "cubic-bezier(.2,.8,.2,1)", fill: "backwards" }); } catch {} });
     opts.onEnd && opts.onEnd();
   };
   // Erster Start nach der Installation: Intro läuft immer ganz durch (nicht überspringbar)
@@ -4222,6 +4273,7 @@ function hexColor(c){ try { const cv = hexColor.cv || (hexColor.cv = document.cr
 new MutationObserver(() => { if (!document.body.classList.contains("splashing") && !document.documentElement.style.backgroundColor) applyTheme(); }).observe(document.body, { attributes: true, attributeFilter: ["class"] });
 function saveSettings(patch){
   S.set = { ...S.set, ...patch }; setLang(S.set.lang); applyTheme(); render();
+  try { localStorage.removeItem(LANG_PICK); } catch {}
   try { localStorage.setItem("kartenfach-settings", JSON.stringify(S.set)); } catch {}
   if (DB) enqueue("settings/main", () => DB.doc("settings/main").set({ look: S.set.look, layout: S.set.layout, textSize: S.set.textSize, fxMode: S.set.fxMode || "full", gradeSet: S.set.gradeSet || "4", newPerDay: newLimit(), splash: S.set.splash || "daily", glass: S.set.glass ?? 1, retain: S.set.retain || 90, sound: S.set.sound === 1 ? 1 : 0, lang: S.set.lang || LANG }));
 }
@@ -4565,7 +4617,7 @@ async function boot(){
   SB = window.supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
   if (SHARED_IN) openSharedDeck(SHARED_IN);
   SB.auth.onAuthStateChange((ev, session) => {
-    if (ev === "PASSWORD_RECOVERY") setTimeout(newPasswordSheet, 300);
+    if (ev === "PASSWORD_RECOVERY" && !AUTH_RESET) setTimeout(newPasswordSheet, 300);
     if (ev === "SIGNED_OUT") location.reload();
   });
   // Offline-Start: Wer auf diesem Gerät schon angemeldet war, kommt sofort in die App (mit der lokalen Kopie).
@@ -4589,11 +4641,14 @@ function cachedUser(){
 }
 function startApp(){
   setTimeout(rlFlush, 10000); /* Bewertungen, die noch nicht hochgeladen waren (z. B. offline gelernt) */
-  document.body.classList.remove("authing");
+  document.body.classList.remove("authing"); authBg(false);
   DB = makeStore(SB, USER.id); AS = null; S.mode = DB.cached() ? "cloud" : "loading";
   if (S.mode === "loading") $("#main").innerHTML = '<div class="loading">Deine Karten werden geladen …</div>';
   DB.collection("devices").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = d.data(); }); S.devices = o; syncRefresh(); });
-  DB.doc("settings/main").onSnapshot(d => { if (!d.exists) return; const v = normSet(d.data()); if (!v) return; S.set = v; try { localStorage.setItem("kartenfach-settings", JSON.stringify(S.set)); } catch {} if (setLang(S.set.lang)) { if (!$("#sheet").hidden) closeSheet(); schedulePrerender(); } applyTheme(); render(); });
+  DB.doc("settings/main").onSnapshot(d => { if (!d.exists) return; const v = normSet(d.data()); if (!v) return;
+    let pk = null; try { pk = localStorage.getItem(LANG_PICK); localStorage.removeItem(LANG_PICK); } catch {} /* vor der Anmeldung gewählte Sprache gewinnt und wird ins Konto geschrieben */
+    if (pk && LOCALES[pk] && v.lang !== pk) { v.lang = pk; setTimeout(() => saveSettings({ lang: pk }), 0); }
+    S.set = v; try { localStorage.setItem("kartenfach-settings", JSON.stringify(S.set)); } catch {} if (setLang(S.set.lang)) { if (!$("#sheet").hidden) closeSheet(); schedulePrerender(); } applyTheme(); render(); });
   DB.collection("sections").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = d.data(); }); S.sections = o; render(); });
   DB.collection("folders").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = d.data(); }); S.folders = o; S.loaded.f = true; render(); });
   DB.collection("cards").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = { ...((d.data()||{}).cards || {}) }; }); S.decks = o; S.loaded.c = true; render(); });
@@ -4774,6 +4829,7 @@ function authErr(e){
   if (/Invalid login credentials/i.test(m)) return "E-Mail oder Passwort stimmt nicht.";
   if (/Email not confirmed/i.test(m)) return "Bitte bestätige zuerst deine E-Mail-Adresse über den Link in der Bestätigungsmail.";
   if (/already registered|already exists/i.test(m)) return "Für diese E-Mail gibt es schon ein Konto. Melde dich an.";
+  if (/should be different/i.test(m)) return "Das neue Passwort muss sich vom alten unterscheiden.";
   if (/Password should be at least|weak/i.test(m)) return "Das Passwort muss mindestens 6 Zeichen haben.";
   if (/rate limit|too many/i.test(m)) return "Zu viele Versuche. Warte kurz und probier es dann erneut.";
   if (/fetch|network/i.test(m)) return "Keine Verbindung. Prüfe dein Internet.";
@@ -4790,38 +4846,134 @@ document.addEventListener("click", e => {
   if (document.activeElement === inp && a != null) { const keep = () => { try { inp.setSelectionRange(a, z); } catch {} }; keep(); requestAnimationFrame(keep); setTimeout(keep, 60); } /* Cursor bleibt, wo er war */
   b.setAttribute("aria-label", show ? "Passwort verbergen" : "Passwort anzeigen");
 });
-function showAuth(mode = "in"){
-  S.mode = "auth"; document.body.classList.add("authing"); hideSplash();
+/* Eingaben bleiben beim Umschalten zwischen Anmelden/Registrieren erhalten; AUTH_RESET: Passwort wird gerade per Code zurückgesetzt */
+let AUTH_EMAIL = "", AUTH_PW = "", AUTH_RESET = false;
+const LAST_EMAIL = "cardo-last-email";
+function authDone(user){ USER = user; try { localStorage.setItem(LAST_EMAIL, user.email || ""); } catch {} AUTH_PW = ""; AUTH_RESET = false; startApp(); render(); }
+const AUTH_LOGO = `<div class="auth-logo"><div class="auth-mark" aria-hidden="true"><svg viewBox="0 0 512 512"><defs><filter id="cse" filterUnits="userSpaceOnUse" x="0" y="0" width="512" height="512"><feDropShadow dx="0" dy="7" stdDeviation="9" flood-color="#000000" flood-opacity=".38"/></filter><radialGradient id="cde" cx=".38" cy=".32" r=".75"><stop offset="0" stop-color="#FF7A55"/><stop offset="1" stop-color="#F2491F"/></radialGradient></defs><g transform="translate(256 256) scale(1.24) translate(-256 -256)"><g filter="url(#cse)"><path d="M332.17 165.22A118.5 118.5 0 1 0 332.17 346.78" fill="none" stroke="#F5F6F8" stroke-width="55" stroke-linecap="round"/><circle cx="256" cy="256" r="29" fill="url(#cde)"/></g></g></svg></div><h1>Cardo</h1><p class="muted">Karteikarten, synchron auf all deinen Geräten.</p></div>`;
+/* Bewegter, unscharfer Karteikarten-Hintergrund nur auf dem Anmeldebildschirm */
+function authBg(on){
+  let el = document.getElementById("authBg");
+  if (!on) { if (el) { el.classList.add("out"); setTimeout(() => el.remove(), 650); } return; }
+  if (el) { el.classList.remove("out"); return; }
+  /* [links %, Größe, Dauer s, Drehung °, Unschärfe px, seitliche Drift px] */
+  const C = [[12,.8,46,-12,5,40],[78,1.25,38,9,9,-50],[45,.65,54,6,4,30],[28,1.1,42,-7,8,-30],[88,.75,50,14,5,-20],[60,1.4,35,-10,11,40],[6,1.2,40,8,10,50],[52,.9,48,-15,6,-40],[35,.7,58,11,4,25],[70,1,44,-5,7,-35]];
+  el = document.createElement("div"); el.id = "authBg"; el.setAttribute("aria-hidden", "true");
+  el.innerHTML = '<i class="ab-glow g1"></i><i class="ab-glow g2"></i>' + C.map(([x, s, d, r, b, dx], i) => `<div class="ab-card${i % 4 === 1 ? " hl" : ""}" style="left:${x}%;--s:${s};--r:${r}deg;--b:${b}px;--dx:${dx}px;animation-duration:${d}s;animation-delay:-${(d * ((i * .37 + .1) % 1)).toFixed(1)}s"><b></b><b></b></div>`).join("");
+  document.body.prepend(el);
+}
+/* Sprachwahl schon vor der Anmeldung (oben rechts); die Wahl wird nach dem Anmelden ins Konto übernommen */
+const LANG_PICK = "cardo-lang-picked";
+const authLang = () => `<label class="auth-lang" aria-label="Sprache"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z"/></svg><span translate="no">${(LANGS.find(l => l[0] === LANG) || LANGS[0])[1]}</span><select id="authLang">${LANGS.map(([k, l]) => `<option value="${k}" translate="no"${k === LANG ? " selected" : ""}>${l}</option>`).join("")}</select></label>`;
+document.addEventListener("change", e => {
+  if (e.target.id !== "authLang") return;
+  const l = e.target.value; if (!LOCALES[l]) return;
+  S.set = { ...S.set, lang: l };
+  try { localStorage.setItem("kartenfach-settings", JSON.stringify(S.set)); localStorage.setItem(LANG_PICK, l); } catch {}
+  setLang(l);
+  const sp = e.target.parentNode.querySelector("span"); if (sp) sp.textContent = (LANGS.find(x => x[0] === l) || LANGS[0])[1];
+});
+const AUTH_LEGAL = `<p class="auth-legal"><a href="datenschutz.html#impressum">Impressum</a> · <a href="datenschutz.html">Datenschutz</a></p>`;
+/* mode: "start" (Auswahl: neu / schon ein Konto), "in" (Anmelden), "up" (Registrieren), "reset" (Passwort vergessen → Code per E-Mail); note: "exists" = Registrieren mit vorhandener E-Mail */
+function showAuth(mode = "", note = ""){
+  S.mode = "auth"; document.body.classList.add("authing"); hideSplash(); authBg(true);
   $("#tabs").innerHTML = ""; $("#tabs").dataset.h = "";
+  let known = ""; try { known = localStorage.getItem(LAST_EMAIL) || ""; } catch {}
+  if (!AUTH_EMAIL) AUTH_EMAIL = known;
+  if (!mode) mode = known ? "in" : "start"; /* auf diesem Gerät schon angemeldet gewesen → direkt Anmelden */
+  if (mode === "start") {
+    $("#main").innerHTML = `<div class="auth">${authLang()}${AUTH_LOGO}<div class="auth-choice"><button class="btn primary block" type="button" data-act="authMode" data-v="in">Ich habe bereits ein Konto</button><button class="btn block auth-new" type="button" data-act="authMode" data-v="up">Ich bin neu bei Cardo</button></div>${AUTH_LEGAL}</div>`;
+    return;
+  }
+  const reset = mode === "reset";
   $("#main").innerHTML = `<div class="auth">
-    <div class="auth-logo"><div class="auth-mark" aria-hidden="true"><svg viewBox="0 0 512 512"><defs><filter id="cse" filterUnits="userSpaceOnUse" x="0" y="0" width="512" height="512"><feDropShadow dx="0" dy="7" stdDeviation="9" flood-color="#000000" flood-opacity=".38"/></filter><radialGradient id="cde" cx=".38" cy=".32" r=".75"><stop offset="0" stop-color="#FF7A55"/><stop offset="1" stop-color="#F2491F"/></radialGradient></defs><g transform="translate(256 256) scale(1.24) translate(-256 -256)"><g filter="url(#cse)"><path d="M332.17 165.22A118.5 118.5 0 1 0 332.17 346.78" fill="none" stroke="#F5F6F8" stroke-width="55" stroke-linecap="round"/><circle cx="256" cy="256" r="29" fill="url(#cde)"/></g></g></svg></div><h1>Cardo</h1><p class="muted">Karteikarten, synchron auf all deinen Geräten.</p></div>
-    <div class="seg auth-seg" role="tablist"><button class="${mode === 'in' ? 'on' : ''}" data-act="authMode" data-v="in">Anmelden</button><button class="${mode === 'up' ? 'on' : ''}" data-act="authMode" data-v="up">Registrieren</button><button class="${mode === 'reset' ? 'on' : ''}" data-act="authMode" data-v="reset">Passwort vergessen</button></div>
+    ${authLang()}${AUTH_LOGO}
+    <div class="auth-sub"><button class="auth-back" type="button" data-act="authMode" data-v="${reset ? 'in' : 'start'}" aria-label="Zurück"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button><h2>${reset ? 'Passwort zurücksetzen' : mode === 'up' ? 'Konto erstellen' : 'Anmelden'}</h2>${reset ? '<p class="muted">Wir schicken dir einen Code per E-Mail.</p>' : ''}</div>
     <form id="authForm" class="auth-form" novalidate>
-      <div class="field"><label for="aEmail">E-Mail</label><input class="in" id="aEmail" type="email" autocomplete="email" inputmode="email" required></div>
-      ${mode === 'reset' ? '' : `<div class="field"><label for="aPw">Passwort</label>${pwInput(`id="aPw" autocomplete="${mode === 'up' ? 'new-password' : 'current-password'}" minlength="6" required`)}</div>`}
-      <button class="btn primary block" type="submit" id="aGo">${mode === 'in' ? 'Anmelden' : mode === 'up' ? 'Konto erstellen' : 'Link zum Zurücksetzen senden'}</button>
-      <p class="muted auth-msg" id="aMsg">${mode === 'up' ? 'Mindestens 6 Zeichen. Jede Person bekommt ihre eigene Bibliothek.' : ''}</p>
-      ${mode === 'up' ? '<p class="muted auth-legal-note">Mit dem Erstellen des Kontos werden deine Daten wie in der <a href="datenschutz.html">Datenschutzerklärung</a> beschrieben verarbeitet.</p>' : ''}
+      <div class="field"><label for="aEmail">E-Mail</label><input class="in" id="aEmail" type="email" autocomplete="email" inputmode="email" enterkeyhint="${reset ? 'send' : 'next'}" autocapitalize="off" spellcheck="false" required></div>
+      ${reset ? '' : `<div class="field"><div class="auth-lrow"><label for="aPw">Passwort</label>${mode === 'in' ? '<button class="auth-forgot" type="button" data-act="authMode" data-v="reset">Passwort vergessen?</button>' : ''}</div>${pwInput(`id="aPw" autocomplete="${mode === 'up' ? 'new-password' : 'current-password'}"${mode === 'up' ? ' placeholder="Mindestens 6 Zeichen"' : ''} enterkeyhint="go" minlength="6" required`)}</div>`}
+      <button class="btn primary block" type="submit" id="aGo">${mode === 'in' ? 'Anmelden' : mode === 'up' ? 'Konto erstellen' : 'Code senden'}</button>
+      <p class="muted auth-msg" id="aMsg"></p>
+      <button class="pw-forgot auth-alt" type="button" id="aAlt" data-act="authMode" data-v="up" hidden>Neu bei Cardo? Mit dieser E-Mail registrieren</button>
     </form>
-    <p class="auth-legal"><a href="datenschutz.html#impressum">Impressum</a> · <a href="datenschutz.html">Datenschutz</a></p></div>`;
+    <button class="pw-forgot auth-switch" type="button" data-act="authMode" data-v="${mode === 'in' ? 'up' : 'in'}">${reset ? 'Zurück zur Anmeldung' : mode === 'in' ? 'Noch kein Konto? Kostenlos registrieren' : 'Schon ein Konto? Anmelden'}</button>
+    ${AUTH_LEGAL}</div>`;
+  const em = $("#aEmail"), pwf = $("#aPw"), msg = $("#aMsg"), go = $("#aGo");
+  const say = (t, err) => { msg.textContent = t; msg.classList.toggle("err", !!err); if (err) requestAnimationFrame(() => { const alt = $("#aAlt"), el = alt && !alt.hidden ? alt : msg; try { el.scrollIntoView({ block: "nearest", behavior: "smooth" }); } catch {} }); }; /* Fehler immer sichtbar machen */
+  const busy = on => { go.disabled = on; go.classList.toggle("busy", on); };
+  em.value = AUTH_EMAIL; if (pwf) pwf.value = AUTH_PW;
+  em.addEventListener("input", () => { AUTH_EMAIL = em.value; });
+  if (pwf) pwf.addEventListener("input", () => { AUTH_PW = pwf.value; });
+  em.addEventListener("keydown", e => { if (e.key === "Enter" && pwf && !pwf.value) { e.preventDefault(); pwf.focus(); } }); /* „Weiter“ springt ins Passwortfeld */
+  if (note === "exists") { say("Für diese E-Mail gibt es schon ein Konto. Gib dein Passwort ein.", true); setTimeout(() => pwf && pwf.focus(), 60); }
   $("#authForm").addEventListener("submit", async e => {
-    e.preventDefault(); const email = $("#aEmail").value.trim(), pw = $("#aPw") ? $("#aPw").value : "", msg = $("#aMsg"), go = $("#aGo");
-    if (!email) { msg.textContent = "Gib deine E-Mail-Adresse ein."; return; }
-    go.disabled = true; msg.textContent = "Einen Moment …";
+    e.preventDefault(); const email = em.value.trim(), pw = pwf ? pwf.value : "";
+    $("#aAlt").hidden = true;
+    if (!email) { say("Gib deine E-Mail-Adresse ein.", true); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { say("Diese E-Mail-Adresse sieht nicht richtig aus.", true); return; }
+    if (mode === "in" && !pw) { say("Gib dein Passwort ein.", true); return; }
+    if (mode === "up" && pw.length < 6) { say("Das Passwort muss mindestens 6 Zeichen haben.", true); return; }
+    busy(true); say("");
     try {
-      if (mode === "reset") {
+      if (reset) {
         const r = await SB.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname }); if (r.error) throw r.error;
-        msg.textContent = "Wenn es ein Konto gibt, ist eine E-Mail mit Link unterwegs. Öffne den Link auf diesem Gerät.";
+        busy(false); resetCodeForm(email); return;
       } else if (mode === "up") {
-        const r = await SB.auth.signUp({ email, password: pw, options: { emailRedirectTo: location.origin + location.pathname } }); if (r.error) throw r.error;
-        if (r.data.session) { USER = r.data.session.user; startApp(); render(); }
-        else msg.textContent = "Fast geschafft: Bestätige deine E-Mail über den Link, den wir dir geschickt haben, und melde dich dann an.";
+        const r = await SB.auth.signUp({ email, password: pw, options: { emailRedirectTo: location.origin + location.pathname } });
+        const exists = r.error ? /already registered|already exists/i.test(r.error.message) : !!(r.data.user && r.data.user.identities && !r.data.user.identities.length);
+        if (exists) { /* Verwechselt: Konto gibt es schon → mit demselben Passwort einfach anmelden */
+          const s = await SB.auth.signInWithPassword({ email, password: pw });
+          if (!s.error) { authDone(s.data.session.user); toast("Du hattest schon ein Konto – du bist jetzt angemeldet."); return; }
+          AUTH_PW = ""; showAuth("in", "exists"); return;
+        }
+        if (r.error) throw r.error;
+        if (r.data.session) { authDone(r.data.session.user); return; }
+        say("Fast geschafft: Bestätige deine E-Mail über den Link, den wir dir geschickt haben, und melde dich dann an.");
       } else {
-        const r = await SB.auth.signInWithPassword({ email, password: pw }); if (r.error) throw r.error;
-        USER = r.data.session.user; startApp(); render();
+        const r = await SB.auth.signInWithPassword({ email, password: pw });
+        if (r.error) { if (/Invalid login credentials/i.test(r.error.message)) $("#aAlt").hidden = false; throw r.error; } /* vielleicht noch kein Konto → Registrieren anbieten */
+        authDone(r.data.session.user); return;
       }
-    } catch (err) { msg.textContent = authErr(err); }
-    go.disabled = false;
+    } catch (err) { say(authErr(err), true); }
+    busy(false);
+  });
+}
+/* Passwort vergessen, Schritt 2: Code aus der E-Mail + neues Passwort (klappt auch in der installierten iPhone-App, anders als der Link) */
+function resetCodeForm(email){
+  const f0 = $("#authForm"); if (!f0) return;
+  const f = f0.cloneNode(false); f0.replaceWith(f); /* alten Absenden-Listener loswerden */
+  const sub = document.querySelector(".auth-sub p"); if (sub) sub.hidden = true;
+  let verified = false;
+  f.innerHTML = `<p class="muted auth-rc">Wir haben einen Code an <b>${esc(email)}</b> geschickt. Gib ihn hier ein und wähle ein neues Passwort.</p>
+    <div class="field"><label for="rCode">Code aus der E-Mail</label><input class="in" id="rCode" inputmode="numeric" autocomplete="one-time-code" enterkeyhint="next" maxlength="10" style="letter-spacing:.3em;font-weight:700"></div>
+    <div class="field"><label for="rPw">Neues Passwort</label>${pwInput(`id="rPw" autocomplete="new-password" enterkeyhint="done" minlength="6"`)}</div>
+    <button class="btn primary block" type="submit" id="rGo">Speichern und anmelden</button>
+    <p class="muted auth-msg" id="rMsg"></p>
+    <button class="pw-forgot" type="button" id="rResend">Code erneut senden</button>`;
+  const msg = $("#rMsg"), go = $("#rGo"), code = $("#rCode"), pw = $("#rPw");
+  const say = (t, err) => { msg.textContent = t; msg.classList.toggle("err", !!err); };
+  setTimeout(() => code.focus(), 60);
+  code.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); pw.focus(); } });
+  $("#rResend").addEventListener("click", async () => {
+    try { const r = await SB.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname }); if (r.error) throw r.error; say("Neuer Code ist unterwegs."); } catch (err) { say(authErr(err), true); }
+  });
+  f.addEventListener("submit", async e => {
+    e.preventDefault(); const c = code.value.replace(/\s+/g, ""), npw = pw.value;
+    if (!c && !verified) { say("Gib den Code aus der E-Mail ein.", true); return; }
+    if (npw.length < 6) { say("Das neue Passwort muss mindestens 6 Zeichen haben.", true); return; }
+    go.disabled = true; go.classList.add("busy"); say("");
+    try {
+      if (!verified) {
+        AUTH_RESET = true;
+        const v = await SB.auth.verifyOtp({ email, token: c, type: "recovery" });
+        if (v.error) { AUTH_RESET = false; say("Der Code stimmt nicht oder ist abgelaufen.", true); go.disabled = false; go.classList.remove("busy"); return; }
+        verified = true;
+      }
+      const r = await SB.auth.updateUser({ password: npw }); if (r.error) throw r.error;
+      authDone(r.data.user); toast("Neues Passwort gespeichert.");
+      return;
+    } catch (err) { say(authErr(err), true); }
+    go.disabled = false; go.classList.remove("busy");
   });
 }
 function newPasswordSheet(){
@@ -5004,7 +5156,7 @@ function deleteAccountSheet(){
           for (let k = 0; k < 50; k++) { const l = await SB.storage.from(IMG_BUCKET).list(id, { limit: 1000 }); const names = (l.data || []).map(x => id + "/" + x.name); if (l.error || !names.length) break; const r = await SB.storage.from(IMG_BUCKET).remove(names); if (r.error) break; }
         } catch (e) { console.warn("bilder", e); }
         const r = await SB.rpc("delete_my_account"); if (r.error) throw r.error;
-        try { Object.keys(localStorage).forEach(k => { if (k.includes(id) || k.startsWith("kartenfach-") || k.startsWith("cardo-pending-deck")) localStorage.removeItem(k); }); } catch {}
+        try { Object.keys(localStorage).forEach(k => { if (k.includes(id) || k.startsWith("kartenfach-") || k.startsWith("cardo-pending-deck") || k === LAST_EMAIL) localStorage.removeItem(k); }); } catch {}
         try { (await bkList()).forEach(b => bkDel(b.id)); } catch {}
         try { await SB.auth.signOut({ scope: "local" }); } catch {}
         closeSheet(); toast("Dein Konto wurde gelöscht."); setTimeout(() => location.reload(), 1400);
