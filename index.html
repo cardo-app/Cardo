@@ -917,6 +917,10 @@ body.authing{background:transparent}
 .auth-choice{display:flex;flex-direction:column;gap:10px;margin-top:6px}
 .auth-choice .btn{padding:15px 14px;font-size:16.5px;font-weight:700}
 .auth-new{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) body:not(.m-light) .auth-new{background:#3A3D46;border-color:rgba(245,246,248,.16)}}
+:root[data-theme="dark"] .auth-new,body.m-dark .auth-new{background:#3A3D46;border-color:rgba(245,246,248,.16)} /* dunkel: deutlich heller als der Hintergrund */
+.auth-or{display:flex;align-items:center;gap:12px;margin:18px 4px 12px;font-size:13px;font-weight:600;color:var(--muted)}.auth-or::before,.auth-or::after{content:"";flex:1;height:1px;background:color-mix(in oklab,var(--ink) 14%,transparent)}
+.auth-social{display:flex;gap:10px}.auth-social .btn{flex:1;padding:11px 10px;font-size:15px;font-weight:650;gap:8px;justify-content:center;color:var(--ink);background:color-mix(in srgb,var(--surface) 45%,transparent);border:1px solid color-mix(in oklab,var(--ink) 12%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}.auth-social .btn:hover{color:var(--ink);background:color-mix(in srgb,var(--surface) 65%,transparent)}.auth-social svg{width:18px;height:18px;flex:none}
 .auth-sub{position:relative;text-align:center;margin:-6px 0 18px}
 .auth-back{position:absolute;left:-6px;top:-5px;width:38px;height:38px;display:grid;place-items:center;padding:0;background:none;border:0;border-radius:50%;color:var(--muted);cursor:pointer}
 .auth-back svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
@@ -924,6 +928,7 @@ body.authing{background:transparent}
 .auth-lrow{display:flex;justify-content:space-between;align-items:baseline;gap:10px}.auth-lrow>label{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .auth-forgot{margin:-6px -4px -6px 0;padding:6px 4px;background:none;border:0;font:inherit;font-size:13.5px;font-weight:600;color:var(--muted);cursor:pointer}
 .auth-msg.err{color:var(--again);font-weight:600}
+.auth-form .in.auth-fixed{background:transparent;border-color:transparent;padding-left:2px;padding-right:2px;color:var(--ink);font-weight:600;pointer-events:none}
 .auth-alt{margin-top:6px;color:var(--ink);opacity:1;font-weight:700}
 .auth-spam{display:block;margin-top:8px;font-size:13px;opacity:.8}
 .auth-rc{font-size:15px;margin:0 2px 16px;line-height:1.4}.auth-rc b{color:var(--ink);word-break:break-all}
@@ -1920,6 +1925,9 @@ const I18N = {
   "E-Mail": ["Email", "Email"],
   "Passwort": ["Password", "Password"],
   "Anmelden": ["Log in", "Accedi"],
+  "Ändern": ["Change", "Modifica"],
+  "Willkommen zurück": ["Welcome back", "Bentornato"],
+  "Diese E-Mail ist neu bei Cardo. Wähle ein Passwort.": ["This email is new to Cardo. Choose a password.", "Questa email è nuova su Cardo. Scegli una password."],
   "Registrieren": ["Sign up", "Registrati"],
   "Abmelden": ["Log out", "Esci"],
   "Angemeldet als": ["Logged in as", "Accesso come"],
@@ -1930,6 +1938,9 @@ const I18N = {
   "Passwort zurücksetzen": ["Reset password", "Reimposta password"],
   "Mindestens 6 Zeichen": ["At least 6 characters", "Almeno 6 caratteri"],
   "Ich bin neu bei Cardo": ["I'm new to Cardo", "Sono nuovo su Cardo"],
+  "Mit Apple fortfahren": ["Continue with Apple", "Continua con Apple"],
+  "Mit Google fortfahren": ["Continue with Google", "Continua con Google"],
+  "oder weiter mit": ["or continue with", "oppure continua con"],
   "Ich habe bereits ein Konto": ["I already have an account", "Ho già un account"],
   "Wir schicken dir einen Code per E-Mail.": ["We'll email you a code.", "Ti inviamo un codice via email."],
   "Code senden": ["Send code", "Invia codice"],
@@ -4878,29 +4889,33 @@ document.addEventListener("change", e => {
   const sp = e.target.parentNode.querySelector("span"); if (sp) sp.textContent = (LANGS.find(x => x[0] === l) || LANGS[0])[1];
 });
 const AUTH_LEGAL = `<p class="auth-legal"><a href="datenschutz.html#impressum">Impressum</a> · <a href="datenschutz.html">Datenschutz</a></p>`;
-/* mode: "start" (Auswahl: neu / schon ein Konto), "in" (Anmelden), "up" (Registrieren), "reset" (Passwort vergessen → Code per E-Mail); note: "exists" = Registrieren mit vorhandener E-Mail */
+/* Anmelden/Registrieren mit Apple oder Google (Supabase OAuth; Anbieter müssen im Supabase-Dashboard aktiviert sein) */
+const AUTH_SOCIAL = `<div class="auth-or">oder weiter mit</div><div class="auth-social"><button class="btn block auth-apple" type="button" data-act="authOAuth" data-v="apple" aria-label="Mit Apple fortfahren"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.37 12.6c-.02-2.3 1.88-3.4 1.96-3.46-1.07-1.56-2.73-1.78-3.32-1.8-1.41-.14-2.76.83-3.47.83-.72 0-1.82-.81-2.99-.79-1.54.02-2.96.9-3.75 2.27-1.6 2.78-.41 6.89 1.15 9.14.76 1.1 1.67 2.34 2.86 2.3 1.15-.05 1.58-.74 2.97-.74 1.38 0 1.77.74 2.98.72 1.23-.02 2.01-1.12 2.76-2.23.87-1.28 1.23-2.52 1.25-2.58-.03-.01-2.39-.92-2.4-3.66zM14.1 5.86c.63-.77 1.06-1.83.94-2.89-.91.04-2.01.61-2.67 1.37-.58.67-1.09 1.76-.96 2.8 1.02.08 2.06-.52 2.69-1.28z"/></svg>Apple</button><button class="btn block auth-google" type="button" data-act="authOAuth" data-v="google" aria-label="Mit Google fortfahren"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.27c0-.85-.08-1.67-.22-2.45H12v4.63h6.45a5.52 5.52 0 0 1-2.4 3.62v3h3.88c2.27-2.09 3.57-5.17 3.57-8.8z"/><path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.93-2.9l-3.88-3c-1.07.72-2.45 1.15-4.05 1.15-3.12 0-5.76-2.1-6.7-4.94H1.3v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.3 14.3a7.2 7.2 0 0 1 0-4.6V6.6h-4a12 12 0 0 0 0 10.8l4-3.1z"/><path fill="#EA4335" d="M12 4.77c1.76 0 3.34.6 4.58 1.8l3.44-3.44A11.5 11.5 0 0 0 12 0 12 12 0 0 0 1.3 6.6l4 3.1C6.24 6.87 8.88 4.77 12 4.77z"/></svg>Google</button></div>`;
+async function authOAuth(provider){
+  if (!SB) { toast("In der Vorschau gibt es kein Konto."); return; }
+  try { const r = await SB.auth.signInWithOAuth({ provider, options: { redirectTo: location.origin + location.pathname } }); if (r.error) throw r.error; } catch (err) { toast(authErr(err)); }
+}
+/* mode: "start" (nur E-Mail → Cardo erkennt, ob es sie schon gibt), "in" (Anmelden), "up" (Registrieren), "reset" (Passwort vergessen → Code per E-Mail); note: "exists" = Registrieren mit vorhandener E-Mail, "unsure" = Prüfung ging nicht (z. B. offline) → Anmelden mit Wechsel-Link */
 function showAuth(mode = "", note = ""){
   S.mode = "auth"; document.body.classList.add("authing"); hideSplash(); authBg(true);
   $("#tabs").innerHTML = ""; $("#tabs").dataset.h = "";
   let known = ""; try { known = localStorage.getItem(LAST_EMAIL) || ""; } catch {}
   if (!AUTH_EMAIL) AUTH_EMAIL = known;
   if (!mode) mode = known ? "in" : "start"; /* auf diesem Gerät schon angemeldet gewesen → direkt Anmelden */
-  if (mode === "start") {
-    $("#main").innerHTML = `<div class="auth">${authLang()}${AUTH_LOGO}<div class="auth-choice"><button class="btn primary block" type="button" data-act="authMode" data-v="in">Ich habe bereits ein Konto</button><button class="btn block auth-new" type="button" data-act="authMode" data-v="up">Ich bin neu bei Cardo</button></div>${AUTH_LEGAL}</div>`;
-    return;
-  }
-  const reset = mode === "reset";
+  const start = mode === "start", reset = mode === "reset", unsure = note === "unsure";
+  const fixed = mode === "in" || mode === "up"; /* E-Mail steht fest, Ändern führt zurück zum ersten Schritt */
   $("#main").innerHTML = `<div class="auth">
     ${authLang()}${AUTH_LOGO}
-    <div class="auth-sub"><button class="auth-back" type="button" data-act="authMode" data-v="${reset ? 'in' : 'start'}" aria-label="Zurück"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button><h2>${reset ? 'Passwort zurücksetzen' : mode === 'up' ? 'Konto erstellen' : 'Anmelden'}</h2>${reset ? '<p class="muted">Wir schicken dir einen Code per E-Mail.</p>' : ''}</div>
+    ${start ? '' : `<div class="auth-sub"><button class="auth-back" type="button" data-act="authMode" data-v="${reset ? 'in' : 'start'}" aria-label="Zurück"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button><h2>${reset ? 'Passwort zurücksetzen' : mode === 'up' ? 'Konto erstellen' : 'Willkommen zurück'}</h2>${reset ? '<p class="muted">Wir schicken dir einen Code per E-Mail.</p>' : mode === 'up' ? '<p class="muted">Diese E-Mail ist neu bei Cardo. Wähle ein Passwort.</p>' : ''}</div>`}
     <form id="authForm" class="auth-form" novalidate>
-      <div class="field"><label for="aEmail">E-Mail</label><input class="in" id="aEmail" type="email" autocomplete="email" inputmode="email" enterkeyhint="${reset ? 'send' : 'next'}" autocapitalize="off" spellcheck="false" required></div>
-      ${reset ? '' : `<div class="field"><div class="auth-lrow"><label for="aPw">Passwort</label>${mode === 'in' ? '<button class="auth-forgot" type="button" data-act="authMode" data-v="reset">Passwort vergessen?</button>' : ''}</div>${pwInput(`id="aPw" autocomplete="${mode === 'up' ? 'new-password' : 'current-password'}"${mode === 'up' ? ' placeholder="Mindestens 6 Zeichen"' : ''} enterkeyhint="go" minlength="6" required`)}</div>`}
-      <button class="btn primary block" type="submit" id="aGo">${mode === 'in' ? 'Anmelden' : mode === 'up' ? 'Konto erstellen' : 'Code senden'}</button>
+      <div class="field"><div class="auth-lrow"><label for="aEmail">E-Mail</label>${fixed ? '<button class="auth-forgot" type="button" data-act="authMode" data-v="start">Ändern</button>' : ''}</div><input class="in${fixed ? ' auth-fixed' : ''}" id="aEmail" type="email" autocomplete="${fixed ? 'username' : 'email'}" inputmode="email" enterkeyhint="${reset ? 'send' : start ? 'go' : 'next'}" autocapitalize="off" spellcheck="false" required${fixed ? ' readonly tabindex="-1"' : ''}></div>
+      ${fixed ? `<div class="field"><div class="auth-lrow"><label for="aPw">Passwort</label>${mode === 'in' ? '<button class="auth-forgot" type="button" data-act="authMode" data-v="reset">Passwort vergessen?</button>' : ''}</div>${pwInput(`id="aPw" autocomplete="${mode === 'up' ? 'new-password' : 'current-password'}"${mode === 'up' ? ' placeholder="Mindestens 6 Zeichen"' : ''} enterkeyhint="go" minlength="6" required`)}</div>` : ''}
+      <button class="btn primary block" type="submit" id="aGo">${start ? 'Weiter' : mode === 'in' ? 'Anmelden' : mode === 'up' ? 'Konto erstellen' : 'Code senden'}</button>
       <p class="muted auth-msg" id="aMsg"></p>
       <button class="pw-forgot auth-alt" type="button" id="aAlt" data-act="authMode" data-v="up" hidden>Neu bei Cardo? Mit dieser E-Mail registrieren</button>
     </form>
-    <button class="pw-forgot auth-switch" type="button" data-act="authMode" data-v="${mode === 'in' ? 'up' : 'in'}">${reset ? 'Zurück zur Anmeldung' : mode === 'in' ? 'Noch kein Konto? Kostenlos registrieren' : 'Schon ein Konto? Anmelden'}</button>
+    ${unsure ? `<button class="pw-forgot auth-switch" type="button" data-act="authMode" data-v="up">Noch kein Konto? Kostenlos registrieren</button>` : ''}
+    ${start || mode === 'in' ? AUTH_SOCIAL : ''}
     ${AUTH_LEGAL}</div>`;
   const em = $("#aEmail"), pwf = $("#aPw"), msg = $("#aMsg"), go = $("#aGo");
   const say = (t, err) => { msg.textContent = t; msg.classList.toggle("err", !!err); if (err) requestAnimationFrame(() => { const alt = $("#aAlt"), el = alt && !alt.hidden ? alt : msg; try { el.scrollIntoView({ block: "nearest", behavior: "smooth" }); } catch {} }); }; /* Fehler immer sichtbar machen */
@@ -4909,12 +4924,18 @@ function showAuth(mode = "", note = ""){
   em.addEventListener("input", () => { AUTH_EMAIL = em.value; });
   if (pwf) pwf.addEventListener("input", () => { AUTH_PW = pwf.value; });
   em.addEventListener("keydown", e => { if (e.key === "Enter" && pwf && !pwf.value) { e.preventDefault(); pwf.focus(); } }); /* „Weiter“ springt ins Passwortfeld */
+  if (fixed && note !== "exists") setTimeout(() => { if (pwf && matchMedia("(pointer:fine)").matches) pwf.focus(); }, 60);
   if (note === "exists") { say("Für diese E-Mail gibt es schon ein Konto. Gib dein Passwort ein.", true); setTimeout(() => pwf && pwf.focus(), 60); }
   $("#authForm").addEventListener("submit", async e => {
     e.preventDefault(); const email = em.value.trim(), pw = pwf ? pwf.value : "";
     $("#aAlt").hidden = true;
     if (!email) { say("Gib deine E-Mail-Adresse ein.", true); return; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { say("Diese E-Mail-Adresse sieht nicht richtig aus.", true); return; }
+    if (start) { /* gibt es die E-Mail schon? → Anmelden, sonst Konto erstellen */
+      busy(true); say(""); let ex = null;
+      try { const r = await SB.rpc("email_exists", { p_email: email }); if (!r.error) ex = !!r.data; } catch {}
+      AUTH_EMAIL = email; showAuth(ex === false ? "up" : "in", ex === null ? "unsure" : ""); return;
+    }
     if (mode === "in" && !pw) { say("Gib dein Passwort ein.", true); return; }
     if (mode === "up" && pw.length < 6) { say("Das Passwort muss mindestens 6 Zeichen haben.", true); return; }
     busy(true); say("");
@@ -4935,7 +4956,7 @@ function showAuth(mode = "", note = ""){
         say("Fast geschafft: Bestätige deine E-Mail über den Link, den wir dir geschickt haben, und melde dich dann an.");
       } else {
         const r = await SB.auth.signInWithPassword({ email, password: pw });
-        if (r.error) { if (/Invalid login credentials/i.test(r.error.message)) $("#aAlt").hidden = false; throw r.error; } /* vielleicht noch kein Konto → Registrieren anbieten */
+        if (r.error) { if (unsure && /Invalid login credentials/i.test(r.error.message)) $("#aAlt").hidden = false; throw r.error; } /* vielleicht noch kein Konto → Registrieren anbieten */
         authDone(r.data.session.user); return;
       }
     } catch (err) { say(authErr(err), true); }
@@ -6943,6 +6964,7 @@ document.addEventListener("click", e => {
   if (a === "deleteAccount") { deleteAccountSheet(); return; }
   if (a === "changePw") { changePasswordSheet(); return; }
   if (a === "authMode") { showAuth(b.dataset.v); return; }
+  if (a === "authOAuth") { authOAuth(b.dataset.v); return; }
   if (a === "exportData") { exportData(); return; }
   if (a === "gradeSetSheet") { gradeSetSheet(); return; }
   if (a === "animSheet") { animSheet(); return; }
