@@ -613,6 +613,14 @@ textarea.in{min-height:92px;resize:vertical;line-height:1.4}
 .kr-you{font-size:14px;color:var(--muted);font-weight:600}
 .kr-macts{display:flex;flex-wrap:wrap;gap:8px;padding:0 12px 12px 58px}
 .kr-macts .btn{padding:8px 12px;font-size:14px}
+/* Mitglieder-Zeile im Kurs-Banner */
+.kr-crew{display:flex;align-items:center;gap:7px;margin-top:7px;padding:0;border:0;background:none;font:inherit;font-size:12.5px;font-weight:700;color:inherit;opacity:.9;text-align:left;cursor:pointer;max-width:100%}
+.kr-crew>span:nth-child(2){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kr-stack{display:flex;flex:none;padding-left:5px}
+.kr-stack .kr-av{width:22px;height:22px;margin-left:-5px;font-size:10.5px;box-shadow:0 0 0 2px var(--surface);background:color-mix(in oklab,var(--ink) 16%,var(--surface))}
+.kr-stack .kr-av.more{font-size:9.5px;color:var(--muted)}
+.kr-ch{font-size:15px;line-height:1;opacity:.6}
+.kr-inv{--c:var(--ink)}
 #deckview{position:fixed;inset:0;z-index:300;display:flex;align-items:flex-end;justify-content:center;background:rgba(10,12,18,0);transition:background .2s ease}
 #deckview.in{background:rgba(10,12,18,.5)}
 @media (min-width:700px){#deckview{align-items:center}}
@@ -717,6 +725,7 @@ body.selecting #main{padding-bottom:170px}
 .icon-btn{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;flex:none;color:var(--muted);background:transparent;transition:background .15s ease,color .15s ease}
 .icon-btn svg{width:20px;height:20px}
 .banner-acts{display:flex;align-items:center;gap:6px;flex:none!important;min-width:auto!important}
+@media (max-width:600px){.banner-acts{flex:1 1 100%!important}.banner-acts .ba-more{margin-left:auto;margin-right:-6px}} /* ⋯ ganz rechts, wenn die Knöpfe unter dem Titel stehen */
 .lset-btn{--c:var(--accent);height:32px;padding:0 12px 0 9px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;background:color-mix(in oklab,var(--c) 16%,var(--surface));color:color-mix(in oklab,var(--c) 62%,var(--ink));font-weight:750;font-size:13.5px;white-space:nowrap;border:1.5px solid color-mix(in oklab,var(--c) 55%,transparent);transition:background .15s ease,transform .15s ease}
 .lset-btn svg{width:16px;height:16px;flex:none}
 .lset-btn:hover{background:color-mix(in oklab,var(--c) 24%,var(--surface))}
@@ -1619,26 +1628,26 @@ const I18N = {
   "Deine Kurse bleiben erhalten – du bist weiter Mitglied und siehst sie wieder, sobald du den Klassenraum einschaltest.": ["Your courses are kept – you stay a member and see them again as soon as you turn the classroom on.", "I tuoi corsi restano – rimani membro e li rivedi appena riattivi l'aula."],
   "In Klassenraum kopieren": ["Copy to classroom", "Copia nell'aula"],
   "„{}“ in den Klassenraum kopieren": ["Copy “{}” to the classroom", "Copia “{}” nell'aula"],
-  "Der Ordner kommt mit allen Unterordnern und Karten in den gewählten Community-Ordner. Alle Mitglieder sehen die Kopie, dein Ordner bleibt unverändert.": ["The folder goes into the chosen community folder with all subfolders and cards. All members see the copy; your folder stays unchanged.", "La cartella va nella cartella community scelta con tutte le sottocartelle e le schede. Tutti i membri vedono la copia, la tua cartella resta invariata."],
+  "Der Ordner kommt mit allen Unterordnern und Karten in den gewählten Kurs. Alle Mitglieder sehen die Kopie, dein Ordner bleibt unverändert.": ["The folder goes into the chosen course with all subfolders and cards. All members see the copy; your folder stays unchanged.", "La cartella va nel corso scelto con tutte le sottocartelle e le schede. Tutti i membri vedono la copia, la tua cartella resta invariata."],
   "{} nach „{}“ kopiert": ["{} copied to “{}”", "{} copiate in “{}”"],
   "Tippe oben rechts auf ⋯, um einen anzulegen oder mit einem Code beizutreten.": ["Tap ⋯ at the top right to create one or join with a code.", "Tocca ⋯ in alto a destra per crearne una o unirti con un codice."],
   "Mitglieder": ["Members", "Membri"],
   "Einladen": ["Invite", "Invita"],
-  "Admin": ["Admin", "Admin"],
+  "Kursleitung": ["Course lead", "Guida del corso"],
   "Öffnen": ["Open", "Apri"],
   "Meine Ordner": ["My folders", "Le mie cartelle"],
   "Klassenraum": ["Classroom", "Aula"],
   "Deine Kurse": ["Your courses", "I tuoi corsi"],
-  "Community-Ordner anlegen": ["Create community folder", "Crea cartella community"],
+  "Kurs anlegen": ["Create course", "Crea corso"],
   "Mit Code beitreten": ["Join with code", "Unisciti con codice"],
   "Gemeinsam lernen": ["Learn together", "Studiare insieme"],
-  "Ein Community-Ordner gehört der ganzen Klasse oder dem ganzen Kurs: Alle lernen dieselben Karten, jeder kann Karten beisteuern, und dein Lernstand bleibt privat.": ["A community folder belongs to the whole class or course: everyone studies the same cards, anyone can contribute cards, and your progress stays private.", "Una cartella community appartiene a tutta la classe o al corso: tutti studiano le stesse schede, ognuno può aggiungerne e i tuoi progressi restano privati."],
+  "Ein Kurs gehört allen Mitgliedern: Alle lernen dieselben Karten, jeder kann Karten beisteuern, und dein Lernstand bleibt privat.": ["A course belongs to all its members: everyone studies the same cards, anyone can contribute cards, and your progress stays private.", "Un corso appartiene a tutti i membri: tutti studiano le stesse schede, ognuno può aggiungerne e i tuoi progressi restano privati."],
   "Der Klassenraum ist neu und wird noch getestet. Es kann noch Fehler geben, und manches ändert sich noch.": ["The classroom is new and still being tested. There may be bugs, and some things may still change.", "L'aula è nuova ed è ancora in fase di test. Possono esserci errori e alcune cose potrebbero ancora cambiare."],
   "Bald verfügbar": ["Coming soon", "Presto disponibile"],
   "Der Klassenraum wird gerade eingerichtet. Schau später noch einmal vorbei.": ["The classroom is being set up. Check back later.", "L'aula è in fase di preparazione. Riprova più tardi."],
   "Gemeinsame Ordner für deine Klasse oder deinen Kurs gibt es nur mit Cardo-Konto.": ["Shared folders for your class or course need a Cardo account.", "Le cartelle condivise per la tua classe o il tuo corso richiedono un account Cardo."],
-  "Community · {}": ["Community · {}", "Community · {}"],
-  "du bist Admin": ["you're admin", "sei admin"],
+  "Kurs · {}": ["Course · {}", "Corso · {}"],
+  "du leitest den Kurs": ["you lead the course", "guidi il corso"],
   "du kannst Karten hinzufügen": ["you can add cards", "puoi aggiungere schede"],
   "nur lesen": ["read only", "sola lettura"],
   "von dir": ["by you", "da te"],
@@ -1661,7 +1670,8 @@ const I18N = {
   "{} wieder einblenden": ["Show {} again", "Mostra di nuovo {}"],
   "Noch keine Karten": ["No cards yet", "Ancora nessuna scheda"],
   "Leg die erste Karte an – alle anderen sehen sie sofort.": ["Create the first card – everyone else sees it right away.", "Crea la prima scheda – tutti gli altri la vedono subito."],
-  "Klasse einladen": ["Invite class", "Invita la classe"],
+  "Wer den Code oder den Link hat, kann dem Kurs beitreten.": ["Anyone with the code or link can join the course.", "Chi ha il codice o il link può unirsi al corso."],
+  "Leute einladen": ["Invite people", "Invita persone"],
   "Sobald jemand Karten anlegt, erscheinen sie hier.": ["As soon as someone creates cards, they'll appear here.", "Appena qualcuno crea delle schede, compariranno qui."],
   "Mitglieder & einladen": ["Members & invite", "Membri e inviti"],
   "Mitglieder und Einladen": ["Members and invite", "Membri e inviti"],
@@ -1670,14 +1680,14 @@ const I18N = {
   "in eigene Ordner kopieren": ["copy to your folders", "copia nelle tue cartelle"],
   "Benutzername ändern": ["Change username", "Cambia nome utente"],
   "Wähle deinen Benutzernamen": ["Choose your username", "Scegli il tuo nome utente"],
-  "So sehen dich die anderen in deinen Community-Ordnern.": ["This is how others see you in your community folders.", "Così ti vedono gli altri nelle tue cartelle community."],
+  "So sehen dich die anderen in deinen Kursen.": ["This is how others see you in your courses.", "Così ti vedono gli altri nei tuoi corsi."],
   "Im Klassenraum sehen die anderen, wer welche Karte erstellt hat. Dafür brauchst du einen Namen, z. B. „Lena M.“. Deine E-Mail-Adresse bleibt privat.": ["In the classroom, others can see who created which card. For that you need a name, e.g. “Lena M.”. Your email address stays private.", "Nell'aula gli altri vedono chi ha creato quale scheda. Per questo ti serve un nome, ad es. “Lena M.”. Il tuo indirizzo e-mail resta privato."],
   "z. B. Lena M.": ["e.g. Lena M.", "ad es. Lena M."],
   "Mindestens 3 Zeichen.": ["At least 3 characters.", "Almeno 3 caratteri."],
   "Bitte ohne < > \" &.": ["Please without < > \" &.", "Senza < > \" &, per favore."],
   "Dieser Name ist schon vergeben. Probier einen anderen.": ["This name is already taken. Try another one.", "Questo nome è già in uso. Provane un altro."],
   "Benutzername gespeichert": ["Username saved", "Nome utente salvato"],
-  "Community beitreten": ["Join community", "Unisciti alla community"],
+  "Kurs beitreten": ["Join course", "Unisciti a un corso"],
   "Gib den Code ein, den du von deiner Lehrkraft oder aus deiner Klasse bekommen hast.": ["Enter the code you got from your teacher or your class.", "Inserisci il codice che hai ricevuto dall'insegnante o dalla classe."],
   "Einladungscode": ["Invite code", "Codice d'invito"],
   "z. B. K7QM2XPA": ["e.g. K7QM2XPA", "ad es. K7QM2XPA"],
@@ -1697,52 +1707,51 @@ const I18N = {
   "Neuer Code erstellt": ["New code created", "Nuovo codice creato"],
   "Neue Mitglieder dürfen Karten schreiben": ["New members can write cards", "I nuovi membri possono scrivere schede"],
   "Aus: Wer neu beitritt, kann nur lernen. Du kannst es für jede Person einzeln ändern.": ["Off: new members can only study. You can change it for each person.", "Disattivato: chi si unisce può solo studiare. Puoi cambiarlo per ogni persona."],
-  "Tippe auf eine Person, um Rechte zu ändern oder sie zu entfernen.": ["Tap a person to change their rights or remove them.", "Tocca una persona per cambiare i suoi diritti o rimuoverla."],
   "Du kannst Karten hinzufügen und deine eigenen für alle ändern. Was du an fremden Karten änderst, gilt nur für dich.": ["You can add cards and change your own for everyone. Changes to other people's cards only apply to you.", "Puoi aggiungere schede e modificare le tue per tutti. Le modifiche alle schede altrui valgono solo per te."],
   "Du kannst die Karten lernen. Was du an fremden Karten änderst, gilt nur für dich.": ["You can study the cards. Changes to other people's cards only apply to you.", "Puoi studiare le schede. Le modifiche alle schede altrui valgono solo per te."],
-  "Community verlassen": ["Leave community", "Lascia la community"],
-  "Community-Ordner für alle löschen": ["Delete community folder for everyone", "Elimina la cartella community per tutti"],
+  "Kurs verlassen": ["Leave course", "Lascia il corso"],
+  "Kurs für alle löschen": ["Delete course for everyone", "Elimina il corso per tutti"],
   "darf Karten schreiben": ["can write cards", "può scrivere schede"],
   "(du)": ["(you)", "(tu)"],
   "Nur lesen": ["Read only", "Sola lettura"],
   "Schreiben erlauben": ["Allow writing", "Consenti scrittura"],
-  "Admin-Rechte entziehen": ["Remove admin rights", "Togli diritti admin"],
-  "Zum Admin machen": ["Make admin", "Rendi admin"],
+  "Wirklich übergeben? Du bist dann normales Mitglied.": ["Really hand over? You'll then be a regular member.", "Passare davvero? Diventerai un membro normale."],
+  "Kursleitung übergeben": ["Hand over course lead", "Passa la guida del corso"],
   "Wirklich entfernen?": ["Really remove?", "Rimuovere davvero?"],
   "{} kann jetzt nur noch lernen": ["{} can now only study", "{} ora può solo studiare"],
   "{} darf jetzt Karten schreiben": ["{} can now write cards", "{} ora può scrivere schede"],
-  "{} ist jetzt Admin": ["{} is now admin", "{} ora è admin"],
-  "{} ist kein Admin mehr": ["{} is no longer admin", "{} non è più admin"],
+  "{} leitet jetzt den Kurs": ["{} now leads the course", "{} ora guida il corso"],
+  "Tippe auf eine Person, um Rechte zu ändern, sie zu entfernen oder ihr die Kursleitung zu übergeben.": ["Tap a person to change their rights, remove them or hand over the course lead to them.", "Tocca una persona per cambiare i suoi diritti, rimuoverla o passarle la guida del corso."],
   "{} wurde entfernt": ["{} was removed", "{} è stato rimosso"],
-  "Du bist allein – der Ordner wird gelöscht. Wirklich?": ["You're alone – the folder will be deleted. Really?", "Sei da solo – la cartella verrà eliminata. Davvero?"],
-  "Wirklich? {} wird dann Admin.": ["Really? {} will then become admin.", "Davvero? {} diventerà admin."],
+  "Du bist allein – der Kurs wird gelöscht. Wirklich?": ["You're alone – the course will be deleted. Really?", "Sei da solo – il corso verrà eliminato. Davvero?"],
+  "Wirklich? {} übernimmt dann die Kursleitung.": ["Really? {} will then lead the course.", "Davvero? {} guiderà poi il corso."],
   "Wirklich verlassen?": ["Really leave?", "Uscire davvero?"],
   "Du hast „{}“ verlassen": ["You left “{}”", "Hai lasciato “{}”"],
   "Wirklich für alle löschen? Alle Karten gehen verloren.": ["Really delete for everyone? All cards will be lost.", "Eliminare davvero per tutti? Tutte le schede andranno perse."],
   "„{}“ wurde für alle gelöscht": ["“{}” was deleted for everyone", "“{}” è stata eliminata per tutti"],
   "„{}“ wurde gelöscht": ["“{}” was deleted", "“{}” è stata eliminata"],
   "Du bist nicht mehr in „{}“": ["You're no longer in “{}”", "Non fai più parte di “{}”"],
-  "Dein Community-Ordner ist angelegt – du bist Admin. Gib deiner Klasse den Code oder den Link, damit sie beitreten kann.": ["Your community folder is ready – you're admin. Give your class the code or link so they can join.", "La tua cartella community è pronta – sei admin. Dai alla classe il codice o il link per unirsi."],
-  "Am besten einen pro Fach oder Kurs, z. B. „Bio 10b“. Name, Farbe und Emoji sehen alle Mitglieder.": ["Best one per subject or course, e.g. “Bio 10b”. All members see the name, colour and emoji.", "Meglio una per materia o corso, ad es. “Bio 10b”. Nome, colore ed emoji li vedono tutti i membri."],
+  "Dein Kurs ist angelegt – du leitest ihn. Gib den anderen den Code oder den Link, damit sie beitreten können.": ["Your course is ready – you lead it. Give the others the code or link so they can join.", "Il tuo corso è pronto – lo guidi tu. Dai agli altri il codice o il link per unirsi."],
+  "Am besten einen Kurs pro Fach, z. B. „Bio 10b“. Name, Farbe und Emoji sehen alle Mitglieder.": ["Best one course per subject, e.g. “Bio 10b”. All members see the name, colour and emoji.", "Meglio un corso per materia, ad es. “Bio 10b”. Nome, colore ed emoji li vedono tutti i membri."],
   "So sehen alle Mitglieder den Ordner.": ["This is how all members see the folder.", "Così tutti i membri vedono la cartella."],
   "Für alle löschen": ["Delete for everyone", "Elimina per tutti"],
   "Unterordner löschen": ["Delete subfolder", "Elimina sottocartella"],
-  "Gib dem Community-Ordner einen Namen.": ["Give the community folder a name.", "Dai un nome alla cartella community."],
+  "Gib dem Kurs einen Namen.": ["Give the course a name.", "Dai un nome al corso."],
   "Unterordner angelegt": ["Subfolder created", "Sottocartella creata"],
   "Wird angelegt …": ["Creating …", "Creazione …"],
   "Der Klassenraum geht nur mit Konto.": ["The classroom requires an account.", "L'aula richiede un account."],
   "Der Klassenraum ist noch nicht eingerichtet.": ["The classroom isn't set up yet.", "L'aula non è ancora pronta."],
-  "In diesem Community-Ordner darfst du keine Karten hinzufügen.": ["You can't add cards to this community folder.", "Non puoi aggiungere schede a questa cartella community."],
-  "In diesem Community-Ordner darfst du nichts anlegen.": ["You can't create anything in this community folder.", "Non puoi creare nulla in questa cartella community."],
-  "Name und Aussehen ändert der Admin.": ["Only the admin changes name and look.", "Nome e aspetto li cambia l'admin."],
-  "Löschen kann nur der Admin. Du kannst den Ordner über „Mitglieder“ verlassen.": ["Only the admin can delete. You can leave the folder via “Members”.", "Solo l'admin può eliminare. Puoi lasciare la cartella da “Membri”."],
+  "In diesem Kurs darfst du keine Karten hinzufügen.": ["You can't add cards to this course.", "Non puoi aggiungere schede a questo corso."],
+  "In diesem Kurs darfst du nichts anlegen.": ["You can't create anything in this course.", "Non puoi creare nulla in questo corso."],
+  "Name und Aussehen ändert die Kursleitung.": ["Only the course lead changes name and look.", "Nome e aspetto li cambia chi guida il corso."],
+  "Löschen kann nur die Kursleitung. Du kannst den Kurs über „Mitglieder“ verlassen.": ["Only the course lead can delete. You can leave the course via “Members”.", "Solo chi guida il corso può eliminarlo. Puoi lasciare il corso da “Membri”."],
   "Dafür brauchst du Internet.": ["You need internet for this.", "Per questo serve internet."],
   "Wähle zuerst einen Benutzernamen.": ["Choose a username first.", "Scegli prima un nome utente."],
-  "Es muss mindestens einen Admin geben.": ["There must be at least one admin.", "Ci deve essere almeno un admin."],
-  "Darin sind Karten von anderen – löschen kann das nur der Admin.": ["It contains other people's cards – only the admin can delete it.", "Contiene schede di altri – solo l'admin può eliminarla."],
+  "Der Kurs braucht eine Kursleitung.": ["The course needs a course lead.", "Il corso ha bisogno di una guida."],
+  "Darin sind Karten von anderen – löschen kann das nur die Kursleitung.": ["It contains other people's cards – only the course lead can delete it.", "Contiene schede di altri – può eliminarla solo chi guida il corso."],
   "Dafür fehlen dir die Rechte.": ["You don't have permission for this.", "Non hai i permessi per questo."],
-  "Du verwaltest schon sehr viele Community-Ordner.": ["You already manage a lot of community folders.", "Gestisci già moltissime cartelle community."],
-  "Dieser Community-Ordner ist voll.": ["This community folder is full.", "Questa cartella community è piena."],
+  "Du verwaltest schon sehr viele Kurse.": ["You already manage a lot of courses.", "Gestisci già moltissimi corsi."],
+  "Dieser Kurs ist voll.": ["This course is full.", "Questo corso è pieno."],
   "Das hat nicht geklappt. Versuch es gleich noch einmal.": ["That didn't work. Try again in a moment.", "Non ha funzionato. Riprova tra poco."],
   /* Allgemein */
   "Cardo lädt …": ["Cardo is loading …", "Cardo si sta caricando …"],
@@ -3628,6 +3637,7 @@ const IC = {
   close:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
   undo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>',
   edit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>',
+  invite:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 19.5c.6-3.3 3.2-5.5 6.5-5.5s5.9 2.2 6.5 5.5"/><path d="M19 7.5v6M16 10.5h6"/></svg>',
   people:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 19.5c.6-3.3 3.2-5.5 6.5-5.5s5.9 2.2 6.5 5.5"/><path d="M15.5 5.2a3.4 3.4 0 0 1 0 6.6M18 14.3c1.9.8 3.1 2.6 3.5 5.2"/></svg>',
   pen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>'
 };
@@ -3647,6 +3657,7 @@ const MI = {
   grid: MI_P('<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>'),
   list: MI_P('<path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" stroke-width="2.4"/>'),
   check: MI_P('<path d="M5 12.5l4.5 4.5L19 7.5" stroke-width="2.4"/>'),
+  invite: MI_P('<circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 19.5c.6-3.3 3.2-5.5 6.5-5.5s5.9 2.2 6.5 5.5"/><path d="M19 7.5v6M16 10.5h6"/>'),
   people: MI_P('<circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 19.5c.6-3.3 3.2-5.5 6.5-5.5s5.9 2.2 6.5 5.5"/><path d="M15.5 5.2a3.4 3.4 0 0 1 0 6.6M18 14.3c1.9.8 3.1 2.6 3.5 5.2"/>'),
   join: MI_P('<path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/><path d="M3.5 12H14M10.5 8.5 14 12l-3.5 3.5"/>'),
   user: MI_P('<circle cx="12" cy="8" r="4"/><path d="M4.5 20c.8-3.8 3.8-6 7.5-6s6.7 2.2 7.5 6"/>'),
@@ -5150,7 +5161,7 @@ const krName = u => u === (USER && USER.id) ? (KR.me || "Du") : KR.names[u] || "
 const krTime = s => Date.parse(s || "") || 0;
 const krId = p => p + [...crypto.getRandomValues(new Uint8Array(14))].map(x => "abcdefghijkmnopqrstuvwxyz23456789"[x % 33]).join("");
 const krProg = fid => { const p = KR.prog[fid] || {}; return { cards: { ...(p.cards || {}) }, set: { ...(p.set || {}) } }; };
-const krRoleText = cid => krAdmin(cid) ? "du bist Admin" : krWrite(cid) ? "du kannst Karten hinzufügen" : "nur lesen";
+const krRoleText = cid => krAdmin(cid) ? "du leitest den Kurs" : krWrite(cid) ? "du kannst Karten hinzufügen" : "nur lesen";
 const ownRoots = () => children(null).filter(f => !f.comm);
 const krRoots = () => children(null).filter(f => f.comm);
 function krErr(e){
@@ -5159,11 +5170,11 @@ function krErr(e){
   if (/PGRST20|42P01|42883|schema cache/.test(m)) return "Der Klassenraum ist noch nicht eingerichtet.";
   if (/no_username/.test(m)) return "Wähle zuerst einen Benutzernamen.";
   if (/bad_code/.test(m)) return "Diesen Code gibt es nicht. Prüf ihn noch einmal.";
-  if (/last_admin/.test(m)) return "Es muss mindestens einen Admin geben.";
-  if (/foreign_content/.test(m)) return "Darin sind Karten von anderen – löschen kann das nur der Admin.";
+  if (/last_admin/.test(m)) return "Der Kurs braucht eine Kursleitung.";
+  if (/foreign_content/.test(m)) return "Darin sind Karten von anderen – löschen kann das nur die Kursleitung.";
   if (/not_admin|not_allowed|42501|row-level/.test(m)) return "Dafür fehlen dir die Rechte.";
-  if (/too_many/.test(m)) return "Du verwaltest schon sehr viele Community-Ordner.";
-  if (/full/.test(m)) return "Dieser Community-Ordner ist voll.";
+  if (/too_many/.test(m)) return "Du verwaltest schon sehr viele Kurse.";
+  if (/full/.test(m)) return "Dieser Kurs ist voll.";
   return "Das hat nicht geklappt. Versuch es gleich noch einmal.";
 }
 /* Community-Daten als Ordner/Karten in S.folders/S.decks einhängen (nach jedem Laden/Ändern neu) */
@@ -5277,7 +5288,7 @@ function krSyncDeck(fid){
   });
   Object.entries(others).forEach(([id, p]) => { if (p.dirty) { delete p.dirty; krSaveProg(id, p); } });
   if (dirty) krSaveProg(fid, P);
-  if (denied) toast("In diesem Community-Ordner darfst du keine Karten hinzufügen.");
+  if (denied) toast("In diesem Kurs darfst du keine Karten hinzufügen.");
   if (ops.length) { krRun(cid, ops); krCacheSoon(); }
   krInject(); render();
 }
@@ -5289,13 +5300,13 @@ function krPutFolder(f){
   const P = krProg(f.id); if (JSON.stringify(set) !== JSON.stringify(P.set)) { P.set = set; krSaveProg(f.id, P); }
   const shared = { name: String(f.name || "Ordner").slice(0, 80), emoji: String(f.emoji ?? "").slice(0, 16), color: safeColor(f.color) };
   if (!sv) {
-    if (!krWrite(cid)) { toast("In diesem Community-Ordner darfst du nichts anlegen."); krInject(); render(); return; }
+    if (!krWrite(cid)) { toast("In diesem Kurs darfst du nichts anlegen."); krInject(); render(); return; }
     const parent = f.parentId && f.parentId !== cid && KR.folders[f.parentId] ? f.parentId : null;
     const row = { id: f.id.length >= 8 ? f.id : krId("f"), community_id: cid, parent_id: parent, ...shared };
     KR.folders[row.id] = { ...row, created_by: USER.id, created_at: now, updated_at: now };
     krRun(cid, [["folder+", row]]);
   } else if (sv.name !== shared.name || (sv.emoji ?? "") !== shared.emoji || safeColor(sv.color) !== shared.color) {
-    if (root ? !krAdmin(cid) : !krCanEdit(cid, sv)) toast("Name und Aussehen ändert der Admin.");
+    if (root ? !krAdmin(cid) : !krCanEdit(cid, sv)) toast("Name und Aussehen ändert die Kursleitung.");
     else { Object.assign(sv, shared); krRun(cid, [[root ? "comm" : "folder", f.id, shared]]); }
   }
   krCacheSoon(); krInject(); render();
@@ -5393,7 +5404,7 @@ addEventListener("online", () => { if (krOn()) { krFlush(); krLoad(); } });
 /* ---- Benutzername ---- */
 function krNameSheet(then){
   openSheet(`${head(KR.me ? "Benutzername ändern" : "Wähle deinen Benutzernamen")}
-    <p class="muted" style="margin:0 0 14px;font-size:15px">${KR.me ? "So sehen dich die anderen in deinen Community-Ordnern." : "Im Klassenraum sehen die anderen, wer welche Karte erstellt hat. Dafür brauchst du einen Namen, z. B. „Lena M.“. Deine E-Mail-Adresse bleibt privat."}</p>
+    <p class="muted" style="margin:0 0 14px;font-size:15px">${KR.me ? "So sehen dich die anderen in deinen Kursen." : "Im Klassenraum sehen die anderen, wer welche Karte erstellt hat. Dafür brauchst du einen Namen, z. B. „Lena M.“. Deine E-Mail-Adresse bleibt privat."}</p>
     <div class="field"><label for="krn">Benutzername</label><input class="in" id="krn" maxlength="24" autocomplete="nickname" placeholder="z. B. Lena M." value="${esc(KR.me || "")}"></div>
     <p class="muted kr-err" id="krnE" style="font-size:14px;margin:-6px 2px 12px;color:var(--again)" hidden></p>
     <div class="sheet-foot"><div class="r"><button class="btn" data-act="close">Abbrechen</button><button class="btn primary" id="krnS">Speichern</button></div></div>`,
@@ -5426,7 +5437,7 @@ async function krCreate(d){
   const r = await SB.rpc("cm_create", { p_id: id, p_name: d.name, p_emoji: d.emoji ?? "", p_color: safeColor(d.color) });
   if (r.error) throw r.error;
   await krLoad(); S.room = "class"; saveRoom(); go("lib", id, "push");
-  setTimeout(() => krMembersSheet(id, true), 350);
+  setTimeout(() => krInviteSheet(id, true), 350);
 }
 /* ---- Beitreten (Code oder Link ?join=CODE) ---- */
 const JOIN_IN = (() => { try { const q = new URLSearchParams(location.search), c = q.get("join");
@@ -5434,7 +5445,7 @@ const JOIN_IN = (() => { try { const q = new URLSearchParams(location.search), c
 const joinLink = code => SHARE_BASE + "?join=" + code;
 function runPendingJoin(){ let c = null; try { c = localStorage.getItem("cardo-pending-join"); localStorage.removeItem("cardo-pending-join"); } catch {} if (!c) return; if (!krEnabled()) krSetEnabled(true); setTimeout(() => krReady(() => krJoinSheet(c)), 400); }
 function krJoinSheet(code){
-  openSheet(`${head("Community beitreten")}
+  openSheet(`${head("Kurs beitreten")}
     <p class="muted" style="margin:0 0 14px;font-size:15px">Gib den Code ein, den du von deiner Lehrkraft oder aus deiner Klasse bekommen hast.</p>
     <div class="field"><label for="krc">Einladungscode</label><input class="in kr-code-in" id="krc" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="z. B. K7QM2XPA" value="${esc(code || "")}"></div>
     <div id="krPv"></div>
@@ -5467,66 +5478,78 @@ function krJoinSheet(code){
   });
 }
 /* ---- Mitglieder, Einladen, Rechte ---- */
-function krMembersRefresh(cid){ const el = $("#krMem"); if (el && el.dataset.cid === cid) el.innerHTML = krMemberRows(cid); }
+function krMembersRefresh(cid){ const el = $("#krMem"); if (el && el.dataset.cid === cid) el.innerHTML = krMemberRows(cid); if (S.fid && commOf(S.fid) === cid) render(); /* Mitglieder-Bereich auf der Kursseite */ }
 function krMemberRows(cid){
   const admin = krAdmin(cid), list = (KR.members[cid] || []).slice().sort((a, b) => (a.role === "admin" ? 0 : 1) - (b.role === "admin" ? 0 : 1) || krName(a.user_id).localeCompare(krName(b.user_id), "de"));
   const open = KR.memOpen;
   return list.map(m => {
-    const me = m.user_id === USER.id, adm = m.role === "admin", sub = adm ? "Admin" : m.can_write ? "darf Karten schreiben" : "nur lesen";
-    const tappable = admin && !(me && list.filter(x => x.role === "admin").length < 2);
+    const me = m.user_id === USER.id, adm = m.role === "admin", sub = adm ? "Kursleitung" : m.can_write ? "darf Karten schreiben" : "nur lesen";
+    const tappable = admin && !me; /* nur die Kursleitung verwaltet – sich selbst nicht (dafür „Kurs verlassen“) */
     const isOpen = tappable && open === m.user_id;
     return `<div class="kr-mem${isOpen ? " open" : ""}"><button type="button" class="kr-mrow" ${tappable ? `data-kr="mem" data-u="${m.user_id}"` : "disabled"}><span class="kr-av" aria-hidden="true">${esc((krName(m.user_id)[0] || "?").toUpperCase())}</span><span class="kr-mt"><b translate="no">${esc(krName(m.user_id))}${me ? '</b><span class="kr-you"> (du)</span>' : "</b>"}<span>${sub}</span></span>${tappable ? `<span class="pk-ch" aria-hidden="true">${isOpen ? "⌃" : "›"}</span>` : ""}</button>
-      ${isOpen ? `<div class="kr-macts">${me ? "" : `<button class="btn" data-kr="write" data-u="${m.user_id}" ${adm ? "disabled" : ""}>${m.can_write ? "Nur lesen" : "Schreiben erlauben"}</button>`}
-        <button class="btn" data-kr="admin" data-u="${m.user_id}">${adm ? "Admin-Rechte entziehen" : "Zum Admin machen"}</button>
-        ${me ? "" : `<button class="btn danger" data-kr="kick" data-u="${m.user_id}">Entfernen</button>`}</div>` : ""}</div>`;
+      ${isOpen ? `<div class="kr-macts"><button class="btn" data-kr="write" data-u="${m.user_id}">${m.can_write ? "Nur lesen" : "Schreiben erlauben"}</button>
+        <button class="btn" data-kr="lead" data-u="${m.user_id}">Kursleitung übergeben</button>
+        <button class="btn danger" data-kr="kick" data-u="${m.user_id}">Entfernen</button></div>` : ""}</div>`;
   }).join("");
 }
-function krMembersSheet(cid, fresh){
+function krCrewHTML(cid){ /* Mitglieder im Kurs-Banner: Gesichter und Anzahl – Tippen öffnet die Verwaltung */
+  const list = (KR.members[cid] || []).slice().sort((a, b) => (a.user_id === USER.id ? -1 : b.user_id === USER.id ? 1 : 0) || (a.role === "admin" ? 0 : 1) - (b.role === "admin" ? 0 : 1)), n = list.length;
+  const show = list.slice(0, n > 4 ? 3 : 4), av = m => `<span class="kr-av" aria-hidden="true" translate="no">${esc((krName(m.user_id)[0] || "?").toUpperCase())}</span>`;
+  return `<button class="kr-crew" data-act="krMembers" data-id="${cid}" aria-label="Mitglieder"><span class="kr-stack">${show.map(av).join("")}${n > 4 ? `<span class="kr-av more" aria-hidden="true">+${n - 3}</span>` : ""}</span><span>${plural(n, "Mitglied", "Mitglieder")}</span><span class="kr-ch" aria-hidden="true">›</span></button>`;
+}
+function krInviteSheet(cid, fresh){
+  const c = KR.list[cid]; if (!c) return;
+  const admin = krAdmin(cid);
+  openSheet(`${head("Leute einladen")}
+    <div class="sh-deck">${dotHTML(S.folders[cid] || c)}<div><b>${escN(c.name)}</b><span>${plural((KR.members[cid] || []).length, "Mitglied", "Mitglieder")}</span></div></div>
+    <p class="muted sh-note">${fresh ? "Dein Kurs ist angelegt – du leitest ihn. Gib den anderen den Code oder den Link, damit sie beitreten können." : "Wer den Code oder den Link hat, kann dem Kurs beitreten."}</p>
+    <div class="kr-code" translate="no">${esc(c.invite_code)}</div>
+    <div class="sh-acts"><button class="btn" data-kr="copy">Code kopieren</button><button class="btn" data-kr="link">Link kopieren</button></div>
+    ${navigator.share ? `<div class="sh-acts" style="margin-top:-6px"><button class="btn primary" data-kr="share">Teilen …</button></div>` : ""}
+    <div class="sh-qr" id="krQr"></div>
+    ${admin ? `<div class="set-list" style="margin:14px 0 4px"><button class="set-item ex-sw" data-kr="dw" role="switch" aria-checked="${c.default_write !== false}"><span class="si-t">Neue Mitglieder dürfen Karten schreiben<small>Aus: Wer neu beitritt, kann nur lernen. Du kannst es für jede Person einzeln ändern.</small></span><span class="switch ${c.default_write !== false ? "on" : ""}" aria-hidden="true"><i></i></span></button></div>
+      <button class="pw-forgot" data-kr="code" type="button">Neuen Code erzeugen (alter wird ungültig)</button>` : ""}`,
+  root => { qrInto($("#krQr", root), joinLink(c.invite_code)); root.addEventListener("click", e => krSheetClick(cid, e)); });
+}
+function krMembersSheet(cid){
   const c = KR.list[cid]; if (!c) return;
   const admin = krAdmin(cid), n = (KR.members[cid] || []).length, cards = Object.values(KR.cards).filter(k => k.community_id === cid).length;
   KR.memOpen = null;
-  openSheet(`${head(fresh ? "Klasse einladen" : "Mitglieder")}
+  openSheet(`${head("Mitglieder")}
     <div class="sh-deck">${dotHTML(S.folders[cid] || c)}<div><b>${escN(c.name)}</b><span>${plural(n, "Mitglied", "Mitglieder")} · ${plural(cards, "Karte", "Karten")}</span></div></div>
-    ${fresh ? `<p class="muted sh-note">Dein Community-Ordner ist angelegt – du bist Admin. Gib deiner Klasse den Code oder den Link, damit sie beitreten kann.</p>` : ""}
-    <div class="lbl" style="margin:4px 0 8px">Einladen</div>
-    <div class="kr-code" translate="no">${esc(c.invite_code)}</div>
-    <div class="sh-acts"><button class="btn" data-kr="copy">Code kopieren</button>${navigator.share ? `<button class="btn primary" data-kr="share">Link teilen …</button>` : `<button class="btn primary" data-kr="link">Link kopieren</button>`}</div>
-    <div class="sh-qr" id="krQr"></div>
-    ${admin ? `<button class="pw-forgot" data-kr="code" type="button" style="margin-top:0">Neuen Code erzeugen (alter wird ungültig)</button>
-      <div class="set-list" style="margin:14px 0 4px"><button class="set-item ex-sw" data-kr="dw" role="switch" aria-checked="${c.default_write !== false}"><span class="si-t">Neue Mitglieder dürfen Karten schreiben<small>Aus: Wer neu beitritt, kann nur lernen. Du kannst es für jede Person einzeln ändern.</small></span><span class="switch ${c.default_write !== false ? "on" : ""}" aria-hidden="true"><i></i></span></button></div>` : ""}
-    <div class="lbl" style="margin:18px 0 8px">${plural(n, "Mitglied", "Mitglieder")}</div>
+    <div class="sh-acts" style="margin:4px 0 14px"><button class="btn" data-kr="invite">${IC.invite.replace('<svg', '<svg width="18" height="18"')}Leute einladen</button></div>
     <div class="kr-mems" id="krMem" data-cid="${cid}">${krMemberRows(cid)}</div>
-    ${admin ? `<p class="muted sh-note" style="margin-top:8px">Tippe auf eine Person, um Rechte zu ändern oder sie zu entfernen.</p>` : `<p class="muted sh-note" style="margin-top:8px">Du ${krWrite(cid) ? "kannst Karten hinzufügen und deine eigenen für alle ändern" : "kannst die Karten lernen"}. Was du an fremden Karten änderst, gilt nur für dich.</p>`}
-    <button class="pw-forgot" data-kr="leave" type="button" style="color:var(--again)">Community verlassen</button>
-    ${admin ? `<button class="pw-forgot" data-kr="del" type="button" style="color:var(--again);margin-top:2px">Community-Ordner für alle löschen</button>` : ""}`,
-  root => {
-    qrInto($("#krQr", root), joinLink(c.invite_code));
-    root.addEventListener("click", async e => {
-      const b = e.target.closest("[data-kr]"); if (!b) return; const k = b.dataset.kr, u = b.dataset.u, cur = KR.list[cid]; if (!cur) return;
-      const m = u && (KR.members[cid] || []).find(x => x.user_id === u);
-      const call = async (fn, args, ok) => { b.disabled = true; const r = await SB.rpc(fn, args); b.disabled = false; if (r.error) { toast(krErr(r.error)); return false; } if (ok) toast(ok); return true; };
-      if (k === "copy") copyText(cur.invite_code, "Code kopiert");
-      else if (k === "link") copyText(joinLink(cur.invite_code), "Link kopiert");
-      else if (k === "share") navigator.share({ title: "Cardo: " + cur.name, text: `Tritt „${cur.name}“ in Cardo bei – Code ${cur.invite_code}`, url: joinLink(cur.invite_code) }).catch(() => {});
-      else if (k === "code") { if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = "Wirklich? Der alte Code geht dann nicht mehr."; setTimeout(() => { if (b.isConnected) { b.classList.remove("armed"); b.textContent = "Neuen Code erzeugen (alter wird ungültig)"; } }, 3500); return; }
-        const r = await SB.rpc("cm_new_code", { p_cid: cid }); if (r.error) { toast(krErr(r.error)); return; } cur.invite_code = r.data; krCacheSoon(); krMembersSheet(cid); toast("Neuer Code erstellt"); }
-      else if (k === "dw") { const v = cur.default_write === false; cur.default_write = v; krRun(cid, [["comm", cid, { default_write: v }]]); b.setAttribute("aria-checked", v); b.querySelector(".switch").classList.toggle("on", v); krCacheSoon(); }
-      else if (k === "mem") { KR.memOpen = KR.memOpen === u ? null : u; krMembersRefresh(cid); }
-      else if (k === "write" && m) { if (await call("cm_set_member", { p_cid: cid, p_uid: u, p_role: m.role, p_can_write: !m.can_write }, m.can_write ? `${krName(u)} kann jetzt nur noch lernen` : `${krName(u)} darf jetzt Karten schreiben`)) { m.can_write = !m.can_write; krMembersRefresh(cid); } }
-      else if (k === "admin" && m) { const up = m.role !== "admin"; if (await call("cm_set_member", { p_cid: cid, p_uid: u, p_role: up ? "admin" : "member", p_can_write: true }, up ? `${krName(u)} ist jetzt Admin` : `${krName(u)} ist kein Admin mehr`)) { m.role = up ? "admin" : "member"; m.can_write = true; if (u === USER.id) { cur.role = m.role; render(); KR.memOpen = null; } krMembersRefresh(cid); } }
-      else if (k === "kick" && m) { if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = "Wirklich entfernen?"; setTimeout(() => { if (b.isConnected) { b.classList.remove("armed"); b.textContent = "Entfernen"; } }, 3500); return; }
-        if (await call("cm_remove_member", { p_cid: cid, p_uid: u }, `${krName(u)} wurde entfernt`)) { KR.members[cid] = (KR.members[cid] || []).filter(x => x.user_id !== u); KR.memOpen = null; krMembersRefresh(cid); } }
-      else if (k === "leave") {
-        const others = (KR.members[cid] || []).filter(x => x.user_id !== USER.id), soleAdmin = krAdmin(cid) && !others.some(x => x.role === "admin");
-        if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = !others.length ? "Du bist allein – der Ordner wird gelöscht. Wirklich?" : soleAdmin ? `Wirklich? ${krName(others.slice().sort((x, y) => krTime(x.joined_at) - krTime(y.joined_at))[0].user_id)} wird dann Admin.` : "Wirklich verlassen?"; setTimeout(() => { if (b.isConnected) { b.classList.remove("armed"); b.textContent = "Community verlassen"; } }, 4000); return; }
-        if (await call("cm_remove_member", { p_cid: cid, p_uid: USER.id })) { const nm = cur.name; closeSheet(); krDrop(cid); toast(`Du hast „${nm}“ verlassen`); } }
-      else if (k === "del") { if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = "Wirklich für alle löschen? Alle Karten gehen verloren."; setTimeout(() => { if (b.isConnected) { b.classList.remove("armed"); b.textContent = "Community-Ordner für alle löschen"; } }, 4000); return; }
-        closeSheet(); krDelete(cid); }
-    });
-  });
+    ${admin ? `<p class="muted sh-note" style="margin-top:8px">Tippe auf eine Person, um Rechte zu ändern, sie zu entfernen oder ihr die Kursleitung zu übergeben.</p>` : `<p class="muted sh-note" style="margin-top:8px">Du ${krWrite(cid) ? "kannst Karten hinzufügen und deine eigenen für alle ändern" : "kannst die Karten lernen"}. Was du an fremden Karten änderst, gilt nur für dich.</p>`}
+    <button class="pw-forgot" data-kr="leave" type="button" style="color:var(--again)">Kurs verlassen</button>
+    ${admin ? `<button class="pw-forgot" data-kr="del" type="button" style="color:var(--again);margin-top:2px">Kurs für alle löschen</button>` : ""}`,
+  root => root.addEventListener("click", e => krSheetClick(cid, e)));
+}
+async function krSheetClick(cid, e){
+  const b = e.target.closest("[data-kr]"); if (!b) return; const k = b.dataset.kr, u = b.dataset.u, cur = KR.list[cid]; if (!cur) return;
+  const m = u && (KR.members[cid] || []).find(x => x.user_id === u);
+  const call = async (fn, args, ok) => { b.disabled = true; const r = await SB.rpc(fn, args); b.disabled = false; if (r.error) { toast(krErr(r.error)); return false; } if (ok) toast(ok); return true; };
+  if (k === "copy") copyText(cur.invite_code, "Code kopiert");
+  else if (k === "link") copyText(joinLink(cur.invite_code), "Link kopiert");
+  else if (k === "share") navigator.share({ title: "Cardo: " + cur.name, text: `Tritt „${cur.name}“ in Cardo bei – Code ${cur.invite_code}`, url: joinLink(cur.invite_code) }).catch(() => {});
+  else if (k === "code") { if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = "Wirklich? Der alte Code geht dann nicht mehr."; setTimeout(() => { if (b.isConnected) { b.classList.remove("armed"); b.textContent = "Neuen Code erzeugen (alter wird ungültig)"; } }, 3500); return; }
+    const r = await SB.rpc("cm_new_code", { p_cid: cid }); if (r.error) { toast(krErr(r.error)); return; } cur.invite_code = r.data; krCacheSoon(); krInviteSheet(cid); toast("Neuer Code erstellt"); }
+  else if (k === "dw") { const v = cur.default_write === false; cur.default_write = v; krRun(cid, [["comm", cid, { default_write: v }]]); b.setAttribute("aria-checked", v); b.querySelector(".switch").classList.toggle("on", v); krCacheSoon(); }
+  else if (k === "invite") krInviteSheet(cid);
+  else if (k === "mem") { KR.memOpen = KR.memOpen === u ? null : u; krMembersRefresh(cid); }
+  else if (k === "write" && m) { if (await call("cm_set_member", { p_cid: cid, p_uid: u, p_role: m.role, p_can_write: !m.can_write }, m.can_write ? `${krName(u)} kann jetzt nur noch lernen` : `${krName(u)} darf jetzt Karten schreiben`)) { m.can_write = !m.can_write; krMembersRefresh(cid); } }
+  else if (k === "lead" && m) { if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = "Wirklich übergeben? Du bist dann normales Mitglied."; setTimeout(() => { if (b.isConnected) { b.classList.remove("armed"); b.textContent = "Kursleitung übergeben"; } }, 4000); return; }
+    if (await call("cm_transfer", { p_cid: cid, p_uid: u }, `${krName(u)} leitet jetzt den Kurs`)) { const mine = (KR.members[cid] || []).find(x => x.user_id === USER.id); if (mine) { mine.role = "member"; mine.can_write = true; } m.role = "admin"; m.can_write = true; cur.role = "member"; cur.can_write = true; krCacheSoon(); render(); krMembersSheet(cid); } }
+  else if (k === "kick" && m) { if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = "Wirklich entfernen?"; setTimeout(() => { if (b.isConnected) { b.classList.remove("armed"); b.textContent = "Entfernen"; } }, 3500); return; }
+    if (await call("cm_remove_member", { p_cid: cid, p_uid: u }, `${krName(u)} wurde entfernt`)) { KR.members[cid] = (KR.members[cid] || []).filter(x => x.user_id !== u); KR.memOpen = null; krMembersRefresh(cid); } }
+  else if (k === "leave") {
+    const others = (KR.members[cid] || []).filter(x => x.user_id !== USER.id), soleAdmin = krAdmin(cid); /* Kursleitung geht → das Mitglied, das am längsten dabei ist, übernimmt */
+    if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = !others.length ? "Du bist allein – der Kurs wird gelöscht. Wirklich?" : soleAdmin ? `Wirklich? ${krName(others.slice().sort((x, y) => krTime(x.joined_at) - krTime(y.joined_at))[0].user_id)} übernimmt dann die Kursleitung.` : "Wirklich verlassen?"; setTimeout(() => { if (b.isConnected) { b.classList.remove("armed"); b.textContent = "Kurs verlassen"; } }, 4000); return; }
+    if (await call("cm_remove_member", { p_cid: cid, p_uid: USER.id })) { const nm = cur.name; closeSheet(); krDrop(cid); toast(`Du hast „${nm}“ verlassen`); } }
+  else if (k === "del") { if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = "Wirklich für alle löschen? Alle Karten gehen verloren."; setTimeout(() => { if (b.isConnected) { b.classList.remove("armed"); b.textContent = "Kurs für alle löschen"; } }, 4000); return; }
+    closeSheet(); krDelete(cid); }
 }
 async function krDelete(cid){
-  if (!krAdmin(cid)) { toast("Löschen kann nur der Admin. Du kannst den Ordner über „Mitglieder“ verlassen."); return; }
+  if (!krAdmin(cid)) { toast("Löschen kann nur die Kursleitung. Du kannst den Kurs über „Mitglieder“ verlassen."); return; }
   const nm = (KR.list[cid] || {}).name || ""; const r = await SB.rpc("cm_delete", { p_cid: cid });
   if (r.error) { toast(krErr(r.error)); return; }
   krDrop(cid); toast(`„${nm}“ wurde für alle gelöscht`);
@@ -5564,7 +5587,7 @@ function classHTML(){
   if (!krOn()) return `<div class="empty kr-empty"><div class="big">👥</div><b>Klassenraum</b>Gemeinsame Ordner für deine Klasse oder deinen Kurs gibt es nur mit Cardo-Konto.</div>`;
   if (KR.ok === false) return `<div class="empty kr-empty"><div class="big">👥</div><b>Bald verfügbar</b>Der Klassenraum wird gerade eingerichtet. Schau später noch einmal vorbei.</div>`;
   const list = krRoots(), note = `<p class="muted kr-beta">${BETA_NOTE}</p>`;
-  if (!list.length) return `${note}<div class="empty kr-empty"><div class="big">👥</div><b>Gemeinsam lernen</b>Ein Community-Ordner gehört der ganzen Klasse oder dem ganzen Kurs: Alle lernen dieselben Karten, jeder kann Karten beisteuern, und dein Lernstand bleibt privat.<span class="kr-hint">Tippe oben rechts auf ⋯, um einen anzulegen oder mit einem Code beizutreten.</span></div>`;
+  if (!list.length) return `${note}<div class="empty kr-empty"><div class="big">👥</div><b>Gemeinsam lernen</b>Ein Kurs gehört allen Mitgliedern: Alle lernen dieselben Karten, jeder kann Karten beisteuern, und dein Lernstand bleibt privat.<span class="kr-hint">Tippe oben rechts auf ⋯, um einen anzulegen oder mit einem Code beizutreten.</span></div>`;
   const cards = list.reduce((n, f) => n + counts(f.id).total, 0);
   return `${note}<div class="sec-h"><h2>Deine Kurse</h2><span class="muted">${plural(cards, "Karte", "Karten")}</span></div>${foldersHTML(list)}`;
 }
@@ -6369,10 +6392,10 @@ function folderHTML(fid){
   const n = counts(fid), subs = children(fid), deepOnly = n.total - n.own;
   return `${crumbsHTML(fid)}
   <section class="banner ${coverUrl(f) ? 'has-cover cvw' : ''}"${cvwStyle(f)}>${artHTML(f)}
-    <div class="banner-body"><div class="banner-row"><div><h1>${escN(f.name)}</h1><div class="muted banner-meta">${plural(n.total, 'Karte', 'Karten')} · ${n.due} fällig${subs.length ? ' · ' + plural(subs.length, 'Unterordner', 'Unterordner') : ''}${sideOf(fid) !== 'front' ? ` · ${sideOf(fid) === 'both' ? '⇄ beidseitig' : '↺ Rückseite zuerst'}` : ''}</div>${f.comm ? `<div class="kr-line">${IC.people}<span>Community · ${krRoleText(f.comm)}</span></div>` : ''}</div>
+    <div class="banner-body"><div class="banner-row"><div><h1>${escN(f.name)}</h1><div class="muted banner-meta">${plural(n.total, 'Karte', 'Karten')} · ${n.due} fällig${subs.length ? ' · ' + plural(subs.length, 'Unterordner', 'Unterordner') : ''}${sideOf(fid) !== 'front' ? ` · ${sideOf(fid) === 'both' ? '⇄ beidseitig' : '↺ Rückseite zuerst'}` : ''}</div>${f.croot ? krCrewHTML(f.comm) : f.comm ? `<div class="kr-line">${IC.people}<span>Kurs · ${krRoleText(f.comm)}</span></div>` : ''}</div>
       <div class="banner-acts"><button class="lset-btn" style="--c:${esc(colorOf(f))}" data-act="learnMenu" data-id="${fid}" aria-haspopup="menu" aria-expanded="false" aria-label="Lerneinstellungen: ${esc(dailyLabel(fid))}" title="Lerneinstellungen">${IC_LEARN}<span>${esc(learnShort(fid))}</span></button>
-      <button class="icon-btn" data-act="folderMenu" data-id="${fid}" aria-haspopup="menu" aria-expanded="false" aria-label="${f.parentId ? 'Unterordner' : 'Ordner'}-Menü" title="${f.parentId ? 'Unterordner' : 'Ordner'}">${IC.dots}</button>
-      ${f.comm ? `<button class="icon-btn share-btn" data-act="krMembers" data-id="${f.comm}" aria-label="Mitglieder und Einladen" title="Mitglieder">${IC.people}</button>` : `<button class="icon-btn share-btn ${f.share ? 'live' : ''}" data-act="shareSheet" data-id="${fid}" aria-label="Teilen${f.share ? ' (Link aktiv)' : ''}" title="Teilen${f.share ? ' – Link aktiv' : ''}">${IC.share}</button>`}</div></div>
+      ${f.comm ? `<button class="lset-btn kr-inv" data-act="krInvite" data-id="${f.comm}" title="Leute einladen">${IC.invite}<span>Einladen</span></button>` : `<button class="icon-btn share-btn ${f.share ? 'live' : ''}" data-act="shareSheet" data-id="${fid}" aria-label="Teilen${f.share ? ' (Link aktiv)' : ''}" title="Teilen${f.share ? ' – Link aktiv' : ''}">${IC.share}</button>`}
+      <button class="icon-btn ba-more" data-act="folderMenu" data-id="${fid}" aria-haspopup="menu" aria-expanded="false" aria-label="${f.parentId ? 'Unterordner' : 'Ordner'}-Menü" title="${f.parentId ? 'Unterordner' : 'Ordner'}">${IC.dots}</button></div></div>
       ${n.total ? (n.due ? `<button class="learn-btn" data-act="study" data-id="${fid}"><span class="lb-play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.9l10.2-6.5a1 1 0 0 0 0-1.8L9.5 4.6A1 1 0 0 0 8 5.5z"/></svg></span><span class="lb-t"><b>Lernen</b><span>${learnSub(n)}</span></span></button>`
         : (n.newLeft ? `<div class="learn-done"><span aria-hidden="true">✓</span> Heute alles gelernt – dein Tageslimit ist erreicht.<div class="ld-acts"><button class="btn more-new" data-act="moreNew" data-id="${fid}">＋ 10 weitere Karten</button><button class="btn more-new" data-act="examSheet" data-pr="1" data-id="${fid}">↻ Nochmal üben</button></div></div>` : `<div class="learn-done"><span aria-hidden="true">✓</span> Alle Karten sind für heute durch – ${nextDueText(fid)}<div class="ld-acts"><button class="btn more-new" data-act="examSheet" data-pr="1" data-id="${fid}">↻ Nochmal üben</button></div></div>`)) : ''}
       ${n.total ? (() => { const m = mastery(fid); return `<button class="exam-btn lv${m.lv}" data-act="examSheet" data-id="${fid}" title="${m.pct} % der Karten sitzen sicher">${IC_EXAM}Prüfen<span class="ex-pct num">· ${m.pct} % sicher</span></button>`; })() : ''}
@@ -6380,7 +6403,7 @@ function folderHTML(fid){
   ${subs.length ? `<div class="sec-h"><h2>Unterordner</h2></div>${foldersHTML(subs)}` : ''}
   ${n.own ? `<div class="sec-h"><h2>Karten <span class="muted num" style="font-weight:600;font-size:15px">${n.own}${deepOnly ? ` hier · ${deepOnly} in Unterordnern` : ''}</span></h2>${n.own > 1 ? `<button class="csort-btn" data-act="cardSortMenu" data-id="${fid}" aria-haspopup="menu" aria-expanded="false"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M3.5 16.5 7 20l3.5-3.5M17 20V4m-3.5 3.5L17 4l3.5 3.5"/></svg>${CSORTS.find(o => o[0] === csortOf(fid))[1]}</button>` : ''}</div>` : ''}
   ${n.own ? `<input class="search" id="q" type="search" placeholder="Karten durchsuchen" value="${esc(S.q)}" autocomplete="off">` : ''}
-  <div id="cardlist">${cardListHTML(fid)}</div>${f.comm && !S.sel && krHidden(fid).length ? `<button class="pw-forgot" data-act="krUnhide" data-id="${fid}" type="button">${plural(krHidden(fid).length, "ausgeblendete Karte", "ausgeblendete Karten")} wieder einblenden</button>` : ''}${f.comm && !n.total && !subs.length ? `<div class="empty kr-empty-f">${krWrite(f.comm) ? `<b>Noch keine Karten</b>Leg die erste Karte an – alle anderen sehen sie sofort.<div class="actions"><button class="btn primary" data-act="newCard" data-id="${fid}">Neue Karte</button><button class="btn" data-act="krMembers" data-id="${f.comm}">Klasse einladen</button></div>` : `<b>Noch keine Karten</b>Sobald jemand Karten anlegt, erscheinen sie hier.`}</div>` : ''}${S.sel ? selbarHTML() : ''}`;
+  <div id="cardlist">${cardListHTML(fid)}</div>${f.comm && !S.sel && krHidden(fid).length ? `<button class="pw-forgot" data-act="krUnhide" data-id="${fid}" type="button">${plural(krHidden(fid).length, "ausgeblendete Karte", "ausgeblendete Karten")} wieder einblenden</button>` : ''}${f.comm && !n.total && !subs.length ? `<div class="empty kr-empty-f">${krWrite(f.comm) ? `<b>Noch keine Karten</b>Leg die erste Karte an – alle anderen sehen sie sofort.<div class="actions"><button class="btn primary" data-act="newCard" data-id="${fid}">Neue Karte</button><button class="btn" data-act="krInvite" data-id="${f.comm}">Leute einladen</button></div>` : `<b>Noch keine Karten</b>Sobald jemand Karten anlegt, erscheinen sie hier.`}</div>` : ''}${S.sel ? selbarHTML() : ''}`;
 }
 function cardListHTML(fid){
   const now = Date.now(), q = S.q.trim().toLowerCase();
@@ -7395,8 +7418,8 @@ function folderSheet(id, parentId, sect, newComm){
   const kDel = ex && kc ? (ex.croot ? krAdmin(kc) : krCanEdit(kc, KR.folders[id])) : !!ex;
   const d = ex ? { ...ex } : { id: uid(), name: "", parentId: parentId || null, color: COLORS[Object.keys(S.folders).length % COLORS.length], emoji: "📚", cover: null, section: parentId ? null : (sect || null), order: Date.now(), created: Date.now() };
   const exclude = id ? [id, ...descendants(id)] : [];
-  openSheet(`${head(newComm ? "Community-Ordner anlegen" : ex ? "Ordner gestalten" : parentId ? "Neuer Unterordner" : "Neuer Ordner")}
-    <div class="preview"><div id="pv"></div><div class="muted" style="font-size:14.5px">${kc ? (newComm ? "Am besten einen pro Fach oder Kurs, z. B. „Bio 10b“. Name, Farbe und Emoji sehen alle Mitglieder." : "So sehen alle Mitglieder den Ordner.") : "So sieht dein Ordner in der Bibliothek aus. Wähle Farbe, Emoji oder ein eigenes Titelbild."}</div></div>
+  openSheet(`${head(newComm ? "Kurs anlegen" : ex ? "Ordner gestalten" : parentId ? "Neuer Unterordner" : "Neuer Ordner")}
+    <div class="preview"><div id="pv"></div><div class="muted" style="font-size:14.5px">${kc ? (newComm ? "Am besten einen Kurs pro Fach, z. B. „Bio 10b“. Name, Farbe und Emoji sehen alle Mitglieder." : "So sehen alle Mitglieder den Ordner.") : "So sieht dein Ordner in der Bibliothek aus. Wähle Farbe, Emoji oder ein eigenes Titelbild."}</div></div>
     <div class="field"><label for="fn">Name</label><input class="in" id="fn" maxlength="80" placeholder="z. B. Financial Accounting" value="${esc(d.name)}"></div>
     <div class="field"><span class="lbl">Farbe</span><div class="swatches" id="sws">${COLORS.map(c => `<button class="sw ${c === d.color ? 'on' : ''}" style="--c:${c}" data-c="${c}" aria-label="Farbe ${c}"></button>`).join("")}<label class="sw sw-any ${COLORS.includes(d.color) ? '' : 'on cust'}" id="fcl" style="--c:${esc(safeColor(d.color))}" title="Eigene Farbe"><input type="color" class="colorin" id="fc" value="${esc(d.color)}" aria-label="Eigene Farbe"></label></div></div>
     <div class="field"><span class="lbl">Emoji</span><div class="emojis" id="ems"><button class="none ${d.emoji === '' ? 'on' : ''}" data-e="" aria-label="Kein Emoji" title="Kein Emoji">Kein</button>${EMOJIS.map(e => `<button class="${e === d.emoji ? 'on' : ''}" data-e="${e}">${e}</button>`).join("")}</div>
@@ -7457,7 +7480,7 @@ function folderSheet(id, parentId, sect, newComm){
     $("#fp", root).addEventListener("change", e => { $("#fsw", root).hidden = !!e.target.value; });
     $("#fs", root).addEventListener("change", e => { const nw = e.target.value === "__new"; $("#fsn", root).hidden = !nw; if (nw) $("#fsn", root).focus(); });
     $("#fsave", root).addEventListener("click", async e => {
-      if (kc) { d.name = d.name.trim() || (newComm ? "" : "Neuer Ordner"); if (!d.name) { toast("Gib dem Community-Ordner einen Namen."); return; }
+      if (kc) { d.name = d.name.trim() || (newComm ? "" : "Neuer Ordner"); if (!d.name) { toast("Gib dem Kurs einen Namen."); return; }
         if (newComm) { const bt = e.currentTarget; bt.disabled = true; bt.textContent = "Wird angelegt …"; try { closeSheet(); await krCreate(d); } catch (err) { console.warn(err); toast(krErr(err)); } return; }
         d.section = null; putFolder(d); closeSheet(); if (!ex) { S.open.add(d.parentId); toast("Unterordner angelegt"); } else toast("Gespeichert"); return; }
       d.name = d.name.trim() || "Neuer Ordner"; d.parentId = $("#fp", root).value || null;
@@ -7782,6 +7805,9 @@ function importSheet(fid){
 /* ---------- Library menu ---------- */
 /* Menü immer ganz sichtbar: unter dem Knopf, sonst darüber, sonst so weit hoch wie nötig (und notfalls scrollbar) – nie unter die Tab-Leiste oder aus dem Bildschirm */
 function placeMenu(m, btn){
+  const mn = $("#main"), mr = mn.getBoundingClientRect(), cs = getComputedStyle(mn), ok = mr.width > 200; /* Seitenkanten (Inhalt von #main) */
+  const cl = ok ? Math.max(8, mr.left + (parseFloat(cs.paddingLeft) || 0)) : 8, cr = ok ? Math.min(innerWidth - 8, mr.right - (parseFloat(cs.paddingRight) || 0)) : innerWidth - 8;
+  m.style.maxWidth = (cr - cl) + "px";
   const r = btn.getBoundingClientRect(), w = m.offsetWidth, tb = $("#tabs"), tr = tb && tb.offsetParent ? tb.getBoundingClientRect() : null;
   const minTop = (parseFloat(getComputedStyle(document.documentElement).paddingTop) || 0) + 8, maxBot = (tr && tr.top < innerHeight ? tr.top : innerHeight) - 8;
   m.style.maxHeight = Math.max(120, maxBot - minTop) + "px"; const h = m.offsetHeight;
@@ -7789,10 +7815,10 @@ function placeMenu(m, btn){
   if (r.bottom + 6 + h <= maxBot) top = r.bottom + 6;
   else if (r.top - 6 - h >= minTop) { top = r.top - 6 - h; up = true; }
   else { top = Math.max(minTop, maxBot - h); up = r.top > (minTop + maxBot) / 2; }
-  /* breite Menüs (über 70 % der Bildschirmbreite) mittig, kleine bleiben seitlich am Knopf */
-  const wide = w > innerWidth * .7;
-  m.style.top = top + "px"; m.style.left = (wide ? Math.round((innerWidth - w) / 2) : Math.max(8, Math.min(innerWidth - w - 8, r.right - w))) + "px";
-  m.style.transformOrigin = (up ? "bottom " : "top ") + (wide ? "center" : "right");
+  /* Menü schließt bündig mit den Kanten der Seite (wie Banner und Kacheln): Knopf rechts → rechte Kante, Knopf links → linke Kante */
+  const atRight = (r.left + r.right) / 2 > (cl + cr) / 2, left = Math.round(atRight ? Math.max(cl, cr - w) : cl);
+  m.style.top = top + "px"; m.style.left = left + "px";
+  m.style.transformOrigin = (up ? "bottom " : "top ") + (atRight ? "right" : "left");
 }
 function openMenu(btn, fid){
   const m = $("#menu"), sorts = [["custom","Eigene Reihenfolge <span class=\"sub\" style=\"color:var(--muted);font-weight:600\">lange drücken &amp; ziehen</span>"],["name","Name (A–Z)"],["new","Zuletzt erstellt"],["due","Meiste fällige Karten"]];
@@ -7806,13 +7832,14 @@ function openMenu(btn, fid){
     <button data-act="newFolder"${d} role="menuitem">${MI.folderPlus}Neuer Unterordner</button>
     <button data-act="import"${d} role="menuitem">${MI.import}Karten importieren</button>` : '') + (n.own ? `
     <button data-act="pickStart"${d} role="menuitem">${MI.select}Karten auswählen<span class="sub" style="color:var(--muted)">${w ? 'kopieren, löschen' : 'in eigene Ordner kopieren'}</span></button>` : '') + `
-    <button data-act="krMembers" data-id="${kc}" role="menuitem">${MI.people}Mitglieder &amp; einladen</button>` + (ed ? `
+    <button data-act="krInvite" data-id="${kc}" role="menuitem">${MI.invite}Leute einladen</button>
+    <button data-act="krMembers" data-id="${kc}" role="menuitem">${MI.people}Mitglieder</button>` + (ed ? `
     <button data-act="editFolder"${d} role="menuitem">${MI.edit}Ordner gestalten</button>` : '') + (sortBlock ? `<hr><div class="mh">Unterordner sortieren nach</div>
     ${sorts.map(([k, l]) => `<button data-act="sort" data-v="${k}" role="menuitemradio" aria-checked="${S.sort === k}">${miRadio(S.sort === k)}${l}</button>`).join("")}` : '');
     m.hidden = false; btn.setAttribute("aria-expanded", "true"); placeMenu(m, btn); return; }
   if (!fid && S.room === "class") {
     m.innerHTML = `<div class="mt">${IC.people.replace('<svg', '<svg width="16" height="16"')}<b>Klassenraum</b></div><hr>
-    <button data-act="krNew" role="menuitem">${MI.folderPlus}Community-Ordner anlegen</button>
+    <button data-act="krNew" role="menuitem">${MI.folderPlus}Kurs anlegen</button>
     <button data-act="krJoin" role="menuitem">${MI.join}Mit Code beitreten</button>
     <button data-act="krName" role="menuitem">${MI.user}Benutzername${KR.me ? `<span class="sub" style="color:var(--muted)" translate="no">${esc(KR.me)}</span>` : ''}</button>
     <hr><div class="mh">Ansicht</div>${[["grid","Kacheln"],["list","Liste"]].map(([k, l]) => `<button data-act="setLayout" data-v="${k}" role="menuitemradio" aria-checked="${S.set.layout === k}">${MI[k]}${l}${S.set.layout === k ? '<span class="ck">✓</span>' : ''}</button>`).join("")}`;
@@ -7960,7 +7987,8 @@ document.addEventListener("click", e => {
   if (a === "classroomSheet") { classroomSheet(); return; }
   if (a === "toggleClassroom") { krSetEnabled(!krEnabled()); classroomSheet(); return; }
   if (a === "krMembers") { closeMenu(); krMembersSheet(id); return; }
-  if (a === "krCopy") { const f = S.folders[id]; if (!f) return; pickFolderSheet({ title: `„${escN(f.name)}“ in den Klassenraum kopieren`, note: "Der Ordner kommt mit allen Unterordnern und Karten in den gewählten Community-Ordner. Alle Mitglieder sehen die Kopie, dein Ordner bleibt unverändert.", onlyComm: true,
+  if (a === "krInvite") { closeMenu(); krInviteSheet(id); return; }
+  if (a === "krCopy") { const f = S.folders[id]; if (!f) return; pickFolderSheet({ title: `„${escN(f.name)}“ in den Klassenraum kopieren`, note: "Der Ordner kommt mit allen Unterordnern und Karten in den gewählten Kurs. Alle Mitglieder sehen die Kopie, dein Ordner bleibt unverändert.", onlyComm: true,
       onPick: t => { const r = krCopyFolder(id, t.fid); toast(`${plural(r.cards, "Karte", "Karten")} nach „${S.folders[t.fid] ? S.folders[t.fid].name : ""}“ kopiert`); go("lib", r.root, "push"); } }); return; }
   if (a === "krUnhide") { const P = krProg(id); krHidden(id).forEach(x => { const r = { ...P.cards[x] }; delete r.h; if (Object.keys(r).length) P.cards[x] = r; else delete P.cards[x]; }); krSaveProg(id, P); krInject(); render(); toast("Wieder eingeblendet"); return; }
   if (a === "setCsort") { const f = S.folders[id]; if (f) { putFolder({ ...f, csort: b.dataset.v }); render(); } return; }
@@ -7981,11 +8009,11 @@ document.addEventListener("click", e => {
   if (a === "nav") { go(b.dataset.v, null, S.view === "lib" && b.dataset.v === "lib" && S.fid ? "pop" : "fade"); }
   else if (a === "open") { const deeper = !S.fid || (S.view === "lib" && descendants(S.fid).includes(id)); go("lib", id, S.view !== "lib" ? "fade" : deeper ? "push" : "pop"); }
   else if (a === "toggle") { S.open.has(id) ? S.open.delete(id) : S.open.add(id); render(); }
-  else if (a === "newFolder") { if (commOf(id) && !krWrite(commOf(id))) { toast("In diesem Community-Ordner darfst du nichts anlegen."); return; } folderSheet(null, id, b.dataset.sect || null); }
+  else if (a === "newFolder") { if (commOf(id) && !krWrite(commOf(id))) { toast("In diesem Kurs darfst du nichts anlegen."); return; } folderSheet(null, id, b.dataset.sect || null); }
   else if (a === "editFolder") { e.stopPropagation(); folderSheet(id); }
   else if (a === "dailySheet") { e.stopPropagation(); dailySheet(id); }
   else if (a === "folderStats") { e.stopPropagation(); folderStatsSheet(id); }
-  else if (a === "newCard") { const t = id || S.fid || ownRoots()[0]?.id; if (commOf(t) && !krWrite(commOf(t))) { toast("In diesem Community-Ordner darfst du keine Karten hinzufügen."); return; } cardSheet(t); }
+  else if (a === "newCard") { const t = id || S.fid || ownRoots()[0]?.id; if (commOf(t) && !krWrite(commOf(t))) { toast("In diesem Kurs darfst du keine Karten hinzufügen."); return; } cardSheet(t); }
   else if (a === "editCard") { cardSheet(b.dataset.f, id); }
   else if (a === "import") { importSheet(id || S.fid || null); }
   else if (a === "study") { startStudy(id); }
