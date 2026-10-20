@@ -1628,7 +1628,7 @@ const I18N = {
   "Klassenraum anzeigen": ["Show classroom", "Mostra aula"],
   "Im Klassenraum lernst du mit deiner Klasse oder deinem Kurs in gemeinsamen Ordnern. In der Bibliothek wechselst du zwischen „Meine Ordner“ und „Klassenraum“.": ["In the classroom you study with your class or course in shared folders. In the library you switch between “My folders” and “Classroom”.", "Nell'aula studi con la tua classe o il tuo corso in cartelle condivise. Nella libreria passi da “Le mie cartelle” ad “Aula”."],
   "Ausgeschaltet verschwindet die Auswahl in der Bibliothek und du siehst nur noch deine eigenen Ordner.": ["When off, the switch in the library disappears and you only see your own folders.", "Se disattivata, la scelta nella libreria scompare e vedi solo le tue cartelle."],
-  "Deine Kurse bleiben erhalten – du bist weiter Mitglied und siehst sie wieder, sobald du den Klassenraum einschaltest.": ["Your courses are kept – you stay a member and see them again as soon as you turn the classroom on.", "I tuoi corsi restano – rimani membro e li rivedi appena riattivi l'aula."],
+  "Schalte den Klassenraum ein, um einen Kurs anzulegen oder mit einem Code beizutreten. Kurse, in denen du schon bist, siehst du dann wieder.": ["Turn on the classroom to create a course or join one with a code. Courses you are already in will show up again.", "Attiva l'aula per creare un corso o unirti con un codice. I corsi di cui fai già parte riappariranno."],
   "In Klassenraum kopieren": ["Copy to classroom", "Copia nell'aula"],
   "„{}“ in den Klassenraum kopieren": ["Copy “{}” to the classroom", "Copia “{}” nell'aula"],
   "Der Ordner kommt mit allen Unterordnern und Karten in den gewählten Kurs. Alle Mitglieder sehen die Kopie, dein Ordner bleibt unverändert.": ["The folder goes into the chosen course with all subfolders and cards. All members see the copy; your folder stays unchanged.", "La cartella va nel corso scelto con tutte le sottocartelle e le schede. Tutti i membri vedono la copia, la tua cartella resta invariata."],
@@ -5008,7 +5008,7 @@ function startApp(){
   DB.collection("cards").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = { ...((d.data()||{}).cards || {}) }; }); S.decks = o; krInject(); S.loaded.c = true; render(); });
   DB.doc("stats/main").onSnapshot(d => { const x = d.exists ? (d.data()||{}) : {}; S.days = { ...(x.days || {}) }; S.seen = { ...(x.seen || {}) }; S.lastExport = x.lastExport || 0; S.extraNew = { ...(x.extraNew || {}) }; S.fdays = { ...(x.fdays || {}) }; S.prog = { ...(x.prog || {}) }; S.loaded.s = true; render(); });
   krLoad();
-  DB.load().then(() => { DB.flush(); setTimeout(startDeck, 60); }).catch(e => { console.warn(e); toast(navigator.onLine ? "Laden fehlgeschlagen. Versuch es gleich noch einmal." : "Offline: Du siehst den zuletzt gespeicherten Stand."); })
+  DB.load().then(() => { DB.flush(); setTimeout(startDeck, 60); setTimeout(krDefaultOff, 900); }).catch(e => { console.warn(e); toast(navigator.onLine ? "Laden fehlgeschlagen. Versuch es gleich noch einmal." : "Offline: Du siehst den zuletzt gespeicherten Stand."); })
     .finally(() => { S.mode = "cloud"; render(); runPendingDeck(); runPendingJoin(); });
 }
 
@@ -5566,17 +5566,26 @@ let ROOM = "own"; try { ROOM = localStorage.getItem("cardo-room") === "class" ? 
 S.room = ROOM;
 const saveRoom = () => { try { localStorage.setItem("cardo-room", S.room); } catch {} };
 function krSetEnabled(on){
+  KR.userSet = true; /* bewusst gewählt (Schalter, Einladungslink) – krDefaultOff greift dann nicht mehr ein */
   saveSettings({ classroom: on ? 1 : 0 });
   if (on) { krInject(); krLoad(); }
   else { krInject(); S.room = "own"; saveRoom(); if (S.fid && !S.folders[S.fid]) go("lib", null); }
   render();
+}
+async function krDefaultOff(){ /* einmal pro Konto (Merker flags/kr): wer in keinem Kurs ist, hat den Klassenraum zunächst aus */
+  if (!DB || !krOn() || (DB.has && DB.has("flags/kr"))) return;
+  try {
+    const r = await SB.from("community_members").select("community_id").eq("user_id", USER.id).limit(1); if (r.error) return; /* offline o. Ä. → beim nächsten Start nochmal */
+    DB.doc("flags/kr").set({ at: Date.now() });
+    if (!r.data.length && !KR.userSet && krEnabled() && !Object.keys(KR.list).length) krSetEnabled(false);
+  } catch {}
 }
 function classroomSheet(){
   const on = krEnabled();
   openSheet(`${head(`Klassenraum${BETA}`)}<p class="muted" style="margin:0 0 16px;font-size:15.5px">Im Klassenraum lernst du mit deiner Klasse oder deinem Kurs in gemeinsamen Ordnern. In der Bibliothek wechselst du zwischen „Meine Ordner“ und „Klassenraum“.</p>
     <div class="set-list" style="margin:0"><button class="set-item ex-sw" data-act="toggleClassroom" role="switch" aria-checked="${on}"><span class="si-t">Klassenraum anzeigen</span><span class="switch ${on ? 'on' : ''}" aria-hidden="true"><i></i></span></button>
     ${on && krOn() ? `<button class="set-item" data-act="krName"><span class="si-t">Benutzername</span><span class="si-v" translate="no">${esc(KR.me || "–")}</span><span class="si-ch" aria-hidden="true">›</span></button>` : ''}</div>
-    <p class="muted" style="margin:12px 2px 0;font-size:14px">${on ? "Ausgeschaltet verschwindet die Auswahl in der Bibliothek und du siehst nur noch deine eigenen Ordner." : "Deine Kurse bleiben erhalten – du bist weiter Mitglied und siehst sie wieder, sobald du den Klassenraum einschaltest."}</p>`);
+    <p class="muted" style="margin:12px 2px 0;font-size:14px">${on ? "Ausgeschaltet verschwindet die Auswahl in der Bibliothek und du siehst nur noch deine eigenen Ordner." : "Schalte den Klassenraum ein, um einen Kurs anzulegen oder mit einem Code beizutreten. Kurse, in denen du schon bist, siehst du dann wieder."}</p>`);
 }
 const BETA = `<span class="beta" translate="no">Beta</span>`;
 function roomBarSlide(){ /* Strich gleitet vom alten zum neuen Reiter (Breite passt sich unterwegs an) */
