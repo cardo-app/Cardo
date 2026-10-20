@@ -1714,7 +1714,8 @@ const I18N = {
   "Du kannst Karten hinzufügen und deine eigenen für alle ändern. Was du an fremden Karten änderst, gilt nur für dich.": ["You can add cards and change your own for everyone. Changes to other people's cards only apply to you.", "Puoi aggiungere schede e modificare le tue per tutti. Le modifiche alle schede altrui valgono solo per te."],
   "Du kannst die Karten lernen. Was du an fremden Karten änderst, gilt nur für dich.": ["You can study the cards. Changes to other people's cards only apply to you.", "Puoi studiare le schede. Le modifiche alle schede altrui valgono solo per te."],
   "Kurs verlassen": ["Leave course", "Lascia il corso"],
-  "Kurs für alle löschen": ["Delete course for everyone", "Elimina il corso per tutti"],
+  "Kurs gestalten": ["Design course", "Personalizza corso"],
+  "Kurs löschen": ["Delete course", "Elimina corso"],
   "darf Karten schreiben": ["can write cards", "può scrivere schede"],
   "(du)": ["(you)", "(tu)"],
   "Nur lesen": ["Read only", "Sola lettura"],
@@ -1731,14 +1732,14 @@ const I18N = {
   "Wirklich? {} übernimmt dann die Kursleitung.": ["Really? {} will then lead the course.", "Davvero? {} guiderà poi il corso."],
   "Wirklich verlassen?": ["Really leave?", "Uscire davvero?"],
   "Du hast „{}“ verlassen": ["You left “{}”", "Hai lasciato “{}”"],
-  "Wirklich für alle löschen? Alle Karten gehen verloren.": ["Really delete for everyone? All cards will be lost.", "Eliminare davvero per tutti? Tutte le schede andranno perse."],
+  "Wirklich für alle löschen?": ["Really delete for everyone?", "Eliminare davvero per tutti?"],
   "„{}“ wurde für alle gelöscht": ["“{}” was deleted for everyone", "“{}” è stata eliminata per tutti"],
   "„{}“ wurde gelöscht": ["“{}” was deleted", "“{}” è stata eliminata"],
   "Du bist nicht mehr in „{}“": ["You're no longer in “{}”", "Non fai più parte di “{}”"],
   "Dein Kurs ist angelegt – du leitest ihn. Gib den anderen den Code oder den Link, damit sie beitreten können.": ["Your course is ready – you lead it. Give the others the code or link so they can join.", "Il tuo corso è pronto – lo guidi tu. Dai agli altri il codice o il link per unirsi."],
   "Am besten einen Kurs pro Fach, z. B. „Bio 10b“. Name, Farbe und Emoji sehen alle Mitglieder.": ["Best one course per subject, e.g. “Bio 10b”. All members see the name, colour and emoji.", "Meglio un corso per materia, ad es. “Bio 10b”. Nome, colore ed emoji li vedono tutti i membri."],
   "So sehen alle Mitglieder den Ordner.": ["This is how all members see the folder.", "Così tutti i membri vedono la cartella."],
-  "Für alle löschen": ["Delete for everyone", "Elimina per tutti"],
+  "So sehen alle Mitglieder den Kurs.": ["This is how all members see the course.", "Così tutti i membri vedono il corso."],
   "Unterordner löschen": ["Delete subfolder", "Elimina sottocartella"],
   "Gib dem Kurs einen Namen.": ["Give the course a name.", "Dai un nome al corso."],
   "Unterordner angelegt": ["Subfolder created", "Sottocartella creata"],
@@ -5524,8 +5525,7 @@ function krMembersSheet(cid){
     <div class="sh-acts" style="margin:4px 0 14px"><button class="btn" data-kr="invite">${IC.invite.replace('<svg', '<svg width="18" height="18"')}Leute einladen</button></div>
     <div class="kr-mems" id="krMem" data-cid="${cid}">${krMemberRows(cid)}</div>
     ${admin ? `<p class="muted sh-note" style="margin-top:8px">Tippe auf eine Person, um Rechte zu ändern, sie zu entfernen oder ihr die Kursleitung zu übergeben.</p>` : `<p class="muted sh-note" style="margin-top:8px">Du ${krWrite(cid) ? "kannst Karten hinzufügen und deine eigenen für alle ändern" : "kannst die Karten lernen"}. Was du an fremden Karten änderst, gilt nur für dich.</p>`}
-    <button class="pw-forgot" data-kr="leave" type="button" style="color:var(--again)">Kurs verlassen</button>
-    ${admin ? `<button class="pw-forgot" data-kr="del" type="button" style="color:var(--again);margin-top:2px">Kurs für alle löschen</button>` : ""}`,
+    <button class="pw-forgot" data-kr="leave" type="button" style="color:var(--again)">Kurs verlassen</button>`,
   root => root.addEventListener("click", e => krSheetClick(cid, e)));
 }
 async function krSheetClick(cid, e){
@@ -5549,8 +5549,6 @@ async function krSheetClick(cid, e){
     const others = (KR.members[cid] || []).filter(x => x.user_id !== USER.id), soleAdmin = krAdmin(cid); /* Kursleitung geht → das Mitglied, das am längsten dabei ist, übernimmt */
     if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = !others.length ? "Du bist allein – der Kurs wird gelöscht. Wirklich?" : soleAdmin ? `Wirklich? ${krName(others.slice().sort((x, y) => krTime(x.joined_at) - krTime(y.joined_at))[0].user_id)} übernimmt dann die Kursleitung.` : "Wirklich verlassen?"; setTimeout(() => { if (b.isConnected) { b.classList.remove("armed"); b.textContent = "Kurs verlassen"; } }, 4000); return; }
     if (await call("cm_remove_member", { p_cid: cid, p_uid: USER.id })) { const nm = cur.name; closeSheet(); krDrop(cid); toast(`Du hast „${nm}“ verlassen`); } }
-  else if (k === "del") { if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = "Wirklich für alle löschen? Alle Karten gehen verloren."; setTimeout(() => { if (b.isConnected) { b.classList.remove("armed"); b.textContent = "Kurs für alle löschen"; } }, 4000); return; }
-    closeSheet(); krDelete(cid); }
 }
 async function krDelete(cid){
   if (!krAdmin(cid)) { toast("Löschen kann nur die Kursleitung. Du kannst den Kurs über „Mitglieder“ verlassen."); return; }
@@ -7421,8 +7419,8 @@ function folderSheet(id, parentId, sect, newComm){
   const kDel = ex && kc ? (ex.croot ? krAdmin(kc) : krCanEdit(kc, KR.folders[id])) : !!ex;
   const d = ex ? { ...ex } : { id: uid(), name: "", parentId: parentId || null, color: COLORS[Object.keys(S.folders).length % COLORS.length], emoji: "📚", cover: null, section: parentId ? null : (sect || null), order: Date.now(), created: Date.now() };
   const exclude = id ? [id, ...descendants(id)] : [];
-  openSheet(`${head(newComm ? "Kurs anlegen" : ex ? "Ordner gestalten" : parentId ? "Neuer Unterordner" : "Neuer Ordner")}
-    <div class="preview"><div id="pv"></div><div class="muted" style="font-size:14.5px">${kc ? (newComm ? "Am besten einen Kurs pro Fach, z. B. „Bio 10b“. Name, Farbe und Emoji sehen alle Mitglieder." : "So sehen alle Mitglieder den Ordner.") : "So sieht dein Ordner in der Bibliothek aus. Wähle Farbe, Emoji oder ein eigenes Titelbild."}</div></div>
+  openSheet(`${head(newComm ? "Kurs anlegen" : ex ? (ex.croot ? "Kurs gestalten" : "Ordner gestalten") : parentId ? "Neuer Unterordner" : "Neuer Ordner")}
+    <div class="preview"><div id="pv"></div><div class="muted" style="font-size:14.5px">${kc ? (newComm ? "Am besten einen Kurs pro Fach, z. B. „Bio 10b“. Name, Farbe und Emoji sehen alle Mitglieder." : ex && ex.croot ? "So sehen alle Mitglieder den Kurs." : "So sehen alle Mitglieder den Ordner.") : "So sieht dein Ordner in der Bibliothek aus. Wähle Farbe, Emoji oder ein eigenes Titelbild."}</div></div>
     <div class="field"><label for="fn">Name</label><input class="in" id="fn" maxlength="80" placeholder="z. B. Financial Accounting" value="${esc(d.name)}"></div>
     <div class="field"><span class="lbl">Farbe</span><div class="swatches" id="sws">${COLORS.map(c => `<button class="sw ${c === d.color ? 'on' : ''}" style="--c:${c}" data-c="${c}" aria-label="Farbe ${c}"></button>`).join("")}<label class="sw sw-any ${COLORS.includes(d.color) ? '' : 'on cust'}" id="fcl" style="--c:${esc(safeColor(d.color))}" title="Eigene Farbe"><input type="color" class="colorin" id="fc" value="${esc(d.color)}" aria-label="Eigene Farbe"></label></div></div>
     <div class="field"><span class="lbl">Emoji</span><div class="emojis" id="ems"><button class="none ${d.emoji === '' ? 'on' : ''}" data-e="" aria-label="Kein Emoji" title="Kein Emoji">Kein</button>${EMOJIS.map(e => `<button class="${e === d.emoji ? 'on' : ''}" data-e="${e}">${e}</button>`).join("")}</div>
@@ -7432,7 +7430,7 @@ function folderSheet(id, parentId, sect, newComm){
     <div class="field"${kc ? " hidden" : ""}><span class="lbl">Liegt in</span><input type="hidden" id="fp" value="${esc(d.parentId || '')}"><button type="button" class="in ft-btn" id="fpb" aria-expanded="false"></button><div class="ftree" id="ftr" hidden></div></div>
     <div class="field" id="fsw" ${d.parentId || kc ? 'hidden' : ''}><label for="fs">Bereich</label><select class="in" id="fs"><option value="">Kein Bereich (Weitere Ordner)</option>${sectionList().map(x => `<option value="${x.id}" ${x.id === d.section ? 'selected' : ''}>${escN(x.name)}</option>`).join("")}<option value="__new">＋ Neuer Bereich …</option></select>
       <input class="in" id="fsn" maxlength="60" placeholder="Name des neuen Bereichs, z. B. Uni" hidden></div>
-    <div class="sheet-foot">${kDel ? `<button class="btn danger" id="fdel">${kc ? (ex.croot ? "Für alle löschen" : "Unterordner löschen") : "Ordner löschen"}</button>` : ''}<div class="r"><button class="btn" data-act="close">Abbrechen</button><button class="btn primary" id="fsave">Speichern</button></div></div>`,
+    <div class="sheet-foot">${kDel ? `<button class="btn danger" id="fdel">${kc ? (ex.croot ? "Kurs löschen" : "Unterordner löschen") : "Ordner löschen"}</button>` : ''}<div class="r"><button class="btn" data-act="close">Abbrechen</button><button class="btn primary" id="fsave">Speichern</button></div></div>`,
   root => {
     const pv = () => { $("#pv", root).innerHTML = tileHTML({ ...d, name: d.name || "Neuer Ordner", id: "__pv" }); };
     pv();
@@ -7493,7 +7491,10 @@ function folderSheet(id, parentId, sect, newComm){
       putFolder(d); closeSheet(); if (!ex) { if (d.parentId) S.open.add(d.parentId); toast("Ordner angelegt"); } else toast("Gespeichert");
     });
     const del = $("#fdel", root);
-    if (del) del.addEventListener("click", () => armDelete(del, () => { const p = ex.parentId; removeFolder(id); closeSheet(); if (S.fid === id || descendants(id).includes(S.fid)) go("lib", p && S.folders[p] ? p : null); toast("Ordner gelöscht"); }));
+    if (del) del.addEventListener("click", () => {
+      if (ex.croot && !del.classList.contains("armed")) { del.classList.add("armed"); del.textContent = "Wirklich für alle löschen?"; setTimeout(() => { if (del.isConnected) { del.classList.remove("armed"); del.textContent = "Kurs löschen"; } }, 4000); return; } /* Kurs: eigene Rückfrage, krDelete meldet selbst */
+      armDelete(del, () => { const p = ex.parentId; removeFolder(id); closeSheet(); if (S.fid === id || descendants(id).includes(S.fid)) go("lib", p && S.folders[p] ? p : null); if (!ex.croot) toast("Ordner gelöscht"); });
+    });
   });
 }
 async function makeCover(file){
@@ -7839,7 +7840,7 @@ function openMenu(btn, fid){
     <button data-act="pickStart"${d} role="menuitem">${MI.select}Karten auswählen<span class="sub" style="color:var(--muted)">${w ? 'kopieren, löschen' : 'in eigene Ordner kopieren'}</span></button>` : '') + `
     <button data-act="krInvite" data-id="${kc}" role="menuitem">${MI.invite}Leute einladen</button>
     <button data-act="krMembers" data-id="${kc}" role="menuitem">${MI.people}Mitglieder</button>` + (ed ? `
-    <button data-act="editFolder"${d} role="menuitem">${MI.edit}Ordner gestalten</button>` : '') + (sortBlock ? `<hr><div class="mh">Unterordner sortieren nach</div>
+    <button data-act="editFolder"${d} role="menuitem">${MI.edit}${fo.croot ? "Kurs gestalten" : "Ordner gestalten"}</button>` : '') + (sortBlock ? `<hr><div class="mh">Unterordner sortieren nach</div>
     ${sorts.map(([k, l]) => `<button data-act="sort" data-v="${k}" role="menuitemradio" aria-checked="${S.sort === k}">${miRadio(S.sort === k)}${l}</button>`).join("")}` : '');
     m.hidden = false; btn.setAttribute("aria-expanded", "true"); placeMenu(m, btn); return; }
   if (!fid && S.room === "class") {
