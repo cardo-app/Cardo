@@ -567,6 +567,35 @@ textarea.in{min-height:92px;resize:vertical;line-height:1.4}
 .sh-qr svg{width:168px;height:168px;border-radius:12px;box-shadow:0 0 0 1px var(--line)}
 .sh-qr span{font-size:12.5px;color:var(--muted);font-weight:600}
 .sh-note{font-size:13.5px;margin:0 0 10px;line-height:1.45}
+/* Klassenraum (Community-Ordner) */
+.room-tabs{display:flex;gap:22px;margin:-4px 0 18px;padding:0 2px}
+.room-tabs button{position:relative;padding:4px 0 7px;background:none;border:0;font:inherit;font-size:16px;font-weight:700;color:var(--muted);cursor:pointer;transition:color .2s}
+.room-tabs button.on{color:var(--ink)}
+.room-tabs button::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2.5px;border-radius:2px;background:currentColor;transform:scaleX(0);transition:transform .25s ease}
+.room-tabs button.on::after{transform:scaleX(1)}
+.kr-empty .big{font-size:40px;margin-bottom:6px}
+.kr-hint{display:block;margin-top:10px;font-size:14px}
+.kr-empty-f{margin-top:14px}
+.kr-badge{display:inline-flex;align-items:center;gap:3px;margin-left:6px;padding:0 6px;border-radius:99px;background:color-mix(in oklab,var(--muted) 16%,transparent);font-weight:700;font-size:11px;vertical-align:1px}
+.kr-badge svg{width:11px;height:11px}
+.kr-line{display:flex;align-items:center;gap:5px;margin-top:5px;font-size:12.5px;font-weight:700;opacity:.9}
+.kr-line svg{width:14px;height:14px;flex:none}
+.c-by{grid-column:1/-1;font-size:12px;font-weight:600;color:var(--muted);opacity:.8;margin-top:2px}
+.c-by.own{color:#FF5A36;opacity:1}
+.kr-note{font-size:14px;margin:-4px 2px 14px;line-height:1.45}
+.kr-orig{display:block;margin-top:6px;padding:0;background:none;border:0;font:inherit;font-weight:700;color:var(--ink);text-decoration:underline;cursor:pointer}
+.kr-code{font-family:ui-monospace,Menlo,monospace;font-size:30px;font-weight:800;letter-spacing:.14em;text-align:center;padding:12px 8px;border-radius:14px;background:var(--surface-2);-webkit-user-select:all;user-select:all}
+.kr-code-in{font-family:ui-monospace,Menlo,monospace;font-size:20px;font-weight:700;letter-spacing:.12em}
+.kr-code-in::placeholder{font-family:'Figtree',system-ui,sans-serif;letter-spacing:0;font-weight:500;font-size:16px}
+.kr-mems{display:flex;flex-direction:column;gap:6px}
+.kr-mem{border-radius:14px;background:var(--surface-2)}
+.kr-mrow{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;background:none;border:0;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.kr-mrow:disabled{cursor:default;opacity:1}
+.kr-av{width:34px;height:34px;flex:none;border-radius:50%;display:grid;place-items:center;font-weight:800;background:var(--surface);color:var(--ink);box-shadow:0 0 0 1px var(--line)}
+.kr-mt{flex:1;min-width:0}.kr-mt b{font-size:15.5px}.kr-mt>span:last-child{display:block;font-size:13px;color:var(--muted)}
+.kr-you{font-size:14px;color:var(--muted);font-weight:600}
+.kr-macts{display:flex;flex-wrap:wrap;gap:8px;padding:0 12px 12px 58px}
+.kr-macts .btn{padding:8px 12px;font-size:14px}
 #deckview{position:fixed;inset:0;z-index:300;display:flex;align-items:flex-end;justify-content:center;background:rgba(10,12,18,0);transition:background .2s ease}
 #deckview.in{background:rgba(10,12,18,.5)}
 @media (min-width:700px){#deckview{align-items:center}}
@@ -1567,6 +1596,128 @@ try {
 } catch {}
 const LOC = () => LOCALES[LANG];
 const I18N = {
+  "Tippe oben rechts auf ⋯, um einen anzulegen oder mit einem Code beizutreten.": ["Tap ⋯ at the top right to create one or join with a code.", "Tocca ⋯ in alto a destra per crearne una o unirti con un codice."],
+  "Mitglieder": ["Members", "Membri"],
+  "Einladen": ["Invite", "Invita"],
+  "Admin": ["Admin", "Admin"],
+  "Öffnen": ["Open", "Apri"],
+  "Meine Ordner": ["My folders", "Le mie cartelle"],
+  "Klassenraum": ["Classroom", "Aula"],
+  "Deine Kurse": ["Your courses", "I tuoi corsi"],
+  "Community-Ordner anlegen": ["Create community folder", "Crea cartella community"],
+  "Mit Code beitreten": ["Join with code", "Unisciti con codice"],
+  "Gemeinsam lernen": ["Learn together", "Studiare insieme"],
+  "Ein Community-Ordner gehört der ganzen Klasse oder dem ganzen Kurs: Alle lernen dieselben Karten, jeder kann Karten beisteuern, und dein Lernstand bleibt privat.": ["A community folder belongs to the whole class or course: everyone studies the same cards, anyone can contribute cards, and your progress stays private.", "Una cartella community appartiene a tutta la classe o al corso: tutti studiano le stesse schede, ognuno può aggiungerne e i tuoi progressi restano privati."],
+  "Bald verfügbar": ["Coming soon", "Presto disponibile"],
+  "Der Klassenraum wird gerade eingerichtet. Schau später noch einmal vorbei.": ["The classroom is being set up. Check back later.", "L'aula è in fase di preparazione. Riprova più tardi."],
+  "Gemeinsame Ordner für deine Klasse oder deinen Kurs gibt es nur mit Cardo-Konto.": ["Shared folders for your class or course need a Cardo account.", "Le cartelle condivise per la tua classe o il tuo corso richiedono un account Cardo."],
+  "Community · {}": ["Community · {}", "Community · {}"],
+  "du bist Admin": ["you're admin", "sei admin"],
+  "du kannst Karten hinzufügen": ["you can add cards", "puoi aggiungere schede"],
+  "nur lesen": ["read only", "sola lettura"],
+  "von dir": ["by you", "da te"],
+  "von": ["by", "di"],
+  "Von dir": ["By you", "Da te"],
+  "Von": ["By", "Di"],
+  "deine Version": ["your version", "la tua versione"],
+  "deine Version · Original wurde geändert": ["your version · original was changed", "la tua versione · l'originale è cambiato"],
+  "· Änderungen gelten für alle.": ["· Changes apply to everyone.", "· Le modifiche valgono per tutti."],
+  "· Änderungen gelten nur für dich – die anderen sehen weiter das Original.": ["· Changes only apply to you – the others still see the original.", "· Le modifiche valgono solo per te – gli altri vedono ancora l'originale."],
+  "Von dir · Änderungen gelten für alle.": ["By you · Changes apply to everyone.", "Da te · Le modifiche valgono per tutti."],
+  "Alle Mitglieder sehen diese Karte. Du kannst sie später für alle ändern.": ["All members see this card. You can change it for everyone later.", "Tutti i membri vedono questa scheda. Potrai modificarla per tutti in seguito."],
+  "Original wurde geändert – übernehmen": ["Original was changed – use it", "L'originale è cambiato – usalo"],
+  "Original wiederherstellen": ["Restore original", "Ripristina originale"],
+  "Original wiederhergestellt": ["Original restored", "Originale ripristinato"],
+  "Für mich ausblenden": ["Hide for me", "Nascondi per me"],
+  "Ausblenden": ["Hide", "Nascondi"],
+  "Karte ausgeblendet": ["Card hidden", "Scheda nascosta"],
+  "Wieder eingeblendet": ["Shown again", "Di nuovo visibile"],
+  "{} wieder einblenden": ["Show {} again", "Mostra di nuovo {}"],
+  "Noch keine Karten": ["No cards yet", "Ancora nessuna scheda"],
+  "Leg die erste Karte an – alle anderen sehen sie sofort.": ["Create the first card – everyone else sees it right away.", "Crea la prima scheda – tutti gli altri la vedono subito."],
+  "Klasse einladen": ["Invite class", "Invita la classe"],
+  "Sobald jemand Karten anlegt, erscheinen sie hier.": ["As soon as someone creates cards, they'll appear here.", "Appena qualcuno crea delle schede, compariranno qui."],
+  "Mitglieder & einladen": ["Members & invite", "Membri e inviti"],
+  "Mitglieder und Einladen": ["Members and invite", "Membri e inviti"],
+  "Benutzername": ["Username", "Nome utente"],
+  "kopieren, löschen": ["copy, delete", "copia, elimina"],
+  "in eigene Ordner kopieren": ["copy to your folders", "copia nelle tue cartelle"],
+  "Benutzername ändern": ["Change username", "Cambia nome utente"],
+  "Wähle deinen Benutzernamen": ["Choose your username", "Scegli il tuo nome utente"],
+  "So sehen dich die anderen in deinen Community-Ordnern.": ["This is how others see you in your community folders.", "Così ti vedono gli altri nelle tue cartelle community."],
+  "Im Klassenraum sehen die anderen, wer welche Karte erstellt hat. Dafür brauchst du einen Namen, z. B. „Lena M.“. Deine E-Mail-Adresse bleibt privat.": ["In the classroom, others can see who created which card. For that you need a name, e.g. “Lena M.”. Your email address stays private.", "Nell'aula gli altri vedono chi ha creato quale scheda. Per questo ti serve un nome, ad es. “Lena M.”. Il tuo indirizzo e-mail resta privato."],
+  "z. B. Lena M.": ["e.g. Lena M.", "ad es. Lena M."],
+  "Mindestens 3 Zeichen.": ["At least 3 characters.", "Almeno 3 caratteri."],
+  "Bitte ohne < > \" &.": ["Please without < > \" &.", "Senza < > \" &, per favore."],
+  "Dieser Name ist schon vergeben. Probier einen anderen.": ["This name is already taken. Try another one.", "Questo nome è già in uso. Provane un altro."],
+  "Benutzername gespeichert": ["Username saved", "Nome utente salvato"],
+  "Community beitreten": ["Join community", "Unisciti alla community"],
+  "Gib den Code ein, den du von deiner Lehrkraft oder aus deiner Klasse bekommen hast.": ["Enter the code you got from your teacher or your class.", "Inserisci il codice che hai ricevuto dall'insegnante o dalla classe."],
+  "Einladungscode": ["Invite code", "Codice d'invito"],
+  "z. B. K7QM2XPA": ["e.g. K7QM2XPA", "ad es. K7QM2XPA"],
+  "Wird gesucht …": ["Searching …", "Ricerca …"],
+  "Diesen Code gibt es nicht. Prüf ihn noch einmal.": ["This code doesn't exist. Please check it again.", "Questo codice non esiste. Controllalo di nuovo."],
+  "Du bist schon dabei.": ["You're already in.", "Fai già parte."],
+  "Du lernst die gemeinsamen Karten mit deinem eigenen Lernstand. Was du an fremden Karten änderst, gilt nur für dich.": ["You study the shared cards with your own progress. Changes you make to other people's cards only apply to you.", "Studi le schede comuni con i tuoi progressi. Le modifiche alle schede altrui valgono solo per te."],
+  "Beitreten": ["Join", "Unisciti"],
+  "Wird beigetreten …": ["Joining …", "Accesso in corso …"],
+  "Willkommen in „{}“": ["Welcome to “{}”", "Benvenuto in “{}”"],
+  "Der Code hat 8 Zeichen.": ["The code has 8 characters.", "Il codice ha 8 caratteri."],
+  "Code kopieren": ["Copy code", "Copia codice"],
+  "Code kopiert": ["Code copied", "Codice copiato"],
+  "Link teilen …": ["Share link …", "Condividi link …"],
+  "Neuen Code erzeugen (alter wird ungültig)": ["Create new code (old one stops working)", "Crea nuovo codice (quello vecchio non vale più)"],
+  "Wirklich? Der alte Code geht dann nicht mehr.": ["Really? The old code will stop working.", "Davvero? Il vecchio codice non funzionerà più."],
+  "Neuer Code erstellt": ["New code created", "Nuovo codice creato"],
+  "Neue Mitglieder dürfen Karten schreiben": ["New members can write cards", "I nuovi membri possono scrivere schede"],
+  "Aus: Wer neu beitritt, kann nur lernen. Du kannst es für jede Person einzeln ändern.": ["Off: new members can only study. You can change it for each person.", "Disattivato: chi si unisce può solo studiare. Puoi cambiarlo per ogni persona."],
+  "Tippe auf eine Person, um Rechte zu ändern oder sie zu entfernen.": ["Tap a person to change their rights or remove them.", "Tocca una persona per cambiare i suoi diritti o rimuoverla."],
+  "Du kannst Karten hinzufügen und deine eigenen für alle ändern. Was du an fremden Karten änderst, gilt nur für dich.": ["You can add cards and change your own for everyone. Changes to other people's cards only apply to you.", "Puoi aggiungere schede e modificare le tue per tutti. Le modifiche alle schede altrui valgono solo per te."],
+  "Du kannst die Karten lernen. Was du an fremden Karten änderst, gilt nur für dich.": ["You can study the cards. Changes to other people's cards only apply to you.", "Puoi studiare le schede. Le modifiche alle schede altrui valgono solo per te."],
+  "Community verlassen": ["Leave community", "Lascia la community"],
+  "Community-Ordner für alle löschen": ["Delete community folder for everyone", "Elimina la cartella community per tutti"],
+  "darf Karten schreiben": ["can write cards", "può scrivere schede"],
+  "(du)": ["(you)", "(tu)"],
+  "Nur lesen": ["Read only", "Sola lettura"],
+  "Schreiben erlauben": ["Allow writing", "Consenti scrittura"],
+  "Admin-Rechte entziehen": ["Remove admin rights", "Togli diritti admin"],
+  "Zum Admin machen": ["Make admin", "Rendi admin"],
+  "Wirklich entfernen?": ["Really remove?", "Rimuovere davvero?"],
+  "{} kann jetzt nur noch lernen": ["{} can now only study", "{} ora può solo studiare"],
+  "{} darf jetzt Karten schreiben": ["{} can now write cards", "{} ora può scrivere schede"],
+  "{} ist jetzt Admin": ["{} is now admin", "{} ora è admin"],
+  "{} ist kein Admin mehr": ["{} is no longer admin", "{} non è più admin"],
+  "{} wurde entfernt": ["{} was removed", "{} è stato rimosso"],
+  "Du bist allein – der Ordner wird gelöscht. Wirklich?": ["You're alone – the folder will be deleted. Really?", "Sei da solo – la cartella verrà eliminata. Davvero?"],
+  "Wirklich? {} wird dann Admin.": ["Really? {} will then become admin.", "Davvero? {} diventerà admin."],
+  "Wirklich verlassen?": ["Really leave?", "Uscire davvero?"],
+  "Du hast „{}“ verlassen": ["You left “{}”", "Hai lasciato “{}”"],
+  "Wirklich für alle löschen? Alle Karten gehen verloren.": ["Really delete for everyone? All cards will be lost.", "Eliminare davvero per tutti? Tutte le schede andranno perse."],
+  "„{}“ wurde für alle gelöscht": ["“{}” was deleted for everyone", "“{}” è stata eliminata per tutti"],
+  "„{}“ wurde gelöscht": ["“{}” was deleted", "“{}” è stata eliminata"],
+  "Du bist nicht mehr in „{}“": ["You're no longer in “{}”", "Non fai più parte di “{}”"],
+  "Dein Community-Ordner ist angelegt – du bist Admin. Gib deiner Klasse den Code oder den Link, damit sie beitreten kann.": ["Your community folder is ready – you're admin. Give your class the code or link so they can join.", "La tua cartella community è pronta – sei admin. Dai alla classe il codice o il link per unirsi."],
+  "Am besten einen pro Fach oder Kurs, z. B. „Bio 10b“. Name, Farbe und Emoji sehen alle Mitglieder.": ["Best one per subject or course, e.g. “Bio 10b”. All members see the name, colour and emoji.", "Meglio una per materia o corso, ad es. “Bio 10b”. Nome, colore ed emoji li vedono tutti i membri."],
+  "So sehen alle Mitglieder den Ordner.": ["This is how all members see the folder.", "Così tutti i membri vedono la cartella."],
+  "Für alle löschen": ["Delete for everyone", "Elimina per tutti"],
+  "Unterordner löschen": ["Delete subfolder", "Elimina sottocartella"],
+  "Gib dem Community-Ordner einen Namen.": ["Give the community folder a name.", "Dai un nome alla cartella community."],
+  "Unterordner angelegt": ["Subfolder created", "Sottocartella creata"],
+  "Wird angelegt …": ["Creating …", "Creazione …"],
+  "Der Klassenraum geht nur mit Konto.": ["The classroom requires an account.", "L'aula richiede un account."],
+  "Der Klassenraum ist noch nicht eingerichtet.": ["The classroom isn't set up yet.", "L'aula non è ancora pronta."],
+  "In diesem Community-Ordner darfst du keine Karten hinzufügen.": ["You can't add cards to this community folder.", "Non puoi aggiungere schede a questa cartella community."],
+  "In diesem Community-Ordner darfst du nichts anlegen.": ["You can't create anything in this community folder.", "Non puoi creare nulla in questa cartella community."],
+  "Name und Aussehen ändert der Admin.": ["Only the admin changes name and look.", "Nome e aspetto li cambia l'admin."],
+  "Löschen kann nur der Admin. Du kannst den Ordner über „Mitglieder“ verlassen.": ["Only the admin can delete. You can leave the folder via “Members”.", "Solo l'admin può eliminare. Puoi lasciare la cartella da “Membri”."],
+  "Dafür brauchst du Internet.": ["You need internet for this.", "Per questo serve internet."],
+  "Wähle zuerst einen Benutzernamen.": ["Choose a username first.", "Scegli prima un nome utente."],
+  "Es muss mindestens einen Admin geben.": ["There must be at least one admin.", "Ci deve essere almeno un admin."],
+  "Darin sind Karten von anderen – löschen kann das nur der Admin.": ["It contains other people's cards – only the admin can delete it.", "Contiene schede di altri – solo l'admin può eliminarla."],
+  "Dafür fehlen dir die Rechte.": ["You don't have permission for this.", "Non hai i permessi per questo."],
+  "Du verwaltest schon sehr viele Community-Ordner.": ["You already manage a lot of community folders.", "Gestisci già moltissime cartelle community."],
+  "Dieser Community-Ordner ist voll.": ["This community folder is full.", "Questa cartella community è piena."],
+  "Das hat nicht geklappt. Versuch es gleich noch einmal.": ["That didn't work. Try again in a moment.", "Non ha funzionato. Riprova tra poco."],
   /* Allgemein */
   "Cardo lädt …": ["Cardo is loading …", "Cardo si sta caricando …"],
   "Hauptnavigation": ["Main navigation", "Navigazione principale"],
@@ -2330,6 +2481,8 @@ const PLURALS = {
   "Zeile": [["row", "rows"], ["riga", "righe"]],
   "Ordner": [["folder", "folders"], ["cartella", "cartelle"]],
   "Unterordner": [["subfolder", "subfolders"], ["sottocartella", "sottocartelle"]],
+  "Mitglied": [["member", "members"], ["membro", "membri"]],
+  "ausgeblendete Karte": [["hidden card", "hidden cards"], ["scheda nascosta", "schede nascoste"]],
   "Puffertag": [["buffer day", "buffer days"], ["giorno di margine", "giorni di margine"]],
   "Tag": [["day", "days"], ["giorno", "giorni"]],
   "neue Karte": [["new card", "new cards"], ["nuova scheda", "nuove schede"]],
@@ -3449,6 +3602,7 @@ const IC = {
   close:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
   undo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>',
   edit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>',
+  people:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 19.5c.6-3.3 3.2-5.5 6.5-5.5s5.9 2.2 6.5 5.5"/><path d="M15.5 5.2a3.4 3.4 0 0 1 0 6.6M18 14.3c1.9.8 3.1 2.6 3.5 5.2"/></svg>',
   pen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>'
 };
 /* Einheitliche Symbole für Menüeinträge (gleiche Größe und Strichstärke, feste Breite → Text beginnt überall an derselben Stelle) */
@@ -3467,6 +3621,9 @@ const MI = {
   grid: MI_P('<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>'),
   list: MI_P('<path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" stroke-width="2.4"/>'),
   check: MI_P('<path d="M5 12.5l4.5 4.5L19 7.5" stroke-width="2.4"/>'),
+  people: MI_P('<circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 19.5c.6-3.3 3.2-5.5 6.5-5.5s5.9 2.2 6.5 5.5"/><path d="M15.5 5.2a3.4 3.4 0 0 1 0 6.6M18 14.3c1.9.8 3.1 2.6 3.5 5.2"/>'),
+  join: MI_P('<path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/><path d="M3.5 12H14M10.5 8.5 14 12l-3.5 3.5"/>'),
+  user: MI_P('<circle cx="12" cy="8" r="4"/><path d="M4.5 20c.8-3.8 3.8-6 7.5-6s6.7 2.2 7.5 6"/>'),
   none: '<span class="mi" aria-hidden="true"></span>'
 };
 /* Auswahl-Einträge: Häkchen links im Symbolplatz (wie bei iOS), sonst leerer Platz → Text bleibt bündig */
@@ -4444,6 +4601,7 @@ function errText(e){
   return "Speichern fehlgeschlagen. Prüfe deine Verbindung.";
 }
 function putFolder(f){
+  if (f.comm || commOf(f.parentId)) { krPutFolder(f); return; }
   S.folders[f.id] = f; render();
   if (DB) enqueue("folders/"+f.id, () => DB.doc("folders/"+f.id).set(f)); else saveLocal();
 }
@@ -4458,7 +4616,7 @@ function removeSection(id){
 }
 const sectionList = () => Object.values(S.sections).sort((a,b) => (a.order||0) - (b.order||0) || String(a.name).localeCompare(String(b.name), "de"));
 const sectOf = f => f.section && S.sections[f.section] ? f.section : null;
-const topIn = sid => children(null).filter(f => sectOf(f) === sid);
+const topIn = sid => children(null).filter(f => !f.comm && sectOf(f) === sid);
 function moveSection(id, dir){
   const list = sectionList(), i = list.findIndex(x => x.id === id), j = i + dir;
   if (i < 0 || j < 0 || j >= list.length) return;
@@ -4466,6 +4624,7 @@ function moveSection(id, dir){
   list.forEach((x, k) => { if (x.order !== k) putSection({ ...x, order: k }); });
 }
 function removeFolder(id){
+  if (commOf(id)) { krRemoveFolder(id); return; }
   const ids = [id, ...descendants(id)];
   ids.forEach(i => { delete S.folders[i]; delete S.decks[i]; });
   render();
@@ -4473,6 +4632,7 @@ function removeFolder(id){
   else saveLocal();
 }
 function writeDeck(fid){
+  if (commOf(fid)) { krSyncDeck(fid); return; }
   const size = JSON.stringify(S.decks[fid] || {}).length;
   if (size > 240000) { toast("Dieser Ordner ist zu voll. Verteile die Karten auf Unterordner."); return; }
   if (DB) enqueue("cards/"+fid, () => DB.doc("cards/"+fid).set({ cards: S.decks[fid] || {} })); else saveLocal();
@@ -4796,11 +4956,14 @@ function startApp(){
     if (pk && LOCALES[pk] && v.lang !== pk) { v.lang = pk; setTimeout(() => saveSettings({ lang: pk }), 0); }
     S.set = v; try { localStorage.setItem("kartenfach-settings", JSON.stringify(S.set)); } catch {} if (setLang(S.set.lang)) { if (!$("#sheet").hidden) closeSheet(); schedulePrerender(); } applyTheme(); render(); });
   DB.collection("sections").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = d.data(); }); S.sections = o; render(); });
-  DB.collection("folders").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = d.data(); }); S.folders = o; S.loaded.f = true; render(); });
-  DB.collection("cards").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = { ...((d.data()||{}).cards || {}) }; }); S.decks = o; S.loaded.c = true; render(); });
+  krCacheLoad();
+  DB.collection("cprog").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = d.data() || {}; }); KR.prog = o; krInject(); render(); });
+  DB.collection("folders").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = d.data(); }); S.folders = o; krInject(); S.loaded.f = true; render(); });
+  DB.collection("cards").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = { ...((d.data()||{}).cards || {}) }; }); S.decks = o; krInject(); S.loaded.c = true; render(); });
   DB.doc("stats/main").onSnapshot(d => { const x = d.exists ? (d.data()||{}) : {}; S.days = { ...(x.days || {}) }; S.seen = { ...(x.seen || {}) }; S.lastExport = x.lastExport || 0; S.extraNew = { ...(x.extraNew || {}) }; S.fdays = { ...(x.fdays || {}) }; S.prog = { ...(x.prog || {}) }; S.loaded.s = true; render(); });
+  krLoad();
   DB.load().then(() => { DB.flush(); setTimeout(startDeck, 60); }).catch(e => { console.warn(e); toast(navigator.onLine ? "Laden fehlgeschlagen. Versuch es gleich noch einmal." : "Offline: Du siehst den zuletzt gespeicherten Stand."); })
-    .finally(() => { S.mode = "cloud"; render(); runPendingDeck(); });
+    .finally(() => { S.mode = "cloud"; render(); runPendingDeck(); runPendingJoin(); });
 }
 
 /* ---------- Kartendecks teilen (Stufe 1: Kopie per Link) ----------
@@ -4942,6 +5105,379 @@ async function addSharedDeck(id, btn){
 }
 function runPendingDeck(){ let id = null; try { id = localStorage.getItem("cardo-pending-deck"); } catch {} if (id && !$("#deckview")) addSharedDeck(id); }
 
+/* ---------- Klassenraum: Community-Ordner (ein gemeinsamer Ordner pro Fach/Kurs) ----------
+   Server: Tabellen profiles, communities, community_members, community_folders, community_cards (SQL: Claude outputs/cardo-community-supabase.sql).
+   In der App stehen sie wie normale Ordner in S.folders/S.decks (Feld comm = Community-ID), damit Lernen, Prüfen und Statistik einfach mitlaufen.
+   Privat bleibt: Lernstand, eigene Fassung fremder Karten (o), ausgeblendete Karten (h) und Ordner-Einstellungen (set) – im eigenen Konto unter cprog/<ordner-id>.
+   writeDeck / putFolder / removeFolder leiten Community-Ordner hierher um (krSyncDeck, krPutFolder, krRemoveFolder). Rechte prüft zusätzlich die Datenbank. */
+const KR = { ok: null, me: undefined, list: {}, members: {}, names: {}, folders: {}, cards: {}, prog: {}, ids: new Set(), ch: null, q: {}, at: 0 };
+const KR_TEXT = ["id", "f", "b", "created", "by", "comm", "ov", "oc"];
+const KR_FSHARED = ["id", "name", "emoji", "color", "parentId", "comm", "croot", "by", "created", "cover", "cpos", "section", "share", "from"];
+const krOn = () => !!(SB && USER && S.mode !== "local");
+const commOf = fid => { const f = S.folders[fid]; return f && f.comm || null; };
+const krRole = cid => (KR.list[cid] || {}).role || null;
+const krAdmin = cid => krRole(cid) === "admin";
+const krWrite = cid => { const c = KR.list[cid]; return !!c && (c.role === "admin" || !!c.can_write); };
+const krCanEdit = (cid, row) => krAdmin(cid) || (!!row && row.created_by === USER.id && krWrite(cid));
+const krName = u => u === (USER && USER.id) ? (KR.me || "Du") : KR.names[u] || "Ehemaliges Mitglied";
+const krTime = s => Date.parse(s || "") || 0;
+const krId = p => p + [...crypto.getRandomValues(new Uint8Array(14))].map(x => "abcdefghijkmnopqrstuvwxyz23456789"[x % 33]).join("");
+const krProg = fid => { const p = KR.prog[fid] || {}; return { cards: { ...(p.cards || {}) }, set: { ...(p.set || {}) } }; };
+const krRoleText = cid => krAdmin(cid) ? "du bist Admin" : krWrite(cid) ? "du kannst Karten hinzufügen" : "nur lesen";
+const ownRoots = () => children(null).filter(f => !f.comm);
+const krRoots = () => children(null).filter(f => f.comm);
+function krErr(e){
+  const m = String((e && (e.code || "") + " " + (e.message || "")) || "");
+  if (!navigator.onLine) return "Dafür brauchst du Internet.";
+  if (/PGRST20|42P01|42883|schema cache/.test(m)) return "Der Klassenraum ist noch nicht eingerichtet.";
+  if (/no_username/.test(m)) return "Wähle zuerst einen Benutzernamen.";
+  if (/bad_code/.test(m)) return "Diesen Code gibt es nicht. Prüf ihn noch einmal.";
+  if (/last_admin/.test(m)) return "Es muss mindestens einen Admin geben.";
+  if (/foreign_content/.test(m)) return "Darin sind Karten von anderen – löschen kann das nur der Admin.";
+  if (/not_admin|not_allowed|42501|row-level/.test(m)) return "Dafür fehlen dir die Rechte.";
+  if (/too_many/.test(m)) return "Du verwaltest schon sehr viele Community-Ordner.";
+  if (/full/.test(m)) return "Dieser Community-Ordner ist voll.";
+  return "Das hat nicht geklappt. Versuch es gleich noch einmal.";
+}
+/* Community-Daten als Ordner/Karten in S.folders/S.decks einhängen (nach jedem Laden/Ändern neu) */
+function krInject(){
+  KR.ids.forEach(id => { if (S.folders[id] && S.folders[id].comm) delete S.folders[id]; delete S.decks[id]; });
+  KR.ids = new Set();
+  const add = (id, base) => { const set = (KR.prog[id] || {}).set || {}; S.folders[id] = { order: base.created, ...set, ...base }; S.decks[id] = {}; KR.ids.add(id); };
+  Object.values(KR.list).forEach(c => add(c.id, { id: c.id, name: c.name, emoji: c.emoji ?? "", color: safeColor(c.color), parentId: null, comm: c.id, croot: 1, by: c.created_by, created: krTime(c.created_at) }));
+  Object.values(KR.folders).forEach(f => { if (KR.list[f.community_id]) add(f.id, { id: f.id, name: f.name, emoji: f.emoji ?? "", color: safeColor(f.color), parentId: f.parent_id || f.community_id, comm: f.community_id, by: f.created_by, created: krTime(f.created_at) }); });
+  Object.values(KR.folders).forEach(f => { const x = S.folders[f.id]; if (x && !S.folders[x.parentId]) x.parentId = f.community_id; }); /* Elternordner fehlt → direkt in den Community-Ordner */
+  Object.values(KR.cards).forEach(k => {
+    const deck = S.decks[k.folder_id]; if (!deck || !KR.ids.has(k.folder_id)) return;
+    const p = ((KR.prog[k.folder_id] || {}).cards || {})[k.id] || {}; if (p.h) return;
+    const sched = { ...p }; delete sched.o; delete sched.h;
+    const created = krTime(k.created_at);
+    deck[k.id] = { due: created, ivl: 0, ease: 2.5, reps: 0, lapses: 0, ...sched, id: k.id, f: p.o ? p.o.f : k.front, b: p.o ? p.o.b : k.back, created, by: k.created_by, comm: k.community_id,
+      ...(p.o ? { ov: 1, oc: krTime(k.updated_at) > (p.o.at || 0) ? 1 : 0 } : {}) };
+  });
+}
+function krHidden(fid){ const c = (KR.prog[fid] || {}).cards || {}; return Object.keys(c).filter(id => c[id].h && KR.cards[id] && KR.cards[id].folder_id === fid); }
+function krSaveProg(fid, p){
+  const clean = { cards: p.cards, set: p.set }; KR.prog[fid] = clean;
+  if (DB) enqueue("cprog/" + fid, () => DB.doc("cprog/" + fid).set(clean));
+}
+/* Server-Änderungen pro Community nacheinander ausführen; bei Fehlern neu laden (zeigt wieder den echten Stand) */
+function krRun(cid, ops){
+  const p = (KR.q[cid] || Promise.resolve()).then(async () => {
+    for (let i = 0; i < ops.length; i++) {
+      const [k, a, b] = ops[i]; let r;
+      if (k === "cards+") { const rows = [a]; while (ops[i + 1] && ops[i + 1][0] === "cards+") rows.push(ops[++i][1]); for (let j = 0; j < rows.length; j += 200) { r = await SB.from("community_cards").insert(rows.slice(j, j + 200)); if (r.error) break; } }
+      else if (k === "card") r = await SB.from("community_cards").update(b).eq("id", a);
+      else if (k === "card-") r = await SB.from("community_cards").delete().eq("id", a);
+      else if (k === "folder+") r = await SB.from("community_folders").insert(a);
+      else if (k === "folder") r = await SB.from("community_folders").update(b).eq("id", a);
+      else if (k === "comm") r = await SB.from("communities").update(b).eq("id", a);
+      else if (k === "rpc") r = await SB.rpc(a, b);
+      if (r && r.error) throw r.error;
+    }
+  }).catch(e => { console.warn("klassenraum", e); toast(krErr(e)); krLoad(); });
+  KR.q[cid] = p; return p;
+}
+/* Ein Community-Ordner wurde in S.decks geändert (Lernen, Bearbeiten, Löschen, Verschieben, Import …) → Unterschiede verteilen:
+   Text: für alle (eigene Karte bzw. Admin) oder nur für mich (o) · Lernstand: privat · fehlende Karten: löschen bzw. für mich ausblenden. */
+function krSyncDeck(fid){
+  const cid = commOf(fid); if (!cid) return;
+  const deck = S.decks[fid] || {}, P = krProg(fid), ops = [], now = new Date().toISOString(), others = {};
+  let dirty = false, denied = 0;
+  const progOf = id => others[id] || (others[id] = krProg(id));
+  Object.values(deck).forEach(c => {
+    let sv = KR.cards[c.id]; const old = P.cards[c.id] || {}, rec = {};
+    for (const k in c) if (!KR_TEXT.includes(k)) rec[k] = c[k];
+    if (old.o) rec.o = old.o;
+    if (!sv) {
+      if (!krWrite(cid)) { denied++; return; }
+      const row = { id: c.id.length >= 8 ? c.id : krId("k"), community_id: cid, folder_id: fid, front: String(c.f || ""), back: String(c.b || "") };
+      KR.cards[row.id] = sv = { ...row, created_by: USER.id, created_at: now, updated_at: now }; ops.push(["cards+", row]);
+      if (row.id !== c.id) { delete deck[c.id]; }
+      if (rec.reps) { P.cards[row.id] = rec; dirty = true; } return;
+    }
+    if (sv.folder_id !== fid) { /* innerhalb der Community verschoben */
+      if (!krCanEdit(cid, sv)) { denied++; return; }
+      const from = progOf(sv.folder_id); if (from.cards[c.id]) { const o = from.cards[c.id]; delete from.cards[c.id]; from.dirty = true; if (o.o) rec.o = o.o; }
+      sv.folder_id = fid; ops.push(["card", c.id, { folder_id: fid }]);
+    }
+    const curF = rec.o ? rec.o.f : sv.front, curB = rec.o ? rec.o.b : sv.back;
+    if (c.f !== curF || c.b !== curB) {
+      if (krCanEdit(cid, sv)) { sv.front = c.f; sv.back = c.b; sv.updated_at = now; delete rec.o; ops.push(["card", c.id, { front: c.f, back: c.b }]); }
+      else if (c.f === sv.front && c.b === sv.back) delete rec.o;
+      else rec.o = { f: c.f, b: c.b, at: krTime(sv.updated_at) };
+    }
+    if (!rec.reps && !rec.o && !P.cards[c.id]) return; /* noch nie gelernt und nicht geändert → nichts speichern */
+    if (JSON.stringify(rec) !== JSON.stringify(old)) { P.cards[c.id] = rec; dirty = true; }
+  });
+  Object.values(KR.cards).forEach(sv => {
+    if (sv.folder_id !== fid || deck[sv.id] || (P.cards[sv.id] || {}).h) return;
+    if (krCanEdit(cid, sv)) { delete KR.cards[sv.id]; delete P.cards[sv.id]; ops.push(["card-", sv.id]); }
+    else P.cards[sv.id] = { ...(P.cards[sv.id] || {}), h: 1 };
+    dirty = true;
+  });
+  Object.entries(others).forEach(([id, p]) => { if (p.dirty) { delete p.dirty; krSaveProg(id, p); } });
+  if (dirty) krSaveProg(fid, P);
+  if (denied) toast("In diesem Community-Ordner darfst du keine Karten hinzufügen.");
+  if (ops.length) { krRun(cid, ops); krCacheSoon(); }
+  krInject(); render();
+}
+/* Ordner-Änderung: Name/Emoji/Farbe gelten für alle (Admin bzw. wer den Unterordner angelegt hat), alles andere (Lernrichtung, Tageslimit, Reihenfolge …) nur für mich */
+function krPutFolder(f){
+  const cid = f.comm || commOf(f.parentId); if (!cid) return;
+  const root = f.id === cid, sv = root ? KR.list[cid] : KR.folders[f.id], now = new Date().toISOString();
+  const set = {}; for (const k in f) if (!KR_FSHARED.includes(k)) set[k] = f[k];
+  const P = krProg(f.id); if (JSON.stringify(set) !== JSON.stringify(P.set)) { P.set = set; krSaveProg(f.id, P); }
+  const shared = { name: String(f.name || "Ordner").slice(0, 80), emoji: String(f.emoji ?? "").slice(0, 16), color: safeColor(f.color) };
+  if (!sv) {
+    if (!krWrite(cid)) { toast("In diesem Community-Ordner darfst du nichts anlegen."); krInject(); render(); return; }
+    const parent = f.parentId && f.parentId !== cid && KR.folders[f.parentId] ? f.parentId : null;
+    const row = { id: f.id.length >= 8 ? f.id : krId("f"), community_id: cid, parent_id: parent, ...shared };
+    KR.folders[row.id] = { ...row, created_by: USER.id, created_at: now, updated_at: now };
+    krRun(cid, [["folder+", row]]);
+  } else if (sv.name !== shared.name || (sv.emoji ?? "") !== shared.emoji || safeColor(sv.color) !== shared.color) {
+    if (root ? !krAdmin(cid) : !krCanEdit(cid, sv)) toast("Name und Aussehen ändert der Admin.");
+    else { Object.assign(sv, shared); krRun(cid, [[root ? "comm" : "folder", f.id, shared]]); }
+  }
+  krCacheSoon(); krInject(); render();
+}
+function krRemoveFolder(id){
+  const cid = commOf(id); if (!cid) return;
+  if (id === cid) { krDelete(cid); return; }
+  const kill = [id, ...descendants(id)];
+  kill.forEach(x => { delete KR.folders[x]; Object.values(KR.cards).forEach(k => { if (k.folder_id === x) delete KR.cards[k.id]; }); if (DB) DB.doc("cprog/" + x).delete(); delete KR.prog[x]; });
+  krRun(cid, [["rpc", "cm_delete_folder", { p_fid: id }]]); krCacheSoon(); krInject(); render();
+}
+function krDrop(cid){ /* Community aus der App entfernen (verlassen, entfernt worden, gelöscht) */
+  const ids = [...KR.ids].filter(id => S.folders[id] && S.folders[id].comm === cid);
+  delete KR.list[cid]; delete KR.members[cid];
+  Object.values(KR.folders).forEach(f => { if (f.community_id === cid) delete KR.folders[f.id]; });
+  Object.values(KR.cards).forEach(k => { if (k.community_id === cid) delete KR.cards[k.id]; });
+  ids.forEach(id => { if (DB) DB.doc("cprog/" + id).delete(); delete KR.prog[id]; });
+  krInject(); krCacheSoon(); if (S.fid && !S.folders[S.fid]) go("lib", null); else render();
+}
+/* ---- Laden, Zwischenspeicher (für Offline-Start), Live-Aktualisierung ---- */
+const krCK = () => "cardo-kr-" + USER.id;
+function krCacheLoad(){ try { const d = JSON.parse(localStorage.getItem(krCK()) || "null"); if (d) { KR.me = d.me; KR.list = d.list || {}; KR.members = d.members || {}; KR.names = d.names || {}; KR.folders = d.folders || {}; KR.cards = d.cards || {}; KR.ok = true; } } catch {} }
+let krCT = 0;
+function krCacheSoon(){ clearTimeout(krCT); krCT = setTimeout(() => { try { localStorage.setItem(krCK(), JSON.stringify({ me: KR.me, list: KR.list, members: KR.members, names: KR.names, folders: KR.folders, cards: KR.cards })); } catch {} }, 800); }
+async function krAll(q){ const out = []; for (let from = 0; ; from += 1000) { const r = await q().range(from, from + 999); if (r.error) throw r.error; out.push(...r.data); if (r.data.length < 1000) return out; } }
+let krLoading = null;
+function krLoad(){
+  if (!krOn()) return Promise.resolve();
+  if (krLoading) return krLoading;
+  krLoading = (async () => {
+    try {
+      const me = await SB.from("profiles").select("username").eq("user_id", USER.id).maybeSingle(); if (me.error) throw me.error;
+      const mm = await SB.from("community_members").select("community_id,role,can_write").eq("user_id", USER.id); if (mm.error) throw mm.error;
+      const ids = mm.data.map(x => x.community_id), list = {}, members = {}, names = {}, folders = {}, cards = {};
+      if (ids.length) {
+        const [cs, ms] = await Promise.all([SB.from("communities").select("*").in("id", ids), SB.from("community_members").select("community_id,user_id,role,can_write,joined_at").in("community_id", ids)]);
+        if (cs.error) throw cs.error; if (ms.error) throw ms.error;
+        const fs = await krAll(() => SB.from("community_folders").select("*").in("community_id", ids).order("id"));
+        const ks = await krAll(() => SB.from("community_cards").select("id,community_id,folder_id,front,back,created_by,created_at,updated_at").in("community_id", ids).order("id"));
+        cs.data.forEach(c => { const m = mm.data.find(x => x.community_id === c.id); list[c.id] = { ...c, role: m.role, can_write: m.can_write }; });
+        ms.data.forEach(m => (members[m.community_id] = members[m.community_id] || []).push(m));
+        fs.forEach(f => { folders[f.id] = f; }); ks.forEach(k => { cards[k.id] = k; });
+        const uids = [...new Set(ms.data.map(m => m.user_id))];
+        if (uids.length) { const ps = await SB.from("profiles").select("user_id,username").in("user_id", uids); if (ps.error) throw ps.error; ps.data.forEach(p => { names[p.user_id] = p.username; }); }
+      }
+      Object.assign(KR, { ok: true, me: me.data ? me.data.username : null, list, members, names, folders, cards, at: Date.now() });
+      krCacheSoon(); krInject(); render(); krSubscribe();
+    } catch (e) {
+      console.warn("klassenraum laden", e);
+      if (/PGRST20|42P01|schema cache/.test(String((e && (e.code || "") + (e.message || "")) || ""))) { KR.ok = false; render(); }
+    } finally { krLoading = null; }
+  })();
+  return krLoading;
+}
+let krLT = 0;
+function krLoadSoon(){ clearTimeout(krLT); krLT = setTimeout(krLoad, 600); }
+function krSubscribe(){
+  if (KR.ch || !SB) return;
+  KR.ch = SB.channel("kr-" + USER.id);
+  ["communities", "community_members", "community_folders", "community_cards"].forEach(t => KR.ch.on("postgres_changes", { event: "*", schema: "public", table: t }, ev => krEvent(t, ev)));
+  KR.ch.subscribe();
+}
+function krEvent(t, ev){
+  const n = ev.new || {}, o = ev.old || {}, del = ev.eventType === "DELETE";
+  if (t === "community_cards") { if (del) { if (!KR.cards[o.id]) return; delete KR.cards[o.id]; } else { if (!KR.list[n.community_id]) return; KR.cards[n.id] = n; } }
+  else if (t === "community_folders") { if (del) { if (!KR.folders[o.id]) return; delete KR.folders[o.id]; } else { if (!KR.list[n.community_id]) return; KR.folders[n.id] = n; } }
+  else if (t === "communities") { if (del) { if (KR.list[o.id]) { const nm = KR.list[o.id].name; krDrop(o.id); toast(`„${nm}“ wurde gelöscht`); } return; } if (!KR.list[n.id]) return; KR.list[n.id] = { ...KR.list[n.id], ...n }; }
+  else if (t === "community_members") {
+    const cid = del ? o.community_id : n.community_id, uidm = del ? o.user_id : n.user_id;
+    if (!cid) return;
+    if (uidm === USER.id) {
+      if (del) { if (KR.list[cid]) { const nm = KR.list[cid].name; krDrop(cid); toast(`Du bist nicht mehr in „${nm}“`); } return; }
+      if (!KR.list[cid]) { krLoadSoon(); return; }
+      KR.list[cid] = { ...KR.list[cid], role: n.role, can_write: n.can_write };
+    }
+    if (!KR.list[cid]) return;
+    const arr = (KR.members[cid] || []).filter(m => m.user_id !== uidm); if (!del) arr.push(n); KR.members[cid] = arr;
+    if (!del && !KR.names[uidm]) krLoadSoon();
+    krMembersRefresh(cid);
+  }
+  krCacheSoon(); krInject(); render();
+}
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && krOn() && KR.ok && Date.now() - KR.at > 5 * 60000) krLoad(); });
+addEventListener("online", () => { if (krOn()) krLoad(); });
+/* ---- Benutzername ---- */
+function krNameSheet(then){
+  openSheet(`${head(KR.me ? "Benutzername ändern" : "Wähle deinen Benutzernamen")}
+    <p class="muted" style="margin:0 0 14px;font-size:15px">${KR.me ? "So sehen dich die anderen in deinen Community-Ordnern." : "Im Klassenraum sehen die anderen, wer welche Karte erstellt hat. Dafür brauchst du einen Namen, z. B. „Lena M.“. Deine E-Mail-Adresse bleibt privat."}</p>
+    <div class="field"><label for="krn">Benutzername</label><input class="in" id="krn" maxlength="24" autocomplete="nickname" placeholder="z. B. Lena M." value="${esc(KR.me || "")}"></div>
+    <p class="muted kr-err" id="krnE" style="font-size:14px;margin:-6px 2px 12px;color:var(--again)" hidden></p>
+    <div class="sheet-foot"><div class="r"><button class="btn" data-act="close">Abbrechen</button><button class="btn primary" id="krnS">Speichern</button></div></div>`,
+  root => {
+    const inp = $("#krn", root), err = $("#krnE", root), btn = $("#krnS", root);
+    const save = async () => {
+      const v = inp.value.trim().replace(/\s+/g, " ");
+      const bad = v.length < 3 ? "Mindestens 3 Zeichen." : /[<>"&]/.test(v) ? "Bitte ohne < > \" &." : "";
+      if (bad) { err.textContent = bad; err.hidden = false; return; }
+      btn.disabled = true; err.hidden = true;
+      const r = await SB.rpc("set_username", { p_name: v });
+      btn.disabled = false;
+      if (r.error) { err.textContent = /23505|duplicate|unique/.test((r.error.code || "") + r.error.message) ? "Dieser Name ist schon vergeben. Probier einen anderen." : krErr(r.error); err.hidden = false; return; }
+      KR.me = v; KR.names[USER.id] = v; krCacheSoon(); closeSheet(); render();
+      if (then) setTimeout(then, 220); else toast("Benutzername gespeichert");
+    };
+    btn.addEventListener("click", save); inp.addEventListener("keydown", e => { if (e.key === "Enter") save(); });
+  });
+}
+async function krReady(then){
+  if (!krOn()) { toast("Der Klassenraum geht nur mit Konto."); return; }
+  if (KR.ok === false) { toast("Der Klassenraum ist noch nicht eingerichtet."); return; }
+  if (KR.me === undefined) { await krLoad(); if (KR.me === undefined) { toast(krErr(null)); return; } }
+  if (!KR.me) { krNameSheet(then); return; }
+  then();
+}
+/* ---- Anlegen ---- */
+async function krCreate(d){
+  const id = krId("c");
+  const r = await SB.rpc("cm_create", { p_id: id, p_name: d.name, p_emoji: d.emoji ?? "", p_color: safeColor(d.color) });
+  if (r.error) throw r.error;
+  await krLoad(); S.room = "class"; saveRoom(); go("lib", id, "push");
+  setTimeout(() => krMembersSheet(id, true), 350);
+}
+/* ---- Beitreten (Code oder Link ?join=CODE) ---- */
+const JOIN_IN = (() => { try { const q = new URLSearchParams(location.search), c = q.get("join");
+  if (c && /^[A-Za-z0-9]{6,12}$/.test(c)) { q.delete("join"); history.replaceState(null, "", location.pathname + (q.toString() ? "?" + q : "") + location.hash); try { localStorage.setItem("cardo-pending-join", c.toUpperCase()); } catch {} return c.toUpperCase(); } } catch {} return null; })();
+const joinLink = code => SHARE_BASE + "?join=" + code;
+function runPendingJoin(){ let c = null; try { c = localStorage.getItem("cardo-pending-join"); localStorage.removeItem("cardo-pending-join"); } catch {} if (c) setTimeout(() => krReady(() => krJoinSheet(c)), 400); }
+function krJoinSheet(code){
+  openSheet(`${head("Community beitreten")}
+    <p class="muted" style="margin:0 0 14px;font-size:15px">Gib den Code ein, den du von deiner Lehrkraft oder aus deiner Klasse bekommen hast.</p>
+    <div class="field"><label for="krc">Einladungscode</label><input class="in kr-code-in" id="krc" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="z. B. K7QM2XPA" value="${esc(code || "")}"></div>
+    <div id="krPv"></div>
+    <div class="sheet-foot"><div class="r"><button class="btn" data-act="close">Abbrechen</button><button class="btn primary" id="krcGo">Weiter</button></div></div>`,
+  root => {
+    const inp = $("#krc", root), pv = $("#krPv", root), go2 = $("#krcGo", root); let found = null;
+    inp.addEventListener("input", () => { inp.value = inp.value.toUpperCase().replace(/[^A-Z0-9]/g, ""); if (found) { found = null; pv.innerHTML = ""; go2.textContent = "Weiter"; } });
+    const look = async () => {
+      const c = inp.value.trim(); if (c.length < 6) { toast("Der Code hat 8 Zeichen."); return; }
+      go2.disabled = true; pv.innerHTML = `<div class="muted" style="padding:6px 2px 14px">Wird gesucht …</div>`;
+      const r = await SB.rpc("cm_preview", { p_code: c }); go2.disabled = false;
+      if (r.error || !r.data) { pv.innerHTML = `<p class="muted" style="color:var(--again);margin:0 2px 14px">${r.error ? krErr(r.error) : "Diesen Code gibt es nicht. Prüf ihn noch einmal."}</p>`; return; }
+      found = r.data;
+      pv.innerHTML = `<div class="sh-deck">${dotHTML({ color: safeColor(found.color), emoji: found.emoji })}<div><b>${escN(found.name)}</b><span>${plural(found.members, "Mitglied", "Mitglieder")} · ${plural(found.cards, "Karte", "Karten")}</span></div></div>
+        <p class="muted sh-note">${found.member ? "Du bist schon dabei." : "Du lernst die gemeinsamen Karten mit deinem eigenen Lernstand. Was du an fremden Karten änderst, gilt nur für dich."}</p>`;
+      go2.textContent = found.member ? "Öffnen" : "Beitreten";
+    };
+    const join = async () => {
+      if (!found) return look();
+      if (found.member) { closeSheet(); S.room = "class"; saveRoom(); go("lib", found.id, "push"); return; }
+      go2.disabled = true; go2.textContent = "Wird beigetreten …";
+      const r = await SB.rpc("cm_join", { p_code: inp.value.trim() });
+      if (r.error) { go2.disabled = false; go2.textContent = "Beitreten"; toast(krErr(r.error)); return; }
+      await krLoad(); closeSheet(); S.room = "class"; saveRoom();
+      if (S.folders[r.data]) go("lib", r.data, "push"); else render();
+      toast(`Willkommen in „${found.name}“`);
+    };
+    go2.addEventListener("click", join); inp.addEventListener("keydown", e => { if (e.key === "Enter") join(); });
+    if (code && code.length >= 6) look();
+  });
+}
+/* ---- Mitglieder, Einladen, Rechte ---- */
+function krMembersRefresh(cid){ const el = $("#krMem"); if (el && el.dataset.cid === cid) el.innerHTML = krMemberRows(cid); }
+function krMemberRows(cid){
+  const admin = krAdmin(cid), list = (KR.members[cid] || []).slice().sort((a, b) => (a.role === "admin" ? 0 : 1) - (b.role === "admin" ? 0 : 1) || krName(a.user_id).localeCompare(krName(b.user_id), "de"));
+  const open = KR.memOpen;
+  return list.map(m => {
+    const me = m.user_id === USER.id, adm = m.role === "admin", sub = adm ? "Admin" : m.can_write ? "darf Karten schreiben" : "nur lesen";
+    const tappable = admin && !(me && list.filter(x => x.role === "admin").length < 2);
+    const isOpen = tappable && open === m.user_id;
+    return `<div class="kr-mem${isOpen ? " open" : ""}"><button type="button" class="kr-mrow" ${tappable ? `data-kr="mem" data-u="${m.user_id}"` : "disabled"}><span class="kr-av" aria-hidden="true">${esc((krName(m.user_id)[0] || "?").toUpperCase())}</span><span class="kr-mt"><b translate="no">${esc(krName(m.user_id))}${me ? '</b><span class="kr-you"> (du)</span>' : "</b>"}<span>${sub}</span></span>${tappable ? `<span class="pk-ch" aria-hidden="true">${isOpen ? "⌃" : "›"}</span>` : ""}</button>
+      ${isOpen ? `<div class="kr-macts">${me ? "" : `<button class="btn" data-kr="write" data-u="${m.user_id}" ${adm ? "disabled" : ""}>${m.can_write ? "Nur lesen" : "Schreiben erlauben"}</button>`}
+        <button class="btn" data-kr="admin" data-u="${m.user_id}">${adm ? "Admin-Rechte entziehen" : "Zum Admin machen"}</button>
+        ${me ? "" : `<button class="btn danger" data-kr="kick" data-u="${m.user_id}">Entfernen</button>`}</div>` : ""}</div>`;
+  }).join("");
+}
+function krMembersSheet(cid, fresh){
+  const c = KR.list[cid]; if (!c) return;
+  const admin = krAdmin(cid), n = (KR.members[cid] || []).length, cards = Object.values(KR.cards).filter(k => k.community_id === cid).length;
+  KR.memOpen = null;
+  openSheet(`${head(fresh ? "Klasse einladen" : "Mitglieder")}
+    <div class="sh-deck">${dotHTML(S.folders[cid] || c)}<div><b>${escN(c.name)}</b><span>${plural(n, "Mitglied", "Mitglieder")} · ${plural(cards, "Karte", "Karten")}</span></div></div>
+    ${fresh ? `<p class="muted sh-note">Dein Community-Ordner ist angelegt – du bist Admin. Gib deiner Klasse den Code oder den Link, damit sie beitreten kann.</p>` : ""}
+    <div class="lbl" style="margin:4px 0 8px">Einladen</div>
+    <div class="kr-code" translate="no">${esc(c.invite_code)}</div>
+    <div class="sh-acts"><button class="btn" data-kr="copy">Code kopieren</button>${navigator.share ? `<button class="btn primary" data-kr="share">Link teilen …</button>` : `<button class="btn primary" data-kr="link">Link kopieren</button>`}</div>
+    <div class="sh-qr" id="krQr"></div>
+    ${admin ? `<button class="pw-forgot" data-kr="code" type="button" style="margin-top:0">Neuen Code erzeugen (alter wird ungültig)</button>
+      <div class="set-list" style="margin:14px 0 4px"><button class="set-item ex-sw" data-kr="dw" role="switch" aria-checked="${c.default_write !== false}"><span class="si-t">Neue Mitglieder dürfen Karten schreiben<small>Aus: Wer neu beitritt, kann nur lernen. Du kannst es für jede Person einzeln ändern.</small></span><span class="switch ${c.default_write !== false ? "on" : ""}" aria-hidden="true"><i></i></span></button></div>` : ""}
+    <div class="lbl" style="margin:18px 0 8px">${plural(n, "Mitglied", "Mitglieder")}</div>
+    <div class="kr-mems" id="krMem" data-cid="${cid}">${krMemberRows(cid)}</div>
+    ${admin ? `<p class="muted sh-note" style="margin-top:8px">Tippe auf eine Person, um Rechte zu ändern oder sie zu entfernen.</p>` : `<p class="muted sh-note" style="margin-top:8px">Du ${krWrite(cid) ? "kannst Karten hinzufügen und deine eigenen für alle ändern" : "kannst die Karten lernen"}. Was du an fremden Karten änderst, gilt nur für dich.</p>`}
+    <button class="pw-forgot" data-kr="leave" type="button" style="color:var(--again)">Community verlassen</button>
+    ${admin ? `<button class="pw-forgot" data-kr="del" type="button" style="color:var(--again);margin-top:2px">Community-Ordner für alle löschen</button>` : ""}`,
+  root => {
+    qrInto($("#krQr", root), joinLink(c.invite_code));
+    root.addEventListener("click", async e => {
+      const b = e.target.closest("[data-kr]"); if (!b) return; const k = b.dataset.kr, u = b.dataset.u, cur = KR.list[cid]; if (!cur) return;
+      const m = u && (KR.members[cid] || []).find(x => x.user_id === u);
+      const call = async (fn, args, ok) => { b.disabled = true; const r = await SB.rpc(fn, args); b.disabled = false; if (r.error) { toast(krErr(r.error)); return false; } if (ok) toast(ok); return true; };
+      if (k === "copy") copyText(cur.invite_code, "Code kopiert");
+      else if (k === "link") copyText(joinLink(cur.invite_code), "Link kopiert");
+      else if (k === "share") navigator.share({ title: "Cardo: " + cur.name, text: `Tritt „${cur.name}“ in Cardo bei – Code ${cur.invite_code}`, url: joinLink(cur.invite_code) }).catch(() => {});
+      else if (k === "code") { if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = "Wirklich? Der alte Code geht dann nicht mehr."; setTimeout(() => { if (b.isConnected) { b.classList.remove("armed"); b.textContent = "Neuen Code erzeugen (alter wird ungültig)"; } }, 3500); return; }
+        const r = await SB.rpc("cm_new_code", { p_cid: cid }); if (r.error) { toast(krErr(r.error)); return; } cur.invite_code = r.data; krCacheSoon(); krMembersSheet(cid); toast("Neuer Code erstellt"); }
+      else if (k === "dw") { const v = cur.default_write === false; cur.default_write = v; krRun(cid, [["comm", cid, { default_write: v }]]); b.setAttribute("aria-checked", v); b.querySelector(".switch").classList.toggle("on", v); krCacheSoon(); }
+      else if (k === "mem") { KR.memOpen = KR.memOpen === u ? null : u; krMembersRefresh(cid); }
+      else if (k === "write" && m) { if (await call("cm_set_member", { p_cid: cid, p_uid: u, p_role: m.role, p_can_write: !m.can_write }, m.can_write ? `${krName(u)} kann jetzt nur noch lernen` : `${krName(u)} darf jetzt Karten schreiben`)) { m.can_write = !m.can_write; krMembersRefresh(cid); } }
+      else if (k === "admin" && m) { const up = m.role !== "admin"; if (await call("cm_set_member", { p_cid: cid, p_uid: u, p_role: up ? "admin" : "member", p_can_write: true }, up ? `${krName(u)} ist jetzt Admin` : `${krName(u)} ist kein Admin mehr`)) { m.role = up ? "admin" : "member"; m.can_write = true; if (u === USER.id) { cur.role = m.role; render(); KR.memOpen = null; } krMembersRefresh(cid); } }
+      else if (k === "kick" && m) { if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = "Wirklich entfernen?"; setTimeout(() => { if (b.isConnected) { b.classList.remove("armed"); b.textContent = "Entfernen"; } }, 3500); return; }
+        if (await call("cm_remove_member", { p_cid: cid, p_uid: u }, `${krName(u)} wurde entfernt`)) { KR.members[cid] = (KR.members[cid] || []).filter(x => x.user_id !== u); KR.memOpen = null; krMembersRefresh(cid); } }
+      else if (k === "leave") {
+        const others = (KR.members[cid] || []).filter(x => x.user_id !== USER.id), soleAdmin = krAdmin(cid) && !others.some(x => x.role === "admin");
+        if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = !others.length ? "Du bist allein – der Ordner wird gelöscht. Wirklich?" : soleAdmin ? `Wirklich? ${krName(others.slice().sort((x, y) => krTime(x.joined_at) - krTime(y.joined_at))[0].user_id)} wird dann Admin.` : "Wirklich verlassen?"; setTimeout(() => { if (b.isConnected) { b.classList.remove("armed"); b.textContent = "Community verlassen"; } }, 4000); return; }
+        if (await call("cm_remove_member", { p_cid: cid, p_uid: USER.id })) { const nm = cur.name; closeSheet(); krDrop(cid); toast(`Du hast „${nm}“ verlassen`); } }
+      else if (k === "del") { if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = "Wirklich für alle löschen? Alle Karten gehen verloren."; setTimeout(() => { if (b.isConnected) { b.classList.remove("armed"); b.textContent = "Community-Ordner für alle löschen"; } }, 4000); return; }
+        closeSheet(); krDelete(cid); }
+    });
+  });
+}
+async function krDelete(cid){
+  if (!krAdmin(cid)) { toast("Löschen kann nur der Admin. Du kannst den Ordner über „Mitglieder“ verlassen."); return; }
+  const nm = (KR.list[cid] || {}).name || ""; const r = await SB.rpc("cm_delete", { p_cid: cid });
+  if (r.error) { toast(krErr(r.error)); return; }
+  krDrop(cid); toast(`„${nm}“ wurde für alle gelöscht`);
+}
+/* ---- Klassenraum-Seite in der Bibliothek ---- */
+let ROOM = "own"; try { ROOM = localStorage.getItem("cardo-room") === "class" ? "class" : "own"; } catch {}
+S.room = ROOM;
+const saveRoom = () => { try { localStorage.setItem("cardo-room", S.room); } catch {} };
+function roomSegHTML(){
+  return `<div class="room-tabs" role="tablist" aria-label="Ansicht">${[["own", "Meine Ordner"], ["class", "Klassenraum"]].map(([k, l]) => `<button type="button" role="tab" data-act="room" data-v="${k}" class="${S.room === k ? "on" : ""}" aria-selected="${S.room === k}">${l}</button>`).join("")}</div>`;
+}
+function classHTML(){
+  if (!krOn()) return `<div class="empty kr-empty"><div class="big">👥</div><b>Klassenraum</b>Gemeinsame Ordner für deine Klasse oder deinen Kurs gibt es nur mit Cardo-Konto.</div>`;
+  if (KR.ok === false) return `<div class="empty kr-empty"><div class="big">👥</div><b>Bald verfügbar</b>Der Klassenraum wird gerade eingerichtet. Schau später noch einmal vorbei.</div>`;
+  const list = krRoots();
+  if (!list.length) return `<div class="empty kr-empty"><div class="big">👥</div><b>Gemeinsam lernen</b>Ein Community-Ordner gehört der ganzen Klasse oder dem ganzen Kurs: Alle lernen dieselben Karten, jeder kann Karten beisteuern, und dein Lernstand bleibt privat.<span class="kr-hint">Tippe oben rechts auf ⋯, um einen anzulegen oder mit einem Code beizutreten.</span></div>`;
+  const cards = list.reduce((n, f) => n + counts(f.id).total, 0);
+  return `<div class="sec-h"><h2>Deine Kurse</h2><span class="muted">${plural(cards, "Karte", "Karten")}</span></div>${foldersHTML(list)}`;
+}
+
 /* ---------- Beispiel-Ordner „So geht Cardo“ für neue Nutzer ----------
    Wird einmal pro Konto angelegt (Merker flags/start), nur wenn das Konto noch ganz leer ist. Gelöscht bleibt gelöscht. */
 const START_DECK = [
@@ -4969,7 +5505,7 @@ async function startDeck(){
   try { if (local ? localStorage.getItem(key) : DB.has && DB.has("flags/start")) return; } catch { return; }
   const mark = () => { if (local) { try { localStorage.setItem(key, "1"); } catch {} } else DB.doc("flags/start").set({ at: Date.now() }); };
   let pend = null; try { pend = localStorage.getItem("cardo-pending-deck"); } catch {}
-  if (Object.keys(S.folders).length || Object.keys(S.sections).length || Object.keys(S.days || {}).length || pend) { mark(); return; }
+  if (Object.values(S.folders).some(f => !f.comm) || Object.keys(S.sections).length || Object.keys(S.days || {}).length || pend) { mark(); return; }
   mark();
   const [dn, dk] = START_DECK_I18N[LANG] || ["So geht Cardo", START_DECK];
   await importSharedDeck({ id: "cardo-start", data: { v: 1, folders: [{ k: 0, p: -1, n: dn, e: "👋", c: "#FF5A36" }], cards: dk.map(([f, b]) => [0, f, b]) } });
@@ -5568,7 +6104,7 @@ function draw(){
   S.gen = (S.gen || 0) + 1; schedulePrerender && schedulePrerender();
   saveUi(); updScroll();
 }
-function go(view, fid = null, anim = "fade"){ $("#tabs").classList.remove("end"); S.anim = anim; if (S.view === "lib") S.libFid = S.fid; S.view = view; S.fid = fid; S.q = ""; S.sel = null; if (fid) pathOf(fid).forEach(f => S.open.add(f.id)); render(); toTop(); }
+function go(view, fid = null, anim = "fade"){ $("#tabs").classList.remove("end"); if (fid && S.folders[fid]) { const r = S.folders[fid].comm ? "class" : "own"; if (S.room !== r) { S.room = r; saveRoom(); } } S.anim = anim; if (S.view === "lib") S.libFid = S.fid; S.view = view; S.fid = fid; S.q = ""; S.sel = null; if (fid) pathOf(fid).forEach(f => S.open.add(f.id)); render(); toTop(); }
 
 function syncPill(){ return S.mode === "cloud" ? '<span class="pill-sync"><i></i>Synchronisiert</span>' : '<span class="pill-sync local"><i></i>Nur dieses Gerät</span>'; }
 
@@ -5701,25 +6237,27 @@ function artHTML(f, extra = ""){
 /* Titelbild über die ganze Kachel bzw. das ganze Banner – unten scheint es je nach Transparenz-Einstellung durch */
 const cvwStyle = f => { const u = coverUrl(f); return u ? ` style="background-color:${esc(colorOf(f))};--cvu:url('${esc(u)}');--cvp:${cposCss(f)}"` : ''; };
 function learnSub(n){ return [n.rev ? plural(n.rev, 'Wiederholung', 'Wiederholungen') : '', n.nw ? n.nw + ' neu' : ''].filter(Boolean).join(' · '); }
+const krMeta = f => f.croot ? `<span class="kr-badge">${IC.people}${(KR.members[f.id] || []).length || 1}</span>` : "";
 function tileHTML(f){
   const n = counts(f.id), subs = children(f.id).length;
-  const meta = [plural(n.total, "Karte", "Karten"), subs ? plural(subs, "Ordner", "Ordner") : ""].filter(Boolean).join(" · ");
+  const meta = [plural(n.total, "Karte", "Karten"), subs ? plural(subs, "Ordner", "Ordner") : ""].filter(Boolean).join(" · ") + krMeta(f);
   return `<div class="tile"><button class="tile-main${coverUrl(f) ? ' cvw' : ''}" data-act="open" data-id="${f.id}"${cvwStyle(f)}>
     ${artHTML(f, n.due ? `<span class="due-badge">${n.due} fällig</span>` : '')}
     <div class="tile-body"><div class="tile-name">${escN(f.name)}</div><div class="tile-meta">${meta}</div></div></button></div>`;
 }
 function frowHTML(f){
   const n = counts(f.id), subs = children(f.id).length, u = coverUrl(f);
-  const meta = [plural(n.total, "Karte", "Karten"), subs ? plural(subs, "Ordner", "Ordner") : ""].filter(Boolean).join(" · ");
+  const meta = [plural(n.total, "Karte", "Karten"), subs ? plural(subs, "Ordner", "Ordner") : ""].filter(Boolean).join(" · ") + krMeta(f);
   return `<button class="frow" data-act="open" data-id="${f.id}"><span class="frow-ic" style="background-color:${esc(colorOf(f))};${u ? `background-image:url('${esc(u)}');background-position:${cposCss(f)}` : ''}">${u ? '' : esc(emo(f))}</span>
     <span class="frow-t"><b>${escN(f.name)}</b><span>${meta}</span></span>${n.due ? `<span class="frow-due">${n.due} fällig</span>` : ''}<span class="frow-ch" aria-hidden="true">›</span></button>`;
 }
 function foldersHTML(list){ return S.set.layout === "list" ? `<div class="flist">${list.map(frowHTML).join("")}</div>` : `<div class="grid">${list.map(tileHTML).join("")}</div>`; }
 function libHTML(){
-  const top = children(null), all = counts(null);
+  const top = ownRoots(), all = { total: top.reduce((n, f) => n + counts(f.id).total, 0) };
   return `<div class="topbar"><h1>Bibliothek</h1><div class="tb-r"><button class="icon-btn" data-act="libMenu" aria-haspopup="menu" aria-expanded="false" aria-label="Bibliothek-Menü" title="Bibliothek">${IC.dots}</button></div></div>
+  ${roomSegHTML()}${S.room === "class" ? classHTML() : `
   ${sectionList().length ? sectionsHTML() : top.length ? `<div class="sec-h"><h2>Ordner\u200b</h2><span class="muted">${plural(all.total, 'Karte', 'Karten')}</span></div>` : ''}
-  ${sectionList().length ? '' : top.length ? foldersHTML(top) : `<div class="empty"><b>Noch keine Ordner</b>Leg deinen ersten Ordner an oder spiel eine Cardo-Sicherung ein.<div class="actions"><button class="btn primary" data-act="newFolder">Neuer Ordner</button><button class="btn" data-act="dataSheet">Sicherung einspielen</button></div></div>`}`;
+  ${sectionList().length ? '' : top.length ? foldersHTML(top) : `<div class="empty"><b>Noch keine Ordner</b>Leg deinen ersten Ordner an oder spiel eine Cardo-Sicherung ein.<div class="actions"><button class="btn primary" data-act="newFolder">Neuer Ordner</button><button class="btn" data-act="dataSheet">Sicherung einspielen</button></div></div>`}`}`;
 }
 function sectionsHTML(){
   const block = (sid, name, list, own) => {
@@ -5732,17 +6270,17 @@ function sectionsHTML(){
   return sectionList().map(x => block(x.id, x.name, topIn(x.id), true)).join("") + (rest.length ? block(null, "Weitere Ordner", rest, false) : "");
 }
 function crumbsHTML(fid){
-  return `<div class="crumbs"><button data-act="nav" data-v="lib">Bibliothek</button>${pathOf(fid).map(f => `<span>›</span><button data-act="open" data-id="${f.id}">${escN(f.name)}</button>`).join("")}</div>`;
+  return `<div class="crumbs"><button data-act="nav" data-v="lib">${commOf(fid) ? "Klassenraum" : "Bibliothek"}</button>${pathOf(fid).map(f => `<span>›</span><button data-act="open" data-id="${f.id}">${escN(f.name)}</button>`).join("")}</div>`;
 }
 function folderHTML(fid){
   const f = S.folders[fid]; if (!f) return libHTML();
   const n = counts(fid), subs = children(fid), deepOnly = n.total - n.own;
   return `${crumbsHTML(fid)}
   <section class="banner ${coverUrl(f) ? 'has-cover cvw' : ''}"${cvwStyle(f)}>${artHTML(f)}
-    <div class="banner-body"><div class="banner-row"><div><h1>${escN(f.name)}</h1><div class="muted banner-meta">${plural(n.total, 'Karte', 'Karten')} · ${n.due} fällig${subs.length ? ' · ' + plural(subs.length, 'Unterordner', 'Unterordner') : ''}${sideOf(fid) !== 'front' ? ` · ${sideOf(fid) === 'both' ? '⇄ beidseitig' : '↺ Rückseite zuerst'}` : ''}</div></div>
+    <div class="banner-body"><div class="banner-row"><div><h1>${escN(f.name)}</h1><div class="muted banner-meta">${plural(n.total, 'Karte', 'Karten')} · ${n.due} fällig${subs.length ? ' · ' + plural(subs.length, 'Unterordner', 'Unterordner') : ''}${sideOf(fid) !== 'front' ? ` · ${sideOf(fid) === 'both' ? '⇄ beidseitig' : '↺ Rückseite zuerst'}` : ''}</div>${f.comm ? `<div class="kr-line">${IC.people}<span>Community · ${krRoleText(f.comm)}</span></div>` : ''}</div>
       <div class="banner-acts"><button class="lset-btn" style="--c:${esc(colorOf(f))}" data-act="learnMenu" data-id="${fid}" aria-haspopup="menu" aria-expanded="false" aria-label="Lerneinstellungen: ${esc(dailyLabel(fid))}" title="Lerneinstellungen">${IC_LEARN}<span>${esc(learnShort(fid))}</span></button>
       <button class="icon-btn" data-act="folderMenu" data-id="${fid}" aria-haspopup="menu" aria-expanded="false" aria-label="${f.parentId ? 'Unterordner' : 'Ordner'}-Menü" title="${f.parentId ? 'Unterordner' : 'Ordner'}">${IC.dots}</button>
-      <button class="icon-btn share-btn ${f.share ? 'live' : ''}" data-act="shareSheet" data-id="${fid}" aria-label="Teilen${f.share ? ' (Link aktiv)' : ''}" title="Teilen${f.share ? ' – Link aktiv' : ''}">${IC.share}</button></div></div>
+      ${f.comm ? `<button class="icon-btn share-btn" data-act="krMembers" data-id="${f.comm}" aria-label="Mitglieder und Einladen" title="Mitglieder">${IC.people}</button>` : `<button class="icon-btn share-btn ${f.share ? 'live' : ''}" data-act="shareSheet" data-id="${fid}" aria-label="Teilen${f.share ? ' (Link aktiv)' : ''}" title="Teilen${f.share ? ' – Link aktiv' : ''}">${IC.share}</button>`}</div></div>
       ${n.total ? (n.due ? `<button class="learn-btn" data-act="study" data-id="${fid}"><span class="lb-play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.9l10.2-6.5a1 1 0 0 0 0-1.8L9.5 4.6A1 1 0 0 0 8 5.5z"/></svg></span><span class="lb-t"><b>Lernen</b><span>${learnSub(n)}</span></span></button>`
         : (n.newLeft ? `<div class="learn-done"><span aria-hidden="true">✓</span> Heute alles gelernt – dein Tageslimit ist erreicht.<div class="ld-acts"><button class="btn more-new" data-act="moreNew" data-id="${fid}">＋ 10 weitere Karten</button><button class="btn more-new" data-act="examSheet" data-pr="1" data-id="${fid}">↻ Nochmal üben</button></div></div>` : `<div class="learn-done"><span aria-hidden="true">✓</span> Alle Karten sind für heute durch – ${nextDueText(fid)}<div class="ld-acts"><button class="btn more-new" data-act="examSheet" data-pr="1" data-id="${fid}">↻ Nochmal üben</button></div></div>`)) : ''}
       ${n.total ? (() => { const m = mastery(fid); return `<button class="exam-btn lv${m.lv}" data-act="examSheet" data-id="${fid}" title="${m.pct} % der Karten sitzen sicher">${IC_EXAM}Prüfen<span class="ex-pct num">· ${m.pct} % sicher</span></button>`; })() : ''}
@@ -5750,7 +6288,7 @@ function folderHTML(fid){
   ${subs.length ? `<div class="sec-h"><h2>Unterordner</h2></div>${foldersHTML(subs)}` : ''}
   ${n.own ? `<div class="sec-h"><h2>Karten <span class="muted num" style="font-weight:600;font-size:15px">${n.own}${deepOnly ? ` hier · ${deepOnly} in Unterordnern` : ''}</span></h2>${n.own > 1 ? `<button class="csort-btn" data-act="cardSortMenu" data-id="${fid}" aria-haspopup="menu" aria-expanded="false"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M3.5 16.5 7 20l3.5-3.5M17 20V4m-3.5 3.5L17 4l3.5 3.5"/></svg>${CSORTS.find(o => o[0] === csortOf(fid))[1]}</button>` : ''}</div>` : ''}
   ${n.own ? `<input class="search" id="q" type="search" placeholder="Karten durchsuchen" value="${esc(S.q)}" autocomplete="off">` : ''}
-  <div id="cardlist">${cardListHTML(fid)}</div>${S.sel ? selbarHTML() : ''}`;
+  <div id="cardlist">${cardListHTML(fid)}</div>${f.comm && !S.sel && krHidden(fid).length ? `<button class="pw-forgot" data-act="krUnhide" data-id="${fid}" type="button">${plural(krHidden(fid).length, "ausgeblendete Karte", "ausgeblendete Karten")} wieder einblenden</button>` : ''}${f.comm && !n.total && !subs.length ? `<div class="empty kr-empty-f">${krWrite(f.comm) ? `<b>Noch keine Karten</b>Leg die erste Karte an – alle anderen sehen sie sofort.<div class="actions"><button class="btn primary" data-act="newCard" data-id="${fid}">Neue Karte</button><button class="btn" data-act="krMembers" data-id="${f.comm}">Klasse einladen</button></div>` : `<b>Noch keine Karten</b>Sobald jemand Karten anlegt, erscheinen sie hier.`}</div>` : ''}${S.sel ? selbarHTML() : ''}`;
 }
 function cardListHTML(fid){
   const now = Date.now(), q = S.q.trim().toLowerCase();
@@ -5763,7 +6301,7 @@ function cardListHTML(fid){
   return `<div class="cards">${list.map(c => {
     const st = cardState(c), due = isDue(c, now) && st !== "new";
     const label = st === "new" ? "Neu" : due ? "Fällig" : st === "mature" ? "Gefestigt" : (LANG === "it" ? "tra " : "in ") + fmtIvl((c.due||0) - now).replace("< ", "");
-    return `<div class="card-row"><button class="card-main" data-act="editCard" data-f="${fid}" data-id="${c.id}"><span class="cf">${richLine(c.f)}</span><span class="cb">${richLine(c.b)}</span></button><span class="st ${st === 'new' ? 'new' : due ? 'due' : st === 'mature' ? 'mature' : ''}">${label}</span></div>`;
+    return `<div class="card-row"><button class="card-main" data-act="editCard" data-f="${fid}" data-id="${c.id}"><span class="cf">${richLine(c.f)}</span><span class="cb">${richLine(c.b)}</span>${c.comm ? `<span class="c-by${c.ov ? ' own' : ''}">${c.ov ? (c.oc ? 'deine Version · Original wurde geändert' : 'deine Version') : c.by === USER.id ? 'von dir' : `von <span translate="no">${esc(krName(c.by))}</span>`}</span>` : ''}</button><span class="st ${st === 'new' ? 'new' : due ? 'due' : st === 'mature' ? 'mature' : ''}">${label}</span></div>`;
   }).join("")}</div>`;
 }
 function visibleIds(){ const q = S.q.trim().toLowerCase(); return Object.values(S.decks[S.fid] || {}).filter(c => !q || (c.f + " " + c.b).toLowerCase().includes(q)).map(c => c.id); }
@@ -5771,7 +6309,7 @@ function selbarHTML(){
   const n = S.sel.size, vis = visibleIds(), all = vis.length && vis.every(id => S.sel.has(id));
   return `<div class="selbar" role="toolbar" aria-label="Auswahl"><b class="num">${n ? n + ' ausgewählt' : 'Karten antippen'}</b>
     <button class="btn" data-act="pickAll">${all ? 'Keine' : 'Alle'}</button><button class="btn" data-act="pickCancel">Fertig</button>
-    <div class="sel-acts"><button class="btn" data-act="pickCopy" ${n ? '' : 'disabled'}>Kopieren</button><button class="btn" data-act="pickMove" ${n ? '' : 'disabled'}>Verschieben</button>
+    <div class="sel-acts"><button class="btn" data-act="pickCopy" ${n ? '' : 'disabled'}>Kopieren</button>${commOf(S.fid) ? '' : `<button class="btn" data-act="pickMove" ${n ? '' : 'disabled'}>Verschieben</button>`}
     <button class="btn danger" data-act="pickDelete" ${n ? '' : 'disabled'}>Löschen</button></div></div>`;
 }
 /* ---------- Settings ---------- */
@@ -6197,14 +6735,14 @@ async function importObj(d, msg){
   }
 }
 async function buildBackup(){
-    const folders = JSON.parse(JSON.stringify(S.folders));
+    const own = Object.values(S.folders).filter(f => !f.comm), folders = JSON.parse(JSON.stringify(Object.fromEntries(own.map(f => [f.id, f])))), decks = Object.fromEntries(own.map(f => [f.id, S.decks[f.id] || {}]));
     for (const f of Object.values(folders)) {
       if (f.cover && f.cover.startsWith("asset:")) {
         try { const r = await fetch("/_blob/" + f.cover.slice(6)); const bl = await r.blob(); f.cover = await new Promise(res => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(bl); }); }
         catch { f.cover = null; }
       }
     }
-    return { app: "Cardo", format: 1, exportedAt: new Date().toISOString(), folders, sections: S.sections, decks: S.decks, stats: { days: S.days }, settings: S.set };
+    return { app: "Cardo", format: 1, exportedAt: new Date().toISOString(), folders, sections: S.sections, decks, stats: { days: S.days }, settings: S.set };
 }
 function downloadBackup(data){
     const name = "cardo-backup-" + dayKey(Date.parse(data.exportedAt) || Date.now()) + ".json", text = JSON.stringify(data, null, 1);
@@ -6746,9 +7284,10 @@ function closeSheet(){
   el.classList.add("closing"); setTimeout(() => { el.classList.remove("closing"); el.hidden = true; el.innerHTML = ""; }, 190);
 }
 const head = t => `<div class="sheet-h"><h2>${t}</h2></div>`;
-function folderOptions(sel, exclude = []){
-  const out = []; const walk = (pid, d) => children(pid).forEach(f => { if (exclude.includes(f.id)) return; out.push(`<option value="${f.id}" ${f.id === sel ? 'selected' : ''}>${"  ".repeat(d)}${d ? "└ " : ""}${esc(f.emoji || "")} ${escN(f.name)}</option>`); walk(f.id, d + 1); });
-  walk(null, 0); return out.join("");
+function folderOptions(sel, exclude = []){ /* nur eigene Ordner – bzw. nur die Ordner desselben Community-Ordners */
+  const out = [], kc = commOf(sel); const one = (f, d) => { if (exclude.includes(f.id)) return; out.push(`<option value="${f.id}" ${f.id === sel ? 'selected' : ''}>${"  ".repeat(d)}${d ? "└ " : ""}${esc(f.emoji || "")} ${escN(f.name)}</option>`); walk(f.id, d + 1); };
+  const walk = (pid, d) => children(pid).forEach(f => one(f, d));
+  (kc ? [S.folders[kc]] : ownRoots()).forEach(f => one(f, 0)); return out.join("");
 }
 function armDelete(btn, fn){
   if (btn.classList.contains("armed")) { fn(); return; }
@@ -6756,22 +7295,23 @@ function armDelete(btn, fn){
   setTimeout(() => { if (btn.isConnected) { btn.classList.remove("armed"); btn.textContent = old; } }, 3500);
 }
 
-function folderSheet(id, parentId, sect){
-  const ex = id ? S.folders[id] : null;
+function folderSheet(id, parentId, sect, newComm){
+  const ex = id ? S.folders[id] : null, kc = newComm ? "new" : commOf(id) || commOf(parentId); /* Community-Ordner: kein Titelbild, Ort und Bereich; Name/Farbe/Emoji gelten für alle */
+  const kDel = ex && kc ? (ex.croot ? krAdmin(kc) : krCanEdit(kc, KR.folders[id])) : !!ex;
   const d = ex ? { ...ex } : { id: uid(), name: "", parentId: parentId || null, color: COLORS[Object.keys(S.folders).length % COLORS.length], emoji: "📚", cover: null, section: parentId ? null : (sect || null), order: Date.now(), created: Date.now() };
   const exclude = id ? [id, ...descendants(id)] : [];
-  openSheet(`${head(ex ? "Ordner gestalten" : parentId ? "Neuer Unterordner" : "Neuer Ordner")}
-    <div class="preview"><div id="pv"></div><div class="muted" style="font-size:14.5px">So sieht dein Ordner in der Bibliothek aus. Wähle Farbe, Emoji oder ein eigenes Titelbild.</div></div>
+  openSheet(`${head(newComm ? "Community-Ordner anlegen" : ex ? "Ordner gestalten" : parentId ? "Neuer Unterordner" : "Neuer Ordner")}
+    <div class="preview"><div id="pv"></div><div class="muted" style="font-size:14.5px">${kc ? (newComm ? "Am besten einen pro Fach oder Kurs, z. B. „Bio 10b“. Name, Farbe und Emoji sehen alle Mitglieder." : "So sehen alle Mitglieder den Ordner.") : "So sieht dein Ordner in der Bibliothek aus. Wähle Farbe, Emoji oder ein eigenes Titelbild."}</div></div>
     <div class="field"><label for="fn">Name</label><input class="in" id="fn" maxlength="80" placeholder="z. B. Financial Accounting" value="${esc(d.name)}"></div>
     <div class="field"><span class="lbl">Farbe</span><div class="swatches" id="sws">${COLORS.map(c => `<button class="sw ${c === d.color ? 'on' : ''}" style="--c:${c}" data-c="${c}" aria-label="Farbe ${c}"></button>`).join("")}<label class="sw sw-any ${COLORS.includes(d.color) ? '' : 'on cust'}" id="fcl" style="--c:${esc(safeColor(d.color))}" title="Eigene Farbe"><input type="color" class="colorin" id="fc" value="${esc(d.color)}" aria-label="Eigene Farbe"></label></div></div>
     <div class="field"><span class="lbl">Emoji</span><div class="emojis" id="ems"><button class="none ${d.emoji === '' ? 'on' : ''}" data-e="" aria-label="Kein Emoji" title="Kein Emoji">Kein</button>${EMOJIS.map(e => `<button class="${e === d.emoji ? 'on' : ''}" data-e="${e}">${e}</button>`).join("")}</div>
       <input class="in" id="fe" maxlength="8" placeholder="Eigenes Emoji eintippen" value="${EMOJIS.includes(d.emoji) || !d.emoji ? '' : esc(d.emoji)}" style="margin-top:6px"></div>
-    <div class="field"><span class="lbl">Titelbild</span><div class="row2"><label class="btn" for="fi">Bild wählen</label><input id="fi" type="file" accept="image/*" hidden><button class="btn" id="fr" ${d.cover ? '' : 'hidden'}>Bild entfernen</button><span class="muted" id="fst" style="align-self:center;font-size:14.5px"></span></div>
+    <div class="field"${kc ? " hidden" : ""}><span class="lbl">Titelbild</span><div class="row2"><label class="btn" for="fi">Bild wählen</label><input id="fi" type="file" accept="image/*" hidden><button class="btn" id="fr" ${d.cover ? '' : 'hidden'}>Bild entfernen</button><span class="muted" id="fst" style="align-self:center;font-size:14.5px"></span></div>
       <div class="muted cv-hint" id="fch" style="font-size:14.5px;margin-top:8px" ${d.cover ? '' : 'hidden'}>Zieh das Bild in der Vorschau oben, um den sichtbaren Ausschnitt festzulegen.</div></div>
-    <div class="field"><span class="lbl">Liegt in</span><input type="hidden" id="fp" value="${esc(d.parentId || '')}"><button type="button" class="in ft-btn" id="fpb" aria-expanded="false"></button><div class="ftree" id="ftr" hidden></div></div>
-    <div class="field" id="fsw" ${d.parentId ? 'hidden' : ''}><label for="fs">Bereich</label><select class="in" id="fs"><option value="">Kein Bereich (Weitere Ordner)</option>${sectionList().map(x => `<option value="${x.id}" ${x.id === d.section ? 'selected' : ''}>${escN(x.name)}</option>`).join("")}<option value="__new">＋ Neuer Bereich …</option></select>
+    <div class="field"${kc ? " hidden" : ""}><span class="lbl">Liegt in</span><input type="hidden" id="fp" value="${esc(d.parentId || '')}"><button type="button" class="in ft-btn" id="fpb" aria-expanded="false"></button><div class="ftree" id="ftr" hidden></div></div>
+    <div class="field" id="fsw" ${d.parentId || kc ? 'hidden' : ''}><label for="fs">Bereich</label><select class="in" id="fs"><option value="">Kein Bereich (Weitere Ordner)</option>${sectionList().map(x => `<option value="${x.id}" ${x.id === d.section ? 'selected' : ''}>${escN(x.name)}</option>`).join("")}<option value="__new">＋ Neuer Bereich …</option></select>
       <input class="in" id="fsn" maxlength="60" placeholder="Name des neuen Bereichs, z. B. Uni" hidden></div>
-    <div class="sheet-foot">${ex ? `<button class="btn danger" id="fdel">Ordner löschen</button>` : ''}<div class="r"><button class="btn" data-act="close">Abbrechen</button><button class="btn primary" id="fsave">Speichern</button></div></div>`,
+    <div class="sheet-foot">${kDel ? `<button class="btn danger" id="fdel">${kc ? (ex.croot ? "Für alle löschen" : "Unterordner löschen") : "Ordner löschen"}</button>` : ''}<div class="r"><button class="btn" data-act="close">Abbrechen</button><button class="btn primary" id="fsave">Speichern</button></div></div>`,
   root => {
     const pv = () => { $("#pv", root).innerHTML = tileHTML({ ...d, name: d.name || "Neuer Ordner", id: "__pv" }); };
     pv();
@@ -6821,7 +7361,10 @@ function folderSheet(id, parentId, sect){
     $("#fr", root).addEventListener("click", () => { d.cover = null; d.cpos = null; $("#fr", root).hidden = true; $("#fch", root).hidden = true; pv(); });
     $("#fp", root).addEventListener("change", e => { $("#fsw", root).hidden = !!e.target.value; });
     $("#fs", root).addEventListener("change", e => { const nw = e.target.value === "__new"; $("#fsn", root).hidden = !nw; if (nw) $("#fsn", root).focus(); });
-    $("#fsave", root).addEventListener("click", () => {
+    $("#fsave", root).addEventListener("click", async e => {
+      if (kc) { d.name = d.name.trim() || (newComm ? "" : "Neuer Ordner"); if (!d.name) { toast("Gib dem Community-Ordner einen Namen."); return; }
+        if (newComm) { const bt = e.currentTarget; bt.disabled = true; bt.textContent = "Wird angelegt …"; try { closeSheet(); await krCreate(d); } catch (err) { console.warn(err); toast(krErr(err)); } return; }
+        d.section = null; putFolder(d); closeSheet(); if (!ex) { S.open.add(d.parentId); toast("Unterordner angelegt"); } else toast("Gespeichert"); return; }
       d.name = d.name.trim() || "Neuer Ordner"; d.parentId = $("#fp", root).value || null;
       let sv = $("#fs", root).value;
       if (sv === "__new") { const nm = $("#fsn", root).value.trim(); if (!nm) { toast("Gib dem neuen Bereich einen Namen."); return; } const x = { id: uid(), name: nm, order: sectionList().length, created: Date.now() }; putSection(x); sv = x.id; }
@@ -6844,20 +7387,22 @@ async function makeCover(file){
 
 function cardSheet(fid, id){
   const ex = id && S.decks[fid] ? S.decks[fid][id] : null;
+  const kc = commOf(fid), kEd = !kc || !ex || krCanEdit(kc, KR.cards[ex.id]); /* Community: fremde Karten ändert man nur für sich */
   if (!Object.keys(S.folders).length) { toast("Leg zuerst einen Ordner an."); return; }
   openSheet(`${head(ex ? "Karte bearbeiten" : "Neue Karte")}
     ${edHTML("cf", "", "Vorderseite")}
     ${edHTML("cb", "", "Rückseite")}
-    <div class="field"><label for="cfo">Ordner</label><select class="in" id="cfo">${folderOptions(fid)}</select></div>
+    <div class="field"><label for="cfo">Ordner</label><select class="in" id="cfo" ${kEd ? '' : 'disabled'}>${folderOptions(fid)}</select></div>
+    ${kc ? `<p class="muted kr-note">${!ex ? "Alle Mitglieder sehen diese Karte. Du kannst sie später für alle ändern." : `${ex.by === USER.id ? "Von dir" : `Von <span translate="no">${esc(krName(ex.by))}</span>`} · ${kEd ? "Änderungen gelten für alle." : "Änderungen gelten nur für dich – die anderen sehen weiter das Original."}`}${ex && ex.ov ? `<button type="button" class="kr-orig" id="kOrig">${ex.oc ? "Original wurde geändert – übernehmen" : "Original wiederherstellen"}</button>` : ''}</p>` : ''}
     ${ex ? `<div class="muted" style="font-size:14.5px;margin-bottom:14px">${ex.reps ? `${plural(ex.reps, 'Wiederholung', 'Wiederholungen')} · nächste ${isDue(ex) ? 'jetzt' : 'in ' + fmtIvl(ex.due - Date.now()).replace('< ','')}` : 'Noch nicht gelernt'}</div>` : ''}
-    ${ex ? `<div class="sheet-foot"><button class="btn danger" id="cdel">Löschen</button><div class="r"><button class="btn" data-act="close">Abbrechen</button><button class="btn primary" id="csave">Speichern</button></div></div>`
+    ${ex ? `<div class="sheet-foot"><button class="btn danger" id="cdel">${kEd ? "Löschen" : "Für mich ausblenden"}</button><div class="r"><button class="btn" data-act="close">Abbrechen</button><button class="btn primary" id="csave">Speichern</button></div></div>`
       : `<div class="sheet-foot new-card-foot"><button class="btn-quiet" id="csave">Speichern &amp; schließen</button><button class="btn primary" id="cnext">Nächste Karte →</button></div>`}`,
   root => {
     mountRichEditor(root, $("#cf", root), ex ? ex.f : ""); mountRichEditor(root, $("#cb", root), ex ? ex.b : "");
     const save = () => {
       const f = $("#cf", root).value.trim(), b = $("#cb", root).value.trim(), to = $("#cfo", root).value;
       if (!f || !b) { toast("Fülle Vorder- und Rückseite aus."); return false; }
-      if (ex) { const c = { ...ex, f, b }; if (to !== fid) { const st = S.study; if (st) [...st.queue, ...(st.hist || [])].forEach(q => { if ((q.id || (q.card && q.card.id)) === ex.id && q.fid === fid) q.fid = to; }); delCard(fid, ex.id); putCard(to, c); } else putCard(fid, c); if (S.study) S.study.justFlipped = false; }
+      if (ex) { const c = { ...ex, f, b }; if (to !== fid) { const st = S.study; if (st) [...st.queue, ...(st.hist || [])].forEach(q => { if ((q.id || (q.card && q.card.id)) === ex.id && q.fid === fid) q.fid = to; }); putCard(to, c); delCard(fid, ex.id); } else putCard(fid, c); if (S.study) S.study.justFlipped = false; }
       else putCard(to, { id: uid(), f, b, due: Date.now(), ivl: 0, ease: 2.5, reps: 0, lapses: 0, created: Date.now() });
       return true;
     };
@@ -6865,7 +7410,8 @@ function cardSheet(fid, id){
       if (!ex && !$("#cf", root).value.trim() && !$("#cb", root).value.trim()) { closeSheet(); return; } // leere neue Karte: einfach schließen
       if (save()) { closeSheet(); toast(ex ? "Gespeichert" : "Karte angelegt"); } });
     const nx = $("#cnext", root); if (nx) nx.addEventListener("click", () => { if (save()) { ["#cf", "#cb"].forEach(q => { $(q, root).value = ""; }); $("#cf", root).focus(); toast("Karte angelegt"); } });
-    const del = $("#cdel", root); if (del) del.addEventListener("click", () => armDelete(del, () => { delCard(fid, ex.id); closeSheet(); toast("Karte gelöscht"); }));
+    const del = $("#cdel", root); if (del) del.addEventListener("click", () => armDelete(del, () => { delCard(fid, ex.id); closeSheet(); toast(kEd ? "Karte gelöscht" : "Karte ausgeblendet"); }));
+    const ko = $("#kOrig", root); if (ko) ko.addEventListener("click", () => { const P = krProg(fid), r = { ...(P.cards[ex.id] || {}) }; delete r.o; P.cards[ex.id] = r; krSaveProg(fid, P); krInject(); render(); closeSheet(); toast("Original wiederhergestellt"); });
     const cp = $("#ccopy", root); if (cp) cp.addEventListener("click", () => {
       const f = $("#cf", root).value.trim() || ex.f, b = $("#cb", root).value.trim() || ex.b;
       pickFolderSheet({ title: "Karte kopieren", note: "Die Kopie startet als neue Karte. Das Original bleibt, wo es ist.", back: () => cardSheet(fid, id),
@@ -6891,7 +7437,7 @@ function moveCards(from, ids, to){
 // Ordner/Bereich als Ziel wählen. opts: title, note, current (Ordner-ID, nicht wählbar), exclude (IDs), root (Bibliothek/Bereiche anbieten), curRoot (aktueller Bereich, "" = ohne), onPick({fid}|{sid}), back
 function pickFolderSheet(o){
   const ex = new Set(o.exclude || []), rows = [];
-  const walk = (pid, d) => children(pid).forEach(f => { if (ex.has(f.id)) return; rows.push([f, d]); walk(f.id, d + 1); });
+  const walk = (pid, d) => children(pid).forEach(f => { if (ex.has(f.id) || f.comm) return; rows.push([f, d]); walk(f.id, d + 1); });
   walk(null, 0);
   const row = (f, d) => { const cur = f.id === o.current;
     return `<button type="button" class="pk-row" data-fid="${f.id}" style="--d:${d}" ${cur ? 'disabled' : ''}>${dotHTML(f, "pk-dot")}<span class="pk-t"><b>${escN(f.name)}</b>${d ? `<span>${esc(pathOf(f.id).slice(0, -1).map(x => x.name).join(" › "))}</span>` : ''}</span>${cur ? '<span class="pk-cur">aktuell</span>' : '<span class="pk-ch" aria-hidden="true">›</span>'}</button>`; };
@@ -7156,6 +7702,23 @@ function openMenu(btn, fid){
   const sortBlock = !fid || children(fid).length > 1;
   const fo = fid && S.folders[fid];
   const title = fo ? `<div class="mt">${dotHTML(fo)}<span>${fo.parentId ? 'Unterordner' : 'Ordner'}</span><b>${escN(fo.name)}</b></div><hr>` : `<div class="mt">${IC.lib.replace('<svg', '<svg width="16" height="16"')}<b>Bibliothek</b></div><hr>`;
+  const kc = fo && fo.comm;
+  if (kc) { const w = krWrite(kc), ed = fo.croot ? krAdmin(kc) : krCanEdit(kc, KR.folders[fid]);
+    m.innerHTML = title + (w ? `<button data-act="newCard"${d} role="menuitem">${MI.plus}Neue Karte</button>
+    <button data-act="newFolder"${d} role="menuitem">${MI.folderPlus}Neuer Unterordner</button>
+    <button data-act="import"${d} role="menuitem">${MI.import}Karten importieren</button>` : '') + (n.own ? `
+    <button data-act="pickStart"${d} role="menuitem">${MI.select}Karten auswählen<span class="sub" style="color:var(--muted)">${w ? 'kopieren, löschen' : 'in eigene Ordner kopieren'}</span></button>` : '') + `
+    <button data-act="krMembers" data-id="${kc}" role="menuitem">${MI.people}Mitglieder &amp; einladen</button>` + (ed ? `
+    <button data-act="editFolder"${d} role="menuitem">${MI.edit}Ordner gestalten</button>` : '') + (sortBlock ? `<hr><div class="mh">Unterordner sortieren nach</div>
+    ${sorts.map(([k, l]) => `<button data-act="sort" data-v="${k}" role="menuitemradio" aria-checked="${S.sort === k}">${miRadio(S.sort === k)}${l}</button>`).join("")}` : '');
+    m.hidden = false; btn.setAttribute("aria-expanded", "true"); placeMenu(m, btn); return; }
+  if (!fid && S.room === "class") {
+    m.innerHTML = `<div class="mt">${IC.people.replace('<svg', '<svg width="16" height="16"')}<b>Klassenraum</b></div><hr>
+    <button data-act="krNew" role="menuitem">${MI.folderPlus}Community-Ordner anlegen</button>
+    <button data-act="krJoin" role="menuitem">${MI.join}Mit Code beitreten</button>
+    <button data-act="krName" role="menuitem">${MI.user}Benutzername${KR.me ? `<span class="sub" style="color:var(--muted)" translate="no">${esc(KR.me)}</span>` : ''}</button>
+    <hr><div class="mh">Ansicht</div>${[["grid","Kacheln"],["list","Liste"]].map(([k, l]) => `<button data-act="setLayout" data-v="${k}" role="menuitemradio" aria-checked="${S.set.layout === k}">${MI[k]}${l}${S.set.layout === k ? '<span class="ck">✓</span>' : ''}</button>`).join("")}`;
+    m.hidden = false; btn.setAttribute("aria-expanded", "true"); placeMenu(m, btn); return; }
   m.innerHTML = title + (fid ? `
     <button data-act="newCard"${d} role="menuitem">${MI.plus}Neue Karte</button>
     <button data-act="newFolder"${d} role="menuitem">${MI.folderPlus}Neuer Unterordner</button>
@@ -7291,6 +7854,12 @@ document.addEventListener("click", e => {
   if (a === "setSide") { setSide(id, b.dataset.v); return; }
   if (a === "chartZoom") { chartZoom(b.dataset.id || null); return; }
   if (a === "shareSheet") { closeMenu(); shareSheet(id); return; }
+  if (a === "room") { if (S.room !== b.dataset.v) { S.room = b.dataset.v; saveRoom(); render(); if (S.room === "class" && krOn() && KR.ok !== false && Date.now() - KR.at > 60000) krLoad(); } return; }
+  if (a === "krNew") { krReady(() => folderSheet(null, null, null, true)); return; }
+  if (a === "krJoin") { krReady(() => krJoinSheet("")); return; }
+  if (a === "krName") { if (krOn()) krNameSheet(); return; }
+  if (a === "krMembers") { closeMenu(); krMembersSheet(id); return; }
+  if (a === "krUnhide") { const P = krProg(id); krHidden(id).forEach(x => { const r = { ...P.cards[x] }; delete r.h; if (Object.keys(r).length) P.cards[x] = r; else delete P.cards[x]; }); krSaveProg(id, P); krInject(); render(); toast("Wieder eingeblendet"); return; }
   if (a === "setCsort") { const f = S.folders[id]; if (f) { putFolder({ ...f, csort: b.dataset.v }); render(); } return; }
   if (a === "pickStart") { S.sel = new Set(); render(); return; }
   if (a === "pickCopy" || a === "pickMove") { if (!S.sel || !S.sel.size) return; const ids = [...S.sel], from = S.fid, mv = a === "pickMove";
@@ -7309,11 +7878,11 @@ document.addEventListener("click", e => {
   if (a === "nav") { go(b.dataset.v, null, S.view === "lib" && b.dataset.v === "lib" && S.fid ? "pop" : "fade"); }
   else if (a === "open") { const deeper = !S.fid || (S.view === "lib" && descendants(S.fid).includes(id)); go("lib", id, S.view !== "lib" ? "fade" : deeper ? "push" : "pop"); }
   else if (a === "toggle") { S.open.has(id) ? S.open.delete(id) : S.open.add(id); render(); }
-  else if (a === "newFolder") { folderSheet(null, id, b.dataset.sect || null); }
+  else if (a === "newFolder") { if (commOf(id) && !krWrite(commOf(id))) { toast("In diesem Community-Ordner darfst du nichts anlegen."); return; } folderSheet(null, id, b.dataset.sect || null); }
   else if (a === "editFolder") { e.stopPropagation(); folderSheet(id); }
   else if (a === "dailySheet") { e.stopPropagation(); dailySheet(id); }
   else if (a === "folderStats") { e.stopPropagation(); folderStatsSheet(id); }
-  else if (a === "newCard") { cardSheet(id || S.fid || children(null)[0]?.id); }
+  else if (a === "newCard") { const t = id || S.fid || ownRoots()[0]?.id; if (commOf(t) && !krWrite(commOf(t))) { toast("In diesem Community-Ordner darfst du keine Karten hinzufügen."); return; } cardSheet(t); }
   else if (a === "editCard") { cardSheet(b.dataset.f, id); }
   else if (a === "import") { importSheet(id || S.fid || null); }
   else if (a === "study") { startStudy(id); }
@@ -7857,7 +8426,7 @@ function cmOpen(x, y, viaPress = true){
   const el = document.createElement("div"); el.id = "cmenu";
   const opt = (k, l, cls = "") => `<button type="button" data-cm="${k}" class="${cls}"><span class="cm-ic">${CM_IC[k]}</span><span>${l}</span></button>`;
   el.innerHTML = `<div class="cm-box" role="dialog" aria-modal="true" aria-label="Karte"><div class="cm-card"><div class="cm-f">${richLine(c.f)}</div><div class="cm-b">${richLine(c.b)}</div></div>
-    <div class="cm-list" role="menu">${opt("move", "Verschieben")}${opt("copy", "Kopieren")}${opt("del", "Löschen", "cm-del")}${opt("edit", "Bearbeiten")}</div></div>`;
+    <div class="cm-list" role="menu">${c.comm ? '' : opt("move", "Verschieben")}${opt("copy", "Kopieren")}${opt("del", c.comm && !krCanEdit(c.comm, KR.cards[id]) ? "Ausblenden" : "Löschen", "cm-del")}${opt("edit", "Bearbeiten")}</div></div>`;
   document.body.appendChild(el); document.documentElement.style.overflow = "hidden";
   // Beim Loslassen des Fingers kann ein Klick genau auf einer Option landen → erst nach dem Loslassen scharf schalten
   CM.armed = !viaPress; if (viaPress) { const arm = () => { setTimeout(() => { CM.armed = true; }, 60); removeEventListener("touchend", arm); removeEventListener("mouseup", arm); }; addEventListener("touchend", arm); addEventListener("mouseup", arm); }
@@ -7866,7 +8435,7 @@ function cmOpen(x, y, viaPress = true){
     const b = e.target.closest("[data-cm]"); if (!b) { if (!e.target.closest(".cm-box")) cmClose(); return; }
     const k = b.dataset.cm;
     if (k === "del") {
-      if (b.classList.contains("armed")) { cmClose(); delCard(fid, id); toast("Karte gelöscht"); return; }
+      if (b.classList.contains("armed")) { const hide = c.comm && !krCanEdit(c.comm, KR.cards[id]); cmClose(); delCard(fid, id); toast(hide ? "Karte ausgeblendet" : "Karte gelöscht"); return; }
       b.classList.add("armed"); b.lastElementChild.textContent = "Wirklich löschen?";
       setTimeout(() => { if (b.isConnected) { b.classList.remove("armed"); b.lastElementChild.textContent = "Löschen"; } }, 3500); return; }
     cmClose();
