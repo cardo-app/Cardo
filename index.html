@@ -604,6 +604,15 @@ textarea.in{min-height:92px;resize:vertical;line-height:1.4}
 .pv div:first-of-type{border-top:0}
 .pv span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .check{display:flex;gap:8px;align-items:center;font-size:15.5px;font-weight:500}
+.iopt{margin:0 0 16px;border:1px solid var(--line);background:var(--surface-2);border-radius:12px}
+.iopt>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:12px 14px;font-size:15.5px;font-weight:600;-webkit-tap-highlight-color:transparent}
+.iopt>summary::-webkit-details-marker{display:none}
+.iopt>summary::after{content:"";flex:none;width:7px;height:7px;margin:0 3px 0 2px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:translateY(-2px) rotate(45deg);transition:transform .2s ease}
+.iopt[open]>summary::after{transform:translateY(2px) rotate(-135deg)}
+.iopt .io-sum{margin-left:auto;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:var(--muted);font-size:14.5px;font-weight:500}
+.iopt>div{padding:14px 14px 2px;border-top:1px solid var(--line)}
+.iopt .in{background:var(--surface)}
+.iopt .check{margin-bottom:12px}
 
 .pick{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);flex:none;display:grid;place-items:center;font-size:14.5px;font-weight:800;color:var(--accent-ink);margin-left:14px}
 .card-row.sel{background:var(--accent-soft)}
@@ -2082,7 +2091,6 @@ const I18N = {
   "Text einfügen": ["Paste text", "Incolla testo"],
   "Datei wählen": ["Choose file", "Scegli file"],
   "Noch nichts eingefügt.": ["Nothing pasted yet.", "Ancora niente incollato."],
-  "Eine Karte pro Zeile: Vorderseite, Trennzeichen, Rückseite. Funktioniert mit Anki-Export (.txt), Excel/Numbers (.csv) und Listen aus Noji oder Quizlet.": ["One card per line: front, separator, back. Works with Anki exports (.txt), Excel/Numbers (.csv) and lists from Noji or Quizlet.", "Una scheda per riga: fronte, separatore, retro. Funziona con esportazioni Anki (.txt), Excel/Numbers (.csv) ed elenchi da Noji o Quizlet."],
   "Trennzeichen": ["Separator", "Separatore"],
   "Automatisch erkennen": ["Detect automatically", "Rileva automaticamente"],
   "Tabulator": ["Tab", "Tabulazione"],
@@ -2093,21 +2101,28 @@ const I18N = {
   "Senkrechtstrich |": ["Vertical bar |", "Barra verticale |"],
   "Bindestrich": ["Dash", "Trattino"],
   "Bindestrich –": ["Dash –", "Trattino –"],
+  "Vorschau · {} erkannt": ["Preview · {} detected", "Anteprima · {} rilevate"],
   "Vorschau · {} erkannt ({})": ["Preview · {} detected ({})", "Anteprima · {} rilevate ({})"],
   "Keine Karten erkannt. Prüfe das Trennzeichen.": ["No cards detected. Check the separator.", "Nessuna scheda rilevata. Controlla il separatore."],
   "Leerzeichen": ["Space", "Spazio"],
   "Doppelpunkt": ["Colon", "Due punti"],
   "Weitere Spalten an die Rückseite anhängen": ["Add further columns to the back", "Aggiungi le altre colonne al retro"],
-  "Lückentext erkannt: Jede Lücke wird eine eigene Karte.": ["Cloze detected: each gap becomes its own card.", "Testo a buchi rilevato: ogni buco diventa una scheda."],
-  "{} übersprungen, weil Vorder- oder Rückseite leer ist.": ["{} skipped because the front or back is empty.", "{} saltate perché il fronte o il retro è vuoto."],
-  "Bei {} fehlen Bilder – der Anki-Text-Export enthält keine Bilder.": ["{} are missing images – Anki's text export contains no images.", "In {} mancano le immagini – l'esportazione di testo di Anki non contiene immagini."],
+  "Eine Karte pro Zeile – aus Anki, Quizlet, Excel oder Numbers.": ["One card per line – from Anki, Quizlet, Excel or Numbers.", "Una scheda per riga – da Anki, Quizlet, Excel o Numbers."],
+  "Optionen": ["Options", "Opzioni"],
+  "Automatisch": ["Automatic", "Automatico"],
+  "mit Überschrift": ["with header", "con intestazione"],
+  "auch umgekehrt": ["also reversed", "anche invertite"],
+  "＋ Neuer Ordner": ["＋ New folder", "＋ Nuova cartella"],
+  "＋ Neuer Ordner „{}“": ["＋ New folder “{}”", "＋ Nuova cartella “{}”"],
+  "Importierte Karten": ["Imported cards", "Schede importate"],
+  "{} übersprungen (leer)": ["{} skipped (empty)", "{} saltate (vuote)"],
+  "Bilder fehlen bei {}": ["Images missing on {}", "Immagini mancanti in {}"],
   "{} in {} importiert": ["{} imported into {}", "{} importate in {}"],
   "{} importiert": ["{} imported", "{} importate"],
   "Teil {}": ["Part {}", "Parte {}"],
   "Anki-Stapel als Unterordner anlegen": ["Create Anki decks as subfolders", "Crea i mazzi Anki come sottocartelle"],
   "Auch umgekehrte Karten anlegen": ["Also create reversed cards", "Crea anche le schede invertite"],
-  "{} Anki-Stapel erkannt – sie werden zu Unterordnern.": ["{} Anki decks detected – they become subfolders.", "{} mazzi Anki rilevati – diventano sottocartelle."],
-  "{} übersprungen, weil eine Seite nur ein Bild enthält.": ["{} skipped because one side only contains an image.", "{} saltate perché un lato contiene solo un'immagine."],
+
   "Zu viele Karten für einen Ordner. Teile die Liste auf mehrere Unterordner auf.": ["Too many cards for one folder. Split the list into several subfolders.", "Troppe schede per una cartella. Dividi l'elenco in più sottocartelle."],
 
   /* Teilen */
@@ -6934,7 +6949,8 @@ function parseRows(text, sep, header, extra, rev){
   const anki = ["separator", "html", "tags column", "deck column", "notetype column", "guid column", "columns"].some(k => k in meta);
   text = lines.slice(h).filter(l => !/^#\w+:/.test(l)).join("\n");
   if (sep === "auto" && meta.separator) { const v = meta.separator; sep = ANKI_SEP[v.toLowerCase()] || (v.length === 1 ? v : "auto"); }
-  if (sep === "auto") { const s = text.slice(0, 3000); sep = s.includes("\t") ? "\t" : s.includes(";") ? ";" : s.includes(" - ") ? " - " : s.includes("|") ? "|" : ","; }
+  /* Automatisch: das Zeichen, das in den meisten Zeilen vorkommt (bei Gleichstand gilt die Reihenfolge Tab, Semikolon, Bindestrich, Strich, Komma) */
+  if (sep === "auto") { const ls = text.split("\n").filter(l => l.trim()).slice(0, 60); let best = 0; sep = ","; ["\t", ";", " - ", "|", ","].forEach(c => { const n = ls.filter(l => l.includes(c)).length; if (n > best) { best = n; sep = c; } }); }
   let rows = [];
   if (sep.length > 1 || sep === "|") {
     rows = text.split("\n").map(l => { const i = l.indexOf(sep); return i < 0 ? null : [l.slice(0, i), l.slice(i + sep.length)]; }).filter(Boolean);
@@ -6950,6 +6966,9 @@ function parseRows(text, sep, header, extra, rev){
     }
     if (cell || row.length) { row.push(cell); rows.push(row); }
   }
+  /* Sieht die erste Zeile wie eine Überschrift aus („Vorderseite;Rückseite“, „Term,Definition“ …)? */
+  const HEAD = /^(vorderseite|rückseite|front|back|frage|antwort|question|answer|term|begriff|definition|wort|word|bedeutung|meaning|übersetzung|translation|deutsch|englisch|english|german|italienisch|italian|italiano|tedesco|vokabel|vocabulary|seite ?[12]|side ?[12]|karte|card)$/i;
+  const headLike = !!rows[0] && rows[0].length >= 2 && HEAD.test(cleanHtml(rows[0][0] || "")) && HEAD.test(cleanHtml(rows[0][1] || ""));
   if (header) rows.shift();
   /* Spalten, die Anki zusätzlich exportiert (Kennung, Notiztyp, Stapel, Schlagwörter), sind keine Karteninhalte */
   const skip = new Set(["guid column", "notetype column", "deck column", "tags column"].map(k => parseInt(meta[k], 10) - 1).filter(i => i >= 0));
@@ -6968,47 +6987,64 @@ function parseRows(text, sep, header, extra, rev){
     if (f && b) { if (img) imgs++; if (deck) decks.add(deck); out.push([f, b, deck]); if (rev) out.push([b, f, deck]); }
     else if (img) imgSkipped++; else skipped++;
   });
-  return { sep, rows: out, skipped, imgSkipped, imgs, cloze, extraCols, anki, decks: [...decks] };
+  return { sep, rows: out, skipped, imgSkipped, imgs, cloze, extraCols, anki, headLike, decks: [...decks] };
 }
 function importSheet(fid){
   const sepName = { "\t": "Tabulator", ";": "Semikolon", ",": "Komma", " - ": "Bindestrich", "|": "Senkrechtstrich", " ": "Leerzeichen", ":": "Doppelpunkt" };
   openSheet(`${head("Karten importieren")}
-    <p class="muted" style="margin:0 0 14px;font-size:15.5px">Eine Karte pro Zeile: Vorderseite, Trennzeichen, Rückseite. Funktioniert mit Anki-Export (.txt), Excel/Numbers (.csv) und Listen aus Noji oder Quizlet.</p>
+    <p class="muted" style="margin:0 0 14px;font-size:15.5px">Eine Karte pro Zeile – aus Anki, Quizlet, Excel oder Numbers.</p>
     <div class="field"><label for="it">Text einfügen</label><textarea class="in" id="it" style="min-height:130px" placeholder="Aktiva;Vermögenswerte eines Unternehmens&#10;Passiva;Kapitalherkunft (Eigen- und Fremdkapital)"></textarea>
       <div class="row2"><label class="btn" for="ifile">Datei wählen</label><input id="ifile" type="file" accept=".txt,.csv,.tsv,text/plain,text/csv" hidden><span class="muted" id="ifn" style="align-self:center;font-size:14.5px"></span></div></div>
-    <div class="field"><label for="isep">Trennzeichen</label><select class="in" id="isep"><option value="auto">Automatisch erkennen</option><option value="&#9;">Tabulator</option><option value=";">Semikolon ;</option><option value=",">Komma ,</option><option value=" - ">Bindestrich –</option><option value="|">Senkrechtstrich |</option></select></div>
-    <label class="check" style="margin-bottom:14px"><input type="checkbox" id="ihead"> Erste Zeile ist eine Überschrift</label>
-    <label class="check" id="iextraw" style="margin-bottom:14px" hidden><input type="checkbox" id="iextra"> Weitere Spalten an die Rückseite anhängen</label>
-    <label class="check" id="ideckw" style="margin-bottom:14px" hidden><input type="checkbox" id="ideck" checked> Anki-Stapel als Unterordner anlegen</label>
-    <label class="check" style="margin-bottom:14px"><input type="checkbox" id="irev"> Auch umgekehrte Karten anlegen</label>
-    <div class="field"><label for="ifo">In Ordner</label><select class="in" id="ifo">${folderOptions(fid)}</select></div>
+    <div class="field"><label for="ifo">In Ordner</label><select class="in" id="ifo"><option value="">＋ Neuer Ordner</option>${folderOptions(fid)}</select></div>
+    <details class="iopt"><summary><span>Optionen</span><span class="io-sum" id="isum"><span>Automatisch</span></span></summary><div>
+      <div class="field"><label for="isep">Trennzeichen</label><select class="in" id="isep"><option value="auto">Automatisch erkennen</option><option value="&#9;">Tabulator</option><option value=";">Semikolon ;</option><option value=",">Komma ,</option><option value=" - ">Bindestrich –</option><option value="|">Senkrechtstrich |</option></select></div>
+      <label class="check"><input type="checkbox" id="ihead"> Erste Zeile ist eine Überschrift</label>
+      <label class="check"><input type="checkbox" id="irev"> Auch umgekehrte Karten anlegen</label>
+      <label class="check" id="iextraw" hidden><input type="checkbox" id="iextra"> Weitere Spalten an die Rückseite anhängen</label>
+      <label class="check" id="ideckw" hidden><input type="checkbox" id="ideck" checked> Anki-Stapel als Unterordner anlegen</label>
+    </div></details>
     <div class="field"><span class="lbl" id="icount">Vorschau</span><div class="pv" id="ipv"><span class="muted">Noch nichts eingefügt.</span></div><p class="muted" id="inote" style="margin:8px 2px 0;font-size:14px" hidden></p></div>
     <div class="sheet-foot"><div class="r"><button class="btn" data-act="close">Abbrechen</button><button class="btn primary" id="igo" disabled>Importieren</button></div></div>`,
   root => {
-    let parsed = { rows: [] }, extraSet = false;
+    let parsed = { rows: [] }, extraSet = false, headSet = false, fname = "";
+    /* Name für „Neuer Ordner“: Dateiname, sonst gemeinsamer Anki-Stapel, sonst „Importierte Karten“ */
+    const newName = () => {
+      if (fname) return fname;
+      const d = parsed.decks || []; if (!d.length) return "Importierte Karten";
+      let pre = d[0].split("::"); d.forEach(x => { const s = x.split("::"); let i = 0; while (i < pre.length && s[i] === pre[i]) i++; pre = pre.slice(0, i); });
+      return pre.length ? pre[pre.length - 1] : "Importierte Karten";
+    };
     const upd = () => {
-      const txt = $("#it", root).value, sep = $("#isep", root).value, hd = $("#ihead", root).checked;
-      /* Zusatzspalten: bei Anki-Exporten (mit Kopfzeilen) standardmäßig anhängen, sonst wie bisher weglassen – bis man selbst umschaltet */
-      if (!extraSet) $("#iextra", root).checked = parseRows(txt, sep, hd, false).anki;
-      parsed = parseRows(txt, sep, hd, $("#iextra", root).checked, $("#irev", root).checked);
+      const txt = $("#it", root).value, sep = $("#isep", root).value;
+      /* Standardwerte aus dem Inhalt ableiten, bis man selbst umschaltet: Überschrift erkennen; Zusatzspalten bei Anki-Exporten anhängen, sonst weglassen */
+      const pre = parseRows(txt, sep, false, false);
+      if (!headSet) $("#ihead", root).checked = pre.headLike;
+      if (!extraSet) $("#iextra", root).checked = pre.anki;
+      parsed = parseRows(txt, sep, $("#ihead", root).checked, $("#iextra", root).checked, $("#irev", root).checked);
+      $("#ifo", root).options[0].textContent = `＋ Neuer Ordner „${newName()}“`;
+      /* Kurz zeigen, was eingestellt bzw. erkannt ist – jeder Teil einzeln, damit die Übersetzung greift */
+      const sum = [txt.trim() ? sepName[parsed.sep] || parsed.sep : "Automatisch"];
+      if ($("#ihead", root).checked) sum.push("mit Überschrift");
+      if ($("#irev", root).checked) sum.push("auch umgekehrt");
+      $("#isum", root).innerHTML = sum.map(x => `<span>${esc(x)}</span>`).join(" · ");
       const n = parsed.rows.length;
       $("#iextraw", root).hidden = !parsed.extraCols; $("#ideckw", root).hidden = parsed.decks.length < 2;
-      $("#icount", root).textContent = n ? `Vorschau · ${plural(n, "Karte", "Karten")} erkannt (${sepName[parsed.sep] || parsed.sep})` : "Vorschau";
+      $("#icount", root).textContent = n ? `Vorschau · ${plural(n, "Karte", "Karten")} erkannt` : "Vorschau";
       $("#ipv", root).innerHTML = n ? parsed.rows.slice(0, 4).map(r => `<div><span>${richLine(r[0])}</span><span class="muted">${richLine(r[1])}</span></div>`).join("") + (n > 4 ? `<div><span class="muted">… und ${n - 4} weitere</span></div>` : "") : '<span class="muted">Keine Karten erkannt. Prüfe das Trennzeichen.</span>';
-      const notes = [];
-      if (parsed.cloze) notes.push("Lückentext erkannt: Jede Lücke wird eine eigene Karte.");
-      if (parsed.decks.length > 1 && $("#ideck", root).checked) notes.push(`${parsed.decks.length} Anki-Stapel erkannt – sie werden zu Unterordnern.`);
-      if (parsed.skipped) notes.push(`${plural(parsed.skipped, "Zeile", "Zeilen")} übersprungen, weil Vorder- oder Rückseite leer ist.`);
-      if (parsed.imgSkipped) notes.push(`${plural(parsed.imgSkipped, "Karte", "Karten")} übersprungen, weil eine Seite nur ein Bild enthält.`);
-      if (parsed.imgs) notes.push(`Bei ${plural(parsed.imgs, "Karte", "Karten")} fehlen Bilder – der Anki-Text-Export enthält keine Bilder.`);
-      $("#inote", root).innerHTML = notes.map(esc).join("<br>"); $("#inote", root).hidden = !notes.length;
+      /* Nur kurze Hinweise, wenn etwas nicht mitkommt */
+      const notes = [], skip = parsed.skipped + parsed.imgSkipped;
+      if (skip) notes.push(`${plural(skip, "Zeile", "Zeilen")} übersprungen (leer)`);
+      if (parsed.imgs) notes.push(`Bilder fehlen bei ${plural(parsed.imgs, "Karte", "Karten")}`);
+      $("#inote", root).textContent = notes.join(" · "); $("#inote", root).hidden = !notes.length;
       $("#igo", root).disabled = !n; $("#igo", root).textContent = n ? `${plural(n, "Karte", "Karten")} importieren` : "Importieren";
     };
     ["input", "change"].forEach(ev => ["#it", "#isep", "#ihead", "#irev", "#ideck"].forEach(q => $(q, root).addEventListener(ev, upd)));
+    $("#ihead", root).addEventListener("change", () => { headSet = true; upd(); });
     $("#iextra", root).addEventListener("change", () => { extraSet = true; upd(); });
-    $("#ifile", root).addEventListener("change", async e => { const f = e.target.files && e.target.files[0]; if (!f) return; $("#it", root).value = await f.text(); $("#ifn", root).textContent = f.name; upd(); });
+    $("#ifile", root).addEventListener("change", async e => { const f = e.target.files && e.target.files[0]; if (!f) return; $("#it", root).value = await f.text(); $("#ifn", root).textContent = f.name; fname = f.name.replace(/\.[^.]+$/, "").replace(/_+/g, " ").trim(); upd(); });
     $("#igo", root).addEventListener("click", () => {
-      const to = $("#ifo", root).value, now = Date.now(), LIMIT = 240000;
+      let to = $("#ifo", root).value; const now = Date.now(), LIMIT = 240000;
+      if (!to) { const nf = { id: uid(), name: newName(), parentId: null, color: COLORS[Object.keys(S.folders).length % COLORS.length], emoji: "📚", cover: null, section: null, order: now, created: now }; putFolder(nf); to = nf.id; }
       const cards = parsed.rows.map((r, i) => { const id = uid() + i; return [id, { id, f: r[0], b: r[1], due: now + i, ivl: 0, ease: 2.5, reps: 0, lapses: 0, created: now + i }]; });
       let made = 0;
       const mk = (pid, name, k) => {
@@ -7223,7 +7259,7 @@ document.addEventListener("click", e => {
   else if (a === "folderStats") { e.stopPropagation(); folderStatsSheet(id); }
   else if (a === "newCard") { cardSheet(id || S.fid || children(null)[0]?.id); }
   else if (a === "editCard") { cardSheet(b.dataset.f, id); }
-  else if (a === "import") { importSheet(id || S.fid || children(null)[0]?.id); }
+  else if (a === "import") { importSheet(id || S.fid || null); }
   else if (a === "study") { startStudy(id); }
   else if (a === "flip") { if (S.study && !S.study.flipped) { S.study.flipped = true; S.study.justFlipped = true; render(); } }
   else if (a === "grade") { e.stopPropagation(); grade(+b.dataset.g); }
