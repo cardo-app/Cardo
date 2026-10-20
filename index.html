@@ -1669,6 +1669,25 @@ const I18N = {
   "von": ["by", "di"],
   "Von dir": ["By you", "Da te"],
   "Von": ["By", "Di"],
+  "Feedback geben": ["Send feedback", "Invia feedback"],
+  "Feedback": ["Feedback", "Feedback"],
+  "Was gefällt dir, was stört dich, was fehlt? Jede Nachricht hilft, Cardo besser zu machen.": ["What do you like, what bothers you, what's missing? Every message helps make Cardo better.", "Cosa ti piace, cosa ti dà fastidio, cosa manca? Ogni messaggio aiuta a migliorare Cardo."],
+  "Fehler": ["Bug", "Errore"],
+  "Idee": ["Idea", "Idea"],
+  "Sonstiges": ["Other", "Altro"],
+  "Deine Nachricht": ["Your message", "Il tuo messaggio"],
+  "Was ist passiert? Was hast du kurz davor gemacht?": ["What happened? What did you do right before?", "Cos'è successo? Cosa hai fatto poco prima?"],
+  "Was würdest du dir wünschen?": ["What would you like to see?", "Cosa ti piacerebbe?"],
+  "Schreib einfach drauflos …": ["Just start writing …", "Scrivi pure …"],
+  "Ihr dürft mir per E-Mail antworten": ["You may reply to me by email", "Potete rispondermi via e-mail"],
+  "Gespeichert werden deine Nachricht, die App-Version, die Art deines Geräts und die Sprache.": ["We store your message, the app version, your device type and language.", "Salviamo il tuo messaggio, la versione dell'app, il tipo di dispositivo e la lingua."],
+  "Senden": ["Send", "Invia"],
+  "Schreib zuerst ein paar Worte.": ["Write a few words first.", "Scrivi prima qualche parola."],
+  "Zum Senden brauchst du Internet.": ["You need internet to send.", "Per inviare serve internet."],
+  "Du hast heute schon sehr viel Feedback geschickt – danke! Morgen geht es weiter.": ["You've already sent a lot of feedback today – thank you! You can send more tomorrow.", "Hai già inviato molto feedback oggi – grazie! Domani puoi inviarne altro."],
+  "Feedback ist noch nicht eingerichtet.": ["Feedback isn't set up yet.", "Il feedback non è ancora attivo."],
+  "Senden hat nicht geklappt. Versuch es gleich noch einmal.": ["Sending didn't work. Please try again in a moment.", "Invio non riuscito. Riprova tra poco."],
+  "Danke für dein Feedback!": ["Thanks for your feedback!", "Grazie per il tuo feedback!"],
   "Neu: Klassenraum": ["New: Classroom", "Novità: Aula"],
   "Lerne jetzt mit deiner Klasse in gemeinsamen Kursen: Alle sehen dieselben Karten, jeder kann Karten beisteuern, und dein Lernstand bleibt privat.": ["Now study with your class in shared courses: everyone sees the same cards, anyone can add cards, and your progress stays private.", "Ora studia con la tua classe in corsi condivisi: tutti vedono le stesse schede, ognuno può aggiungerne e i tuoi progressi restano privati."],
   "Du findest den Klassenraum jederzeit in den Einstellungen.": ["You can always find the classroom in the settings.", "Trovi l'aula sempre nelle impostazioni."],
@@ -7033,8 +7052,46 @@ function settingsHTML(){
     <button class="set-item" data-act="syncSheet"><span class="si-dot ${!navigator.onLine || S.syncErr || (DB && DB.pendingSlow && DB.pendingSlow()) ? 'local' : ''}"></span><span class="si-t">Synchronisierung</span><span class="si-v">${!navigator.onLine ? "Offline – wird nachgeholt" : S.syncErr ? "Wird erneut versucht" : (DB && DB.pendingSlow && DB.pendingSlow()) ? "Wird gespeichert …" : "Aktuell"}</span><span class="si-ch" aria-hidden="true">›</span></button>
   </div>
   <div class="set-list">
+    <button class="set-item" data-act="feedbackSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.8 7L4 20.5l1.5-4.6A8 8 0 1 1 21 12z"/><path d="M8.5 10.5h7M8.5 14h4.5"/></svg></span><span class="si-t">Feedback geben</span><span class="si-ch" aria-hidden="true">›</span></button>
     <a class="set-item" href="datenschutz.html"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg></span><span class="si-t">Datenschutz & Impressum</span><span class="si-ch" aria-hidden="true">›</span></a>
   </div>`;
+}
+
+/* ---------- Feedback (Einstellungen › Feedback geben) → Supabase-Tabelle feedback (SQL: Claude outputs/cardo-feedback-supabase.sql) ---------- */
+const FB_KINDS = [["bug", "Fehler"], ["idea", "Idee"], ["other", "Sonstiges"]];
+const FB_HINT = { bug: "Was ist passiert? Was hast du kurz davor gemacht?", idea: "Was würdest du dir wünschen?", other: "Schreib einfach drauflos …" };
+function fbDevice(){
+  const ua = navigator.userAgent, app = navigator.standalone === true || matchMedia("(display-mode: standalone)").matches;
+  const d = /iPhone/.test(ua) ? "iPhone" : /iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) ? "iPad" : /Android/.test(ua) ? "Android" : /Macintosh/.test(ua) ? "Mac" : /Windows/.test(ua) ? "Windows" : "Sonstiges";
+  return `${d} · ${app ? "App" : "Browser"} · ${innerWidth}×${innerHeight}`;
+}
+function feedbackSheet(){
+  let kind = "idea", contact = false;
+  openSheet(`${head("Feedback")}
+    <p class="muted" style="margin:0 0 14px;font-size:15px">Was gefällt dir, was stört dich, was fehlt? Jede Nachricht hilft, Cardo besser zu machen.</p>
+    <div class="seg" role="radiogroup" aria-label="Art" style="margin-bottom:14px">${FB_KINDS.map(([k, l]) => `<button type="button" class="${k === kind ? "on" : ""}" data-fk="${k}" role="radio" aria-checked="${k === kind}">${l}</button>`).join("")}</div>
+    <div class="field"><label for="fbm">Deine Nachricht</label><textarea class="in" id="fbm" maxlength="5000" style="min-height:140px" placeholder="${FB_HINT[kind]}"></textarea></div>
+    <div class="set-list" style="margin:0"><button class="set-item ex-sw" type="button" id="fbc" role="switch" aria-checked="false"><span class="si-t">Ihr dürft mir per E-Mail antworten</span><span class="switch" aria-hidden="true"><i></i></span></button></div>
+    <p class="muted" style="margin:10px 2px 16px;font-size:13px">Gespeichert werden deine Nachricht, die App-Version, die Art deines Geräts und die Sprache.</p>
+    <div class="sheet-foot"><div class="r"><button class="btn" data-act="close">Abbrechen</button><button class="btn primary" id="fbs">Senden</button></div></div>`,
+  root => {
+    const ta = $("#fbm", root);
+    root.addEventListener("click", async e => {
+      const k = e.target.closest("[data-fk]");
+      if (k) { kind = k.dataset.fk; root.querySelectorAll("[data-fk]").forEach(b => { b.classList.toggle("on", b === k); b.setAttribute("aria-checked", b === k); }); ta.placeholder = FB_HINT[kind]; return; }
+      if (e.target.closest("#fbc")) { contact = !contact; const c = $("#fbc", root); c.setAttribute("aria-checked", contact); c.querySelector(".switch").classList.toggle("on", contact); return; }
+      const send = e.target.closest("#fbs"); if (!send) return;
+      const msg = ta.value.trim(); if (!msg) { toast("Schreib zuerst ein paar Worte."); ta.focus(); return; }
+      if (!krOn()) { location.href = `mailto:lumolabs@gmx.de?subject=${encodeURIComponent("Cardo-Feedback")}&body=${encodeURIComponent(msg)}`; return; } /* ohne Konto: per Mail */
+      if (!navigator.onLine) { toast("Zum Senden brauchst du Internet."); return; }
+      send.disabled = true;
+      const ver = ((await caches.keys().catch(() => [])).find(x => /^cardo-v\d+$/.test(x)) || "").replace("cardo-", "");
+      const r = await SB.from("feedback").insert({ kind, message: msg.slice(0, 5000), contact_ok: contact, app_version: ver, device: fbDevice(), lang: LANG });
+      send.disabled = false;
+      if (r.error) { toast(/too_many/.test(r.error.message || "") ? "Du hast heute schon sehr viel Feedback geschickt – danke! Morgen geht es weiter." : /42P01|schema cache|does not exist/.test((r.error.code || "") + (r.error.message || "")) ? "Feedback ist noch nicht eingerichtet." : "Senden hat nicht geklappt. Versuch es gleich noch einmal."); return; }
+      closeSheet(); toast("Danke für dein Feedback!");
+    });
+  });
 }
 
 /* ---------- Study ---------- */
@@ -8049,6 +8106,7 @@ document.addEventListener("click", e => {
   if (a === "krJoin") { krReady(() => krJoinSheet("")); return; }
   if (a === "krName") { if (krOn()) krNameSheet(); return; }
   if (a === "classroomSheet") { classroomSheet(); return; }
+  if (a === "feedbackSheet") { feedbackSheet(); return; }
   if (a === "toggleClassroom") { krSetEnabled(!krEnabled()); classroomSheet(); return; }
   if (a === "krMembers") { closeMenu(); krMembersSheet(id); return; }
   if (a === "krInvite") { closeMenu(); krInviteSheet(id); return; }
