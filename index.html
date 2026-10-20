@@ -1596,6 +1596,10 @@ try {
 } catch {}
 const LOC = () => LOCALES[LANG];
 const I18N = {
+  "Klassenraum anzeigen": ["Show classroom", "Mostra aula"],
+  "Im Klassenraum lernst du mit deiner Klasse oder deinem Kurs in gemeinsamen Ordnern. In der Bibliothek wechselst du zwischen „Meine Ordner“ und „Klassenraum“.": ["In the classroom you study with your class or course in shared folders. In the library you switch between “My folders” and “Classroom”.", "Nell'aula studi con la tua classe o il tuo corso in cartelle condivise. Nella libreria passi da “Le mie cartelle” ad “Aula”."],
+  "Ausgeschaltet verschwindet die Auswahl in der Bibliothek und du siehst nur noch deine eigenen Ordner.": ["When off, the switch in the library disappears and you only see your own folders.", "Se disattivata, la scelta nella libreria scompare e vedi solo le tue cartelle."],
+  "Deine Kurse bleiben erhalten – du bist weiter Mitglied und siehst sie wieder, sobald du den Klassenraum einschaltest.": ["Your courses are kept – you stay a member and see them again as soon as you turn the classroom on.", "I tuoi corsi restano – rimani membro e li rivedi appena riattivi l'aula."],
   "In Klassenraum kopieren": ["Copy to classroom", "Copia nell'aula"],
   "„{}“ in den Klassenraum kopieren": ["Copy “{}” to the classroom", "Copia “{}” nell'aula"],
   "Der Ordner kommt mit allen Unterordnern und Karten in den gewählten Community-Ordner. Alle Mitglieder sehen die Kopie, dein Ordner bleibt unverändert.": ["The folder goes into the chosen community folder with all subfolders and cards. All members see the copy; your folder stays unchanged.", "La cartella va nella cartella community scelta con tutte le sottocartelle e le schede. Tutti i membri vedono la copia, la tua cartella resta invariata."],
@@ -3914,10 +3918,10 @@ const newLimit = () => (S.set.newPerDay ?? 20);
 const newLimitLabel = k => k === 0 ? "Unbegrenzt" : String(k);
 function normSet(v){ // accepts old {mode, theme} and new {look, layout}
   if (!v) return null;
-  const layout = v.layout === "list" ? "list" : "grid", textSize = ["s","m","l"].includes(v.textSize) ? v.textSize : "m", fxMode = ["full","color","off"].includes(v.fxMode) ? v.fxMode : (v.gradeFx === false ? "off" : "full"), gradeSet = ["4","3","2"].includes(String(v.gradeSet)) ? String(v.gradeSet) : "4", newPerDay = NEW_OPTS.includes(+v.newPerDay) ? +v.newPerDay : 20, splash = ["daily","always","never"].includes(v.splash) ? v.splash : "daily", glass = [0,1,2].includes(+v.glass) ? +v.glass : 1, retain = RETAIN_OPTS.includes(+v.retain) ? +v.retain : 90, sound = v.sound === 1 ? 1 : 0, lang = LOCALES[v.lang] ? v.lang : undefined;
-  if (v.look) return { look: ["light","dark","black","auto"].includes(v.look) || THEMES.some(t => t.k === v.look) ? v.look : "auto", layout, textSize, fxMode, gradeSet, newPerDay, splash, glass, retain, sound, lang };
-  if (v.theme && v.theme !== "koralle" && THEMES.some(t => t.k === v.theme)) return { look: v.theme, layout, textSize, fxMode, gradeSet, newPerDay, splash, glass, retain, sound, lang };
-  return v.mode ? { look: v.mode, layout, textSize, fxMode, gradeSet, newPerDay, splash, glass, retain, sound, lang } : null;
+  const layout = v.layout === "list" ? "list" : "grid", textSize = ["s","m","l"].includes(v.textSize) ? v.textSize : "m", fxMode = ["full","color","off"].includes(v.fxMode) ? v.fxMode : (v.gradeFx === false ? "off" : "full"), gradeSet = ["4","3","2"].includes(String(v.gradeSet)) ? String(v.gradeSet) : "4", newPerDay = NEW_OPTS.includes(+v.newPerDay) ? +v.newPerDay : 20, splash = ["daily","always","never"].includes(v.splash) ? v.splash : "daily", glass = [0,1,2].includes(+v.glass) ? +v.glass : 1, retain = RETAIN_OPTS.includes(+v.retain) ? +v.retain : 90, sound = v.sound === 1 ? 1 : 0, lang = LOCALES[v.lang] ? v.lang : undefined, classroom = v.classroom === 0 ? 0 : 1;
+  if (v.look) return { look: ["light","dark","black","auto"].includes(v.look) || THEMES.some(t => t.k === v.look) ? v.look : "auto", layout, textSize, fxMode, gradeSet, newPerDay, splash, glass, retain, sound, lang, classroom };
+  if (v.theme && v.theme !== "koralle" && THEMES.some(t => t.k === v.theme)) return { look: v.theme, layout, textSize, fxMode, gradeSet, newPerDay, splash, glass, retain, sound, lang, classroom };
+  return v.mode ? { look: v.mode, layout, textSize, fxMode, gradeSet, newPerDay, splash, glass, retain, sound, lang, classroom } : null;
 }
 try { const c = normSet(JSON.parse(localStorage.getItem("kartenfach-settings") || "null")); if (c) S.set = c; } catch {}
 const darkMQ = matchMedia("(prefers-color-scheme: dark)");
@@ -4582,7 +4586,7 @@ function saveSettings(patch){
   S.set = { ...S.set, ...patch }; setLang(S.set.lang); applyTheme(); render();
   try { localStorage.removeItem(LANG_PICK); } catch {}
   try { localStorage.setItem("kartenfach-settings", JSON.stringify(S.set)); } catch {}
-  if (DB) enqueue("settings/main", () => DB.doc("settings/main").set({ look: S.set.look, layout: S.set.layout, textSize: S.set.textSize, fxMode: S.set.fxMode || "full", gradeSet: S.set.gradeSet || "4", newPerDay: newLimit(), splash: S.set.splash || "daily", glass: S.set.glass ?? 1, retain: S.set.retain || 90, sound: S.set.sound === 1 ? 1 : 0, lang: S.set.lang || LANG }));
+  if (DB) enqueue("settings/main", () => DB.doc("settings/main").set({ look: S.set.look, layout: S.set.layout, textSize: S.set.textSize, fxMode: S.set.fxMode || "full", gradeSet: S.set.gradeSet || "4", newPerDay: newLimit(), splash: S.set.splash || "daily", glass: S.set.glass ?? 1, retain: S.set.retain || 90, sound: S.set.sound === 1 ? 1 : 0, lang: S.set.lang || LANG, classroom: S.set.classroom === 0 ? 0 : 1 }));
 }
 darkMQ.addEventListener && darkMQ.addEventListener("change", applyTheme);
 new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
@@ -4958,7 +4962,7 @@ function startApp(){
   DB.doc("settings/main").onSnapshot(d => { if (!d.exists) return; const v = normSet(d.data()); if (!v) return;
     let pk = null; try { pk = localStorage.getItem(LANG_PICK); localStorage.removeItem(LANG_PICK); } catch {} /* vor der Anmeldung gewählte Sprache gewinnt und wird ins Konto geschrieben */
     if (pk && LOCALES[pk] && v.lang !== pk) { v.lang = pk; setTimeout(() => saveSettings({ lang: pk }), 0); }
-    S.set = v; try { localStorage.setItem("kartenfach-settings", JSON.stringify(S.set)); } catch {} if (setLang(S.set.lang)) { if (!$("#sheet").hidden) closeSheet(); schedulePrerender(); } applyTheme(); render(); });
+    const kWas = krEnabled(); S.set = v; if (krEnabled() !== kWas) { krInject(); if (krEnabled()) krLoad(); else if (S.room === "class") { S.room = "own"; saveRoom(); } } try { localStorage.setItem("kartenfach-settings", JSON.stringify(S.set)); } catch {} if (setLang(S.set.lang)) { if (!$("#sheet").hidden) closeSheet(); schedulePrerender(); } applyTheme(); render(); });
   DB.collection("sections").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = d.data(); }); S.sections = o; render(); });
   krCacheLoad();
   DB.collection("cprog").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = d.data() || {}; }); KR.prog = o; krInject(); render(); });
@@ -5118,6 +5122,7 @@ const KR = { ok: null, me: undefined, list: {}, members: {}, names: {}, folders:
 const KR_TEXT = ["id", "f", "b", "created", "by", "comm", "ov", "oc"];
 const KR_FSHARED = ["id", "name", "emoji", "color", "parentId", "comm", "croot", "by", "created", "cover", "cpos", "section", "share", "from"];
 const krOn = () => !!(SB && USER && S.mode !== "local");
+const krEnabled = () => S.set.classroom !== 0; /* Einstellungen › Klassenraum */
 const commOf = fid => { const f = S.folders[fid]; return f && f.comm || null; };
 const krRole = cid => (KR.list[cid] || {}).role || null;
 const krAdmin = cid => krRole(cid) === "admin";
@@ -5146,7 +5151,7 @@ function krErr(e){
 /* Community-Daten als Ordner/Karten in S.folders/S.decks einhängen (nach jedem Laden/Ändern neu) */
 function krInject(){
   KR.ids.forEach(id => { if (S.folders[id] && S.folders[id].comm) delete S.folders[id]; delete S.decks[id]; });
-  KR.ids = new Set();
+  KR.ids = new Set(); if (!krEnabled()) return;
   const add = (id, base) => { const set = (KR.prog[id] || {}).set || {}; S.folders[id] = { order: base.created, ...set, ...base }; S.decks[id] = {}; KR.ids.add(id); };
   Object.values(KR.list).forEach(c => add(c.id, { id: c.id, name: c.name, emoji: c.emoji ?? "", color: safeColor(c.color), parentId: null, comm: c.id, croot: 1, by: c.created_by, created: krTime(c.created_at) }));
   Object.values(KR.folders).forEach(f => { if (KR.list[f.community_id]) add(f.id, { id: f.id, name: f.name, emoji: f.emoji ?? "", color: safeColor(f.color), parentId: f.parent_id || f.community_id, comm: f.community_id, by: f.created_by, created: krTime(f.created_at) }); });
@@ -5310,7 +5315,7 @@ function krCacheSoon(){ clearTimeout(krCT); krCT = setTimeout(() => { try { loca
 async function krAll(q){ const out = []; for (let from = 0; ; from += 1000) { const r = await q().range(from, from + 999); if (r.error) throw r.error; out.push(...r.data); if (r.data.length < 1000) return out; } }
 let krLoading = null;
 function krLoad(){
-  if (!krOn()) return Promise.resolve();
+  if (!krOn() || !krEnabled()) return Promise.resolve();
   if (krLoading) return krLoading;
   krLoading = (async () => {
     try {
@@ -5409,7 +5414,7 @@ async function krCreate(d){
 const JOIN_IN = (() => { try { const q = new URLSearchParams(location.search), c = q.get("join");
   if (c && /^[A-Za-z0-9]{6,12}$/.test(c)) { q.delete("join"); history.replaceState(null, "", location.pathname + (q.toString() ? "?" + q : "") + location.hash); try { localStorage.setItem("cardo-pending-join", c.toUpperCase()); } catch {} return c.toUpperCase(); } } catch {} return null; })();
 const joinLink = code => SHARE_BASE + "?join=" + code;
-function runPendingJoin(){ let c = null; try { c = localStorage.getItem("cardo-pending-join"); localStorage.removeItem("cardo-pending-join"); } catch {} if (c) setTimeout(() => krReady(() => krJoinSheet(c)), 400); }
+function runPendingJoin(){ let c = null; try { c = localStorage.getItem("cardo-pending-join"); localStorage.removeItem("cardo-pending-join"); } catch {} if (!c) return; if (!krEnabled()) krSetEnabled(true); setTimeout(() => krReady(() => krJoinSheet(c)), 400); }
 function krJoinSheet(code){
   openSheet(`${head("Community beitreten")}
     <p class="muted" style="margin:0 0 14px;font-size:15px">Gib den Code ein, den du von deiner Lehrkraft oder aus deiner Klasse bekommen hast.</p>
@@ -5512,7 +5517,21 @@ async function krDelete(cid){
 let ROOM = "own"; try { ROOM = localStorage.getItem("cardo-room") === "class" ? "class" : "own"; } catch {}
 S.room = ROOM;
 const saveRoom = () => { try { localStorage.setItem("cardo-room", S.room); } catch {} };
+function krSetEnabled(on){
+  saveSettings({ classroom: on ? 1 : 0 });
+  if (on) { krInject(); krLoad(); }
+  else { krInject(); S.room = "own"; saveRoom(); if (S.fid && !S.folders[S.fid]) go("lib", null); }
+  render();
+}
+function classroomSheet(){
+  const on = krEnabled();
+  openSheet(`${head("Klassenraum")}<p class="muted" style="margin:0 0 16px;font-size:15.5px">Im Klassenraum lernst du mit deiner Klasse oder deinem Kurs in gemeinsamen Ordnern. In der Bibliothek wechselst du zwischen „Meine Ordner“ und „Klassenraum“.</p>
+    <div class="set-list" style="margin:0"><button class="set-item ex-sw" data-act="toggleClassroom" role="switch" aria-checked="${on}"><span class="si-t">Klassenraum anzeigen</span><span class="switch ${on ? 'on' : ''}" aria-hidden="true"><i></i></span></button>
+    ${on && krOn() ? `<button class="set-item" data-act="krName"><span class="si-t">Benutzername</span><span class="si-v" translate="no">${esc(KR.me || "–")}</span><span class="si-ch" aria-hidden="true">›</span></button>` : ''}</div>
+    <p class="muted" style="margin:12px 2px 0;font-size:14px">${on ? "Ausgeschaltet verschwindet die Auswahl in der Bibliothek und du siehst nur noch deine eigenen Ordner." : "Deine Kurse bleiben erhalten – du bist weiter Mitglied und siehst sie wieder, sobald du den Klassenraum einschaltest."}</p>`);
+}
 function roomSegHTML(){
+  if (!krEnabled()) return "";
   return `<div class="room-tabs" role="tablist" aria-label="Ansicht">${[["own", "Meine Ordner"], ["class", "Klassenraum"]].map(([k, l]) => `<button type="button" role="tab" data-act="room" data-v="${k}" class="${S.room === k ? "on" : ""}" aria-selected="${S.room === k}">${l}</button>`).join("")}</div>`;
 }
 function classHTML(){
@@ -6301,7 +6320,7 @@ function foldersHTML(list){ return S.set.layout === "list" ? `<div class="flist"
 function libHTML(){
   const top = ownRoots(), all = { total: top.reduce((n, f) => n + counts(f.id).total, 0) };
   return `<div class="topbar"><h1>Bibliothek</h1><div class="tb-r"><button class="icon-btn" data-act="libMenu" aria-haspopup="menu" aria-expanded="false" aria-label="Bibliothek-Menü" title="Bibliothek">${IC.dots}</button></div></div>
-  ${roomSegHTML()}${S.room === "class" ? classHTML() : `
+  ${roomSegHTML()}${S.room === "class" && krEnabled() ? classHTML() : `
   ${sectionList().length ? sectionsHTML() : top.length ? `<div class="sec-h"><h2>Ordner\u200b</h2><span class="muted">${plural(all.total, 'Karte', 'Karten')}</span></div>` : ''}
   ${sectionList().length ? '' : top.length ? foldersHTML(top) : `<div class="empty"><b>Noch keine Ordner</b>Leg deinen ersten Ordner an oder spiel eine Cardo-Sicherung ein.<div class="actions"><button class="btn primary" data-act="newFolder">Neuer Ordner</button><button class="btn" data-act="dataSheet">Sicherung einspielen</button></div></div>`}`}`;
 }
@@ -6891,6 +6910,7 @@ function settingsHTML(){
     <button class="set-item" data-act="splashSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)">${THEME_IC.sparkle}</span><span class="si-t">Startanimation</span><span class="si-v">${splashLabel()}</span><span class="si-ch" aria-hidden="true">›</span></button>
   </div>
   <div class="set-list">
+    <button class="set-item" data-act="classroomSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)">${IC.people.replace('<svg', '<svg width="16" height="16"')}</span><span class="si-t">Klassenraum</span><span class="si-v">${krEnabled() ? "An" : "Aus"}</span><span class="si-ch" aria-hidden="true">›</span></button>
     <button class="set-item" data-act="soundSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></span><span class="si-t">Töne</span><span class="si-v" id="sndV">${S.set.sound === 1 ? "An" : "Aus"}</span><span class="si-ch" aria-hidden="true">›</span></button>
     <button class="set-item" data-act="langSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z"/></svg></span><span class="si-t">Sprache</span><span class="si-v" translate="no">${esc((LANGS.find(l => l[0] === LANG) || LANGS[0])[1])}</span><span class="si-ch" aria-hidden="true">›</span></button>
   </div>
@@ -7908,6 +7928,8 @@ document.addEventListener("click", e => {
   if (a === "krNew") { krReady(() => folderSheet(null, null, null, true)); return; }
   if (a === "krJoin") { krReady(() => krJoinSheet("")); return; }
   if (a === "krName") { if (krOn()) krNameSheet(); return; }
+  if (a === "classroomSheet") { classroomSheet(); return; }
+  if (a === "toggleClassroom") { krSetEnabled(!krEnabled()); classroomSheet(); return; }
   if (a === "krMembers") { closeMenu(); krMembersSheet(id); return; }
   if (a === "krCopy") { const f = S.folders[id]; if (!f) return; pickFolderSheet({ title: `„${escN(f.name)}“ in den Klassenraum kopieren`, note: "Der Ordner kommt mit allen Unterordnern und Karten in den gewählten Community-Ordner. Alle Mitglieder sehen die Kopie, dein Ordner bleibt unverändert.", onlyComm: true,
       onPick: t => { const r = krCopyFolder(id, t.fid); toast(`${plural(r.cards, "Karte", "Karten")} nach „${S.folders[t.fid] ? S.folders[t.fid].name : ""}“ kopiert`); go("lib", r.root, "push"); } }); return; }
