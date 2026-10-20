@@ -1596,6 +1596,10 @@ try {
 } catch {}
 const LOC = () => LOCALES[LANG];
 const I18N = {
+  "In Klassenraum kopieren": ["Copy to classroom", "Copia nell'aula"],
+  "„{}“ in den Klassenraum kopieren": ["Copy “{}” to the classroom", "Copia “{}” nell'aula"],
+  "Der Ordner kommt mit allen Unterordnern und Karten in den gewählten Community-Ordner. Alle Mitglieder sehen die Kopie, dein Ordner bleibt unverändert.": ["The folder goes into the chosen community folder with all subfolders and cards. All members see the copy; your folder stays unchanged.", "La cartella va nella cartella community scelta con tutte le sottocartelle e le schede. Tutti i membri vedono la copia, la tua cartella resta invariata."],
+  "{} nach „{}“ kopiert": ["{} copied to “{}”", "{} copiate in “{}”"],
   "Tippe oben rechts auf ⋯, um einen anzulegen oder mit einem Code beizutreten.": ["Tap ⋯ at the top right to create one or join with a code.", "Tocca ⋯ in alto a destra per crearne una o unirti con un codice."],
   "Mitglieder": ["Members", "Membri"],
   "Einladen": ["Invite", "Invita"],
@@ -5162,21 +5166,53 @@ function krSaveProg(fid, p){
   if (DB) enqueue("cprog/" + fid, () => DB.doc("cprog/" + fid).set(clean));
 }
 /* Server-Änderungen pro Community nacheinander ausführen; bei Fehlern neu laden (zeigt wieder den echten Stand) */
-function krRun(cid, ops){
-  const p = (KR.q[cid] || Promise.resolve()).then(async () => {
-    for (let i = 0; i < ops.length; i++) {
-      const [k, a, b] = ops[i]; let r;
-      if (k === "cards+") { const rows = [a]; while (ops[i + 1] && ops[i + 1][0] === "cards+") rows.push(ops[++i][1]); for (let j = 0; j < rows.length; j += 200) { r = await SB.from("community_cards").insert(rows.slice(j, j + 200)); if (r.error) break; } }
-      else if (k === "card") r = await SB.from("community_cards").update(b).eq("id", a);
-      else if (k === "card-") r = await SB.from("community_cards").delete().eq("id", a);
-      else if (k === "folder+") r = await SB.from("community_folders").insert(a);
-      else if (k === "folder") r = await SB.from("community_folders").update(b).eq("id", a);
-      else if (k === "comm") r = await SB.from("communities").update(b).eq("id", a);
-      else if (k === "rpc") r = await SB.rpc(a, b);
-      if (r && r.error) throw r.error;
+/* Server-Änderungen kommen in eine Warteschlange, die auch Neustarts und Offline-Zeiten übersteht (wie bei den eigenen Ordnern):
+   abgearbeitet wird der Reihe nach, sobald Internet da ist. Echte Fehler (z. B. fehlende Rechte) → Meldung und neu laden. */
+const krOutKey = () => "cardo-kr-out-" + USER.id;
+let KR_OUT = null, krBusy = false, krRetryT = 0;
+const krOut = () => KR_OUT || (KR_OUT = (() => { try { return JSON.parse(localStorage.getItem(krOutKey()) || "[]") || []; } catch { return []; } })());
+const krOutSave = () => { try { localStorage.setItem(krOutKey(), JSON.stringify(krOut())); } catch {} };
+const krNetErr = e => !navigator.onLine || /fetch|network|load failed|timeout|offline/i.test(String((e && (e.message || e)) || ""));
+function krRun(cid, ops){ krOut().push({ cid, ops }); krOutSave(); krFlush(); }
+async function krExec(ops){
+  for (let i = 0; i < ops.length; i++) {
+    const [k, a, b] = ops[i]; let r;
+    if (k === "cards+") { const rows = [a]; while (ops[i + 1] && ops[i + 1][0] === "cards+") rows.push(ops[++i][1]); for (let j = 0; j < rows.length; j += 200) { r = await SB.from("community_cards").upsert(rows.slice(j, j + 200), { onConflict: "id", ignoreDuplicates: true }); if (r.error) break; } }
+    else if (k === "card") r = await SB.from("community_cards").update(b).eq("id", a);
+    else if (k === "card-") r = await SB.from("community_cards").delete().eq("id", a);
+    else if (k === "folder+") r = await SB.from("community_folders").upsert(a, { onConflict: "id", ignoreDuplicates: true });
+    else if (k === "folder") r = await SB.from("community_folders").update(b).eq("id", a);
+    else if (k === "comm") r = await SB.from("communities").update(b).eq("id", a);
+    else if (k === "rpc") r = await SB.rpc(a, b);
+    if (r && r.error) throw r.error;
+  }
+}
+async function krFlush(){
+  if (krBusy || !krOn()) return; krBusy = true;
+  try {
+    while (krOut().length && navigator.onLine) {
+      try { await krExec(krOut()[0].ops); }
+      catch (e) {
+        if (krNetErr(e)) { clearTimeout(krRetryT); krRetryT = setTimeout(krFlush, 15000); break; }
+        console.warn("klassenraum", e); toast(krErr(e)); krOut().shift(); krOutSave(); setTimeout(krLoad, 0); continue;
+      }
+      krOut().shift(); krOutSave();
     }
-  }).catch(e => { console.warn("klassenraum", e); toast(krErr(e)); krLoad(); });
-  KR.q[cid] = p; return p;
+  } finally { krBusy = false; }
+}
+/* Noch nicht hochgeladene Änderungen auf frisch geladene Daten anwenden (sonst verschwänden sie bis zum Hochladen) */
+function krReplay(){
+  const now = new Date().toISOString();
+  krOut().forEach(j => j.ops.forEach(([k, a, b]) => {
+    if (k === "cards+") { if (!KR.cards[a.id]) KR.cards[a.id] = { ...a, created_by: USER.id, created_at: now, updated_at: now }; }
+    else if (k === "card") { if (KR.cards[a]) Object.assign(KR.cards[a], b, { updated_at: now }); }
+    else if (k === "card-") delete KR.cards[a];
+    else if (k === "folder+") { if (!KR.folders[a.id]) KR.folders[a.id] = { ...a, created_by: USER.id, created_at: now, updated_at: now }; }
+    else if (k === "folder") { if (KR.folders[a]) Object.assign(KR.folders[a], b); }
+    else if (k === "comm") { if (KR.list[a]) Object.assign(KR.list[a], b); }
+    else if (k === "rpc" && a === "cm_delete_folder") { const ids = [b.p_fid]; for (let i = 0; i < ids.length; i++) Object.values(KR.folders).forEach(f => { if (f.parent_id === ids[i]) ids.push(f.id); });
+      ids.forEach(id => { delete KR.folders[id]; Object.values(KR.cards).forEach(c => { if (c.folder_id === id) delete KR.cards[c.id]; }); }); }
+  }));
 }
 /* Ein Community-Ordner wurde in S.decks geändert (Lernen, Bearbeiten, Löschen, Verschieben, Import …) → Unterschiede verteilen:
    Text: für alle (eigene Karte bzw. Admin) oder nur für mich (o) · Lernstand: privat · fehlende Karten: löschen bzw. für mich ausblenden. */
@@ -5256,6 +5292,16 @@ function krDrop(cid){ /* Community aus der App entfernen (verlassen, entfernt wo
   ids.forEach(id => { if (DB) DB.doc("cprog/" + id).delete(); delete KR.prog[id]; });
   krInject(); krCacheSoon(); if (S.fid && !S.folders[S.fid]) go("lib", null); else render();
 }
+/* Eigenen Ordner (mit Unterordnern und Karten, ohne Lernstand) als neuen Unterordner in einen Community-Ordner kopieren */
+function krCopyFolder(src, to){
+  let n = 0, cards = 0, root = null;
+  const walk = (id, parent) => { const f = S.folders[id]; if (!f) return; const nid = uid() + "f" + (n++).toString(36); if (!root) root = nid;
+    putFolder({ id: nid, name: f.name, emoji: f.emoji ?? "", color: f.color, parentId: parent, created: Date.now(), order: Date.now() + n });
+    const list = Object.values(S.decks[id] || {}).sort((a, b) => (a.created || 0) - (b.created || 0));
+    if (list.length) { const d = {}; list.forEach(c => { const k = newCardFrom(c, cards++); d[k.id] = k; }); S.decks[nid] = { ...(S.decks[nid] || {}), ...d }; writeDeck(nid); }
+    children(id).filter(c => !c.comm).forEach(c => walk(c.id, nid)); };
+  walk(src, to); return { root, cards };
+}
 /* ---- Laden, Zwischenspeicher (für Offline-Start), Live-Aktualisierung ---- */
 const krCK = () => "cardo-kr-" + USER.id;
 function krCacheLoad(){ try { const d = JSON.parse(localStorage.getItem(krCK()) || "null"); if (d) { KR.me = d.me; KR.list = d.list || {}; KR.members = d.members || {}; KR.names = d.names || {}; KR.folders = d.folders || {}; KR.cards = d.cards || {}; KR.ok = true; } } catch {} }
@@ -5283,7 +5329,7 @@ function krLoad(){
         if (uids.length) { const ps = await SB.from("profiles").select("user_id,username").in("user_id", uids); if (ps.error) throw ps.error; ps.data.forEach(p => { names[p.user_id] = p.username; }); }
       }
       Object.assign(KR, { ok: true, me: me.data ? me.data.username : null, list, members, names, folders, cards, at: Date.now() });
-      krCacheSoon(); krInject(); render(); krSubscribe();
+      krReplay(); krCacheSoon(); krInject(); render(); krSubscribe(); krFlush();
     } catch (e) {
       console.warn("klassenraum laden", e);
       if (/PGRST20|42P01|schema cache/.test(String((e && (e.code || "") + (e.message || "")) || ""))) { KR.ok = false; render(); }
@@ -5320,7 +5366,7 @@ function krEvent(t, ev){
   krCacheSoon(); krInject(); render();
 }
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && krOn() && KR.ok && Date.now() - KR.at > 5 * 60000) krLoad(); });
-addEventListener("online", () => { if (krOn()) krLoad(); });
+addEventListener("online", () => { if (krOn()) { krFlush(); krLoad(); } });
 /* ---- Benutzername ---- */
 function krNameSheet(then){
   openSheet(`${head(KR.me ? "Benutzername ändern" : "Wähle deinen Benutzernamen")}
@@ -7414,7 +7460,7 @@ function cardSheet(fid, id){
     const ko = $("#kOrig", root); if (ko) ko.addEventListener("click", () => { const P = krProg(fid), r = { ...(P.cards[ex.id] || {}) }; delete r.o; P.cards[ex.id] = r; krSaveProg(fid, P); krInject(); render(); closeSheet(); toast("Original wiederhergestellt"); });
     const cp = $("#ccopy", root); if (cp) cp.addEventListener("click", () => {
       const f = $("#cf", root).value.trim() || ex.f, b = $("#cb", root).value.trim() || ex.b;
-      pickFolderSheet({ title: "Karte kopieren", note: "Die Kopie startet als neue Karte. Das Original bleibt, wo es ist.", back: () => cardSheet(fid, id),
+      pickFolderSheet({ title: "Karte kopieren", note: "Die Kopie startet als neue Karte. Das Original bleibt, wo es ist.", back: () => cardSheet(fid, id), comm: true,
         onPick: t => { putCard(t.fid, newCardFrom({ f, b }, 0)); toast(`Kopiert nach „${S.folders[t.fid].name}“`); } });
     });
   });
@@ -7437,9 +7483,12 @@ function moveCards(from, ids, to){
 // Ordner/Bereich als Ziel wählen. opts: title, note, current (Ordner-ID, nicht wählbar), exclude (IDs), root (Bibliothek/Bereiche anbieten), curRoot (aktueller Bereich, "" = ohne), onPick({fid}|{sid}), back
 function pickFolderSheet(o){
   const ex = new Set(o.exclude || []), rows = [];
-  const walk = (pid, d) => children(pid).forEach(f => { if (ex.has(f.id) || f.comm) return; rows.push([f, d]); walk(f.id, d + 1); });
-  walk(null, 0);
-  const row = (f, d) => { const cur = f.id === o.current;
+  const walk = (pid, d) => children(pid).forEach(f => { if (ex.has(f.id)) return; rows.push([f, d]); walk(f.id, d + 1); });
+  const one = f => { if (ex.has(f.id)) return; rows.push([f, 0]); walk(f.id, 1); };
+  if (!o.onlyComm) ownRoots().forEach(one);
+  const kr = o.comm || o.onlyComm ? krRoots().filter(f => krWrite(f.comm)) : [];
+  if (kr.length) { if (!o.onlyComm) rows.push(["kr", 0]); kr.forEach(one); }
+  const row = (f, d) => { if (f === "kr") return `<div class="pk-h">Klassenraum</div>`; const cur = f.id === o.current;
     return `<button type="button" class="pk-row" data-fid="${f.id}" style="--d:${d}" ${cur ? 'disabled' : ''}>${dotHTML(f, "pk-dot")}<span class="pk-t"><b>${escN(f.name)}</b>${d ? `<span>${esc(pathOf(f.id).slice(0, -1).map(x => x.name).join(" › "))}</span>` : ''}</span>${cur ? '<span class="pk-cur">aktuell</span>' : '<span class="pk-ch" aria-hidden="true">›</span>'}</button>`; };
   let top = "";
   if (o.root) {
@@ -7725,6 +7774,7 @@ function openMenu(btn, fid){
     <button data-act="import"${d} role="menuitem">${MI.import}Karten importieren</button>
     <button data-act="moveFolder"${d} role="menuitem">${MI.move}${fo.parentId ? 'Unterordner' : 'Ordner'} verschieben</button>` + (n.own ? `
     <button data-act="pickStart"${d} role="menuitem">${MI.select}Karten auswählen<span class="sub" style="color:var(--muted)">kopieren, verschieben, löschen</span></button>` : '') + `
+    ${krOn() && krRoots().some(f => krWrite(f.comm)) ? `<button data-act="krCopy"${d} role="menuitem">${MI.people}In Klassenraum kopieren</button>` : ''}
     <button data-act="editFolder"${d} role="menuitem">${MI.edit}Ordner gestalten</button>` /* immer der letzte Ordner-Eintrag, Sortieren folgt darunter */
     : `<button data-act="newFolder" role="menuitem">${MI.folderPlus}Neuer Ordner</button>
     <button data-act="newSect" role="menuitem">${MI.sectPlus}Neuer Bereich (Überschrift)</button>
@@ -7859,15 +7909,17 @@ document.addEventListener("click", e => {
   if (a === "krJoin") { krReady(() => krJoinSheet("")); return; }
   if (a === "krName") { if (krOn()) krNameSheet(); return; }
   if (a === "krMembers") { closeMenu(); krMembersSheet(id); return; }
+  if (a === "krCopy") { const f = S.folders[id]; if (!f) return; pickFolderSheet({ title: `„${escN(f.name)}“ in den Klassenraum kopieren`, note: "Der Ordner kommt mit allen Unterordnern und Karten in den gewählten Community-Ordner. Alle Mitglieder sehen die Kopie, dein Ordner bleibt unverändert.", onlyComm: true,
+      onPick: t => { const r = krCopyFolder(id, t.fid); toast(`${plural(r.cards, "Karte", "Karten")} nach „${S.folders[t.fid] ? S.folders[t.fid].name : ""}“ kopiert`); go("lib", r.root, "push"); } }); return; }
   if (a === "krUnhide") { const P = krProg(id); krHidden(id).forEach(x => { const r = { ...P.cards[x] }; delete r.h; if (Object.keys(r).length) P.cards[x] = r; else delete P.cards[x]; }); krSaveProg(id, P); krInject(); render(); toast("Wieder eingeblendet"); return; }
   if (a === "setCsort") { const f = S.folders[id]; if (f) { putFolder({ ...f, csort: b.dataset.v }); render(); } return; }
   if (a === "pickStart") { S.sel = new Set(); render(); return; }
   if (a === "pickCopy" || a === "pickMove") { if (!S.sel || !S.sel.size) return; const ids = [...S.sel], from = S.fid, mv = a === "pickMove";
-    pickFolderSheet({ title: `${plural(ids.length, 'Karte', 'Karten')} ${mv ? 'verschieben' : 'kopieren'}`, note: mv ? "Lernstand bleibt erhalten." : "Die Kopien starten als neue Karten.", current: mv ? from : null,
+    pickFolderSheet({ title: `${plural(ids.length, 'Karte', 'Karten')} ${mv ? 'verschieben' : 'kopieren'}`, note: mv ? "Lernstand bleibt erhalten." : "Die Kopien starten als neue Karten.", current: mv ? from : null, comm: !mv,
       onPick: t => { const n = mv ? moveCards(from, ids, t.fid) : copyCards(from, ids, t.fid); if (!n) return; S.sel = null; render(); toast(`${plural(n, 'Karte', 'Karten')} ${mv ? 'verschoben' : 'kopiert'} nach „${S.folders[t.fid].name}“`); } }); return; }
   if (a === "moveFolder") { moveFolderSheet(id); return; }
   if (a === "cardCopy" || a === "cardMove") { const from = b.dataset.f, c = (S.decks[from] || {})[id]; if (!c) return; const mv = a === "cardMove";
-    pickFolderSheet({ title: mv ? "Karte verschieben" : "Karte kopieren", note: mv ? "Lernstand bleibt erhalten." : "Die Kopie startet als neue Karte. Das Original bleibt, wo es ist.", current: mv ? from : null,
+    pickFolderSheet({ title: mv ? "Karte verschieben" : "Karte kopieren", note: mv ? "Lernstand bleibt erhalten." : "Die Kopie startet als neue Karte. Das Original bleibt, wo es ist.", current: mv ? from : null, comm: !mv,
       onPick: t => { const n = mv ? moveCards(from, [id], t.fid) : copyCards(from, [id], t.fid); if (n) toast(`${mv ? 'Verschoben' : 'Kopiert'} nach „${S.folders[t.fid].name}“`); } }); return; }
   if (a === "cardEdit") { cardSheet(b.dataset.f, id); return; }
   if (a === "pick") { S.sel && (S.sel.has(id) ? S.sel.delete(id) : S.sel.add(id)); render(); return; }
@@ -8441,7 +8493,7 @@ function cmOpen(x, y, viaPress = true){
     cmClose();
     if (k === "edit") { cardSheet(fid, id); return; }
     const mv = k === "move";
-    pickFolderSheet({ title: mv ? "Karte verschieben" : "Karte kopieren", note: mv ? "Lernstand bleibt erhalten." : "Die Kopie startet als neue Karte. Das Original bleibt, wo es ist.", current: mv ? fid : null,
+    pickFolderSheet({ title: mv ? "Karte verschieben" : "Karte kopieren", note: mv ? "Lernstand bleibt erhalten." : "Die Kopie startet als neue Karte. Das Original bleibt, wo es ist.", current: mv ? fid : null, comm: !mv,
       onPick: t => { const n = mv ? moveCards(fid, [id], t.fid) : copyCards(fid, [id], t.fid); if (n) toast(`${mv ? 'Verschoben' : 'Kopiert'} nach „${S.folders[t.fid].name}“`); } });
   });
 }
