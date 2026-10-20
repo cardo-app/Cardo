@@ -599,7 +599,12 @@ textarea.in{min-height:92px;resize:vertical;line-height:1.4}
 .c-by{grid-column:1/-1;font-size:12px;font-weight:600;color:var(--muted);opacity:.8;margin-top:2px}
 .c-by.own{color:#FF5A36;opacity:1}
 .kr-note{font-size:14px;margin:-4px 2px 14px;line-height:1.45}
-.kr-orig{display:block;margin-top:6px;padding:0;background:none;border:0;font:inherit;font-weight:700;color:var(--ink);text-decoration:underline;cursor:pointer}
+.kr-who{display:flex;align-items:center;gap:8px;margin:-2px 2px 14px;font-size:14px;color:var(--muted)}
+.kr-who .kr-av{width:24px;height:24px;font-size:11px;box-shadow:none;background:color-mix(in oklab,var(--ink) 14%,var(--surface))}
+.kr-by{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kr-by b{color:var(--ink)}
+.kr-scope{flex:none;padding:3px 9px;border-radius:99px;font-size:12px;font-weight:700;background:color-mix(in oklab,var(--ink) 8%,transparent)}
+.kr-scope.me{color:var(--accent-text);background:color-mix(in oklab,var(--accent) 14%,transparent)}
+.kr-orig{display:block;margin:-6px 2px 14px;padding:0;background:none;border:0;font:inherit;font-weight:700;color:var(--ink);text-decoration:underline;cursor:pointer}
 .kr-code{font-family:ui-monospace,Menlo,monospace;font-size:30px;font-weight:800;letter-spacing:.14em;text-align:center;padding:12px 8px;border-radius:14px;background:var(--surface-2);-webkit-user-select:all;user-select:all}
 .kr-code-in{font-family:ui-monospace,Menlo,monospace;font-size:20px;font-weight:700;letter-spacing:.12em}
 .kr-code-in::placeholder{font-family:'Figtree',system-ui,sans-serif;letter-spacing:0;font-weight:500;font-size:16px}
@@ -1651,6 +1656,8 @@ const I18N = {
   "von": ["by", "di"],
   "Von dir": ["By you", "Da te"],
   "Von": ["By", "Di"],
+  "Änderungen nur für dich": ["Changes only for you", "Modifiche solo per te"],
+  "Änderungen für alle": ["Changes for everyone", "Modifiche per tutti"],
   "deine Version": ["your version", "la tua versione"],
   "deine Version · Original wurde geändert": ["your version · original was changed", "la tua versione · l'originale è cambiato"],
   "· Änderungen gelten für alle.": ["· Changes apply to everyone.", "· Le modifiche valgono per tutti."],
@@ -7507,9 +7514,11 @@ function cardSheet(fid, id){
     ${edHTML("cf", "", "Vorderseite")}
     ${edHTML("cb", "", "Rückseite")}
     <div class="field"><label for="cfo">Ordner</label><select class="in" id="cfo" ${kEd ? '' : 'disabled'}>${folderOptions(fid)}</select></div>
-    ${kc ? `<p class="muted kr-note">${!ex ? "Alle Mitglieder sehen diese Karte. Du kannst sie später für alle ändern." : `${ex.by === USER.id ? "Von dir" : `Von <span translate="no">${esc(krName(ex.by))}</span>`} · ${kEd ? "Änderungen gelten für alle." : "Änderungen gelten nur für dich – die anderen sehen weiter das Original."}`}${ex && ex.ov ? `<button type="button" class="kr-orig" id="kOrig">${ex.oc ? "Original wurde geändert – übernehmen" : "Original wiederherstellen"}</button>` : ''}</p>` : ''}
+    ${kc ? (!ex ? `<p class="muted kr-note">Alle Mitglieder sehen diese Karte. Du kannst sie später für alle ändern.</p>`
+      : `<div class="kr-who"><span class="kr-av" aria-hidden="true" translate="no">${esc(((ex.by === USER.id ? KR.me : krName(ex.by)) || "?")[0].toUpperCase())}</span><span class="kr-by">${ex.by === USER.id ? "Von dir" : `<b translate="no">${esc(krName(ex.by))}</b>`}</span><span class="kr-scope${kEd ? "" : " me"}">${kEd ? "Änderungen für alle" : "Änderungen nur für dich"}</span></div>
+      ${ex.ov ? `<button type="button" class="kr-orig" id="kOrig">${ex.oc ? "Original wurde geändert – übernehmen" : "Original wiederherstellen"}</button>` : ''}`) : ''}
     ${ex ? `<div class="muted" style="font-size:14.5px;margin-bottom:14px">${ex.reps ? `${plural(ex.reps, 'Wiederholung', 'Wiederholungen')} · nächste ${isDue(ex) ? 'jetzt' : 'in ' + fmtIvl(ex.due - Date.now()).replace('< ','')}` : 'Noch nicht gelernt'}</div>` : ''}
-    ${ex ? `<div class="sheet-foot"><button class="btn danger" id="cdel">${kEd ? "Löschen" : "Für mich ausblenden"}</button><div class="r"><button class="btn" data-act="close">Abbrechen</button><button class="btn primary" id="csave">Speichern</button></div></div>`
+    ${ex ? `<div class="sheet-foot"><button class="btn danger" id="cdel">${kEd ? "Löschen" : "Ausblenden"}</button><div class="r"><button class="btn" data-act="close">Abbrechen</button><button class="btn primary" id="csave">Speichern</button></div></div>`
       : `<div class="sheet-foot new-card-foot"><button class="btn-quiet" id="csave">Speichern &amp; schließen</button><button class="btn primary" id="cnext">Nächste Karte →</button></div>`}`,
   root => {
     mountRichEditor(root, $("#cf", root), ex ? ex.f : ""); mountRichEditor(root, $("#cb", root), ex ? ex.b : "");
@@ -7524,7 +7533,7 @@ function cardSheet(fid, id){
       if (!ex && !$("#cf", root).value.trim() && !$("#cb", root).value.trim()) { closeSheet(); return; } // leere neue Karte: einfach schließen
       if (save()) { closeSheet(); toast(ex ? "Gespeichert" : "Karte angelegt"); } });
     const nx = $("#cnext", root); if (nx) nx.addEventListener("click", () => { if (save()) { ["#cf", "#cb"].forEach(q => { $(q, root).value = ""; }); $("#cf", root).focus(); toast("Karte angelegt"); } });
-    const del = $("#cdel", root); if (del) del.addEventListener("click", () => armDelete(del, () => { delCard(fid, ex.id); closeSheet(); toast(kEd ? "Karte gelöscht" : "Karte ausgeblendet"); }));
+    const del = $("#cdel", root); if (del) del.addEventListener("click", () => kEd ? armDelete(del, () => { delCard(fid, ex.id); closeSheet(); toast("Karte gelöscht"); }) : (delCard(fid, ex.id), closeSheet(), toast("Karte ausgeblendet"))); /* fremde Karte: nur für mich ausblenden, ohne Rückfrage (lässt sich wieder einblenden) */
     const ko = $("#kOrig", root); if (ko) ko.addEventListener("click", () => { const P = krProg(fid), r = { ...(P.cards[ex.id] || {}) }; delete r.o; P.cards[ex.id] = r; krSaveProg(fid, P); krInject(); render(); closeSheet(); toast("Original wiederhergestellt"); });
     const cp = $("#ccopy", root); if (cp) cp.addEventListener("click", () => {
       const f = $("#cf", root).value.trim() || ex.f, b = $("#cb", root).value.trim() || ex.b;
