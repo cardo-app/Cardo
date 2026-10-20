@@ -2095,6 +2095,15 @@ const I18N = {
   "Bindestrich –": ["Dash –", "Trattino –"],
   "Vorschau · {} erkannt ({})": ["Preview · {} detected ({})", "Anteprima · {} rilevate ({})"],
   "Keine Karten erkannt. Prüfe das Trennzeichen.": ["No cards detected. Check the separator.", "Nessuna scheda rilevata. Controlla il separatore."],
+  "Leerzeichen": ["Space", "Spazio"],
+  "Doppelpunkt": ["Colon", "Due punti"],
+  "Weitere Spalten an die Rückseite anhängen": ["Add further columns to the back", "Aggiungi le altre colonne al retro"],
+  "Lückentext erkannt: Jede Lücke wird eine eigene Karte.": ["Cloze detected: each gap becomes its own card.", "Testo a buchi rilevato: ogni buco diventa una scheda."],
+  "{} übersprungen, weil Vorder- oder Rückseite leer ist.": ["{} skipped because the front or back is empty.", "{} saltate perché il fronte o il retro è vuoto."],
+  "Bei {} fehlen Bilder – der Anki-Text-Export enthält keine Bilder.": ["{} are missing images – Anki's text export contains no images.", "In {} mancano le immagini – l'esportazione di testo di Anki non contiene immagini."],
+  "{} in {} importiert": ["{} imported into {}", "{} importate in {}"],
+  "{} importiert": ["{} imported", "{} importate"],
+  "Teil {}": ["Part {}", "Parte {}"],
   "Zu viele Karten für einen Ordner. Teile die Liste auf mehrere Unterordner auf.": ["Too many cards for one folder. Split the list into several subfolders.", "Troppe schede per una cartella. Dividi l'elenco in più sottocartelle."],
 
   /* Teilen */
@@ -2292,6 +2301,7 @@ const I18N = {
 /* Mehrzahl für plural(): Deutsch "Karte" → [Englisch [eins, viele], Italienisch [eins, viele]] */
 const PLURALS = {
   "Karte": [["card", "cards"], ["scheda", "schede"]],
+  "Zeile": [["row", "rows"], ["riga", "righe"]],
   "Ordner": [["folder", "folders"], ["cartella", "cartelle"]],
   "Unterordner": [["subfolder", "subfolders"], ["sottocartella", "sottocartelle"]],
   "Puffertag": [["buffer day", "buffer days"], ["giorno di margine", "giorni di margine"]],
@@ -6897,16 +6907,29 @@ function moveFolderSheet(id){
     onPick: t => { if (!moveFolderTo(id, t)) return; const where = t.fid ? `„${S.folders[t.fid].name}“` : t.sid ? `Bereich „${S.sections[t.sid].name}“` : sectionList().length ? "„Weitere Ordner“" : "die Bibliothek"; toast(`Verschoben nach ${where}`); } });
 }
 
+const decEnt = s => s.replace(/&(#x[0-9a-f]+|#\d+|[a-z][a-z0-9]*);/gi, m => { const t = document.createElement("textarea"); t.innerHTML = m; return t.value; }).replace(/ /g, " ");
 function cleanHtml(s){
   s = s.replace(/<(b|strong)>([\s\S]*?)<\/\1>/gi, (m, t, x) => x.trim() ? "**" + x.trim() + "**" : x).replace(/<(i|em)>([\s\S]*?)<\/\1>/gi, (m, t, x) => x.trim() ? "*" + x.trim() + "*" : x)
-    .replace(/<li[^>]*>/gi, "- ").replace(/\\\[([\s\S]*?)\\\]/g, "$$$$$1$$$$");
-  return s.replace(/<br\s*\/?>/gi, "\n").replace(/<\/(div|p|li)>/gi, "\n").replace(/<[^>]+>/g, "")
-    .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+    .replace(/<li[^>]*>/gi, "- ").replace(/\\\[([\s\S]*?)\\\]/g, "$$$$$1$$$$").replace(/\\\(([\s\S]*?)\\\)/g, (m, x) => x.trim() ? "$" + x.trim() + "$" : "");
+  return decEnt(s.replace(/<br\s*\/?>/gi, "\n").replace(/<\/(div|p|li)>/gi, "\n").replace(/<[^>]+>/g, ""))
     .replace(/\[sound:[^\]]*\]/g, "").replace(/\n{3,}/g, "\n\n").trim();
 }
-function parseRows(text, sep, header){
+/* Anki-Lückentext {{c1::Antwort::Hinweis}}: pro Lückennummer eine Karte – vorne [Hinweis] bzw. […], hinten die Antwort markiert */
+const CLOZE = /\{\{c(\d+)::([\s\S]*?)(?:::([\s\S]*?))?\}\}/g;
+function clozeCards(text, extra){
+  const nums = [...new Set([...text.matchAll(CLOZE)].map(m => +m[1]))].sort((a, b) => a - b);
+  const show = (n, on) => text.replace(CLOZE, (m, k, ans, hint) => +k !== n ? ans : on ? "==" + ans + "==" : "[" + (hint || "…") + "]");
+  return nums.map(n => [show(n, false), show(n, true) + (extra ? "\n\n" + extra : "")]);
+}
+/* Anki-Kopfzeilen (#separator:tab, #html:true, #guid column:1 …) vorne in der Datei auslesen */
+const ANKI_SEP = { tab: "\t", comma: ",", semicolon: ";", pipe: "|", space: " ", colon: ":" };
+function parseRows(text, sep, header, extra){
   text = text.replace(/^﻿/, "").replace(/\r\n?/g, "\n");
-  text = text.split("\n").filter(l => !/^#\w+:/.test(l)).join("\n");
+  const meta = {}; let lines = text.split("\n"), h = 0;
+  for (; h < lines.length; h++) { const m = /^#([a-z ]+):(.*)$/i.exec(lines[h]); if (!m) break; meta[m[1].trim().toLowerCase()] = m[2].trim(); }
+  const anki = ["separator", "html", "tags column", "deck column", "notetype column", "guid column", "columns"].some(k => k in meta);
+  text = lines.slice(h).filter(l => !/^#\w+:/.test(l)).join("\n");
+  if (sep === "auto" && meta.separator) { const v = meta.separator; sep = ANKI_SEP[v.toLowerCase()] || (v.length === 1 ? v : "auto"); }
   if (sep === "auto") { const s = text.slice(0, 3000); sep = s.includes("\t") ? "\t" : s.includes(";") ? ";" : s.includes(" - ") ? " - " : s.includes("|") ? "|" : ","; }
   let rows = [];
   if (sep.length > 1 || sep === "|") {
@@ -6924,35 +6947,74 @@ function parseRows(text, sep, header){
     if (cell || row.length) { row.push(cell); rows.push(row); }
   }
   if (header) rows.shift();
-  return { sep, rows: rows.map(r => [cleanHtml(r[0] || ""), cleanHtml(r[1] || "")]).filter(r => r[0] && r[1]) };
+  /* Spalten, die Anki zusätzlich exportiert (Kennung, Notiztyp, Stapel, Schlagwörter), sind keine Karteninhalte */
+  const skip = new Set(["guid column", "notetype column", "deck column", "tags column"].map(k => parseInt(meta[k], 10) - 1).filter(i => i >= 0));
+  const clean = meta.html === "false" ? x => x.replace(/\[sound:[^\]]*\]/g, "").trim() : cleanHtml;
+  const out = []; let skipped = 0, imgs = 0, cloze = 0, extraCols = false;
+  rows.forEach(r => {
+    if (!r.some(c => c.trim())) return;
+    const raw = r.filter((c, i) => !skip.has(i)), cells = raw.map(c => clean(c || ""));
+    if (raw.some(c => /<img\b/i.test(c))) imgs++;
+    const more = cells.slice(2).filter(Boolean); if (more.length) extraCols = true;
+    const f = cells[0] || "", b = [cells[1] || "", ...(extra ? more : [])].filter(Boolean).join("\n\n");
+    if (/\{\{c\d+::/.test(f)) { const cc = clozeCards(f, b); if (cc.length) { cloze++; out.push(...cc); return; } }
+    if (f && b) out.push([f, b]); else skipped++;
+  });
+  return { sep, rows: out, skipped, imgs, cloze, extraCols, anki };
 }
 function importSheet(fid){
-  const sepName = { "\t": "Tabulator", ";": "Semikolon", ",": "Komma", " - ": "Bindestrich", "|": "Senkrechtstrich" };
+  const sepName = { "\t": "Tabulator", ";": "Semikolon", ",": "Komma", " - ": "Bindestrich", "|": "Senkrechtstrich", " ": "Leerzeichen", ":": "Doppelpunkt" };
   openSheet(`${head("Karten importieren")}
     <p class="muted" style="margin:0 0 14px;font-size:15.5px">Eine Karte pro Zeile: Vorderseite, Trennzeichen, Rückseite. Funktioniert mit Anki-Export (.txt), Excel/Numbers (.csv) und Listen aus Noji oder Quizlet.</p>
     <div class="field"><label for="it">Text einfügen</label><textarea class="in" id="it" style="min-height:130px" placeholder="Aktiva;Vermögenswerte eines Unternehmens&#10;Passiva;Kapitalherkunft (Eigen- und Fremdkapital)"></textarea>
       <div class="row2"><label class="btn" for="ifile">Datei wählen</label><input id="ifile" type="file" accept=".txt,.csv,.tsv,text/plain,text/csv" hidden><span class="muted" id="ifn" style="align-self:center;font-size:14.5px"></span></div></div>
     <div class="field"><label for="isep">Trennzeichen</label><select class="in" id="isep"><option value="auto">Automatisch erkennen</option><option value="&#9;">Tabulator</option><option value=";">Semikolon ;</option><option value=",">Komma ,</option><option value=" - ">Bindestrich –</option><option value="|">Senkrechtstrich |</option></select></div>
     <label class="check" style="margin-bottom:14px"><input type="checkbox" id="ihead"> Erste Zeile ist eine Überschrift</label>
+    <label class="check" id="iextraw" style="margin-bottom:14px" hidden><input type="checkbox" id="iextra"> Weitere Spalten an die Rückseite anhängen</label>
     <div class="field"><label for="ifo">In Ordner</label><select class="in" id="ifo">${folderOptions(fid)}</select></div>
-    <div class="field"><span class="lbl" id="icount">Vorschau</span><div class="pv" id="ipv"><span class="muted">Noch nichts eingefügt.</span></div></div>
+    <div class="field"><span class="lbl" id="icount">Vorschau</span><div class="pv" id="ipv"><span class="muted">Noch nichts eingefügt.</span></div><p class="muted" id="inote" style="margin:8px 2px 0;font-size:14px" hidden></p></div>
     <div class="sheet-foot"><div class="r"><button class="btn" data-act="close">Abbrechen</button><button class="btn primary" id="igo" disabled>Importieren</button></div></div>`,
   root => {
-    let parsed = { rows: [] };
+    let parsed = { rows: [] }, extraSet = false;
     const upd = () => {
-      parsed = parseRows($("#it", root).value, $("#isep", root).value, $("#ihead", root).checked);
+      const txt = $("#it", root).value, sep = $("#isep", root).value, hd = $("#ihead", root).checked;
+      /* Zusatzspalten: bei Anki-Exporten (mit Kopfzeilen) standardmäßig anhängen, sonst wie bisher weglassen – bis man selbst umschaltet */
+      if (!extraSet) $("#iextra", root).checked = parseRows(txt, sep, hd, false).anki;
+      parsed = parseRows(txt, sep, hd, $("#iextra", root).checked);
       const n = parsed.rows.length;
+      $("#iextraw", root).hidden = !parsed.extraCols;
       $("#icount", root).textContent = n ? `Vorschau · ${plural(n, "Karte", "Karten")} erkannt (${sepName[parsed.sep] || parsed.sep})` : "Vorschau";
       $("#ipv", root).innerHTML = n ? parsed.rows.slice(0, 4).map(r => `<div><span>${richLine(r[0])}</span><span class="muted">${richLine(r[1])}</span></div>`).join("") + (n > 4 ? `<div><span class="muted">… und ${n - 4} weitere</span></div>` : "") : '<span class="muted">Keine Karten erkannt. Prüfe das Trennzeichen.</span>';
+      const notes = [];
+      if (parsed.cloze) notes.push("Lückentext erkannt: Jede Lücke wird eine eigene Karte.");
+      if (parsed.skipped) notes.push(`${plural(parsed.skipped, "Zeile", "Zeilen")} übersprungen, weil Vorder- oder Rückseite leer ist.`);
+      if (parsed.imgs) notes.push(`Bei ${plural(parsed.imgs, "Karte", "Karten")} fehlen Bilder – der Anki-Text-Export enthält keine Bilder.`);
+      $("#inote", root).innerHTML = notes.map(esc).join("<br>"); $("#inote", root).hidden = !notes.length;
       $("#igo", root).disabled = !n; $("#igo", root).textContent = n ? `${plural(n, "Karte", "Karten")} importieren` : "Importieren";
     };
     ["input", "change"].forEach(ev => { $("#it", root).addEventListener(ev, upd); $("#isep", root).addEventListener(ev, upd); $("#ihead", root).addEventListener(ev, upd); });
+    $("#iextra", root).addEventListener("change", () => { extraSet = true; upd(); });
     $("#ifile", root).addEventListener("change", async e => { const f = e.target.files && e.target.files[0]; if (!f) return; $("#it", root).value = await f.text(); $("#ifn", root).textContent = f.name; upd(); });
     $("#igo", root).addEventListener("click", () => {
-      const to = $("#ifo", root).value, now = Date.now(), deck = { ...(S.decks[to] || {}) };
-      parsed.rows.forEach((r, i) => { const id = uid() + i; deck[id] = { id, f: r[0], b: r[1], due: now + i, ivl: 0, ease: 2.5, reps: 0, lapses: 0, created: now + i }; });
-      if (JSON.stringify(deck).length > 240000) { toast("Zu viele Karten für einen Ordner. Teile die Liste auf mehrere Unterordner auf."); return; }
-      S.decks[to] = deck; render(); writeDeck(to); closeSheet(); toast(plural(parsed.rows.length, "Karte", "Karten") + " importiert");
+      const to = $("#ifo", root).value, now = Date.now(), LIMIT = 240000;
+      const cards = parsed.rows.map((r, i) => { const id = uid() + i; return [id, { id, f: r[0], b: r[1], due: now + i, ivl: 0, ease: 2.5, reps: 0, lapses: 0, created: now + i }]; });
+      const deck = { ...(S.decks[to] || {}), ...Object.fromEntries(cards) };
+      if (JSON.stringify(deck).length <= LIMIT) {
+        S.decks[to] = deck; render(); writeDeck(to); closeSheet(); toast(plural(cards.length, "Karte", "Karten") + " importiert");
+        if (S.fid !== to) go("lib", to);
+        return;
+      }
+      /* Zu groß für einen Ordner: neue Karten auf Unterordner „Teil 1, 2 …“ verteilen (der Ordner selbst bleibt unverändert) */
+      const parts = []; let cur = {}, size = 2;
+      cards.forEach(([id, c]) => { const s = JSON.stringify(c).length + id.length + 4; if (size + s > LIMIT - 10000 && Object.keys(cur).length) { parts.push(cur); cur = {}; size = 2; } cur[id] = c; size += s; });
+      if (Object.keys(cur).length) parts.push(cur);
+      const par = S.folders[to] || {}, base = children(to).reduce((m, x) => Math.max(m, x.order || 0), 0);
+      parts.forEach((p, k) => {
+        const sub = { id: uid() + k, name: `Teil ${k + 1}`, parentId: to, color: par.color || COLORS[0], emoji: par.emoji || "📚", cover: null, section: null, order: base + k + 1, created: now + k };
+        S.decks[sub.id] = p; putFolder(sub); writeDeck(sub.id);
+      });
+      S.open.add(to); render(); closeSheet();
+      toast(`${plural(cards.length, "Karte", "Karten")} in ${plural(parts.length, "Unterordner", "Unterordner")} importiert`);
       if (S.fid !== to) go("lib", to);
     });
   });
