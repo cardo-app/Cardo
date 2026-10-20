@@ -2119,6 +2119,13 @@ const I18N = {
   "Bilder fehlen bei {}": ["Images missing on {}", "Immagini mancanti in {}"],
   "{} in {} importiert": ["{} imported into {}", "{} importate in {}"],
   "{} importiert": ["{} imported", "{} importate"],
+  "{} importiert · {} aktualisiert": ["{} imported · {} updated", "{} importate · {} aggiornate"],
+  "{} in {} importiert · {} aktualisiert": ["{} imported into {} · {} updated", "{} importate in {} · {} aggiornate"],
+  "{} aktualisiert": ["{} updated", "{} aggiornate"],
+  "{} aktualisieren": ["Update {}", "Aggiorna {}"],
+  "{} schon vorhanden": ["{} already there", "{} già presenti"],
+  "{} mit Änderungen": ["{} with changes", "{} con modifiche"],
+  "Alle Karten sind schon vorhanden.": ["All cards are already there.", "Tutte le schede sono già presenti."],
   "Teil {}": ["Part {}", "Parte {}"],
   "Anki-Stapel als Unterordner anlegen": ["Create Anki decks as subfolders", "Crea i mazzi Anki come sottocartelle"],
   "Auch umgekehrte Karten anlegen": ["Also create reversed cards", "Crea anche le schede invertite"],
@@ -6927,7 +6934,31 @@ function moveFolderSheet(id){
 }
 
 const decEnt = s => s.replace(/&(#x[0-9a-f]+|#\d+|[a-z][a-z0-9]*);/gi, m => { const t = document.createElement("textarea"); t.innerHTML = m; return t.value; }).replace(/ /g, " ");
+/* Farbe aus Anki → Cardo-Markierfarbe: "" = Gelb, {r}/{g}/{b}; null = keine Markierung (Weiß, Grau, durchsichtig) */
+function hlKey(c){
+  c = c.trim().toLowerCase(); let r, g, b, m;
+  const NAMED = { yellow: [255, 255, 0], gold: [255, 215, 0], orange: [255, 165, 0], red: [255, 0, 0], pink: [255, 192, 203], green: [0, 128, 0], lime: [0, 255, 0], blue: [0, 0, 255], aqua: [0, 255, 255], cyan: [0, 255, 255], white: null, transparent: null, none: null };
+  if (c in NAMED) { if (!NAMED[c]) return null; [r, g, b] = NAMED[c]; }
+  else if ((m = /^#([0-9a-f]{3})$/.exec(c))) [r, g, b] = [...m[1]].map(x => parseInt(x + x, 16));
+  else if ((m = /^#([0-9a-f]{6})/.exec(c))) [r, g, b] = [0, 2, 4].map(i => parseInt(m[1].substr(i, 2), 16));
+  else if ((m = /^rgba?\(\s*(\d+)\D+(\d+)\D+(\d+)(?:\D+([\d.]+))?/.exec(c))) { [r, g, b] = [+m[1], +m[2], +m[3]]; if (m[4] !== undefined && +m[4] === 0) return null; }
+  else return "";
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b); if (mx - mn < 30) return null;
+  let h = mx === r ? ((g - b) / (mx - mn)) % 6 : mx === g ? (b - r) / (mx - mn) + 2 : (r - g) / (mx - mn) + 4; h = (h * 60 + 360) % 360;
+  return h < 20 || h >= 260 ? "{r}" : h < 70 ? "" : h < 170 ? "{g}" : "{b}";
+}
 function cleanHtml(s){
+  /* Nummerierte Listen bleiben nummeriert; Hintergrundfarbe → Markierung; Schriftfarbe und Unterstreichen → fett (Cardo kennt beides nicht) */
+  s = s.replace(/<ol[^>]*>([\s\S]*?)<\/ol>/gi, (m, x) => { let i = 0; return x.replace(/<li[^>]*>/gi, () => `${++i}. `); })
+    .replace(/<(span|font)\b([^>]*)>([\s\S]*?)<\/\1>/gi, (m, t, at, x) => {
+      if (!x.trim()) return x;
+      const bg = /background(?:-color)?\s*:\s*([^;"']+)/i.exec(at), k = bg ? hlKey(bg[1]) : null;
+      if (k !== null) return "==" + k + x.trim() + "==";
+      const fg = /(?:^|[\s;"'])color\s*:\s*([^;"']+)/i.exec(at) || /\bcolor\s*=\s*["']?([^"'\s>]+)/i.exec(at);
+      return fg && hlKey(fg[1]) !== null ? "**" + x.trim() + "**" : x;
+    })
+    .replace(/<mark[^>]*>([\s\S]*?)<\/mark>/gi, (m, x) => x.trim() ? "==" + x.trim() + "==" : x)
+    .replace(/<u>([\s\S]*?)<\/u>/gi, (m, x) => x.trim() ? "**" + x.trim() + "**" : x);
   s = s.replace(/<(b|strong)>([\s\S]*?)<\/\1>/gi, (m, t, x) => x.trim() ? "**" + x.trim() + "**" : x).replace(/<(i|em)>([\s\S]*?)<\/\1>/gi, (m, t, x) => x.trim() ? "*" + x.trim() + "*" : x)
     .replace(/<li[^>]*>/gi, "- ").replace(/\\\[([\s\S]*?)\\\]/g, "$$$$$1$$$$").replace(/\\\(([\s\S]*?)\\\)/g, (m, x) => x.trim() ? "$" + x.trim() + "$" : "");
   return decEnt(s.replace(/<br\s*\/?>/gi, "\n").replace(/<\/(div|p|li)>/gi, "\n").replace(/<[^>]+>/g, ""))
@@ -6938,7 +6969,7 @@ const CLOZE = /\{\{c(\d+)::([\s\S]*?)(?:::([\s\S]*?))?\}\}/g;
 function clozeCards(text, extra){
   const nums = [...new Set([...text.matchAll(CLOZE)].map(m => +m[1]))].sort((a, b) => a - b);
   const show = (n, on) => text.replace(CLOZE, (m, k, ans, hint) => +k !== n ? ans : on ? "==" + ans + "==" : "[" + (hint || "…") + "]");
-  return nums.map(n => [show(n, false), show(n, true) + (extra ? "\n\n" + extra : "")]);
+  return nums.map(n => [show(n, false), show(n, true) + (extra ? "\n\n" + extra : ""), n]);
 }
 /* Anki-Kopfzeilen (#separator:tab, #html:true, #guid column:1 …) vorne in der Datei auslesen */
 const ANKI_SEP = { tab: "\t", comma: ",", semicolon: ";", pipe: "|", space: " ", colon: ":" };
@@ -6973,7 +7004,7 @@ function parseRows(text, sep, header, extra, rev){
   /* Spalten, die Anki zusätzlich exportiert (Kennung, Notiztyp, Stapel, Schlagwörter), sind keine Karteninhalte */
   const skip = new Set(["guid column", "notetype column", "deck column", "tags column"].map(k => parseInt(meta[k], 10) - 1).filter(i => i >= 0));
   const clean = meta.html === "false" ? x => x.replace(/\[sound:[^\]]*\]/g, "").trim() : cleanHtml;
-  const dc = parseInt(meta["deck column"], 10) - 1, decks = new Set();
+  const dc = parseInt(meta["deck column"], 10) - 1, gc = parseInt(meta["guid column"], 10) - 1, decks = new Set();
   const out = []; let skipped = 0, imgSkipped = 0, imgs = 0, cloze = 0, extraCols = false;
   rows.forEach(r => {
     if (!r.some(c => c.trim())) return;
@@ -6981,10 +7012,11 @@ function parseRows(text, sep, header, extra, rev){
     const img = raw.some(c => /<img\b/i.test(c));
     /* Anki-Stapel „A::B::C“ → Ordnerpfad (nur wenn die Datei eine Stapel-Spalte hat) */
     const deck = dc >= 0 ? decEnt(r[dc] || "").split("::").map(x => x.trim()).filter(Boolean).join("::") : "";
+    const gid = gc >= 0 ? (r[gc] || "").trim() : ""; /* Anki-Kennung: erkennt die Karte beim nächsten Import wieder */
     const more = cells.slice(2).filter(Boolean); if (more.length) extraCols = true;
     const f = cells[0] || "", b = [cells[1] || "", ...(extra ? more : [])].filter(Boolean).join("\n\n");
-    if (/\{\{c\d+::/.test(f)) { const cc = clozeCards(f, b); if (cc.length) { cloze++; if (img) imgs++; if (deck) decks.add(deck); out.push(...cc.map(c => [...c, deck])); return; } }
-    if (f && b) { if (img) imgs++; if (deck) decks.add(deck); out.push([f, b, deck]); if (rev) out.push([b, f, deck]); }
+    if (/\{\{c\d+::/.test(f)) { const cc = clozeCards(f, b); if (cc.length) { cloze++; if (img) imgs++; if (deck) decks.add(deck); out.push(...cc.map(c => [c[0], c[1], deck, gid && gid + ":c" + c[2]])); return; } }
+    if (f && b) { if (img) imgs++; if (deck) decks.add(deck); out.push([f, b, deck, gid]); if (rev) out.push([b, f, deck, gid && gid + ":r"]); }
     else if (img) imgSkipped++; else skipped++;
   });
   return { sep, rows: out, skipped, imgSkipped, imgs, cloze, extraCols, anki, headLike, decks: [...decks] };
@@ -7014,6 +7046,19 @@ function importSheet(fid){
       let pre = d[0].split("::"); d.forEach(x => { const s = x.split("::"); let i = 0; while (i < pre.length && s[i] === pre[i]) i++; pre = pre.slice(0, i); });
       return pre.length ? pre[pre.length - 1] : "Importierte Karten";
     };
+    /* Schon vorhandene Karten im Zielordner (samt Unterordnern) erkennen: gleiche Anki-Kennung → aktualisieren, gleicher Text → überspringen */
+    const norm = x => String(x || "").replace(/\s+/g, " ").trim().toLowerCase();
+    const plan = () => {
+      const fid = $("#ifo", root).value, byKey = new Map(), byText = new Set(), fresh = [], change = []; let same = 0;
+      if (fid) [fid, ...descendants(fid)].forEach(id => Object.values(S.decks[id] || {}).forEach(c => { if (c.ak) byKey.set(c.ak, [id, c]); byText.add(norm(c.f) + "\u0001" + norm(c.b)); }));
+      parsed.rows.forEach(r => {
+        const hit = r[3] && byKey.get(r[3]), t = norm(r[0]) + "\u0001" + norm(r[1]);
+        if (hit) { if (hit[1].f !== r[0] || hit[1].b !== r[1]) change.push([hit[0], hit[1], r]); else same++; return; }
+        if (byText.has(t)) { same++; return; }
+        byText.add(t); fresh.push(r);
+      });
+      return { fresh, change, same };
+    };
     const upd = () => {
       const txt = $("#it", root).value, sep = $("#isep", root).value;
       /* Standardwerte aus dem Inhalt ableiten, bis man selbst umschaltet: Überschrift erkennen; Zusatzspalten bei Anki-Exporten anhängen, sonst weglassen */
@@ -7032,20 +7077,30 @@ function importSheet(fid){
       $("#icount", root).textContent = n ? `Vorschau · ${plural(n, "Karte", "Karten")} erkannt` : "Vorschau";
       $("#ipv", root).innerHTML = n ? parsed.rows.slice(0, 4).map(r => `<div><span>${richLine(r[0])}</span><span class="muted">${richLine(r[1])}</span></div>`).join("") + (n > 4 ? `<div><span class="muted">… und ${n - 4} weitere</span></div>` : "") : '<span class="muted">Keine Karten erkannt. Prüfe das Trennzeichen.</span>';
       /* Nur kurze Hinweise, wenn etwas nicht mitkommt */
+      const pl = plan(), nn = pl.fresh.length, nc = pl.change.length;
       const notes = [], skip = parsed.skipped + parsed.imgSkipped;
+      if (n && !nn && !nc) notes.push("Alle Karten sind schon vorhanden.");
+      else if (pl.same) notes.push(`${plural(pl.same, "Karte", "Karten")} schon vorhanden`);
+      if (nc) notes.push(`${plural(nc, "Karte", "Karten")} mit Änderungen`);
       if (skip) notes.push(`${plural(skip, "Zeile", "Zeilen")} übersprungen (leer)`);
       if (parsed.imgs) notes.push(`Bilder fehlen bei ${plural(parsed.imgs, "Karte", "Karten")}`);
-      $("#inote", root).textContent = notes.join(" · "); $("#inote", root).hidden = !notes.length;
-      $("#igo", root).disabled = !n; $("#igo", root).textContent = n ? `${plural(n, "Karte", "Karten")} importieren` : "Importieren";
+      $("#inote", root).innerHTML = notes.map(x => `<span>${esc(x)}</span>`).join(" · "); $("#inote", root).hidden = !notes.length;
+      $("#igo", root).disabled = !nn && !nc;
+      $("#igo", root).textContent = nn ? `${plural(nn, "Karte", "Karten")} importieren` : nc ? `${plural(nc, "Karte", "Karten")} aktualisieren` : "Importieren";
     };
-    ["input", "change"].forEach(ev => ["#it", "#isep", "#ihead", "#irev", "#ideck"].forEach(q => $(q, root).addEventListener(ev, upd)));
+    ["input", "change"].forEach(ev => ["#it", "#isep", "#ihead", "#irev", "#ideck", "#ifo"].forEach(q => $(q, root).addEventListener(ev, upd)));
     $("#ihead", root).addEventListener("change", () => { headSet = true; upd(); });
     $("#iextra", root).addEventListener("change", () => { extraSet = true; upd(); });
     $("#ifile", root).addEventListener("change", async e => { const f = e.target.files && e.target.files[0]; if (!f) return; $("#it", root).value = await f.text(); $("#ifn", root).textContent = f.name; fname = f.name.replace(/\.[^.]+$/, "").replace(/_+/g, " ").trim(); upd(); });
     $("#igo", root).addEventListener("click", () => {
-      let to = $("#ifo", root).value; const now = Date.now(), LIMIT = 240000;
+      let to = $("#ifo", root).value; const now = Date.now(), LIMIT = 240000, pl = plan();
+      /* Geänderte Anki-Karten: nur Text erneuern, Lernstand bleibt */
+      const touched = new Set();
+      pl.change.forEach(([fid, c, r]) => { S.decks[fid] = { ...(S.decks[fid] || {}), [c.id]: { ...c, f: r[0], b: r[1] } }; touched.add(fid); });
+      touched.forEach(writeDeck);
+      if (!pl.fresh.length) { render(); closeSheet(); toast(`${plural(pl.change.length, "Karte", "Karten")} aktualisiert`); return; }
       if (!to) { const nf = { id: uid(), name: newName(), parentId: null, color: COLORS[Object.keys(S.folders).length % COLORS.length], emoji: "📚", cover: null, section: null, order: now, created: now }; putFolder(nf); to = nf.id; }
-      const cards = parsed.rows.map((r, i) => { const id = uid() + i; return [id, { id, f: r[0], b: r[1], due: now + i, ivl: 0, ease: 2.5, reps: 0, lapses: 0, created: now + i }]; });
+      const cards = pl.fresh.map((r, i) => { const id = uid() + i; return [id, { id, f: r[0], b: r[1], due: now + i, ivl: 0, ease: 2.5, reps: 0, lapses: 0, created: now + i, ...(r[3] ? { ak: r[3] } : {}) }]; });
       let made = 0;
       const mk = (pid, name, k) => {
         const par = S.folders[pid] || {}, order = children(pid).reduce((m, x) => Math.max(m, x.order || 0), 0) + 1;
@@ -7066,14 +7121,15 @@ function importSheet(fid){
       let pre = useDecks ? segs(parsed.decks[0]) : [];
       if (useDecks) parsed.decks.forEach(d => { const x = segs(d); let i = 0; while (i < pre.length && x[i] === pre[i]) i++; pre = pre.slice(0, i); });
       const groups = new Map();
-      cards.forEach((c, i) => { const k = useDecks ? segs(parsed.rows[i][2]).slice(pre.length).join("::") : ""; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(c); });
+      cards.forEach((c, i) => { const k = useDecks ? segs(pl.fresh[i][2]).slice(pre.length).join("::") : ""; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(c); });
       groups.forEach((list, k) => {
         const fid = segs(k).reduce((p, name, j) => (children(p).find(f => f.name === name) || {}).id || mk(p, name, j), to);
         place(fid, list);
       });
       if (made) S.open.add(to);
       render(); closeSheet();
-      toast(made ? `${plural(cards.length, "Karte", "Karten")} in ${plural(made, "Unterordner", "Unterordner")} importiert` : plural(cards.length, "Karte", "Karten") + " importiert");
+      const nc = pl.change.length, upd = nc ? ` · ${plural(nc, "Karte", "Karten")} aktualisiert` : "";
+      toast(made ? `${plural(cards.length, "Karte", "Karten")} in ${plural(made, "Unterordner", "Unterordner")} importiert${upd}` : `${plural(cards.length, "Karte", "Karten")} importiert${upd}`);
       if (S.fid !== to) go("lib", to);
     });
   });
