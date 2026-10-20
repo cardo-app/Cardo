@@ -573,7 +573,24 @@ textarea.in{min-height:92px;resize:vertical;line-height:1.4}
 .room-tabs button.on{color:var(--ink)}
 .room-tabs button::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2.5px;border-radius:2px;background:currentColor;transform:scaleX(0);transition:transform .25s ease}
 .room-tabs button.on::after{transform:scaleX(1)}
+.room-tabs button.on.go-r::after,.room-tabs button.on.go-l::after{transform:none;transition:none;transform-origin:left}
 .kr-empty .big{font-size:40px;margin-bottom:6px}
+.beta{display:inline-block;margin-left:5px;padding:0 4.5px;border-radius:99px;background:var(--accent);color:var(--accent-ink);font-size:8.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;vertical-align:1px;line-height:1.45}
+.kr-beta{margin:-8px 2px 16px;font-size:13.5px}
+.room-tabs .beta{transition:opacity .2s}
+.room-tabs button:not(.on) .beta{opacity:.35}
+/* Wechsel „Meine Ordner“ ⇄ „Klassenraum“: Strich fährt zum neuen Reiter (roomBarSlide), Inhalt gleitet aus der Richtung herein */
+@keyframes rtOn{from{color:var(--muted)}}
+@keyframes rtOff{from{color:var(--ink)}}
+@keyframes rtBetaOn{from{opacity:.35}}
+@keyframes rtBetaOff{from{opacity:1}}
+.room-tabs button.on:is(.go-r,.go-l){animation:rtOn .3s ease}
+.room-tabs button:not(.on):is(.go-r,.go-l){animation:rtOff .3s ease}
+.room-tabs button.on:is(.go-r,.go-l) .beta{animation:rtBetaOn .3s ease}
+.room-tabs button:not(.on):is(.go-r,.go-l) .beta{animation:rtBetaOff .3s ease}
+@keyframes aRoom{from{opacity:0;transform:translateX(calc(var(--rd, 1) * 56px))}to{opacity:1;transform:none}}
+#main.a-room .room-tabs ~ *{animation:aRoom .46s cubic-bezier(.16,1,.3,1) both}
+@media (prefers-reduced-motion:reduce){.room-tabs button,.room-tabs .beta{animation:none!important}}
 .kr-hint{display:block;margin-top:10px;font-size:14px}
 .kr-empty-f{margin-top:14px}
 .kr-badge{display:inline-flex;align-items:center;gap:3px;margin-left:6px;padding:0 6px;border-radius:99px;background:color-mix(in oklab,var(--muted) 16%,transparent);font-weight:700;font-size:11px;vertical-align:1px}
@@ -1616,6 +1633,7 @@ const I18N = {
   "Mit Code beitreten": ["Join with code", "Unisciti con codice"],
   "Gemeinsam lernen": ["Learn together", "Studiare insieme"],
   "Ein Community-Ordner gehört der ganzen Klasse oder dem ganzen Kurs: Alle lernen dieselben Karten, jeder kann Karten beisteuern, und dein Lernstand bleibt privat.": ["A community folder belongs to the whole class or course: everyone studies the same cards, anyone can contribute cards, and your progress stays private.", "Una cartella community appartiene a tutta la classe o al corso: tutti studiano le stesse schede, ognuno può aggiungerne e i tuoi progressi restano privati."],
+  "Der Klassenraum ist neu und wird noch getestet. Es kann noch Fehler geben, und manches ändert sich noch.": ["The classroom is new and still being tested. There may be bugs, and some things may still change.", "L'aula è nuova ed è ancora in fase di test. Possono esserci errori e alcune cose potrebbero ancora cambiare."],
   "Bald verfügbar": ["Coming soon", "Presto disponibile"],
   "Der Klassenraum wird gerade eingerichtet. Schau später noch einmal vorbei.": ["The classroom is being set up. Check back later.", "L'aula è in fase di preparazione. Riprova più tardi."],
   "Gemeinsame Ordner für deine Klasse oder deinen Kurs gibt es nur mit Cardo-Konto.": ["Shared folders for your class or course need a Cardo account.", "Le cartelle condivise per la tua classe o il tuo corso richiedono un account Cardo."],
@@ -3874,7 +3892,7 @@ function morphSplash(el){
     ball.animate([{ opacity: 1, transform: `translate3d(${cx - d / 2 - a.left}px,${cy - d / 2 - a.top}px,0) scale(1)` }, { opacity: 0, transform: `translate3d(${cx - d / 2 - a.left}px,${cy - d / 2 - a.top}px,0) scale(1.15)` }], { duration: 170, easing: "ease-out", fill: "forwards" });
     el.style.background = "transparent"; // weiße Grundfläche weg (liegt unter der dunklen Ebene)
     el.classList.add("reveal-sky");       // Nacht und Sterne blenden aus, die App erscheint
-    const m = $("#main"); m.classList.remove("a-fade", "a-push", "a-pop"); void m.offsetWidth; m.classList.add("a-fade"); setTimeout(() => m.classList.remove("a-fade"), 950);
+    const m = $("#main"); m.classList.remove("a-fade", "a-push", "a-pop", "a-room"); void m.offsetWidth; m.classList.add("a-fade"); setTimeout(() => m.classList.remove("a-fade"), 950);
     grow.onfinish = () => {
       document.body.classList.remove("splashing"); tabs.classList.add("tabs-in");
       pill.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 180, fill: "forwards" });
@@ -5525,22 +5543,30 @@ function krSetEnabled(on){
 }
 function classroomSheet(){
   const on = krEnabled();
-  openSheet(`${head("Klassenraum")}<p class="muted" style="margin:0 0 16px;font-size:15.5px">Im Klassenraum lernst du mit deiner Klasse oder deinem Kurs in gemeinsamen Ordnern. In der Bibliothek wechselst du zwischen „Meine Ordner“ und „Klassenraum“.</p>
+  openSheet(`${head(`Klassenraum${BETA}`)}<p class="muted" style="margin:0 0 10px;font-size:15.5px">Im Klassenraum lernst du mit deiner Klasse oder deinem Kurs in gemeinsamen Ordnern. In der Bibliothek wechselst du zwischen „Meine Ordner“ und „Klassenraum“.</p><p class="muted" style="margin:0 0 16px;font-size:14px">${BETA_NOTE}</p>
     <div class="set-list" style="margin:0"><button class="set-item ex-sw" data-act="toggleClassroom" role="switch" aria-checked="${on}"><span class="si-t">Klassenraum anzeigen</span><span class="switch ${on ? 'on' : ''}" aria-hidden="true"><i></i></span></button>
     ${on && krOn() ? `<button class="set-item" data-act="krName"><span class="si-t">Benutzername</span><span class="si-v" translate="no">${esc(KR.me || "–")}</span><span class="si-ch" aria-hidden="true">›</span></button>` : ''}</div>
     <p class="muted" style="margin:12px 2px 0;font-size:14px">${on ? "Ausgeschaltet verschwindet die Auswahl in der Bibliothek und du siehst nur noch deine eigenen Ordner." : "Deine Kurse bleiben erhalten – du bist weiter Mitglied und siehst sie wieder, sobald du den Klassenraum einschaltest."}</p>`);
 }
+const BETA = `<span class="beta" translate="no">Beta</span>`;
+const BETA_NOTE = "Der Klassenraum ist neu und wird noch getestet. Es kann noch Fehler geben, und manches ändert sich noch.";
+function roomBarSlide(){ /* Strich gleitet vom alten zum neuen Reiter (Breite passt sich unterwegs an) */
+  const on = $(".room-tabs button.on"), old = on && [...on.parentNode.children].find(b => b !== on);
+  if (!old || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const dx = old.offsetLeft - on.offsetLeft, k = old.offsetWidth / on.offsetWidth;
+  try { on.animate([{ transform: `translateX(${dx}px) scaleX(${k})` }, { transform: "none" }], { duration: 440, easing: "cubic-bezier(.34,1.2,.55,1)", pseudoElement: "::after" }); } catch {}
+}
 function roomSegHTML(){
   if (!krEnabled()) return "";
-  return `<div class="room-tabs" role="tablist" aria-label="Ansicht">${[["own", "Meine Ordner"], ["class", "Klassenraum"]].map(([k, l]) => `<button type="button" role="tab" data-act="room" data-v="${k}" class="${S.room === k ? "on" : ""}" aria-selected="${S.room === k}">${l}</button>`).join("")}</div>`;
+  return `<div class="room-tabs" role="tablist" aria-label="Ansicht">${[["own", "Meine Ordner"], ["class", "Klassenraum"]].map(([k, l]) => `<button type="button" role="tab" data-act="room" data-v="${k}" class="${S.room === k ? "on" : ""}${S.roomGo ? " go-" + S.roomGo : ""}" aria-selected="${S.room === k}">${l}${k === "class" ? BETA : ""}</button>`).join("")}</div>`;
 }
 function classHTML(){
   if (!krOn()) return `<div class="empty kr-empty"><div class="big">👥</div><b>Klassenraum</b>Gemeinsame Ordner für deine Klasse oder deinen Kurs gibt es nur mit Cardo-Konto.</div>`;
   if (KR.ok === false) return `<div class="empty kr-empty"><div class="big">👥</div><b>Bald verfügbar</b>Der Klassenraum wird gerade eingerichtet. Schau später noch einmal vorbei.</div>`;
-  const list = krRoots();
-  if (!list.length) return `<div class="empty kr-empty"><div class="big">👥</div><b>Gemeinsam lernen</b>Ein Community-Ordner gehört der ganzen Klasse oder dem ganzen Kurs: Alle lernen dieselben Karten, jeder kann Karten beisteuern, und dein Lernstand bleibt privat.<span class="kr-hint">Tippe oben rechts auf ⋯, um einen anzulegen oder mit einem Code beizutreten.</span></div>`;
+  const list = krRoots(), note = `<p class="muted kr-beta">${BETA_NOTE}</p>`;
+  if (!list.length) return `${note}<div class="empty kr-empty"><div class="big">👥</div><b>Gemeinsam lernen</b>Ein Community-Ordner gehört der ganzen Klasse oder dem ganzen Kurs: Alle lernen dieselben Karten, jeder kann Karten beisteuern, und dein Lernstand bleibt privat.<span class="kr-hint">Tippe oben rechts auf ⋯, um einen anzulegen oder mit einem Code beizutreten.</span></div>`;
   const cards = list.reduce((n, f) => n + counts(f.id).total, 0);
-  return `<div class="sec-h"><h2>Deine Kurse</h2><span class="muted">${plural(cards, "Karte", "Karten")}</span></div>${foldersHTML(list)}`;
+  return `${note}<div class="sec-h"><h2>Deine Kurse</h2><span class="muted">${plural(cards, "Karte", "Karten")}</span></div>${foldersHTML(list)}`;
 }
 
 /* ---------- Beispiel-Ordner „So geht Cardo“ für neue Nutzer ----------
@@ -6161,10 +6187,11 @@ function draw(){
   else $("#main").innerHTML = S.view === "study" ? studyHTML() : S.view === "settings" ? settingsHTML() : S.view === "stats" ? statsHTML() : (S.fid ? folderHTML(S.fid) : libHTML());
   if (keep) { const el = document.getElementById(keep.id); if (el) { el.focus(); try { el.setSelectionRange(keep.s, keep.e); } catch {} } }
   const m = $("#main");
-  if (S.anim && S.anim !== "none") { m.classList.remove("a-fade", "a-push", "a-pop"); void m.offsetWidth; m.classList.add("a-" + S.anim);
-    clearTimeout(draw.t); draw.t = setTimeout(() => m.classList.remove("a-fade", "a-push", "a-pop"), 950); }
-  else if (S.anim === "none") m.classList.remove("a-fade", "a-push", "a-pop");
-  S.anim = null;
+  if (S.anim && S.anim !== "none") { m.classList.remove("a-fade", "a-push", "a-pop", "a-room"); void m.offsetWidth; m.classList.add("a-" + S.anim);
+    clearTimeout(draw.t); draw.t = setTimeout(() => m.classList.remove("a-fade", "a-push", "a-pop", "a-room"), 950); }
+  else if (S.anim === "none") m.classList.remove("a-fade", "a-push", "a-pop", "a-room");
+  if (S.roomGo) queueMicrotask(roomBarSlide); /* nach der Übersetzung (MutationObserver) messen, noch vor dem nächsten Bild */
+  S.anim = null; S.roomGo = null;
   if (S.loaded.f && S.loaded.c) { hideSplash(); scheduleAutoBackup(); }
   S.gen = (S.gen || 0) + 1; schedulePrerender && schedulePrerender();
   saveUi(); updScroll();
@@ -6910,7 +6937,7 @@ function settingsHTML(){
     <button class="set-item" data-act="splashSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)">${THEME_IC.sparkle}</span><span class="si-t">Startanimation</span><span class="si-v">${splashLabel()}</span><span class="si-ch" aria-hidden="true">›</span></button>
   </div>
   <div class="set-list">
-    <button class="set-item" data-act="classroomSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)">${IC.people.replace('<svg', '<svg width="16" height="16"')}</span><span class="si-t">Klassenraum</span><span class="si-v">${krEnabled() ? "An" : "Aus"}</span><span class="si-ch" aria-hidden="true">›</span></button>
+    <button class="set-item" data-act="classroomSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)">${IC.people.replace('<svg', '<svg width="16" height="16"')}</span><span class="si-t">Klassenraum${BETA}</span><span class="si-v">${krEnabled() ? "An" : "Aus"}</span><span class="si-ch" aria-hidden="true">›</span></button>
   </div>
   <div class="set-list">
     <button class="set-item" data-act="soundSheet"><span class="theme-ic sm" style="--tb:var(--surface-2);--tf:var(--ink)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></span><span class="si-t">Töne</span><span class="si-v" id="sndV">${S.set.sound === 1 ? "An" : "Aus"}</span><span class="si-ch" aria-hidden="true">›</span></button>
@@ -7926,7 +7953,7 @@ document.addEventListener("click", e => {
   if (a === "setSide") { setSide(id, b.dataset.v); return; }
   if (a === "chartZoom") { chartZoom(b.dataset.id || null); return; }
   if (a === "shareSheet") { closeMenu(); shareSheet(id); return; }
-  if (a === "room") { if (S.room !== b.dataset.v) { S.room = b.dataset.v; saveRoom(); render(); if (S.room === "class" && krOn() && KR.ok !== false && Date.now() - KR.at > 60000) krLoad(); } return; }
+  if (a === "room") { if (S.room !== b.dataset.v) { S.room = b.dataset.v; saveRoom(); S.roomGo = S.room === "class" ? "r" : "l"; $("#main").style.setProperty("--rd", S.roomGo === "r" ? 1 : -1); S.anim = "room"; render(); if (S.room === "class" && krOn() && KR.ok !== false && Date.now() - KR.at > 60000) krLoad(); } return; }
   if (a === "krNew") { krReady(() => folderSheet(null, null, null, true)); return; }
   if (a === "krJoin") { krReady(() => krJoinSheet("")); return; }
   if (a === "krName") { if (krOn()) krNameSheet(); return; }
