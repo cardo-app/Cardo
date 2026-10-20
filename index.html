@@ -1127,6 +1127,11 @@ body.m-dark #welcome{--wc-o1:.26;--wc-o2:.17;--wc-top:#1F2128;--wc-bot:#14161B;-
 .wc-crew span{position:absolute;top:88px;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-size:17px;font-weight:800;background:var(--wc-cbg);color:var(--wc-cink);box-shadow:0 0 0 3px var(--wc-bot),0 8px 18px -8px rgba(0,0,0,.4);transform:scale(.3);opacity:0;transition:transform .45s cubic-bezier(.34,1.45,.55,1),opacity .25s ease}
 .wc-crew span:nth-of-type(1){left:44px}.wc-crew span:nth-of-type(2){left:82px;background:var(--wc-alt);color:var(--wc-altink);transition-delay:.12s}.wc-crew span.me{left:120px;background:#FF5A36;color:#fff;font-size:15px;transition-delay:.24s}
 .wc-page.seen .wc-crew span{transform:none;opacity:1}
+.kr-news{--wc-cbg:#1B1D23;--wc-cink:#F5F6F8;--wc-alt:#F5F6F8;--wc-altink:#1B1D23;--wc-bot:var(--surface);margin:2px 0 6px}
+@media (prefers-color-scheme:dark){body:not(.m-light) .kr-news{--wc-cbg:#F5F6F8;--wc-cink:#1B1D23;--wc-alt:#2A2D35;--wc-altink:#F5F6F8}}
+body.m-dark .kr-news{--wc-cbg:#F5F6F8;--wc-cink:#1B1D23;--wc-alt:#2A2D35;--wc-altink:#F5F6F8}
+.kr-news .wc-crew{margin:0 auto 14px}
+.kr-news.seen .wc-crew span{transform:none;opacity:1}
 .wc-card{position:relative;margin:18px auto 0;min-height:190px;display:flex;flex-direction:column;background:var(--surface);border-radius:22px;box-shadow:var(--shadow);border-top:7px solid color-mix(in oklab,var(--ink) 9%,var(--surface));cursor:pointer;overflow:hidden;transition:transform .22s cubic-bezier(.34,1.45,.55,1)}
 .wc-card:active{transform:scale(.97)}
 .wc-front,.wc-back{flex:1;display:flex;align-items:center;justify-content:center;padding:18px 20px;font-size:22px;font-weight:650;color:var(--card-ink)}
@@ -1663,6 +1668,12 @@ const I18N = {
   "von": ["by", "di"],
   "Von dir": ["By you", "Da te"],
   "Von": ["By", "Di"],
+  "Neu: Klassenraum": ["New: Classroom", "Novità: Aula"],
+  "Lerne jetzt mit deiner Klasse in gemeinsamen Kursen: Alle sehen dieselben Karten, jeder kann Karten beisteuern, und dein Lernstand bleibt privat.": ["Now study with your class in shared courses: everyone sees the same cards, anyone can add cards, and your progress stays private.", "Ora studia con la tua classe in corsi condivisi: tutti vedono le stesse schede, ognuno può aggiungerne e i tuoi progressi restano privati."],
+  "Du findest den Klassenraum jederzeit in den Einstellungen.": ["You can always find the classroom in the settings.", "Trovi l'aula sempre nelle impostazioni."],
+  "Später": ["Later", "Più tardi"],
+  "Ansehen": ["Take a look", "Dai un'occhiata"],
+  "Ausprobieren": ["Try it", "Provala"],
   "Im Klassenraum lernst du mit deiner Klasse in gemeinsamen Kursen. Schalte ihn in den Einstellungen ein – oder tritt über einen Einladungslink bei.": ["In the classroom you study with your class in shared courses. Turn it on in the settings – or join via an invite link.", "Nell'aula studi con la tua classe in corsi condivisi. Attivala nelle impostazioni – oppure unisciti tramite un link d'invito."],
   "du": ["you", "tu"],
   "Bild von einer fremden Webseite – im Kurs nicht geladen": ["Image from another website – not loaded in courses", "Immagine da un altro sito – non caricata nei corsi"],
@@ -5019,7 +5030,7 @@ function startApp(){
   DB.collection("cards").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = { ...((d.data()||{}).cards || {}) }; }); S.decks = o; krInject(); S.loaded.c = true; render(); });
   DB.doc("stats/main").onSnapshot(d => { const x = d.exists ? (d.data()||{}) : {}; S.days = { ...(x.days || {}) }; S.seen = { ...(x.seen || {}) }; S.lastExport = x.lastExport || 0; S.extraNew = { ...(x.extraNew || {}) }; S.fdays = { ...(x.fdays || {}) }; S.prog = { ...(x.prog || {}) }; S.loaded.s = true; render(); });
   krLoad();
-  DB.load().then(() => { DB.flush(); setTimeout(startDeck, 60); setTimeout(krDefaultOff, 900); }).catch(e => { console.warn(e); toast(navigator.onLine ? "Laden fehlgeschlagen. Versuch es gleich noch einmal." : "Offline: Du siehst den zuletzt gespeicherten Stand."); })
+  DB.load().then(() => { DB.flush(); setTimeout(startDeck, 60); setTimeout(krDefaultOff, 900); setTimeout(krNews, 1800); }).catch(e => { console.warn(e); toast(navigator.onLine ? "Laden fehlgeschlagen. Versuch es gleich noch einmal." : "Offline: Du siehst den zuletzt gespeicherten Stand."); })
     .finally(() => { S.mode = "cloud"; render(); runPendingDeck(); runPendingJoin(); });
 }
 
@@ -5583,6 +5594,25 @@ function krSetEnabled(on){
   else { krInject(); S.room = "own"; saveRoom(); if (S.fid && !S.folders[S.fid]) go("lib", null); }
   render();
 }
+let WELCOMED = false; /* neues Konto hat gerade die Einführung gesehen (dort steht der Klassenraum schon drin) */
+async function krNews(){ /* einmal pro Konto (Merker flags/news-kr): bestehende Nutzer erfahren, dass es den Klassenraum gibt */
+  if (!DB || !krOn() || (DB.has && DB.has("flags/news-kr"))) return;
+  try { await krLoad(); } catch {} /* Kurse erst fertig laden – wer schon in einem Kurs ist, braucht keinen Hinweis */
+  if (WELCOMED || $("#welcome") || Object.keys(KR.list).length) { DB.doc("flags/news-kr").set({ at: Date.now() }); return; } /* neu oder schon in einem Kurs → kein Hinweis nötig */
+  if (!$("#sheet").hidden || S.view === "study") { setTimeout(krNews, 4000); return; } /* gerade beschäftigt → etwas später */
+  DB.doc("flags/news-kr").set({ at: Date.now() });
+  const on = krEnabled();
+  openSheet(`${head(`Neu: Klassenraum${BETA}`)}
+    <div class="kr-news"><div class="wc-crew" aria-hidden="true"><i><b></b><b></b><b></b></i><span translate="no">L</span><span translate="no">J</span><span class="me">du</span></div></div>
+    <p class="muted" style="margin:0 0 10px;font-size:15.5px">Lerne jetzt mit deiner Klasse in gemeinsamen Kursen: Alle sehen dieselben Karten, jeder kann Karten beisteuern, und dein Lernstand bleibt privat.</p>
+    <p class="muted" style="margin:0 0 16px;font-size:14px">Du findest den Klassenraum jederzeit in den Einstellungen.</p>
+    <div class="sh-acts"><button class="btn" data-n="later">Später</button><button class="btn primary" data-n="go">${on ? "Ansehen" : "Ausprobieren"}</button></div>`,
+  root => {
+    setTimeout(() => { const a = $(".kr-news", root); if (a) a.classList.add("seen"); }, 250);
+    root.addEventListener("click", e => { const b = e.target.closest("[data-n]"); if (!b) return; closeSheet();
+      if (b.dataset.n === "go") { if (!krEnabled()) krSetEnabled(true); S.room = "class"; saveRoom(); go("lib", null); } });
+  });
+}
 async function krDefaultOff(){ /* einmal pro Konto (Merker flags/kr): wer in keinem Kurs ist, hat den Klassenraum zunächst aus */
   if (!DB || !krOn() || (DB.has && DB.has("flags/kr"))) return;
   try {
@@ -5650,7 +5680,7 @@ async function startDeck(){
   mark();
   const [dn, dk] = START_DECK_I18N[LANG] || ["So geht Cardo", START_DECK];
   await importSharedDeck({ id: "cardo-start", data: { v: 1, folders: [{ k: 0, p: -1, n: dn, e: "👋", c: "#FF5A36" }], cards: dk.map(([f, b]) => [0, f, b]) } });
-  showWelcome();
+  WELCOMED = true; showWelcome();
 }
 
 /* ---------- Begrüßung für neue Konten (einmal, direkt nach dem Anlegen von „So geht Cardo“) ---------- */
