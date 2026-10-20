@@ -1656,6 +1656,7 @@ const I18N = {
   "von": ["by", "di"],
   "Von dir": ["By you", "Da te"],
   "Von": ["By", "Di"],
+  "Bild von einer fremden Webseite – im Kurs nicht geladen": ["Image from another website – not loaded in courses", "Immagine da un altro sito – non caricata nei corsi"],
   "Änderungen nur für dich": ["Changes only for you", "Modifiche solo per te"],
   "Änderungen für alle": ["Changes for everyone", "Modifiche per tutti"],
   "deine Version": ["your version", "la tua versione"],
@@ -2728,6 +2729,8 @@ const imgW = a => { const m = /(?:^|\s)w(\d{1,3})(?=\s|$)/.exec(a || ""); return
 const imgAl = a => /(?:^|\s)([lr])(?=\s|$)/.test(a || "") ? /(?:^|\s)([lr])(?=\s|$)/.exec(a)[1] : "";
 const imgFl = a => (/(?:^|\s)fh(?=\s|$)/.test(a || "") ? "h" : "") + (/(?:^|\s)fv(?=\s|$)/.test(a || "") ? "v" : ""); /* gespiegelt: h = waagrecht, v = senkrecht */
 const flCls = fl => (fl.includes("h") ? " fh" : "") + (fl.includes("v") ? " fv" : "");
+let EXT_OFF = false, KR_TXT = new Set(); /* KR_TXT: Texte der Kurs-Karten (füllt krInject) */
+const EXT_PH = "data:image/svg+xml;base64," + btoa('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 90"><rect width="160" height="90" rx="10" fill="#8a8f9c" fill-opacity=".18"/><path d="M62 58l14-16 10 11 7-7 13 12z" fill="#8a8f9c" fill-opacity=".55"/><circle cx="68" cy="36" r="5" fill="#8a8f9c" fill-opacity=".55"/></svg>');
 const imgSrc = s => s.startsWith("cimg:") ? `${SB_URL}/storage/v1/object/public/${IMG_BUCKET}/${s.slice(5)}` : s;
 const IMG_RE_SRC = String.raw`!\[([^\]\n]*)\]\(((?:cimg:[\w\-./]+)|(?:https:\/\/[^)\s]+)|(?:data:image\/[a-z+]+;base64,[A-Za-z0-9+/=]+))\)`;
 const INL_RE = new RegExp(IMG_RE_SRC + String.raw`|\u0000(\d+)\u0000|\\\((.+?)\\\)|(?<![\\$])\$([^\s$](?:[^$\n]*?[^\s\\$])?)\$(?![\d$])|\\([\\*_=$|\[\]\-•.)])`, "g");
@@ -2744,7 +2747,7 @@ function inlHTML(s, blocks, opt){
   const t = s.replace(INL_RE, (...m) => {
     let h; const ed = opt && opt.edit;
     if (m[6] != null) h = esc(m[6]);
-    else if (m[2]) { const w = imgW(m[1]), al = imgAl(m[1]), fl = imgFl(m[1]); h = opt && opt.line ? '<span class="rl-img" aria-label="Bild">🖼</span>' : `<img class="cimg${w ? " sized" : ""}${al ? " fl-" + al : ""}${flCls(fl)}" src="${esc(imgSrc(m[2]))}"${ed ? ` data-src="${esc(m[2])}"` : ""}${al ? ` data-al="${al}"` : ""}${fl ? ` data-fl="${fl}"` : ""}${w ? ` data-w="${w}" style="width:${w}%"` : ""} crossorigin="anonymous" alt="Bild" loading="lazy" decoding="async" draggable="false">`; }
+    else if (m[2]) { const w = imgW(m[1]), al = imgAl(m[1]), fl = imgFl(m[1]), off = EXT_OFF && m[2].startsWith("https:"); h = opt && opt.line ? '<span class="rl-img" aria-label="Bild">🖼</span>' : `<img class="cimg${w ? " sized" : ""}${al ? " fl-" + al : ""}${flCls(fl)}" src="${off ? EXT_PH : esc(imgSrc(m[2]))}"${off ? ' title="Bild von einer fremden Webseite – im Kurs nicht geladen"' : ""}${ed ? ` data-src="${esc(m[2])}"` : ""}${al ? ` data-al="${al}"` : ""}${fl ? ` data-fl="${fl}"` : ""}${w ? ` data-w="${w}" style="width:${w}%"` : ""} crossorigin="anonymous" alt="Bild" loading="lazy" decoding="async" draggable="false">`; }
     else if (ed) h = chipHTML(m[3] != null ? (blocks[+m[3]] || "") : m[4] != null ? m[4] : m[5]);
     else if (m[3] != null) h = texHTML(blocks[+m[3]] || "", !(opt && opt.line));
     else h = texHTML((opt && opt.line ? "" : "\\displaystyle ") + (m[4] != null ? m[4] : m[5]), false);
@@ -2758,6 +2761,7 @@ const hasRich = s => RICH_TEST.test(String(s ?? ""));
 function protectBlocks(s){ const blocks = []; s = s.replace(/\$\$([\s\S]+?)\$\$/g, (m, x) => "\u0000" + (blocks.push(x.trim()) - 1) + "\u0000"); return [s, blocks]; }
 // Ganzer Karteninhalt (Lernen); opt.edit = HTML für den Karten-Editor
 function rich(raw, opt){
+  EXT_OFF = KR_TXT.has(raw); /* Kurs-Karte: keine Bilder von fremden Webseiten laden (sonst sieht deren Betreiber IP-Adresse und Zeitpunkt der anderen Mitglieder) */
   raw = String(raw ?? ""); const ed = !!(opt && opt.edit);
   if (!hasRich(raw)) return ed ? raw.replace(/\r\n?/g, "\n").split("\n").map(l => `<div>${esc(l) || "<br>"}</div>`).join("") : esc(raw);
   const [s, blocks] = protectBlocks(raw.replace(/\r\n?/g, "\n"));
@@ -5185,7 +5189,7 @@ function krErr(e){
 /* Community-Daten als Ordner/Karten in S.folders/S.decks einhängen (nach jedem Laden/Ändern neu) */
 function krInject(){
   KR.ids.forEach(id => { if (S.folders[id] && S.folders[id].comm) delete S.folders[id]; delete S.decks[id]; });
-  KR.ids = new Set(); if (!krEnabled()) return;
+  KR.ids = new Set(); KR_TXT = new Set(); if (!krEnabled()) return;
   const add = (id, base) => { const set = (KR.prog[id] || {}).set || {}; S.folders[id] = { order: base.created, ...set, ...base }; S.decks[id] = {}; KR.ids.add(id); };
   Object.values(KR.list).forEach(c => add(c.id, { id: c.id, name: c.name, emoji: c.emoji ?? "", color: safeColor(c.color), parentId: null, comm: c.id, croot: 1, by: c.created_by, created: krTime(c.created_at) }));
   Object.values(KR.folders).forEach(f => { if (KR.list[f.community_id]) add(f.id, { id: f.id, name: f.name, emoji: f.emoji ?? "", color: safeColor(f.color), parentId: f.parent_id || f.community_id, comm: f.community_id, by: f.created_by, created: krTime(f.created_at) }); });
@@ -5197,6 +5201,7 @@ function krInject(){
     const created = krTime(k.created_at);
     deck[k.id] = { due: created, ivl: 0, ease: 2.5, reps: 0, lapses: 0, ...sched, id: k.id, f: p.o ? p.o.f : k.front, b: p.o ? p.o.b : k.back, created, by: k.created_by, comm: k.community_id,
       ...(p.o ? { ov: 1, oc: krTime(k.updated_at) > (p.o.at || 0) ? 1 : 0 } : {}) };
+    KR_TXT.add(deck[k.id].f); KR_TXT.add(deck[k.id].b); /* Kurs-Texte: Bilder von fremden Seiten werden nicht geladen (rich) */
   });
 }
 function krHidden(fid){ const c = (KR.prog[fid] || {}).cards || {}; return Object.keys(c).filter(id => c[id].h && KR.cards[id] && KR.cards[id].folder_id === fid); }
