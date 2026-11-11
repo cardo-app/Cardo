@@ -365,6 +365,45 @@ body.studying #main{padding-bottom:130px}
 .grade small{font-weight:600;font-size:13px;color:var(--muted)}
 .grade:hover{background:color-mix(in oklab,var(--g) 32%,var(--surface))}
 .reveal{margin-top:16px}
+.flash.typing{min-height:0;cursor:default}
+.flash.typing .flash-face{min-height:clamp(140px,24vh,250px)}
+.ty{display:flex;gap:8px;margin-top:14px}
+.ty input{flex:1;min-width:0;height:56px;box-sizing:border-box;border-radius:18px;border:2px solid var(--line);background:var(--surface);color:var(--card-ink);font:inherit;font-size:20px;font-weight:600;padding:0 18px;box-shadow:var(--shadow);-webkit-appearance:none}
+.ty input:focus{outline:none;border-color:var(--accent)}
+.ty input::placeholder{color:var(--muted);font-weight:500}
+.ty-go{width:56px;height:56px;border-radius:18px;background:var(--accent);color:#fff;display:grid;place-items:center;flex:none;font-size:22px;font-weight:800}
+.ty-skip{display:block;margin:10px auto 0;color:var(--muted);font-weight:600;font-size:15px;padding:8px 12px}
+.ty-res{padding:12px 20px 4px;display:flex;flex-direction:column;gap:4px;align-items:center;text-align:center;border-top:2px dashed var(--line)}
+.ty-res + .flash-back{border-top:0}
+.ty-v{font-weight:800;font-size:15.5px;color:var(--gc)}
+.ty-you{font-size:18px;font-weight:600;color:var(--muted);overflow-wrap:anywhere}
+.ty-you del{color:var(--g-again);text-decoration-thickness:2px}
+.flash-back u{color:var(--g-hard);text-decoration:underline 3px;text-underline-offset:5px}
+.grade.sugg{box-shadow:0 0 0 3px var(--paper),0 0 0 5px var(--g);transform:translateY(-2px)}
+.mt-head{display:flex;flex-direction:column;align-items:center;gap:4px;margin:6px 0 18px;font-size:13px;font-weight:700;color:var(--muted)}
+.mt-head b{font-size:22px;font-weight:800;color:var(--ink);font-family:var(--display,inherit)}
+.mt-grid{position:relative;display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:minmax(64px,auto);gap:12px 14px;touch-action:none;-webkit-user-select:none;user-select:none}
+.mt-grid > .mt-tile{position:relative;z-index:1}
+.mt-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:2}
+.mt-ln{stroke-width:4;stroke-linecap:round}
+.mt-ln.drag{stroke:var(--accent)}
+.mt-ln.ok{stroke:var(--g-good);animation:mtLn .5s ease forwards}
+.mt-ln.bad{stroke:var(--g-again);animation:mtLn .45s ease forwards}
+@keyframes mtLn{0%{opacity:1}60%{opacity:1}100%{opacity:0}}
+.mt-tile:focus{outline:none}
+.mt-tile{min-height:64px;padding:10px 12px;border-radius:18px;background:var(--surface);box-shadow:var(--shadow);border:2px solid transparent;color:var(--card-ink);font-size:17px;font-weight:650;line-height:1.25;display:flex;align-items:center;justify-content:center;text-align:center;overflow-wrap:break-word;-webkit-hyphens:auto;hyphens:auto;touch-action:none;cursor:pointer;transition:transform .16s cubic-bezier(.34,1.45,.55,1),border-color .15s ease,background-color .15s ease,opacity .3s ease}
+.mt-tile:active{transform:scale(.97)}
+.mt-tile.in{animation:mtIn .38s cubic-bezier(.34,1.45,.55,1) both;animation-delay:var(--d)}
+@keyframes mtIn{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
+.mt-tile.sel,.mt-tile.hov{border-color:var(--accent);background:color-mix(in oklab,var(--accent) 12%,var(--surface));transform:scale(1.03)}
+.mt-tile.ok{border-color:var(--g-good);background:color-mix(in oklab,var(--g-good) 22%,var(--surface));animation:mtOk .38s cubic-bezier(.34,1.6,.55,1)}
+@keyframes mtOk{40%{transform:scale(1.07)}100%{transform:scale(1)}}
+.mt-tile.bad{border-color:var(--g-again);background:color-mix(in oklab,var(--g-again) 20%,var(--surface));animation:mtBad .42s ease}
+@keyframes mtBad{20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
+.mt-tile.gone{opacity:0;transform:scale(.9);pointer-events:none;box-shadow:none}
+.mt-grid.fin{animation:mtFin .5s ease forwards}
+@keyframes mtFin{to{opacity:0;transform:translateY(-8px)}}
+@media (prefers-reduced-motion:reduce){.mt-tile.in,.mt-tile.ok,.mt-tile.bad,.mt-grid.fin{animation:none}}
 .kbd-hint{text-align:center;font-size:13px;color:var(--muted);margin-top:12px}
 @media (hover:none){.kbd-hint{display:none}}
 .done{text-align:center;padding:40px 16px}
@@ -2061,6 +2100,23 @@ const I18N = {
   "die nächste ist {} wieder dran.": ["the next one is due {}.", "la prossima tocca {}."],
   "neue Karten kannst du jederzeit hinzufügen.": ["you can add new cards at any time.", "puoi aggiungere nuove schede in qualsiasi momento."],
   "Lernrichtung": ["Study direction", "Direzione di studio"],
+  "Abfrage": ["Answer mode", "Modalità di risposta"],
+  "Antwort eintippen": ["Type the answer", "Scrivi la risposta"],
+  "Abfrage: Standard": ["Answer mode: standard", "Modalità: standard"],
+  "Buchstabieren": ["Spelling", "Ortografia"],
+  "Paare verbinden": ["Match pairs", "Abbina le coppie"],
+  "Abfrage: Paare verbinden": ["Answer mode: match pairs", "Modalità: abbina le coppie"],
+  "Verbinde die Paare": ["Match the pairs", "Abbina le coppie"],
+  "Tippe ein Wort und dann seine Übersetzung – oder zieh eine Linie": ["Tap a word and then its translation – or draw a line", "Tocca una parola e poi la sua traduzione – oppure traccia una linea"],
+  "Abfrage: Buchstabieren": ["Answer mode: spelling", "Modalità: ortografia"],
+  "Weiß ich nicht": ["I don't know", "Non lo so"],
+  "Prüfen": ["Check", "Verifica"],
+  "✓ Richtig!": ["✓ Correct!", "✓ Giusto!"],
+  "✓ Richtig – achte auf die Akzente": ["✓ Correct – mind the accents", "✓ Giusto – attento agli accenti"],
+  "Fast richtig – kleiner Tippfehler": ["Almost – small typo", "Quasi – piccolo errore di battitura"],
+  "Fast richtig – achte auf Groß- und Kleinschreibung": ["Almost – mind upper and lower case", "Quasi – attento a maiuscole e minuscole"],
+  "✗ Nicht ganz": ["✗ Not quite", "✗ Non proprio"],
+  "Enter: prüfen · nochmal Enter: Vorschlag übernehmen · Zahlen: bewerten": ["Enter: check · Enter again: accept suggestion · Numbers: rate", "Invio: verifica · di nuovo Invio: accetta il suggerimento · Numeri: valuta"],
   "Lernrichtung: ": ["Study direction: ", "Direzione di studio: "],
   "Vorderseite zuerst": ["Front first", "Prima il fronte"],
   "Rückseite zuerst": ["Back first", "Prima il retro"],
@@ -6287,6 +6343,9 @@ function draw(){
   if (draw.reuse) { const src = draw.reuse; draw.reuse = null; $("#main").replaceChildren(...src.childNodes); } // Seitenwischen: fertig vorgezeichnete Seite übernehmen
   else $("#main").innerHTML = S.view === "study" ? studyHTML() : S.view === "settings" ? settingsHTML() : S.view === "stats" ? statsHTML() : (S.fid ? folderHTML(S.fid) : libHTML());
   if (keep) { const el = document.getElementById(keep.id); if (el) { el.focus(); try { el.setSelectionRange(keep.s, keep.e); } catch {} } }
+  if (S.view === "study") mtFit();
+  { const k = document.getElementById("tyKeep"); if (k && document.activeElement === k && !document.getElementById("tyIn")) k.blur(); }
+  if (S.view === "study" && $("#sheet").hidden) { const ti = document.getElementById("tyIn"); if (ti && document.activeElement !== ti) { try { ti.focus({ preventScroll: true }); } catch {} } }
   const m = $("#main");
   if (S.anim && S.anim !== "none") { m.classList.remove("a-fade", "a-push", "a-pop", "a-room"); void m.offsetWidth; m.classList.add("a-" + S.anim);
     clearTimeout(draw.t); draw.t = setTimeout(() => m.classList.remove("a-fade", "a-push", "a-pop", "a-room"), 950); }
@@ -7107,6 +7166,231 @@ function setSide(fid, side){
   descendants(fid).forEach(id => { const x = S.folders[id]; if (x && (x.side || typeof x.both === "boolean")) { const z = { ...x }; delete z.side; delete z.both; putFolder(z); } });
   toast("Lernrichtung: " + SIDES.find(o => o[0] === side)[1]); render();
 }
+/* Abfrage pro Ordner (vererbt wie die Lernrichtung): flip = Standard (umdrehen) · type = Antwort eintippen */
+const ASKS = [["flip", "Standard"], ["type", "Buchstabieren"], ["match", "Paare verbinden"]];
+function askOf(fid){ const p = pathOf(fid); for (let i = p.length - 1; i >= 0; i--) if (ASKS.some(o => o[0] === p[i].ask)) return p[i].ask; return "flip"; }
+function setAsk(fid, v){
+  const f = S.folders[fid]; if (!f || !ASKS.some(o => o[0] === v)) return;
+  putFolder({ ...f, ask: v });
+  descendants(fid).forEach(id => { const x = S.folders[id]; if (x && x.ask) { const z = { ...x }; delete z.ask; putFolder(z); } });
+  toast(v === "type" ? "Abfrage: Buchstabieren" : v === "match" ? "Abfrage: Paare verbinden" : "Abfrage: Standard"); render();
+}
+/* Nur kurze, schlichte Antworten werden abgetippt – Bilder, Formeln, Tabellen, Listen und lange Texte werden wie gewohnt umgedreht */
+function tyPlain(raw){
+  const s = String(raw ?? "").trim();
+  if (!s || /!\[|\$|\\\(|\n/.test(s) || /^\s*\|/.test(s)) return null;
+  const t = s.replace(/\*\*|==/g, "").replace(/(^|[^\w])[_*]([^_*]+)[_*](?=$|[^\w])/g, "$1$2").replace(/\\(.)/g, "$1").trim();
+  return t && t.length <= 60 ? t : null;
+}
+const tyNorm = s => String(s).replace(/[’'‘‚`´]/g, "").replace(/[()]/g, "").replace(/[.!?¿¡;:,"„“”«»…–-]/g, " ").replace(/\s+/g, " ").trim();
+const tyAcc = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/ß/g, "ss");
+function tyVariants(ans){
+  const noPar = x => x.replace(/\([^)]*\)/g, " ").replace(/\s+/g, " ").trim(), out = new Set([ans, noPar(ans)]);
+  ans.split(/\s*(?:[;,\/]|\boder\b|\bor\b|\bo\b)\s*/).forEach(p => { p = p.trim(); if (p) { out.add(p); out.add(noPar(p)); } });
+  return [...out].filter(Boolean);
+}
+function tyLev(a, b){
+  const A = [...a], B = [...b]; let prev = Array.from({ length: B.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= A.length; i++) { const cur = [i]; for (let j = 1; j <= B.length; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (A[i - 1] === B[j - 1] ? 0 : 1)); prev = cur; }
+  return prev[B.length];
+}
+/* Ergebnis: ok · case (nur Groß-/Kleinschreibung falsch) · accent (nur Akzente/Umlaute falsch) · typo (kleiner Tippfehler) · wrong · skip */
+function tyJudge(val, ans){
+  const x = tyNorm(val); if (!x) return { kind: "skip", best: ans };
+  let best = ans, bd = 1e9;
+  for (const v of tyVariants(ans)) {
+    const y = tyNorm(v); if (!y) continue;
+    if (x === y) return { kind: "ok", best: v };
+    if (x.toLowerCase() === y.toLowerCase()) return { kind: "case", best: v };
+    if (tyAcc(x) === tyAcc(y)) return { kind: "accent", best: v };
+    if (tyAcc(x.toLowerCase()) === tyAcc(y.toLowerCase())) return { kind: "case", best: v };
+    const d = tyLev(x, y); if (d < bd) { bd = d; best = v; }
+  }
+  const L = [...tyNorm(best)].length, tol = L <= 3 ? 0 : Math.max(1, Math.floor(L / 6));
+  return { kind: bd <= tol ? "typo" : "wrong", best };
+}
+/* Buchstabengenauer Vergleich: in der Eingabe falsche Zeichen durchgestrichen, in der Lösung fehlende unterstrichen */
+function tyDiff(a, b){
+  const A = [...a], B = [...b], la = A, lb = B, n = A.length, m = B.length;
+  const L = Array.from({ length: n + 1 }, () => new Uint16Array(m + 1));
+  for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) L[i][j] = la[i] === lb[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+  const ka = new Array(n).fill(false), kb = new Array(m).fill(false);
+  for (let i = 0, j = 0; i < n && j < m;) { if (la[i] === lb[j]) { ka[i] = kb[j] = true; i++; j++; } else if (L[i + 1][j] >= L[i][j + 1]) i++; else j++; }
+  const wrap = (arr, keep, tag) => arr.map((c, i) => keep[i] ? esc(c) : `<${tag}>${esc(c)}</${tag}>`).join("").split(`</${tag}><${tag}>`).join("");
+  return [wrap(A, ka, "del"), wrap(B, kb, "u")];
+}
+const tyKey = () => { const st = S.study, c = curCard(); return st && c ? c.id + ":" + st.done : ""; };
+function tyOn(cur){ return !!cur && askOf(cur.fid) === "type" && tyPlain(cur.rev ? cur.c.f : cur.c.b) !== null; }
+function tyCheck(skip){
+  const st = S.study, cur = curCard(); if (!st || !cur || st.flipped || !tyOn(cur)) return;
+  const inp = document.getElementById("tyIn"), val = skip ? "" : (inp ? inp.value : st.tyVal || "");
+  if (!skip && !val.trim()) { if (inp) inp.focus(); return; }
+  st.ty = { key: tyKey(), val, ...tyJudge(val, tyPlain(cur.rev ? cur.c.f : cur.c.b)) };
+  st.flipped = true; st.justFlipped = true; render();
+}
+/* Damit die iPhone-Tastatur bei der nächsten Karte wieder aufgeht: schon beim Tippen auf die Bewertung ein (unsichtbares) Feld fokussieren */
+function tyKeepFocus(){ let k = document.getElementById("tyKeep"); if (!k) { k = document.createElement("input"); k.id = "tyKeep"; k.setAttribute("aria-hidden", "true"); k.tabIndex = -1; k.autocomplete = "off"; k.style.cssText = "position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;font-size:16px;border:0;padding:0"; document.body.appendChild(k); } try { k.focus({ preventScroll: true }); } catch {} }
+/* ---------- Paare verbinden: Runden aus bis zu 5 Karten, links Vorderseiten, rechts Rückseiten (gemischt) ----------
+   Ohne Fehler verbunden = Gut · 1 Fehler = Schwer · mehr = Nochmal (Prüfen/Üben: Fehler = nicht gewusst).
+   Bewertet wird erst am Ende der Runde (sonst würde das Neuzeichnen die Animationen abbrechen). */
+const MT_N = 5;
+/* Lange Texte bekommen eine kleinere Schrift */
+const mtSize = t => { const n = String(t).length; return n > 55 ? 14.5 : n > 30 ? 16 : 17; };
+/* Passt die Runde auf den Bildschirm? Nach dem Zeichnen messen und notfalls Paare herausnehmen (min. 2) –
+   klappt so auf jedem Handy, mit jeder Schriftgröße und im Querformat. Herausgenommene Karten kommen in die nächste Runde. */
+function mtFit(){
+  const st = S.study, r = st && st.round; if (!r || r.fitted || r.items.some(x => x.done) || !document.getElementById("mtGrid")) return;
+  r.fitted = true; toTop();
+  const vh = () => (window.visualViewport ? visualViewport.height : innerHeight) - 14;
+  for (let n = 0; n < 8 && r.items.length > 2; n++) {
+    const g = document.getElementById("mtGrid"); if (!g || g.getBoundingClientRect().bottom <= vh()) break;
+    const k = r.items.length - 1, it = r.items.pop();
+    r.L = r.L.filter(i => i !== k); r.R = r.R.filter(i => i !== k);
+    if (!it.filler) st.queue.unshift({ fid: it.fid, id: it.id, rev: false });
+    st.shownRound = null; $("#main").innerHTML = studyHTML();
+  }
+}
+addEventListener("resize", () => { const r = S.study && S.study.round; if (r && !r.items.some(x => x.done)) { r.fitted = false; render(); } });
+const mtText = raw => { const s = String(raw ?? "").trim(); return s && s.length <= 80 && !/!\[|\n/.test(s) && !/^\s*\|/.test(s) ? s : null; };
+const mtKey = s => tyNorm(s).toLowerCase();
+const mtFits = (fid, c) => !!c && mtText(c.f) !== null && mtText(c.b) !== null;
+const mtOn = cur => !!cur && askOf(cur.fid) === "match" && mtFits(cur.fid, cur.c);
+function mtBuild(){
+  const st = S.study, items = [], fs = new Set(), bs = new Set(), rest = [];
+  const free = c => !fs.has(mtKey(c.f)) && !bs.has(mtKey(c.b));
+  const fits = () => true;
+  const add = (fid, c, filler) => { fs.add(mtKey(c.f)); bs.add(mtKey(c.b)); items.push({ fid, id: c.id, f: c.f, b: c.b, filler, miss: 0, done: false }); };
+  for (const q of st.queue) {
+    const c = S.decks[q.fid] && S.decks[q.fid][q.id];
+    if (items.length < MT_N && c && askOf(q.fid) === "match" && mtFits(q.fid, c) && free(c) && fits(c) && !items.some(x => x.fid === q.fid && x.id === q.id)) add(q.fid, c, false);
+    else rest.push(q);
+  }
+  if (!items.length) return false;
+  st.queue = rest;
+  /* Zu wenige Karten übrig (z. B. nur noch eine falsch verbundene)? Mit anderen Karten aus denselben Ordnern auffüllen – die werden nicht bewertet */
+  if (items.length < 4) {
+    const pool = [...new Set(items.map(x => x.fid))].flatMap(fid => Object.values(S.decks[fid] || {}).map(c => ({ fid, c })));
+    for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+    for (const x of pool) { if (items.length >= 4) break; if (mtFits(x.fid, x.c) && free(x.c) && fits(x.c) && !items.some(y => y.id === x.c.id)) add(x.fid, x.c, true); }
+  }
+  const mix = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const L = mix(items.map((_, i) => i)); let R = mix(items.map((_, i) => i));
+  if (items.length > 2) for (let t = 0; t < 6 && R.some((x, i) => x === L[i]); t++) R = mix(R); /* möglichst keine Paare auf gleicher Höhe */
+  st.round = { items, L, R, gone: { L: {}, R: {} }, sel: null };
+  st.hist = []; st.flipped = false; return true;
+}
+function mtApply(it, g){
+  const st = S.study, c = S.decks[it.fid] && S.decks[it.fid][it.id]; if (!c) return;
+  if (st.exam) {
+    const k = exKey(it.fid, it.id); if (!(k in st.first)) st.first[k] = g > 0;
+    if (g === 0) { st.queue.push({ fid: it.fid, id: it.id, rev: false }); if (st.resched && c.reps && !st.moved[k]) { st.moved[k] = 1; putCard(it.fid, schedule(c, 0)); } }
+    st.done++; return;
+  }
+  const n = capForExam(it.fid, schedule(c, g));
+  if (n.due - Date.now() < 20 * MIN) st.queue.splice(Math.min(st.queue.length, 5), 0, { fid: it.fid, id: it.id, rev: false });
+  st.done++; putCard(it.fid, n); logReview(it.fid, it.id, isNewCard(c)); rlAdd(c, g);
+}
+/* Runde abschließen: alle verbundenen Karten bewerten (auch beim vorzeitigen Beenden) */
+function mtFlush(){
+  const st = S.study, r = st && st.round; if (!r) return;
+  st.round = null;
+  r.items.forEach(it => { if (it.filler) return; if (!it.done) { st.queue.unshift({ fid: it.fid, id: it.id, rev: false }); return; } mtApply(it, st.exam ? (it.miss ? 0 : 2) : it.miss === 0 ? 2 : it.miss === 1 ? 1 : 0); });
+}
+function mtTile(side, i){ return document.querySelector(`.mt-tile[data-side="${side}"][data-i="${i}"]`); }
+function mtTry(a, b){ /* a = zuerst gewählte Kachel, b = zweite (andere Spalte) */
+  const st = S.study, r = st && st.round; if (!r) return;
+  const li = a.side === "L" ? a.i : b.i, ri = a.side === "R" ? a.i : b.i, tl = mtTile("L", li), tr = mtTile("R", ri);
+  r.sel = null; document.querySelectorAll(".mt-tile.sel").forEach(x => x.classList.remove("sel"));
+  if (li === ri) {
+    const it = r.items[li]; it.done = true; r.gone.L[li] = r.gone.R[ri] = 1;
+    [tl, tr].forEach(x => x && x.classList.add("ok"));
+    mtLink(tl, tr, "ok");
+    const fin = r.items.every(x => x.done);
+    gradeSound(fin ? 3 : 2);
+    setTimeout(() => { [tl, tr].forEach(x => x && x.classList.add("gone")); }, 380);
+    mtCount();
+    if (fin) setTimeout(() => { const g = document.getElementById("mtGrid"); if (g) g.classList.add("fin"); }, 420);
+    if (fin) setTimeout(() => { if (S.study && S.study.round === r) { mtFlush(); render(); } }, 1000);
+  } else {
+    const it = r.items[a.i]; it.miss++;
+    gradeSound(0);
+    mtLink(tl, tr, "bad");
+    [tl, tr].forEach(x => { if (!x) return; x.classList.remove("bad"); void x.offsetWidth; x.classList.add("bad"); setTimeout(() => x.classList.remove("bad"), 520); });
+  }
+}
+function mtCount(){
+  const st = S.study, r = st && st.round; if (!r) return;
+  const dn = r.items.filter(x => !x.filler && x.done).length, open = r.items.filter(x => !x.filler && !x.done).length;
+  const left = st.queue.length + open, all = st.done + dn + left, el = document.querySelector(".study-count"), bar = document.querySelector(".study-top .bar i");
+  if (el) el.textContent = left + " übrig"; if (bar) bar.style.width = (all ? Math.round((st.done + dn) / all * 100) : 100) + "%";
+}
+/* Kurze Verbindungslinie zwischen zwei Kacheln (grün = richtig, rot = falsch) */
+function mtLink(a, b, cls){
+  const g = document.getElementById("mtGrid"), svg = g && g.querySelector(".mt-svg"); if (!svg || !a || !b) return;
+  const gr = g.getBoundingClientRect(), ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
+  const l = ra.left < rb.left ? ra : rb, rr = ra.left < rb.left ? rb : ra;
+  const ln = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  ln.setAttribute("x1", l.right - gr.left - 6); ln.setAttribute("y1", l.top + l.height / 2 - gr.top);
+  ln.setAttribute("x2", rr.left - gr.left + 6); ln.setAttribute("y2", rr.top + rr.height / 2 - gr.top);
+  ln.setAttribute("class", "mt-ln " + cls); svg.appendChild(ln); setTimeout(() => ln.remove(), cls === "ok" ? 520 : 480);
+}
+function matchHTML(st){
+  if (!st.round && !mtBuild()) return null;
+  const r = st.round, dn = r.items.filter(x => !x.filler && x.done).length, open = r.items.filter(x => !x.filler && !x.done).length;
+  const left = st.queue.length + open, all = st.done + dn + left, pct = all ? Math.round((st.done + dn) / all * 100) : 100;
+  const top = `<div class="study-top"><button class="xbtn" data-act="endStudy" aria-label="Lernen beenden">${IC.close}</button>${st.exam ? `<span class="exam-tag">${st.prac ? "Üben" : "Prüfung"}</span>` : ''}<div class="bar"><i style="width:${pct}%"></i></div><div class="study-count num">${left} übrig</div></div>`;
+  const one = new Set(r.items.map(x => x.fid)).size === 1, f = (one && S.folders[r.items[0].fid]) || {}, fresh = st.shownRound !== r; st.shownRound = r;
+  const tile = (side, i, k) => { const t = side === "L" ? r.items[i].f : r.items[i].b, sel = r.sel && r.sel.side === side && r.sel.i === i;
+    return `<button class="mt-tile ${r.gone[side][i] ? 'gone' : ''} ${fresh ? 'in' : ''} ${sel ? 'sel' : ''}" style="--d:${k * 40 + (side === "R" ? 20 : 0)}ms;font-size:${mtSize(t)}px" data-side="${side}" data-i="${i}"><span translate="no">${richLine0(t)}</span></button>`; };
+  return top + `<div class="mt-head">${one ? `<span>${emo(f) ? esc(emo(f)) + ' ' : ''}${escN(f.name || "")}</span>` : ''}<b>Verbinde die Paare</b></div>
+  <div class="mt-grid" id="mtGrid" data-noswipe><svg class="mt-svg" aria-hidden="true"></svg>
+    ${r.L.map((i, k) => tile("L", i, k) + tile("R", r.R[k], k)).join("")}</div>
+  <div class="kbd-hint">Tippe ein Wort und dann seine Übersetzung – oder zieh eine Linie</div>`;
+}
+/* Tippen (erst links/rechts, dann die andere Seite) oder Linie ziehen */
+let MTD = null;
+document.addEventListener("pointerdown", e => {
+  const t = e.target.closest && e.target.closest(".mt-tile"); if (!t || t.classList.contains("gone") || !S.study || !S.study.round) return;
+  document.querySelectorAll(".mt-tile.in").forEach(x => x.classList.remove("in")); /* sonst startet das Einblenden nach Rot/Grün neu */
+  const g = document.getElementById("mtGrid"), gr = g.getBoundingClientRect(), rr = t.getBoundingClientRect();
+  MTD = { t, side: t.dataset.side, i: +t.dataset.i, x: e.clientX, y: e.clientY, drag: false, ox: (t.dataset.side === "L" ? rr.right - 6 : rr.left + 6) - gr.left, oy: rr.top + rr.height / 2 - gr.top, ln: null };
+  try { t.releasePointerCapture && t.releasePointerCapture(e.pointerId); } catch {}
+});
+document.addEventListener("pointermove", e => {
+  if (!MTD) return;
+  if (!MTD.drag && Math.hypot(e.clientX - MTD.x, e.clientY - MTD.y) < 10) return;
+  const g = document.getElementById("mtGrid"); if (!g) { MTD = null; return; }
+  if (!MTD.drag) { MTD.drag = true; MTD.ln = document.createElementNS("http://www.w3.org/2000/svg", "line"); MTD.ln.setAttribute("class", "mt-ln drag"); g.querySelector(".mt-svg").appendChild(MTD.ln); MTD.t.classList.add("sel"); g.classList.add("dragging"); }
+  const gr = g.getBoundingClientRect();
+  MTD.ln.setAttribute("x1", MTD.ox); MTD.ln.setAttribute("y1", MTD.oy); MTD.ln.setAttribute("x2", e.clientX - gr.left); MTD.ln.setAttribute("y2", e.clientY - gr.top);
+  document.querySelectorAll(".mt-tile.hov").forEach(x => x.classList.remove("hov"));
+  const o = document.elementFromPoint(e.clientX, e.clientY), ot = o && o.closest && o.closest(".mt-tile");
+  if (ot && ot.dataset.side !== MTD.side && !ot.classList.contains("gone")) ot.classList.add("hov");
+});
+const mtUp = e => {
+  if (!MTD) return; const d = MTD; MTD = null;
+  const g = document.getElementById("mtGrid"); if (g) g.classList.remove("dragging");
+  if (d.ln) d.ln.remove(); document.querySelectorAll(".mt-tile.hov").forEach(x => x.classList.remove("hov"));
+  const r = S.study && S.study.round; if (!r) return;
+  if (d.drag) {
+    const o = e && document.elementFromPoint(e.clientX, e.clientY), ot = o && o.closest && o.closest(".mt-tile");
+    if (ot && ot.dataset.side !== d.side && !ot.classList.contains("gone")) mtTry({ side: d.side, i: d.i }, { side: ot.dataset.side, i: +ot.dataset.i });
+    else { d.t.classList.remove("sel"); r.sel = null; }
+    return;
+  }
+  mtTap(d.t);
+};
+function mtTap(el){
+  const r = S.study && S.study.round; if (!r || !el || el.classList.contains("gone")) return;
+  document.querySelectorAll(".mt-tile.in").forEach(x => x.classList.remove("in"));
+  const me = { side: el.dataset.side, i: +el.dataset.i };
+  if (r.sel && r.sel.side !== me.side) { mtTry(r.sel, me); return; }
+  document.querySelectorAll(".mt-tile.sel").forEach(x => x.classList.remove("sel"));
+  if (r.sel && r.sel.side === me.side && r.sel.i === me.i) { r.sel = null; return; }
+  r.sel = me; el.classList.add("sel");
+}
+document.addEventListener("pointerup", mtUp);
+document.addEventListener("pointercancel", () => { if (MTD) { if (MTD.ln) MTD.ln.remove(); MTD = null; } });
 /* Kartenreihenfolge pro Ordner (nur Anzeige in der Liste und „Der Reihe nach“ beim Prüfen) */
 const CSORTS = [["added", "Wie hinzugefügt"], ["new", "Neueste zuerst"], ["az", "Alphabetisch (A–Z)"], ["za", "Alphabetisch (Z–A)"]];
 const csortOf = fid => { const f = S.folders[fid]; return f && CSORTS.some(o => o[0] === f.csort) ? f.csort : "added"; };
@@ -7137,6 +7421,7 @@ function startStudy(fid){
 function curCard(){ const st = S.study; while (st && st.queue.length) { const q = st.queue[0]; const c = S.decks[q.fid] && S.decks[q.fid][q.id]; if (c) return { ...q, c }; st.queue.shift(); } return null; }
 function studyHTML(){
   const st = S.study; if (!st) return libHTML();
+  if (st.round || mtOn(curCard())) { const h = matchHTML(st); if (h) return h; }
   const cur = curCard(), left = st.queue.length, pct = st.done + left ? Math.round(st.done / (st.done + left) * 100) : 100;
   const top = `<div class="study-top"><button class="xbtn" data-act="endStudy" aria-label="Lernen beenden">${IC.close}</button>${st.exam ? `<span class="exam-tag">${st.prac ? "Üben" : "Prüfung"}</span>` : ''}${cur ? `<button class="xbtn" data-act="studyEdit" aria-label="Karte bearbeiten" title="Karte bearbeiten (E)">${IC.edit}</button>` : ""}${st.hist && st.hist.length ? `<button class="xbtn undo" data-act="undoGrade" aria-label="Letzte Bewertung rückgängig" title="Rückgängig (Z)">${IC.undo}</button>` : ""}<div class="bar"><i style="width:${pct}%"></i></div><div class="study-count num">${left} übrig</div></div>`;
   if (!cur && st.exam) return top + examDoneHTML(st);
@@ -7144,13 +7429,26 @@ function studyHTML(){
   const f = S.folders[cur.fid], now = Date.now();
   const opts = curGrades();
   const fresh = st.shown !== cur.id + ":" + st.done; st.shown = cur.id + ":" + st.done; const jf = st.justFlipped; st.justFlipped = false;
-  return top + `<div class="flash ${fresh ? 'card-in' : ''} ${jf ? 'flipped-in' : ''} ${st.flipped ? 'flipped' : ''}" data-act="flip">
+  const typing = tyOn(cur), k = tyKey(), ty = typing && st.flipped && st.ty && st.ty.key === k ? st.ty : null;
+  if (st.tyValKey !== k) { st.tyVal = ""; st.tyValKey = k; }
+  let sugg = -1, res = "", back = rich(cur.rev ? cur.c.f : cur.c.b);
+  if (ty) {
+    const want = ty.kind === "ok" || ty.kind === "accent" ? 2 : ty.kind === "typo" || ty.kind === "case" ? 1 : 0;
+    opts.forEach((o, i) => { if (o.g <= want && (sugg < 0 || o.g > opts[sugg].g)) sugg = i; }); if (sugg < 0) sugg = 0;
+    ty.sugg = sugg;
+    const V = { ok: ["✓ Richtig!", "--g-good"], accent: ["✓ Richtig – achte auf die Akzente", "--g-good"], typo: ["Fast richtig – kleiner Tippfehler", "--g-hard"], case: ["Fast richtig – achte auf Groß- und Kleinschreibung", "--g-hard"], wrong: ["✗ Nicht ganz", "--g-again"] }[ty.kind];
+    if (V) { const near = ty.kind !== "wrong", [you, sol] = near ? tyDiff(ty.val.trim(), ty.best) : [`<del>${esc(ty.val.trim())}</del>`, ""];
+      res = `<div class="ty-res"><div class="ty-v" style="--gc:var(${V[1]})">${V[0]}</div>${ty.kind === "ok" ? "" : `<div class="ty-you" translate="no">${you}</div>`}</div>`;
+      if (near && ty.best === tyPlain(cur.rev ? cur.c.f : cur.c.b)) back = `<span translate="no">${sol}</span>`; }
+  }
+  return top + `<div class="flash ${fresh ? 'card-in' : ''} ${jf ? 'flipped-in' : ''} ${st.flipped ? 'flipped' : ''} ${typing && !st.flipped ? 'typing' : ''}"${typing && !st.flipped ? '' : ' data-act="flip"'}>
     <div class="flash-src">${emo(f) ? esc(emo(f)) + ' ' : ''}${pathOf(cur.fid).map(x => escN(x.name)).join(" › ")}${cur.rev ? '<span class="rev-tag">⇄ Rückseite zuerst</span>' : ''}</div>
     <div class="flash-face">${rich(cur.rev ? cur.c.b : cur.c.f)}</div>
-    ${st.flipped ? `<div class="flash-face flash-back">${rich(cur.rev ? cur.c.f : cur.c.b)}</div>` : ''}</div>
-  ${st.flipped ? `<div class="grades" style="grid-template-columns:repeat(${opts.length},1fr)">${opts.map((o, i) => `<button class="grade" style="--g:var(${GRADE_VARS[o.v]})" data-act="grade" data-g="${i}">${o.l}${st.exam ? '' : `<small>${fmtIvl(schedule(cur.c, o.g, now).due - now)}</small>`}</button>`).join("")}</div>`
+    ${st.flipped ? `${res}<div class="flash-face flash-back">${back}</div>` : ''}</div>
+  ${typing && !st.flipped ? `<form class="ty" id="tyForm" autocomplete="off"><input id="tyIn" type="text" value="${esc(st.tyVal || "")}" placeholder="Antwort eintippen" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" translate="no"><button type="submit" class="ty-go" aria-label="Prüfen">→</button></form><button class="ty-skip" data-act="tySkip">Weiß ich nicht</button>` : ''}
+  ${st.flipped ? `<div class="grades" style="grid-template-columns:repeat(${opts.length},1fr)">${opts.map((o, i) => `<button class="grade${i === sugg ? ' sugg' : ''}" style="--g:var(${GRADE_VARS[o.v]})" data-act="grade" data-g="${i}">${o.l}${st.exam ? '' : `<small>${fmtIvl(schedule(cur.c, o.g, now).due - now)}</small>`}</button>`).join("")}</div>`
     : ''}
-  <div class="kbd-hint">Leertaste: umdrehen · Zahlen: bewerten · E: bearbeiten · Z: rückgängig</div>`;
+  <div class="kbd-hint">${typing ? "Enter: prüfen · nochmal Enter: Vorschlag übernehmen · Zahlen: bewerten" : "Leertaste: umdrehen · Zahlen: bewerten · E: bearbeiten · Z: rückgängig"}</div>`;
 }
 // l = label, g = scheduling grade (0 again … 3 easy), v = look & animation (0 red … 3 blue)
 const GRADE_SETS = {
@@ -7220,6 +7518,7 @@ function gradeFx(g, label, anchor){
 function grade(i){
   const st = S.study, cur = curCard(), opt = curGrades()[i]; if (!st || !cur || !st.flipped || st.busy || !opt) return;
   gradeSound(opt.v);
+  if (tyOn(cur) && st.queue.length > 1) tyKeepFocus();
   const card = document.querySelector(".flash"), reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const m = fxMode();
   if (card && (m === "color" || (m === "full" && reduce))) {
@@ -7251,7 +7550,7 @@ function undoGrade(){
   const st = S.study; if (!st || st.busy || !st.hist || !st.hist.length) return;
   const h = st.hist.pop();
   if (st.exam) { st.queue = h.q; st.done = h.done; st.first = h.first; st.flipped = false; st.justFlipped = false; if (h.moved) { delete st.moved[h.moved]; putCard(h.fid, h.card); } render(); toast("Bewertung rückgängig gemacht"); return; }
-  st.queue = h.q; st.done = h.done; st.flipped = false; st.justFlipped = false;
+  st.queue = h.q; st.done = h.done; st.flipped = false; st.justFlipped = false; st.ty = null;
   if ((S.days[h.k] || 0) > 0) S.days = { ...S.days, [h.k]: S.days[h.k] - 1 };
   { const fd = { ...((S.fdays||{})[h.k] || {}) }; if (fd[h.fid] > 0) { fd[h.fid]--; S.fdays = { ...S.fdays, [h.k]: fd }; } }
   if (!h.wasSeen) { const t = quotaKey(h.fid), day = { ...((S.seen||{})[h.k] || {}) }; if (day[t]) { const ids = { ...day[t] }; delete ids[h.card.id]; day[t] = ids; S.seen = { ...S.seen, [h.k]: day }; } }
@@ -7329,7 +7628,7 @@ function examDoneHTML(st){
     <div class="actions" style="justify-content:center;margin-top:18px">${miss.length ? `<button class="btn" data-act="examRetry">Nicht gewusste ${st.prac ? "nochmal üben" : "erneut prüfen"}</button>` : ''}<button class="btn primary" data-act="endStudy">Zurück</button></div>
     ${miss.length ? `<div class="exam-sum"><div class="exam-miss"><h2>Nicht gewusst (${miss.length})</h2>${miss.map(x => `<div>${richLine(x.c.f)}<small>${richLine(x.c.b)}</small></div>`).join("")}</div></div>` : ''}</div>`;
 }
-function endStudy(){ const st = S.study; S.study = null; go(st ? st.back : "lib", st ? st.backFid : null); }
+function endStudy(){ const st = S.study; if (st && st.round) mtFlush(); S.study = null; go(st ? st.back : "lib", st ? st.backFid : null); }
 
 /* ---------- Stats ---------- */
 function stackHTML(n){
@@ -7991,7 +8290,8 @@ function openLearnMenu(btn, fid){
   const d = ` data-id="${fid}"`, side = sideOf(fid);
   m.innerHTML = `<div class="mt">${IC_LEARN.replace('<svg', '<svg width="16" height="16"')}<span>Lernen</span><b>${escN(fo.name)}</b></div><hr>
     <button data-act="dailySheet"${d} role="menuitem">${MI.clock}Lernmenge pro Tag<span class="sub" style="color:var(--muted)">${dailyLabel(fid)}</span></button>
-    <hr><div class="mh">Lernrichtung</div>${SIDES.map(([k, l]) => `<button data-act="setSide"${d} data-v="${k}" role="menuitemradio" aria-checked="${side === k}">${miRadio(side === k)}${l}</button>`).join("")}`;
+    <hr><div class="mh">Lernrichtung</div>${SIDES.map(([k, l]) => `<button data-act="setSide"${d} data-v="${k}" role="menuitemradio" aria-checked="${side === k}">${miRadio(side === k)}${l}</button>`).join("")}
+    <hr><div class="mh">Abfrage</div>${ASKS.map(([k, l]) => `<button data-act="setAsk"${d} data-v="${k}" role="menuitemradio" aria-checked="${askOf(fid) === k}">${miRadio(askOf(fid) === k)}${l}</button>`).join("")}`;
   m.hidden = false; btn.setAttribute("aria-expanded", "true");
   placeMenu(m, btn);
 }
@@ -8039,7 +8339,7 @@ document.addEventListener("pointermove", e => { if (tip.hidden) return; const w 
 /* ---------- Events ---------- */
 document.addEventListener("click", e => {
   const zim = e.target.closest(".flash.flipped .rich img.cimg"); if (zim && $("#sheet").hidden) { openImgZoom(zim.src, zim.dataset.fl || imgFl([...zim.classList].map(c => c === "fh" || c === "fv" ? c : "").join(" "))); return; }
-  if (S.view === "study" && S.study && !S.study.flipped && curCard() && !e.target.closest("button,a,input,textarea,select") && $("#sheet").hidden) {
+  if (S.view === "study" && S.study && !S.study.flipped && !S.study.round && curCard() && !tyOn(curCard()) && !e.target.closest("button,a,input,textarea,select,form,.ty-skip") && $("#sheet").hidden) {
     S.study.flipped = true; S.study.justFlipped = true; render(); return;
   }
   const b = e.target.closest("[data-act]");
@@ -8099,6 +8399,7 @@ document.addEventListener("click", e => {
   if (a === "setFxMode") { saveSettings({ fxMode: b.dataset.v }); const ap = $("#anPick"); if (ap) ap.innerHTML = animPickerHTML(); return; }
   if (a === "setLayout") { saveSettings({ layout: b.dataset.v }); return; }
   if (a === "setSide") { setSide(id, b.dataset.v); return; }
+  if (a === "setAsk") { setAsk(id, b.dataset.v); return; }
   if (a === "chartZoom") { chartZoom(b.dataset.id || null); return; }
   if (a === "shareSheet") { closeMenu(); shareSheet(id); return; }
   if (a === "room") { if (S.room !== b.dataset.v) { S.room = b.dataset.v; saveRoom(); S.roomGo = S.room === "class" ? "r" : "l"; $("#main").style.setProperty("--rd", S.roomGo === "r" ? 1 : -1); S.anim = "room"; render(); if (S.room === "class" && krOn() && KR.ok !== false && Date.now() - KR.at > 60000) krLoad(); } return; }
@@ -8139,6 +8440,7 @@ document.addEventListener("click", e => {
   else if (a === "editCard") { cardSheet(b.dataset.f, id); }
   else if (a === "import") { importSheet(id || S.fid || null); }
   else if (a === "study") { startStudy(id); }
+  else if (a === "tySkip") tyCheck(true);
   else if (a === "flip") { if (S.study && !S.study.flipped) { S.study.flipped = true; S.study.justFlipped = true; render(); } }
   else if (a === "grade") { e.stopPropagation(); grade(+b.dataset.g); }
   else if (a === "endStudy") { endStudy(); }
@@ -8730,6 +9032,8 @@ document.addEventListener("wheel", e => {
   requestAnimationFrame(() => finish(true, dir, 1.4));
 }, { passive: true });
 
+document.addEventListener("submit", e => { if (e.target && e.target.id === "tyForm") { e.preventDefault(); tyCheck(false); } });
+document.addEventListener("input", e => { if (e.target && e.target.id === "tyIn" && S.study) { S.study.tyVal = e.target.value; S.study.tyValKey = tyKey(); } });
 document.addEventListener("keydown", e => {
   if (e.key === "Escape" && $("#cmenu:not(.closing)")) { cmClose(); return; }
   if (e.key === "Escape" && $("#czoom")) { closeChartZoom(); return; }
@@ -8737,7 +9041,9 @@ document.addEventListener("keydown", e => {
   if (e.key === "Escape" && !$("#menu").hidden) { closeMenu(); return; }
   if (e.key === "Escape" && !$("#sheet").hidden) { closeSheet(); return; }
   if (S.view !== "study" || !$("#sheet").hidden || /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) || document.activeElement.isContentEditable || $("#mathsheet")) return;
+  if (S.study && S.study.round) { if (e.key === "Escape") endStudy(); else if ((e.key === "Enter" || e.key === " ") && document.activeElement && document.activeElement.matches(".mt-tile")) { e.preventDefault(); mtTap(document.activeElement); } return; }
   if ((e.key === " " || e.key === "Enter") && S.study && !S.study.flipped) { e.preventDefault(); S.study.flipped = true; S.study.justFlipped = true; render(); }
+  else if (e.key === "Enter" && S.study && S.study.flipped && S.study.ty && S.study.ty.key === tyKey() && S.study.ty.sugg >= 0) { e.preventDefault(); grade(S.study.ty.sugg); }
   else if (/^[1-4]$/.test(e.key) && S.study && S.study.flipped && +e.key <= curGrades().length) { e.preventDefault(); grade(+e.key - 1); }
   else if ((e.key === "e" || e.key === "E") && !e.metaKey && !e.ctrlKey) { const c = curCard(); if (c && !S.study.busy) { e.preventDefault(); cardSheet(c.fid, c.id); } }
   else if ((e.key === "z" || e.key === "Z" || e.key === "Backspace") && !e.altKey) { e.preventDefault(); undoGrade(); }
