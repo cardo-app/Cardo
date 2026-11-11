@@ -360,6 +360,7 @@ body[data-ts="l"]{--fs-card:clamp(28px,7.2vw,40px);--fs-back:clamp(33px,8.5vw,47
 .grades{position:fixed;left:50%;transform:translateX(-50%);bottom:0;z-index:15;width:min(760px,100%);display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px));background:linear-gradient(to top,var(--paper) 70%,transparent)}
 body.studying #main{padding-bottom:130px}
 .flash{min-height:calc(100vh - 260px)}
+.ask-why{text-align:center;font-size:14px;font-weight:600;color:var(--muted);margin-top:12px;padding:0 16px}
 .tap-hint{text-align:center;font-size:14.5px;color:var(--muted);margin-top:14px}
 .grade{border-radius:14px;padding:11px 4px;background:color-mix(in oklab,var(--g) var(--g-bg),var(--surface));border:2px solid var(--g);color:color-mix(in oklab,var(--g) var(--g-tx),var(--ink));font-weight:800;display:flex;flex-direction:column;align-items:center;gap:1px}
 .grade small{font-weight:600;font-size:13px;color:var(--muted)}
@@ -2105,6 +2106,14 @@ const I18N = {
   "Abfrage: Standard": ["Answer mode: standard", "Modalità: standard"],
   "Buchstabieren": ["Spelling", "Ortografia"],
   "Paare verbinden": ["Match pairs", "Abbina le coppie"],
+  "Bild in der Antwort – diese Karte wird umgedreht": ["Image in the answer – this card is flipped", "Immagine nella risposta – questa scheda viene girata"],
+  "Formel in der Antwort – diese Karte wird umgedreht": ["Formula in the answer – this card is flipped", "Formula nella risposta – questa scheda viene girata"],
+  "Tabelle in der Antwort – diese Karte wird umgedreht": ["Table in the answer – this card is flipped", "Tabella nella risposta – questa scheda viene girata"],
+  "Antwort hat mehrere Zeilen – diese Karte wird umgedreht": ["Answer has several lines – this card is flipped", "La risposta ha più righe – questa scheda viene girata"],
+  "Antwort zu lang zum Buchstabieren – diese Karte wird umgedreht": ["Answer too long to spell – this card is flipped", "Risposta troppo lunga da scrivere – questa scheda viene girata"],
+  "Bild auf der Karte – diese Karte wird umgedreht": ["Image on the card – this card is flipped", "Immagine sulla scheda – questa scheda viene girata"],
+  "Tabelle auf der Karte – diese Karte wird umgedreht": ["Table on the card – this card is flipped", "Tabella sulla scheda – questa scheda viene girata"],
+  "Zu viel Text zum Verbinden – diese Karte wird umgedreht": ["Too much text to match – this card is flipped", "Troppo testo da abbinare – questa scheda viene girata"],
   "Abfrage: Paare verbinden": ["Answer mode: match pairs", "Modalità: abbina le coppie"],
   "Verbinde die Paare": ["Match the pairs", "Abbina le coppie"],
   "Tippe ein Wort und dann seine Übersetzung – oder zieh eine Linie": ["Tap a word and then its translation – or draw a line", "Tocca una parola e poi la sua traduzione – oppure traccia una linea"],
@@ -7251,7 +7260,20 @@ function mtFit(){
   }
 }
 addEventListener("resize", () => { const r = S.study && S.study.round; if (r && !r.items.some(x => x.done)) { r.fitted = false; render(); } });
-const mtText = raw => { const s = String(raw ?? "").trim(); return s && s.length <= 80 && !/!\[|\n/.test(s) && !/^\s*\|/.test(s) ? s : null; };
+const mtText = raw => { const s = String(raw ?? "").trim(); return s && s.length <= 100 && !/!\[/.test(s) && !/^\s*\|/m.test(s) ? s : null; };
+/* Warum wird diese Karte normal umgedreht? (nur in Ordnern mit Buchstabieren / Paare verbinden) */
+function askWhy(cur){
+  const a = cur && askOf(cur.fid); if (a !== "type" && a !== "match") return "";
+  if (a === "type") {
+    const s = String((cur.rev ? cur.c.f : cur.c.b) ?? "").trim();
+    if (!s || tyPlain(s) !== null) return "";
+    return /!\[/.test(s) ? "Bild in der Antwort – diese Karte wird umgedreht" : /\$|\\\(/.test(s) ? "Formel in der Antwort – diese Karte wird umgedreht" : /^\s*\|/m.test(s) ? "Tabelle in der Antwort – diese Karte wird umgedreht"
+      : /\n/.test(s) ? "Antwort hat mehrere Zeilen – diese Karte wird umgedreht" : "Antwort zu lang zum Buchstabieren – diese Karte wird umgedreht";
+  }
+  if (mtFits(cur.fid, cur.c)) return "";
+  const both = String(cur.c.f ?? "") + "\n" + String(cur.c.b ?? "");
+  return /!\[/.test(both) ? "Bild auf der Karte – diese Karte wird umgedreht" : /^\s*\|/m.test(both) ? "Tabelle auf der Karte – diese Karte wird umgedreht" : "Zu viel Text zum Verbinden – diese Karte wird umgedreht";
+}
 const mtKey = s => tyNorm(s).toLowerCase();
 const mtFits = (fid, c) => !!c && mtText(c.f) !== null && mtText(c.b) !== null;
 const mtOn = cur => !!cur && askOf(cur.fid) === "match" && mtFits(cur.fid, cur.c);
@@ -7448,6 +7470,7 @@ function studyHTML(){
   ${typing && !st.flipped ? `<form class="ty" id="tyForm" autocomplete="off"><input id="tyIn" type="text" value="${esc(st.tyVal || "")}" placeholder="Antwort eintippen" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" translate="no"><button type="submit" class="ty-go" aria-label="Prüfen">→</button></form><button class="ty-skip" data-act="tySkip">Weiß ich nicht</button>` : ''}
   ${st.flipped ? `<div class="grades" style="grid-template-columns:repeat(${opts.length},1fr)">${opts.map((o, i) => `<button class="grade${i === sugg ? ' sugg' : ''}" style="--g:var(${GRADE_VARS[o.v]})" data-act="grade" data-g="${i}">${o.l}${st.exam ? '' : `<small>${fmtIvl(schedule(cur.c, o.g, now).due - now)}</small>`}</button>`).join("")}</div>`
     : ''}
+  ${!st.flipped && !typing ? (w => w ? `<div class="ask-why">${w}</div>` : "")(askWhy(cur)) : ""}
   <div class="kbd-hint">${typing ? "Enter: prüfen · nochmal Enter: Vorschlag übernehmen · Zahlen: bewerten" : "Leertaste: umdrehen · Zahlen: bewerten · E: bearbeiten · Z: rückgängig"}</div>`;
 }
 // l = label, g = scheduling grade (0 again … 3 easy), v = look & animation (0 red … 3 blue)
