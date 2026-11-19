@@ -100,7 +100,7 @@ body.neutral .st.due{background:var(--surface-2)}
 body.tinted.m-light{ --accent-text:color-mix(in oklab,var(--accent) 62%,var(--b-ink)); --tp:48%; --ts:16%; --ts2:28%; --tl:50%; --ti:38%;
   --muted:color-mix(in oklab,var(--accent) 50%,var(--b-ink)); --ink-2:color-mix(in oklab,var(--accent) 40%,var(--b-ink));
   --accent-soft:color-mix(in oklab,var(--accent) 40%,var(--surface)); }
-body:is(.beach,.aurora,.autumn){background-color:transparent}
+body:is(.beach,.aurora,.autumn,.winter){background-color:transparent}
 body.hearts{background-color:transparent}
 html:has(> body.hearts),body.hearts .peek{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22230%22%20height%3D%22230%22%20viewBox%3D%220%200%20230%20230%22%3E%3Cpath%20transform%3D%22translate%2834%2034%29%20rotate%28-12%29%20scale%281.333%29%20translate%28-12%20-14%29%22%20fill%3D%22%23FFFFFF%22%20fill-opacity%3D%220.6%22%20d%3D%22M12%2021s-7.5-4.6-7.5-10A4.3%204.3%200%200%201%2012%208.3%204.3%204.3%200%200%201%2019.5%2011c0%205.4-7.5%2010-7.5%2010z%22/%3E%3Cpath%20transform%3D%22translate%28125%2024%29%20rotate%2810%29%20scale%280.867%29%20translate%28-12%20-14%29%22%20fill%3D%22%23D0106F%22%20fill-opacity%3D%220.16%22%20d%3D%22M12%2021s-7.5-4.6-7.5-10A4.3%204.3%200%200%201%2012%208.3%204.3%204.3%200%200%201%2019.5%2011c0%205.4-7.5%2010-7.5%2010z%22/%3E%3Cpath%20transform%3D%22translate%28192%2078%29%20rotate%288%29%20scale%281.467%29%20translate%28-12%20-14%29%22%20fill%3D%22%23FFFFFF%22%20fill-opacity%3D%220.5%22%20d%3D%22M12%2021s-7.5-4.6-7.5-10A4.3%204.3%200%200%201%2012%208.3%204.3%204.3%200%200%201%2019.5%2011c0%205.4-7.5%2010-7.5%2010z%22/%3E%3Cpath%20transform%3D%22translate%2872%20104%29%20rotate%28-6%29%20scale%281.000%29%20translate%28-12%20-14%29%22%20fill%3D%22%23D0106F%22%20fill-opacity%3D%220.14%22%20d%3D%22M12%2021s-7.5-4.6-7.5-10A4.3%204.3%200%200%201%2012%208.3%204.3%204.3%200%200%201%2019.5%2011c0%205.4-7.5%2010-7.5%2010z%22/%3E%3Cpath%20transform%3D%22translate%28150%20146%29%20rotate%28-15%29%20scale%281.200%29%20translate%28-12%20-14%29%22%20fill%3D%22%23FFFFFF%22%20fill-opacity%3D%220.55%22%20d%3D%22M12%2021s-7.5-4.6-7.5-10A4.3%204.3%200%200%201%2012%208.3%204.3%204.3%200%200%201%2019.5%2011c0%205.4-7.5%2010-7.5%2010z%22/%3E%3Cpath%20transform%3D%22translate%2830%20176%29%20rotate%2814%29%20scale%280.867%29%20translate%28-12%20-14%29%22%20fill%3D%22%23FFFFFF%22%20fill-opacity%3D%220.45%22%20d%3D%22M12%2021s-7.5-4.6-7.5-10A4.3%204.3%200%200%201%2012%208.3%204.3%204.3%200%200%201%2019.5%2011c0%205.4-7.5%2010-7.5%2010z%22/%3E%3Cpath%20transform%3D%22translate%28204%20196%29%20rotate%280%29%20scale%280.800%29%20translate%28-12%20-14%29%22%20fill%3D%22%23D0106F%22%20fill-opacity%3D%220.14%22%20d%3D%22M12%2021s-7.5-4.6-7.5-10A4.3%204.3%200%200%201%2012%208.3%204.3%204.3%200%200%201%2019.5%2011c0%205.4-7.5%2010-7.5%2010z%22/%3E%3Cpath%20transform%3D%22translate%28102%20200%29%20rotate%286%29%20scale%281.200%29%20translate%28-12%20-14%29%22%20fill%3D%22%23FFFFFF%22%20fill-opacity%3D%220.4%22%20d%3D%22M12%2021s-7.5-4.6-7.5-10A4.3%204.3%200%200%201%2012%208.3%204.3%204.3%200%200%201%2019.5%2011c0%205.4-7.5%2010-7.5%2010z%22/%3E%3C/svg%3E");background-size:230px 230px;background-repeat:repeat}
 body.starry{background-color:transparent}
@@ -108,9 +108,9 @@ body.starry{background-color:transparent}
 #sky{position:fixed;left:0;right:0;top:-80px;bottom:-80px;z-index:-1;pointer-events:none;display:none}
 #sky canvas{display:block;width:100%;height:100%}
 #sky canvas:is(.lf,.bfx,.afx,.fg,.wfx,.nfx){position:absolute;inset:0}#sky canvas[hidden]{display:none}
-body:is(.starry,.beach,.aurora,.autumn) #sky{display:block}
-body:is(.starry,.beach,.aurora,.autumn) .peek{background:transparent}
-body:is(.starry,.beach,.aurora,.autumn) #crumbbar{background:color-mix(in srgb,var(--paper) 55%,transparent);-webkit-backdrop-filter:blur(16px) saturate(140%);backdrop-filter:blur(16px) saturate(140%)} /* Pfadleiste lässt den Design-Hintergrund durchscheinen */
+body:is(.starry,.beach,.aurora,.autumn,.winter) #sky{display:block}
+body:is(.starry,.beach,.aurora,.autumn,.winter) .peek{background:transparent}
+body:is(.starry,.beach,.aurora,.autumn,.winter) #crumbbar{background:color-mix(in srgb,var(--paper) 55%,transparent);-webkit-backdrop-filter:blur(16px) saturate(140%);backdrop-filter:blur(16px) saturate(140%)} /* Pfadleiste lässt den Design-Hintergrund durchscheinen */
 body.tinted.m-dark{ --accent-text:color-mix(in oklab,var(--accent) 62%,#FFFFFF); --tp:26%; --ts:30%; --ts2:36%; --tl:46%; --ti:14%;
   --muted:color-mix(in oklab,var(--accent) 50%,var(--b-ink)); --ink-2:color-mix(in oklab,var(--accent) 30%,var(--b-ink));
   --accent-soft:color-mix(in oklab,var(--accent) 35%,var(--surface)); }
@@ -1360,7 +1360,7 @@ body:not(.swiping) #tabs.solo.split:not(.end){border-radius:999px} /* geteilt: e
 #peekBack{z-index:auto;visibility:visible}
 #peekBack::after{content:"";position:absolute;inset:0;background:#000;opacity:var(--dim,0);pointer-events:none}
 body.edgeback #app{background:var(--paper);box-shadow:-12px 0 28px -6px rgba(0,0,0,.35)}
-body.edgeback:is(.starry,.beach,.aurora,.autumn) #app{background:transparent} /* Ziehen auf Leiste/Knöpfen scrollt nicht die Seite (für den Gummiband-Effekt) */
+body.edgeback:is(.starry,.beach,.aurora,.autumn,.winter) #app{background:transparent} /* Ziehen auf Leiste/Knöpfen scrollt nicht die Seite (für den Gummiband-Effekt) */
 #tabBack .tb-ghost{position:absolute;z-index:1;left:52px;top:50%;width:24px;height:24px;margin-top:calc(-12px + var(--icon-dy,0px));pointer-events:none}
 #tabBack > svg{translate:0 var(--icon-dy,0px)} /* Pfeil auf exakt derselben Höhe wie das Ordner-Symbol im Bibliothek-Knopf */ /* Ordner-Symbol des Bibliothek-Knopfs während der Teilung */
 #tabBack .tb-ghost svg{display:block;width:24px;height:24px;stroke-width:2.9}
@@ -4051,6 +4051,8 @@ const THEMES = [
     bases:{ "b-paper":"#040A13", "b-surface":"#132235", "b-surface-2":"#192B40", "b-line":"#2A4058", "b-muted":"#A9BFD4", "b-ink":"#F0F6FB", "b-ink-2":"#CFDDEA" }, flat:true, aurora:true },
   { k:"autumn",    n:"Autumn",    base:"light", design:true, c:"#D9622B", ink:"#FFFFFF",
     bases:{ "b-paper":"#FFF6EC", "b-surface":"#FFFFFF", "b-surface-2":"#FFF1E2", "b-line":"#F0D9C2", "b-muted":"#8A6A55", "b-ink":"#3B2618", "b-ink-2":"#5C4030" }, flat:true, autumn:true },
+  { k:"winter",    n:"Winter",    base:"light", design:true, c:"#2C7BC9", ink:"#FFFFFF",
+    bases:{ "b-paper":"#EEF5FB", "b-surface":"#FFFFFF", "b-surface-2":"#F2F7FC", "b-line":"#D3E2EF", "b-muted":"#56708A", "b-ink":"#132536", "b-ink-2":"#2B4257" }, flat:true, winter:true },
   { k:"beach",     n:"Beach",     base:"light", design:true, c:"#0E9AA7", ink:"#FFFFFF",
     bases:{ "b-paper":"#EAF8F8", "b-surface":"#FFFFFF", "b-surface-2":"#F1FAFA", "b-line":"#CDE6E6", "b-muted":"#4E7378", "b-ink":"#0E2E33", "b-ink-2":"#24484D" }, flat:true, beach:true }
 ];
@@ -4077,21 +4079,21 @@ function isDark(){
   const a = document.documentElement.getAttribute("data-theme");
   return a === "dark" || (a !== "light" && darkMQ.matches);
 }
-/* Feststehende Hintergrund-Ebene der Designs (Night, Aurora, Autumn, Beach) – feste Zufallsfolge → immer dasselbe Bild */
+/* Feststehende Hintergrund-Ebene der Designs (Night, Aurora, Autumn, Winter, Beach) – feste Zufallsfolge → immer dasselbe Bild */
 let skyKey = "", skyTop = "";
 const NF = { cv: null, raf: 0, w: 0, h: 0, dpr: 1, last: 0, tw: [], meteors: [], nextMeteor: 0, sat: null, nextSat: 0, glowSpr: null }; /* Night-Animation, siehe nightFx() */
 const AU = { cv: null, raf: 0, w: 0, h: 0, dpr: 1, last: 0, bands: null, ver: 0, sprVer: -1, spr: [], tw: [], wolf: null, nextWolf: 0, wcv: null }; /* Aurora-Animation, siehe auroraFx() */
 function drawSky(){
-  const bd = document.body, mode = bd.classList.contains("starry") ? "stars" : ["beach", "aurora", "autumn"].find(k => bd.classList.contains(k)) || "";
+  const bd = document.body, mode = bd.classList.contains("starry") ? "stars" : ["beach", "aurora", "autumn", "winter"].find(k => bd.classList.contains(k)) || "";
   if (!mode) return;
   let el = document.getElementById("sky"); if (!el) { el = document.createElement("div"); el.id = "sky"; el.setAttribute("aria-hidden", "true"); el.appendChild(document.createElement("canvas")); bd.prepend(el); }
   const w = el.clientWidth || innerWidth, h = el.clientHeight || innerHeight + 160, dpr = Math.min(3, devicePixelRatio || 1), key = `${mode}:${w}x${h}@${dpr}`;
   if (key === skyKey) return; skyKey = key; if (mode !== "beach" && mode !== "aurora") skyCanvas("fg", false);
   const cv = el.firstChild; cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
   const g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0);
-  let seed = { stars: 7, beach: 31, aurora: 19, autumn: 41 }[mode]; const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+  let seed = { stars: 7, beach: 31, aurora: 19, autumn: 41, winter: 53 }[mode]; const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
   const glow = (x, y, r, c) => { const q = g.createRadialGradient(x, y, 0, x, y, r); q.addColorStop(0, c); q.addColorStop(1, c.replace(/[\d.]+\)$/, "0)")); /* gleiche Farbe auslaufen lassen, sonst wird der Rand grau */ g.fillStyle = q; g.fillRect(x - r, y - r, r * 2, r * 2); };
-  ({ stars: paintStars, beach: paintBeach, aurora: paintAurora, autumn: paintAutumn })[mode](g, w, h, rnd, glow);
+  ({ stars: paintStars, beach: paintBeach, aurora: paintAurora, autumn: paintAutumn, winter: paintWinter })[mode](g, w, h, rnd, glow);
   /* Farbe der obersten sichtbaren Bildzeile (Durchschnitt) → Statusleiste/oberer Rand passend zum Design */
   try { const y = Math.round(80 * dpr), d = g.getImageData(0, y, cv.width, 1).data; let r = 0, gg = 0, b2 = 0; for (let i = 0; i < d.length; i += 4) { r += d[i]; gg += d[i + 1]; b2 += d[i + 2]; } const n = d.length / 4;
     skyTop = "#" + [r, gg, b2].map(v => Math.round(v / n).toString(16).padStart(2, "0")).join(""); } catch { skyTop = ""; }
@@ -4364,6 +4366,125 @@ function autumnLeaves(){
   LF.raf = requestAnimationFrame(step);
 }
 document.addEventListener("visibilitychange", autumnLeaves);
+/* Winter: klarer Wintermorgen – blauer Himmel mit zartrosa Horizont, tiefe Sonne, verschneite Berge und Hügel,
+   Tannen mit Schneehauben, kleine rote Holzhütte mit warmem Fenster; den Schneefall zeichnet winterSnow() */
+function paintWinter(g, w, h, rnd, glow){
+  const top = 80, H = h - top * 2, Y = f => top + H * f, R = (a, b) => a + rnd() * (b - a), PI = Math.PI;
+  const sky = g.createLinearGradient(0, 0, 0, Y(.66)); sky.addColorStop(0, "#7FAEDC"); sky.addColorStop(.55, "#C3D9EF"); sky.addColorStop(1, "#F3DFE3");
+  g.fillStyle = sky; g.fillRect(0, 0, w, h);
+  glow(w * .72, Y(.48), Math.max(w, h) * .45, "rgba(255,228,214,.5)");
+  glow(w * .72, Y(.48), 60, "rgba(255,248,232,.7)");
+  g.fillStyle = "#FFF7EA"; g.beginPath(); g.arc(w * .72, Y(.48), 22, 0, PI * 2); g.fill();
+  /* ferne Berge: Zacken in Blaugrau mit Schneekappen */
+  const pk = []; for (let x = -60; x < w + 120; x += R(80, 130)) pk.push([x, Y(R(.4, .5))]);
+  const vy = Y(.6), vx = i => (pk[i][0] + pk[i + 1][0]) / 2;
+  g.fillStyle = "#A7C0DA"; g.beginPath(); g.moveTo(pk[0][0], h);
+  pk.forEach(([x, y], i) => { g.lineTo(x, y); if (i < pk.length - 1) g.lineTo(vx(i), vy - R(0, 20)); }); g.lineTo(pk[pk.length - 1][0], h); g.fill();
+  g.fillStyle = "#EEF4FA";
+  pk.forEach(([x, y], i) => { const lx = i ? vx(i - 1) : x - 60, rx = i < pk.length - 1 ? vx(i) : x + 60, f = .3, ax = x + (lx - x) * f, ay = y + (vy - y) * f, bx = x + (rx - x) * f, by = y + (vy - y) * f;
+    g.beginPath(); g.moveTo(ax, ay); g.lineTo(x, y); g.lineTo(bx, by);
+    for (let k = 1; k < 4; k++) { const q = k / 4; g.lineTo(bx + (ax - bx) * q, by + (ay - by) * q + (k % 2 ? 7 : -2)); } g.fill(); });
+  const edge = (base, amp, f, ph) => x => base + Math.sin(x / f + ph) * amp + Math.sin(x / (f * .43) + ph * 2) * amp * .35;
+  const hill = (fn, top2, bot) => { const q = g.createLinearGradient(0, fn(w / 2) - 20, 0, h); q.addColorStop(0, top2); q.addColorStop(1, bot); g.fillStyle = q;
+    g.beginPath(); g.moveTo(0, h); for (let x = 0; x <= w + 6; x += 6) g.lineTo(x, fn(x)); g.lineTo(w, h); g.fill(); };
+  /* Tanne mit Schneehauben auf jeder Stufe und blauem Schatten im Schnee */
+  const fir = (x, by, s, col) => {
+    g.fillStyle = "rgba(96,130,180,.2)"; g.beginPath(); g.ellipse(x + s * .14, by, s * .34, s * .05, 0, 0, PI * 2); g.fill();
+    g.fillStyle = "#5B3A26"; g.fillRect(x - s * .04, by - s * .14, s * .08, s * .15);
+    for (let k = 0; k < 4; k++) {
+      const yb = by - s * .1 - k * s * .2, wd = s * (.34 - k * .07), ht = s * .36, sx = wd * .62, sy = yb - ht * .42, n = 3, r = sx / n;
+      g.fillStyle = col; g.beginPath(); g.moveTo(x - wd, yb); g.lineTo(x, yb - ht); g.lineTo(x + wd, yb); g.closePath(); g.fill();
+      g.fillStyle = "#FBFDFF"; g.beginPath(); g.moveTo(x - sx, sy); g.lineTo(x, yb - ht); g.lineTo(x + sx, sy);
+      for (let i = n - 1; i >= 0; i--) g.arc(x - sx + r + i * 2 * r, sy, r, 0, PI); g.fill();
+      g.beginPath(); g.ellipse(x - wd * .86, yb - s * .015, s * .05, s * .025, 0, 0, PI * 2); g.ellipse(x + wd * .86, yb - s * .015, s * .05, s * .025, 0, 0, PI * 2); g.fill();
+    }
+  };
+  /* Holzhütte: rot, verschneites Dach, warmes Fenster, Rauch aus dem Schornstein */
+  const cabin = (x, by, s) => {
+    g.fillStyle = "rgba(96,130,180,.22)"; g.beginPath(); g.ellipse(x + s * .2, by, s * .8, s * .08, 0, 0, PI * 2); g.fill();
+    g.fillStyle = "#8C8079"; g.fillRect(x + s * .2, by - s * 1.02, s * .14, s * .32);
+    g.fillStyle = "#FFFFFF"; g.beginPath(); g.ellipse(x + s * .27, by - s * 1.02, s * .1, s * .04, 0, 0, PI * 2); g.fill();
+    [[.32, 1.16, .07], [.38, 1.3, .1], [.48, 1.46, .13], [.6, 1.62, .16]].forEach(([dx, dy, r], i) => glow(x + s * dx, by - s * dy, s * r * 1.6, `rgba(255,255,255,${.5 - i * .1})`));
+    g.fillStyle = "#B2442F"; g.fillRect(x - s * .5, by - s * .56, s, s * .56);
+    g.strokeStyle = "rgba(70,20,10,.18)"; g.lineWidth = 1; for (let k = 1; k < 5; k++) { g.beginPath(); g.moveTo(x - s * .5, by - s * .56 + k * s * .112); g.lineTo(x + s * .5, by - s * .56 + k * s * .112); g.stroke(); }
+    glow(x - s * .22, by - s * .3, s * .45, "rgba(255,196,100,.45)");
+    g.fillStyle = "#FFCF6E"; g.fillRect(x - s * .32, by - s * .4, s * .2, s * .18);
+    g.fillStyle = "#7A2A1C"; g.fillRect(x - s * .23, by - s * .4, s * .02, s * .18); g.fillRect(x - s * .32, by - s * .32, s * .2, s * .02);
+    g.fillStyle = "#6E2618"; g.fillRect(x + s * .1, by - s * .36, s * .2, s * .36);
+    g.fillStyle = "#C9D8E8"; g.beginPath(); g.moveTo(x - s * .66, by - s * .5); g.lineTo(x, by - s * .98); g.lineTo(x + s * .66, by - s * .5); g.closePath(); g.fill();
+    g.fillStyle = "#FFFFFF"; g.beginPath(); g.moveTo(x - s * .66, by - s * .54); g.lineTo(x, by - s * 1.02); g.lineTo(x + s * .66, by - s * .54);
+    for (let i = 4; i >= 0; i--) g.arc(x - s * .66 + s * .132 * (2 * i + 1), by - s * .54, s * .132, 0, PI); g.fill(); /* Schneekante in Bögen */
+    g.fillStyle = "#FFFFFF"; g.beginPath(); g.ellipse(x - s * .22, by - s * .4, s * .12, s * .025, 0, 0, PI * 2); g.fill();
+  };
+  const h1 = edge(Y(.62), 8, 95, 1.2); hill(h1, "#DCE8F4", "#EAF1F9");
+  [[.06, 40], [.16, 32], [.48, 30], [.58, 38], [.83, 34], [.94, 42]].forEach(([fx, sz]) => fir(w * fx, h1(w * fx) + 4, sz, "#3E6E62"));
+  const h2 = edge(Y(.71), 10, 75, 2.6); hill(h2, "#EEF4FA", "#F6F9FD");
+  cabin(w * .3, h2(w * .3) + 6, 46);
+  [[.08, 64], [.66, 58], [.78, 70], [.9, 56]].forEach(([fx, sz]) => fir(w * fx, h2(w * fx) + 6, sz, "#2F5C50"));
+  const h3 = edge(Y(.81), 8, 60, 4.4); hill(h3, "#FFFFFF", "#F2F7FC");
+  /* weiche blaue Schattenmulden im vorderen Schnee und Glitzern */
+  for (let i = 0; i < 6; i++) { g.fillStyle = "rgba(120,155,200,.1)"; g.beginPath(); g.ellipse(R(0, w), R(Y(.86), h - 40), R(40, 90), R(6, 12), 0, 0, PI * 2); g.fill(); }
+  for (let i = 0; i < Math.round(w / 6); i++) { const x = R(0, w), y = R(Y(.84), h); g.fillStyle = `rgba(150,185,225,${R(.35, .7)})`; g.fillRect(x, y, 1.2, 1.2); }
+  [[.1, .87, 120], [.93, .89, 132]].forEach(([fx, fy, sz]) => fir(w * fx, Y(fy), sz, "#24493F"));
+}
+/* Winter: Schnee fällt – eigene Leinwand über dem Winterbild (hinter der App). Drei Entfernungen (fern klein/langsam, Mitte mit
+   einzelnen Kristallen, nah groß und weich); läuft nur, solange Winter aktiv und die App sichtbar ist; bei „Bewegung reduzieren“ steht der Schnee. */
+const SN = { cv: null, raf: 0, fl: [], spr: null, w: 0, h: 0, dpr: 1, last: 0 };
+function snowSprites(dpr){
+  const dot = (r, soft) => { const pad = 3, S = (r + pad) * 2, c = document.createElement("canvas"); c.width = c.height = Math.ceil(S * dpr); const g = c.getContext("2d"); g.scale(dpr, dpr);
+    const q = g.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, r + (soft ? pad : 1)); q.addColorStop(0, "rgba(255,255,255,1)"); q.addColorStop(soft ? .35 : .6, "rgba(255,255,255,.95)");
+    q.addColorStop(soft ? .7 : .85, "rgba(225,236,250,.5)"); q.addColorStop(1, "rgba(210,226,246,0)"); g.fillStyle = q; g.fillRect(0, 0, S, S); return c; };
+  const crystal = s => { const pad = 4, S = (s + pad) * 2, c = document.createElement("canvas"); c.width = c.height = Math.ceil(S * dpr); const g = c.getContext("2d"); g.scale(dpr, dpr); g.translate(S / 2, S / 2);
+    g.strokeStyle = "#FFFFFF"; g.lineCap = "round"; g.lineWidth = 1.3; g.shadowColor = "rgba(80,120,175,.45)"; g.shadowBlur = 1.5;
+    g.beginPath(); for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3, ca = Math.cos(a), sa = Math.sin(a), at = (d, side) => { const b = a + side * .7; return [ca * d + Math.cos(b) * s * .28, sa * d + Math.sin(b) * s * .28]; };
+      g.moveTo(0, 0); g.lineTo(ca * s, sa * s); [-1, 1].forEach(sd => { const [px, py] = at(s * .55, sd); g.moveTo(ca * s * .55, sa * s * .55); g.lineTo(px, py); }); } g.stroke(); return c; };
+  return { dot: [dot(1.4, false), dot(2.4, false), dot(4.6, true)], cr: [crystal(6), crystal(8)] };
+}
+function newFlake(top, layer){
+  const r = Math.random, L = layer ?? (r() < .5 ? 0 : r() < .8 ? 1 : 2), R2 = ([a, b]) => a + r() * (b - a);
+  const P = [ { k: [.7, 1.1], vy: [16, 28],  amp: [4, 10],  a: [.55, .85] },
+              { k: [.8, 1.2], vy: [30, 50],  amp: [8, 20],  a: [.85, 1] },
+              { k: [.8, 1.3], vy: [60, 90],  amp: [14, 30], a: [.75, .95] } ][L];
+  return { L, cr: L === 1 && r() < .22 ? (r() < .5 ? 0 : 1) : -1, x: r() * SN.w, y: top ? -20 - r() * 40 : r() * SN.h, k: R2(P.k), vy: R2(P.vy), amp: R2(P.amp), a: R2(P.a),
+    f: .4 + r() * .8, ph: r() * 6.3, wind: 4 + r() * 8 + L * 4, rot: r() * 6.3, vr: (r() - .5) * .8 };
+}
+function winterSnow(){
+  const on = document.body.classList.contains("winter") && document.visibilityState !== "hidden", el = document.getElementById("sky");
+  if (!on || !el) { cancelAnimationFrame(SN.raf); SN.raf = 0; if (SN.cv) SN.cv.hidden = true; return; }
+  if (!SN.cv) { SN.cv = document.createElement("canvas"); SN.cv.className = "lf"; }
+  if (SN.cv.parentNode !== el) el.appendChild(SN.cv);
+  SN.cv.hidden = false;
+  const w = el.clientWidth || innerWidth, h = el.clientHeight || innerHeight + 160, dpr = Math.min(2, devicePixelRatio || 1);
+  if (w !== SN.w || h !== SN.h || dpr !== SN.dpr || !SN.spr) {
+    SN.w = w; SN.h = h; SN.cv.width = Math.round(w * dpr); SN.cv.height = Math.round(h * dpr);
+    if (!SN.spr || dpr !== SN.dpr) SN.spr = snowSprites(dpr); SN.dpr = dpr;
+    const n = Math.max(50, Math.min(150, Math.round(w * h / 5000)));
+    SN.fl = Array.from({ length: n }, () => newFlake(false)).sort((a, b) => a.L - b.L); /* hinten zuerst zeichnen */
+  }
+  const g = SN.cv.getContext("2d"), still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const draw = t => {
+    g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, SN.cv.width, SN.cv.height);
+    for (const p of SN.fl) {
+      const im = p.cr >= 0 ? SN.spr.cr[p.cr] : SN.spr.dot[p.L], z = im.width / SN.dpr * p.k;
+      g.setTransform(SN.dpr, 0, 0, SN.dpr, 0, 0); g.translate(p.x + Math.sin(t * p.f + p.ph) * p.amp, p.y); if (p.cr >= 0) g.rotate(p.rot);
+      g.globalAlpha = p.a; g.drawImage(im, -z / 2, -z / 2, z, z);
+    }
+    g.globalAlpha = 1;
+  };
+  if (still) { cancelAnimationFrame(SN.raf); SN.raf = 0; draw(0); return; }
+  if (SN.raf) return;
+  SN.last = performance.now();
+  const step = now => {
+    SN.raf = requestAnimationFrame(step);
+    const dt = (now - SN.last) / 1000; if (dt < .014) return; /* höchstens ~60 Bilder/s */
+    SN.last = now; const d = Math.min(dt, .1);
+    for (const p of SN.fl) { p.y += p.vy * d; p.x += p.wind * d; p.rot += p.vr * d;
+      if (p.y > SN.h + 20) Object.assign(p, newFlake(true, p.L)); /* gleiche Entfernung → Reihenfolge stimmt */ if (p.x > SN.w + 30) p.x -= SN.w + 60; }
+    draw(now / 1000);
+  };
+  SN.raf = requestAnimationFrame(step);
+}
+document.addEventListener("visibilitychange", winterSnow);
 /* Krabbe (Beach), animierbar: walk = Phase der Beinbewegung, claw = 0…1 wie weit die Scheren offen sind */
 function drawCrab(g, x, y, s, rot, walk, claw){
   g.fillStyle = "rgba(150,110,50,.18)"; g.beginPath(); g.ellipse(x + 1.5, y + s * .35 + 2.5, s * 1.1, s * .33, 0, 0, Math.PI * 2); g.fill();
@@ -4694,7 +4815,7 @@ function drawWolf(g, x, y, dir, W, tilt){
   g.strokeStyle = "rgba(110,255,180,.14)"; g.lineWidth = .02; g.beginPath(); g.moveTo(-.36, -.6); g.quadraticCurveTo(-.1, -.62, .08, -.61); g.stroke();
   g.restore();
 }
-addEventListener("resize", () => { clearTimeout(drawSky.t); drawSky.t = setTimeout(() => { drawSky(); autumnLeaves(); beachFx(); auroraFx(); nightFx(); }, 150); });
+addEventListener("resize", () => { clearTimeout(drawSky.t); drawSky.t = setTimeout(() => { drawSky(); autumnLeaves(); winterSnow(); beachFx(); auroraFx(); nightFx(); }, 150); });
 function applyTheme(){
   document.body.dataset.ts = S.set.textSize || "m";
   document.body.dataset.glass = String(S.set.glass ?? 1); /* Transparenz: 0 stark · 1 leicht · 2 aus */
@@ -4705,14 +4826,14 @@ function applyTheme(){
   b.style.setProperty("--accent-ink", t ? t.ink : dark ? BASE.id : BASE.il);
   ["b-paper","b-surface","b-surface-2","b-line","b-muted","b-ink","b-ink-2"].forEach(k => { if (t && t.bases && t.bases[k]) b.style.setProperty("--" + k, t.bases[k]); else b.style.removeProperty("--" + k); });
   b.classList.toggle("starry", !!(t && t.stars)); drawSky();
-  ["beach", "aurora", "autumn"].forEach(k => b.classList.toggle(k, !!(t && t[k]))); drawSky(); autumnLeaves(); beachFx(); auroraFx(); nightFx();
+  ["beach", "aurora", "autumn", "winter"].forEach(k => b.classList.toggle(k, !!(t && t[k]))); drawSky(); autumnLeaves(); winterSnow(); beachFx(); auroraFx(); nightFx();
   b.classList.toggle("hearts", !!(t && t.hearts));
   ["tp","ts","ts2","tl","ti"].forEach(k => { if (t && t.flat) b.style.setProperty("--" + k, "3%"); else b.style.removeProperty("--" + k); });
   drawSky.ready = true; applyTop();
 }
 /* Hintergrund von html, oberer Randstreifen und Statusleiste (theme-color); bei Designs in der Farbe des Bildes oben */
 function applyTop(){
-  const b = document.body, dark = isDark(), sky = b.matches(".starry,.beach,.aurora,.autumn") && skyTop;
+  const b = document.body, dark = isDark(), sky = b.matches(".starry,.beach,.aurora,.autumn,.winter") && skyTop;
   const r = document.documentElement.style, paper = sky || getComputedStyle(b).getPropertyValue("--paper").trim();
   // Solange der Startbildschirm läuft, bleibt alles dunkel wie das iOS-Startbild (sonst blitzt oben z. B. im Dunkelmodus Schwarz auf)
   const booting = document.body.classList.contains("splashing");
@@ -6580,6 +6701,7 @@ const MODE_IC = {
   auto:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v18" /><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg>'
 };
 const THEME_IC = {
+  winter:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5v19M3.8 7.25l16.4 9.5M3.8 16.75l16.4-9.5"/><path d="M9.5 3.8 12 6l2.5-2.2M9.5 20.2 12 18l2.5 2.2M3.5 10.2l3.2-.9-.7-3.3M20.5 13.8l-3.2.9.7 3.3M3.5 13.8l3.2.9-.7 3.3M20.5 10.2l-3.2-.9.7-3.3"/></svg>',
   autumn:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21v-6"/><path d="M12 15l-6.5 1 1.5-2.5L3 10l3-.8-1-3 3.3 1.3L9 4l2 2.5L12 3l1 3.5L15 4l.7 3.5L19 6.2l-1 3 3 .8-4 3.5 1.5 2.5z"/></svg>',
   beach:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M13 21c0-5-1-9-3-12"/><path d="M10 9c-2.5-1.5-5.5-1-7 1 2.5 0 4.5 0 7-1zM10 9c-.5-2.8 1-5.3 3.5-6-.5 2.5-1.5 4.3-3.5 6zM10 9c2.8-1 5.8 0 7 2.3-2.6-.4-4.7-1-7-2.3zM10 9c1.8 1.6 2.4 4.3 1.5 6.5-1-2.2-1.6-4.3-1.5-6.5z"/></svg>',
   sparkle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/></svg>',
@@ -6606,6 +6728,7 @@ const DESIGN_ORB = {
   navy: [`${STARS_ORB},radial-gradient(circle at 70% 20%,rgba(120,140,255,.55),transparent 55%),linear-gradient(165deg,#2C3E9E,#0B1338 72%)`, "#F4C95D"],
   aubergine: [`${STARS_ORB},radial-gradient(ellipse 120% 34% at 50% 46%,#6BFFB8 0,rgba(60,235,170,.9) 25%,rgba(40,200,210,.5) 55%,transparent 75%),radial-gradient(ellipse 110% 30% at 45% 24%,rgba(185,120,255,.95) 0,rgba(140,100,255,.4) 45%,transparent 75%),radial-gradient(ellipse 90% 22% at 60% 66%,rgba(90,255,200,.55) 0,transparent 70%),linear-gradient(180deg,#071030,#0B2238 60%,#0E2E3E)`, "#FF8AD8"], /* kräftiges Nordlicht (Grün + Violett), Pink als Kontrast */
   autumn: ["radial-gradient(circle at 72% 26%,#FFE7A8 0 11%,transparent 12%),radial-gradient(120% 60% at 30% 100%,#C9342A 0 45%,transparent 46%),radial-gradient(130% 70% at 85% 100%,#E8792F 0 55%,transparent 56%),linear-gradient(180deg,#F6B76B,#FBD9A6)", "#1E6B3A"], /* Tannengrün zu Orange/Rot */
+  winter: ["radial-gradient(circle at 70% 26%,#FFF7EA 0 10%,transparent 11%),radial-gradient(130% 60% at 25% 100%,#FFFFFF 0 45%,transparent 46%),radial-gradient(130% 66% at 85% 100%,#DDE9F5 0 52%,transparent 53%),linear-gradient(180deg,#3F7FC8,#9CC2EA 55%,#F0CFDA)", "#C8382E"], /* Hüttenrot zu Schnee und Himmelblau */
   beach: ["radial-gradient(circle at 74% 22%,#FFE48A 0 10%,transparent 11%),linear-gradient(180deg,#3DB8F2 0 42%,#18C9CF 42% 66%,#F6D79A 66%)", "#17804F"] /* Palmengrün, passt zu Meer/Sand und der Palme in der Szene */
 };
 /* Mikroflammen: winzige Glutteilchen steigen über die ganze Kugel auf, additiv überlagert (wirkt wie echtes Feuer).
@@ -6639,7 +6762,7 @@ function mfStars(g, w, h, st, dt, now, dense){
   g.globalAlpha = 1; g.globalCompositeOperation = "source-over";
 }
 /* Designs: kleine Landschaft zieht langsam vorbei wie aus dem Zugfenster (Nahes schneller als Fernes) */
-const DESIGN_FX = { navy: "d-night", aubergine: "d-aurora", autumn: "d-autumn", beach: "d-beach" };
+const DESIGN_FX = { navy: "d-night", aubergine: "d-aurora", autumn: "d-autumn", winter: "d-winter", beach: "d-beach" };
 function mfScene(g, w, h, st, dt, t, kind){
   const k = w / 58, X = v => v * k; /* Maße in Punkten bei 58 px Knopfgröße */
   const ridge = (off, base, amp, f1, f2, col) => { g.fillStyle = col; g.beginPath(); g.moveTo(0, h);
@@ -6705,6 +6828,19 @@ function mfScene(g, w, h, st, dt, t, kind){
     if (!st.lv) st.lv = Array.from({ length: 7 }, () => ({ x: Math.random(), y: Math.random(), s: .6 + Math.random() * .8, ph: Math.random() * 6.28, c: ["#E8582A", "#F2A03D", "#C9342A"][Math.random() * 3 | 0] }));
     st.lv.forEach(l => { l.y += dt * .09 * l.s; l.x -= dt * .07 * l.s; if (l.y > 1.05) { l.y = -.05; l.x = Math.random() * 1.2; } if (l.x < -.05) l.x += 1.1;
       g.save(); g.translate(l.x * w + Math.sin(t * 2 + l.ph) * X(2), l.y * h); g.rotate(t * 1.5 + l.ph); g.fillStyle = l.c; g.beginPath(); g.ellipse(0, 0, X(1.6 * l.s), X(.9 * l.s), 0, 0, 6.283); g.fill(); g.restore(); });
+  } else if (kind === "d-winter") {
+    g.fillStyle = lin([[0, "#3F7FC8"], [.55, "#9CC2EA"], [1, "#F0CFDA"]]); g.fillRect(0, 0, w, h);
+    glow(w * .7, h * .3, w * .24, "rgba(255,240,226,.8)"); g.fillStyle = "#FFF7EA"; g.beginPath(); g.arc(w * .7, h * .3, w * .09, 0, 6.283); g.fill();
+    ridge(t * X(1.2), .56, .09, 10, 19, "#86A8D0");
+    ridge(t * X(2.5), .7, .05, 6, 11, "#E2ECF7");
+    const off = t * X(5); ridge(off, .8, .05, 8, 14, "#FFFFFF");
+    const sp = w * .38, i0 = Math.floor(off / sp); for (let i = -1; i < 4; i++) { const tx = i * sp - (off % sp) + ((((i + i0) * 29) % 5) - 2) * X(1), u = (tx + off) / w, ty = h * (.8 + .05 * (.6 * Math.sin(u * 8) + .4 * Math.sin(u * 14 + 1.3)));
+      for (let k2 = 0; k2 < 3; k2++) { const yb = ty - X(1) - k2 * X(2.6), wd = X(3.4 - k2 * .8), ht = X(4.2); g.fillStyle = "#2F5C50"; g.beginPath(); g.moveTo(tx - wd, yb); g.lineTo(tx, yb - ht); g.lineTo(tx + wd, yb); g.fill();
+        g.fillStyle = "#FFFFFF"; g.beginPath(); g.moveTo(tx - wd * .55, yb - ht * .45); g.lineTo(tx, yb - ht); g.lineTo(tx + wd * .55, yb - ht * .45); g.fill(); } }
+    if (!st.sn) st.sn = Array.from({ length: 22 }, () => ({ x: Math.random(), y: Math.random(), s: .5 + Math.random() * .9, ph: Math.random() * 6.28 }));
+    st.sn.forEach(f => { f.y += dt * .07 * f.s; f.x += dt * .015; if (f.y > 1.05) { f.y = -.05; f.x = Math.random(); } if (f.x > 1.05) f.x -= 1.1;
+      g.fillStyle = "rgba(90,125,175,.28)"; g.beginPath(); g.arc(f.x * w + Math.sin(t * 1.4 + f.ph) * X(1.5), f.y * h + X(.25), X(.75 * f.s), 0, 6.283); g.fill();
+      g.fillStyle = "#FFFFFF"; g.beginPath(); g.arc(f.x * w + Math.sin(t * 1.4 + f.ph) * X(1.5), f.y * h, X(.7 * f.s), 0, 6.283); g.fill(); });
   } else if (kind === "d-beach") {
     g.fillStyle = lin([[0, "#3DB8F2"], [.42, "#9EDDF6"]], 0, h * .42); g.fillRect(0, 0, w, h * .43);
     glow(w * .74, h * .22, w * .2, "rgba(255,240,170,.7)"); g.fillStyle = "#FFE48A"; g.beginPath(); g.arc(w * .74, h * .22, w * .1, 0, 6.283); g.fill();
