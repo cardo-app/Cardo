@@ -4051,10 +4051,10 @@ const THEMES = [
     bases:{ "b-paper":"#040A13", "b-surface":"#132235", "b-surface-2":"#192B40", "b-line":"#2A4058", "b-muted":"#A9BFD4", "b-ink":"#F0F6FB", "b-ink-2":"#CFDDEA" }, flat:true, aurora:true },
   { k:"autumn",    n:"Autumn",    base:"light", design:true, c:"#D9622B", ink:"#FFFFFF",
     bases:{ "b-paper":"#FFF6EC", "b-surface":"#FFFFFF", "b-surface-2":"#FFF1E2", "b-line":"#F0D9C2", "b-muted":"#8A6A55", "b-ink":"#3B2618", "b-ink-2":"#5C4030" }, flat:true, autumn:true },
-  { k:"winter",    n:"Winter",    base:"light", design:true, c:"#2C7BC9", ink:"#FFFFFF",
-    bases:{ "b-paper":"#EEF5FB", "b-surface":"#FFFFFF", "b-surface-2":"#F2F7FC", "b-line":"#D3E2EF", "b-muted":"#56708A", "b-ink":"#132536", "b-ink-2":"#2B4257" }, flat:true, winter:true },
   { k:"beach",     n:"Beach",     base:"light", design:true, c:"#0E9AA7", ink:"#FFFFFF",
-    bases:{ "b-paper":"#EAF8F8", "b-surface":"#FFFFFF", "b-surface-2":"#F1FAFA", "b-line":"#CDE6E6", "b-muted":"#4E7378", "b-ink":"#0E2E33", "b-ink-2":"#24484D" }, flat:true, beach:true }
+    bases:{ "b-paper":"#EAF8F8", "b-surface":"#FFFFFF", "b-surface-2":"#F1FAFA", "b-line":"#CDE6E6", "b-muted":"#4E7378", "b-ink":"#0E2E33", "b-ink-2":"#24484D" }, flat:true, beach:true },
+  { k:"winter",    n:"Winter",    base:"light", design:true, c:"#2C7BC9", ink:"#FFFFFF",
+    bases:{ "b-paper":"#EEF5FB", "b-surface":"#FFFFFF", "b-surface-2":"#F2F7FC", "b-line":"#D3E2EF", "b-muted":"#56708A", "b-ink":"#132536", "b-ink-2":"#2B4257" }, flat:true, winter:true }
 ];
 const NEUTRAL = [["auto","System"],["light","Hell"],["dark","Dunkel"],["black","Dunkel +"]];
 S.set = { look: "auto", layout: "grid", textSize: "m", fxMode: "full", gradeSet: "4", newPerDay: 20, splash: "daily", glass: 1, retain: 90, sound: 0 };
@@ -4427,25 +4427,27 @@ function paintWinter(g, w, h, rnd, glow){
   for (let i = 0; i < Math.round(w / 6); i++) { const x = R(0, w), y = R(Y(.84), h); g.fillStyle = `rgba(150,185,225,${R(.35, .7)})`; g.fillRect(x, y, 1.2, 1.2); }
   [[.1, .87, 120], [.93, .89, 132]].forEach(([fx, fy, sz]) => fir(w * fx, Y(fy), sz, "#24493F"));
 }
-/* Winter: Schnee fällt – eigene Leinwand über dem Winterbild (hinter der App). Drei Entfernungen (fern klein/langsam, Mitte mit
-   einzelnen Kristallen, nah groß und weich); läuft nur, solange Winter aktiv und die App sichtbar ist; bei „Bewegung reduzieren“ steht der Schnee. */
+/* Winter: Schnee fällt – eigene Leinwand über dem Winterbild (hinter der App). Vier Entfernungen wie bei Autumn: 0 = weit weg (winzig, langsam) ·
+   1 = Mitte (mit einzelnen Kristallen) · 2 = näher (größer, ab und zu ein großer Kristall) · 3 = ganz nah (groß, weich verschwommen, nur zwei, kommen mit Pausen); läuft nur, solange Winter aktiv und die App sichtbar ist; bei „Bewegung reduzieren“ steht der Schnee. */
 const SN = { cv: null, raf: 0, fl: [], spr: null, w: 0, h: 0, dpr: 1, last: 0 };
 function snowSprites(dpr){
-  const dot = (r, soft) => { const pad = 3, S = (r + pad) * 2, c = document.createElement("canvas"); c.width = c.height = Math.ceil(S * dpr); const g = c.getContext("2d"); g.scale(dpr, dpr);
+  const dot = (r, soft) => { const pad = soft ? Math.max(3, r * .7) : 3, S = (r + pad) * 2, c = document.createElement("canvas"); c.width = c.height = Math.ceil(S * dpr); const g = c.getContext("2d"); g.scale(dpr, dpr);
     const q = g.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, r + (soft ? pad : 1)); q.addColorStop(0, "rgba(255,255,255,1)"); q.addColorStop(soft ? .35 : .6, "rgba(255,255,255,.95)");
     q.addColorStop(soft ? .7 : .85, "rgba(225,236,250,.5)"); q.addColorStop(1, "rgba(210,226,246,0)"); g.fillStyle = q; g.fillRect(0, 0, S, S); return c; };
   const crystal = s => { const pad = 4, S = (s + pad) * 2, c = document.createElement("canvas"); c.width = c.height = Math.ceil(S * dpr); const g = c.getContext("2d"); g.scale(dpr, dpr); g.translate(S / 2, S / 2);
     g.strokeStyle = "#FFFFFF"; g.lineCap = "round"; g.lineWidth = 1.3; g.shadowColor = "rgba(80,120,175,.45)"; g.shadowBlur = 1.5;
     g.beginPath(); for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3, ca = Math.cos(a), sa = Math.sin(a), at = (d, side) => { const b = a + side * .7; return [ca * d + Math.cos(b) * s * .28, sa * d + Math.sin(b) * s * .28]; };
       g.moveTo(0, 0); g.lineTo(ca * s, sa * s); [-1, 1].forEach(sd => { const [px, py] = at(s * .55, sd); g.moveTo(ca * s * .55, sa * s * .55); g.lineTo(px, py); }); } g.stroke(); return c; };
-  return { dot: [dot(1.4, false), dot(2.4, false), dot(4.6, true)], cr: [crystal(6), crystal(8)] };
+  return { dot: [dot(1.4, false), dot(2.4, false), dot(4.6, true), dot(11, true)], cr: [crystal(6), crystal(8), crystal(13)] };
 }
 function newFlake(top, layer){
   const r = Math.random, L = layer ?? (r() < .5 ? 0 : r() < .8 ? 1 : 2), R2 = ([a, b]) => a + r() * (b - a);
-  const P = [ { k: [.7, 1.1], vy: [16, 28],  amp: [4, 10],  a: [.55, .85] },
-              { k: [.8, 1.2], vy: [30, 50],  amp: [8, 20],  a: [.85, 1] },
-              { k: [.8, 1.3], vy: [60, 90],  amp: [14, 30], a: [.75, .95] } ][L];
-  return { L, cr: L === 1 && r() < .22 ? (r() < .5 ? 0 : 1) : -1, x: r() * SN.w, y: top ? -20 - r() * 40 : r() * SN.h, k: R2(P.k), vy: R2(P.vy), amp: R2(P.amp), a: R2(P.a),
+  const P = [ { k: [.5, 1.2], vy: [14, 28],   amp: [4, 10],  a: [.5, .85] },
+              { k: [.7, 1.4], vy: [30, 50],   amp: [8, 20],  a: [.85, 1] },
+              { k: [.7, 1.5], vy: [60, 90],   amp: [14, 30], a: [.75, .95] },
+              { k: [.8, 1.3], vy: [100, 140], amp: [20, 40], a: [.55, .75] } ][L];
+  const cr = L === 1 && r() < .22 ? (r() < .5 ? 0 : 1) : L === 2 && r() < .15 ? 2 : -1;
+  return { L, cr, x: r() * SN.w, y: top ? -20 - r() * (L === 3 ? SN.h * 1.2 : 40) /* nahe Flocken kommen mit Pausen */ : r() * SN.h, k: R2(P.k), vy: R2(P.vy), amp: R2(P.amp), a: R2(P.a),
     f: .4 + r() * .8, ph: r() * 6.3, wind: 4 + r() * 8 + L * 4, rot: r() * 6.3, vr: (r() - .5) * .8 };
 }
 function winterSnow(){
@@ -4459,7 +4461,7 @@ function winterSnow(){
     SN.w = w; SN.h = h; SN.cv.width = Math.round(w * dpr); SN.cv.height = Math.round(h * dpr);
     if (!SN.spr || dpr !== SN.dpr) SN.spr = snowSprites(dpr); SN.dpr = dpr;
     const n = Math.max(50, Math.min(150, Math.round(w * h / 5000)));
-    SN.fl = Array.from({ length: n }, () => newFlake(false)).sort((a, b) => a.L - b.L); /* hinten zuerst zeichnen */
+    SN.fl = [...Array.from({ length: n - 2 }, () => newFlake(false)), newFlake(true, 3), newFlake(true, 3)].sort((a, b) => a.L - b.L); /* nur zwei ganz nahe; hinten zuerst zeichnen */
   }
   const g = SN.cv.getContext("2d"), still = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const draw = t => {
