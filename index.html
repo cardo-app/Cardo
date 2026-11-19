@@ -2223,7 +2223,6 @@ const I18N = {
   "System": ["System", "Sistema"],
   "Designs": ["Designs", "Design"],
   "Farbthemen": ["Colour themes", "Temi a colori"],
-  "Hell, Dunkel und System sind schlicht schwarz-weiß, Dunkel + ist ganz schwarz. Ein Farbthema färbt die ganze App ein. System folgt deinem Gerät.": ["Light, Dark and System are plain black and white, Dark + is pure black. A colour theme tints the whole app. System follows your device.", "Chiaro, Scuro e Sistema sono semplici in bianco e nero, Scuro + è nero totale. Un tema a colori colora tutta l'app. Sistema segue il tuo dispositivo."],
   "Transparenz": ["Transparency", "Trasparenza"],
   "Stark": ["Strong", "Forte"],
   "Leicht": ["Light", "Leggera"],
@@ -7223,7 +7222,7 @@ function glassSheet(){
   });
 }
 function lookSheet(){
-  openSheet(`${head("Thema")}<p class="muted" style="margin:0 0 16px;font-size:15.5px">Hell, Dunkel und System sind schlicht schwarz-weiß, Dunkel + ist ganz schwarz. Ein Farbthema färbt die ganze App ein. System folgt deinem Gerät.</p><div id="lookPick">${lookPickerHTML()}</div>`); microFlames();
+  openSheet(`${head("Thema")}<div id="lookPick">${lookPickerHTML()}</div>`); microFlames();
 }
 function langPickerHTML(){
   return `<div class="gs-list" role="radiogroup" aria-label="Sprache">${LANGS.map(([k, l]) => `<button class="gs-opt fx-opt ${LANG === k ? 'on' : ''}" data-act="setLang" data-v="${k}" role="radio" aria-checked="${LANG === k}"><span class="fx-t" translate="no"><b>${l}</b></span><span class="gs-ck" aria-hidden="true">${LANG === k ? '✓' : ''}</span></button>`).join("")}</div>`;
