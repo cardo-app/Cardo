@@ -1172,6 +1172,9 @@ body.m-dark #welcome{--wc-o1:.26;--wc-o2:.17;--wc-top:#1F2128;--wc-bot:#14161B;-
 @media (prefers-color-scheme:dark){body:not(.m-light) .kr-news{--wc-cbg:#F5F6F8;--wc-cink:#1B1D23;--wc-alt:#2A2D35;--wc-altink:#F5F6F8}}
 body.m-dark .kr-news{--wc-cbg:#F5F6F8;--wc-cink:#1B1D23;--wc-alt:#2A2D35;--wc-altink:#F5F6F8}
 .kr-news .wc-crew{margin:0 auto 14px}
+.wn-scene{position:relative;height:170px;margin:2px 0 16px;border-radius:22px;overflow:hidden;background:linear-gradient(180deg,#3F7FC8,#9CC2EA 55%,#F0CFDA);box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)} /* Winter-Hinweis: bewegte Winterlandschaft */
+.wn-scene .mflm{position:absolute;inset:0;width:100%;height:100%}
+.wn-badge{position:absolute;top:12px;left:12px;background:rgba(255,255,255,.92);color:#2C7BC9;font-size:11.5px;font-weight:800;letter-spacing:.08em;padding:4px 10px;border-radius:99px;box-shadow:0 2px 8px rgba(20,50,90,.18)}
 .kr-news.seen .wc-crew span{transform:none;opacity:1}
 .wc-card{position:relative;margin:18px auto 0;min-height:190px;display:flex;flex-direction:column;background:var(--surface);border-radius:22px;box-shadow:var(--shadow);border-top:7px solid color-mix(in oklab,var(--ink) 9%,var(--surface));cursor:pointer;overflow:hidden;transition:transform .22s cubic-bezier(.34,1.45,.55,1)}
 .wc-card:active{transform:scale(.97)}
@@ -1729,6 +1732,11 @@ const I18N = {
   "Senden hat nicht geklappt. Versuch es gleich noch einmal.": ["Sending didn't work. Please try again in a moment.", "Invio non riuscito. Riprova tra poco."],
   "Danke für dein Feedback!": ["Thanks for your feedback!", "Grazie per il tuo feedback!"],
   "Neu: Klassenraum": ["New: Classroom", "Novità: Aula"],
+  "Neues Winter-Design": ["New Winter design", "Nuovo design Winter"],
+  "Du kannst es jederzeit unter Einstellungen › Thema wechseln.": ["You can switch it anytime in Settings › Theme.", "Puoi cambiarlo quando vuoi in Impostazioni › Tema."],
+  "Vielleicht später": ["Maybe later", "Magari dopo"],
+  "NEU": ["NEW", "NOVITÀ"],
+  "Viel Spaß im Schnee! ❄️": ["Enjoy the snow! ❄️", "Goditi la neve! ❄️"],
   "Lerne jetzt mit deiner Klasse in gemeinsamen Kursen: Alle sehen dieselben Karten, jeder kann Karten beisteuern, und dein Lernstand bleibt privat.": ["Now study with your class in shared courses: everyone sees the same cards, anyone can add cards, and your progress stays private.", "Ora studia con la tua classe in corsi condivisi: tutti vedono le stesse schede, ognuno può aggiungerne e i tuoi progressi restano privati."],
   "Du findest den Klassenraum jederzeit in den Einstellungen.": ["You can always find the classroom in the settings.", "Trovi l'aula sempre nelle impostazioni."],
   "Später": ["Later", "Più tardi"],
@@ -5237,7 +5245,7 @@ function startApp(){
   DB.collection("cards").onSnapshot(s => { const o = {}; s.docs.forEach(d => { o[d.id] = { ...((d.data()||{}).cards || {}) }; }); S.decks = o; krInject(); S.loaded.c = true; render(); });
   DB.doc("stats/main").onSnapshot(d => { const x = d.exists ? (d.data()||{}) : {}; S.days = { ...(x.days || {}) }; S.seen = { ...(x.seen || {}) }; S.lastExport = x.lastExport || 0; S.extraNew = { ...(x.extraNew || {}) }; S.fdays = { ...(x.fdays || {}) }; S.prog = { ...(x.prog || {}) }; S.loaded.s = true; render(); });
   krLoad();
-  DB.load().then(() => { DB.flush(); setTimeout(startDeck, 60); setTimeout(krDefaultOff, 900); setTimeout(krNews, 1800); }).catch(e => { console.warn(e); toast(navigator.onLine ? "Laden fehlgeschlagen. Versuch es gleich noch einmal." : "Offline: Du siehst den zuletzt gespeicherten Stand."); })
+  DB.load().then(() => { DB.flush(); setTimeout(startDeck, 60); setTimeout(krDefaultOff, 900); setTimeout(krNews, 1800); setTimeout(winterNews, 2500); }).catch(e => { console.warn(e); toast(navigator.onLine ? "Laden fehlgeschlagen. Versuch es gleich noch einmal." : "Offline: Du siehst den zuletzt gespeicherten Stand."); })
     .finally(() => { S.mode = "cloud"; render(); runPendingDeck(); runPendingJoin(); });
 }
 
@@ -5801,13 +5809,14 @@ function krSetEnabled(on){
   else { krInject(); S.room = "own"; saveRoom(); if (S.fid && !S.folders[S.fid]) go("lib", null); }
   render();
 }
+let NEWS_SHOWN = false; /* in dieser Sitzung kam schon ein Hinweis → weitere erst beim nächsten Start */
 let WELCOMED = false; /* neues Konto hat gerade die Einführung gesehen (dort steht der Klassenraum schon drin) */
 async function krNews(){ /* einmal pro Konto (Merker flags/news-kr): bestehende Nutzer erfahren, dass es den Klassenraum gibt */
   if (!DB || !krOn() || (DB.has && DB.has("flags/news-kr"))) return;
   try { await krLoad(); } catch {} /* Kurse erst fertig laden – wer schon in einem Kurs ist, braucht keinen Hinweis */
   if (WELCOMED || $("#welcome") || Object.keys(KR.list).length) { DB.doc("flags/news-kr").set({ at: Date.now() }); return; } /* neu oder schon in einem Kurs → kein Hinweis nötig */
   if (!$("#sheet").hidden || S.view === "study") { setTimeout(krNews, 4000); return; } /* gerade beschäftigt → etwas später */
-  DB.doc("flags/news-kr").set({ at: Date.now() });
+  DB.doc("flags/news-kr").set({ at: Date.now() }); NEWS_SHOWN = true;
   const on = krEnabled();
   openSheet(`${head(`Neu: Klassenraum${BETA}`)}
     <div class="kr-news"><div class="wc-crew" aria-hidden="true"><i><b></b><b></b><b></b></i><span translate="no">L</span><span translate="no">J</span><span class="me">du</span></div></div>
@@ -5818,6 +5827,29 @@ async function krNews(){ /* einmal pro Konto (Merker flags/news-kr): bestehende 
     setTimeout(() => { const a = $(".kr-news", root); if (a) a.classList.add("seen"); }, 250);
     root.addEventListener("click", e => { const b = e.target.closest("[data-n]"); if (!b) return; closeSheet();
       if (b.dataset.n === "go") { if (!krEnabled()) krSetEnabled(true); S.room = "class"; saveRoom(); go("lib", null); } });
+  });
+}
+/* Einmaliges Popup zum Design „Winter“ beim Öffnen der App: bewegte Winterlandschaft, kurzer Text, „Ausprobieren“ / „Vielleicht später“.
+   Kommt pro Konto genau einmal: Merker flags/news-winter im Konto (alle Geräte) + zusätzlich im Gerät (localStorage), beide werden VOR dem Anzeigen gesetzt.
+   Nicht für neue Konten (Einführung), nicht wenn Winter schon an ist, nicht in derselben Sitzung wie ein anderer Hinweis. */
+function winterNews(){
+  const F = "flags/news-winter", LK = "cardo-news-winter:" + (USER && USER.id || "");
+  let seen = false; try { seen = !!localStorage.getItem(LK); } catch {}
+  if (!DB || seen || (DB.has && DB.has(F))) return;
+  const mark = () => { DB.doc(F).set({ at: Date.now() }); try { localStorage.setItem(LK, "1"); } catch {} };
+  if (WELCOMED || $("#welcome") || S.set.look === "winter") { mark(); return; }
+  if (NEWS_SHOWN) return; /* beim nächsten Start */
+  if (krOn() && DB.has && !DB.has("flags/news-kr")) { setTimeout(winterNews, 5000); return; } /* Klassenraum-Hinweis ist noch dran */
+  if (!$("#sheet").hidden || S.view === "study" || document.visibilityState === "hidden") { setTimeout(winterNews, 5000); return; } /* gerade beschäftigt → etwas später */
+  NEWS_SHOWN = true; mark();
+  openSheet(`${head("Neues Winter-Design")}
+    <div class="wn-scene"><canvas class="mflm" data-m="d-winter" aria-hidden="true"></canvas><span class="wn-badge">NEU</span></div>
+    <p class="muted" style="margin:0 0 16px;font-size:14px">Du kannst es jederzeit unter Einstellungen › Thema wechseln.</p>
+    <div class="sh-acts"><button class="btn" data-n="later">Vielleicht später</button><button class="btn primary" data-n="go">Ausprobieren</button></div>`,
+  root => {
+    microFlames();
+    root.addEventListener("click", e => { const b = e.target.closest("[data-n]"); if (!b) return; closeSheet();
+      if (b.dataset.n === "go") { saveSettings({ look: "winter" }); go("lib", null); setTimeout(() => toast("Viel Spaß im Schnee! ❄️"), 400); } });
   });
 }
 async function krDefaultOff(){ /* einmal pro Konto (Merker flags/kr): wer in keinem Kurs ist, hat den Klassenraum zunächst aus */
@@ -6831,17 +6863,18 @@ function mfScene(g, w, h, st, dt, t, kind){
       g.save(); g.translate(l.x * w + Math.sin(t * 2 + l.ph) * X(2), l.y * h); g.rotate(t * 1.5 + l.ph); g.fillStyle = l.c; g.beginPath(); g.ellipse(0, 0, X(1.6 * l.s), X(.9 * l.s), 0, 0, 6.283); g.fill(); g.restore(); });
   } else if (kind === "d-winter") {
     g.fillStyle = lin([[0, "#3F7FC8"], [.55, "#9CC2EA"], [1, "#F0CFDA"]]); g.fillRect(0, 0, w, h);
-    glow(w * .7, h * .3, w * .24, "rgba(255,240,226,.8)"); g.fillStyle = "#FFF7EA"; g.beginPath(); g.arc(w * .7, h * .3, w * .09, 0, 6.283); g.fill();
+    const mn = Math.min(w, h); /* im breiten Bild (Winter-Popup) Sonne und Flocken nach der Höhe bemessen; in der runden Kugel gleich */
+    glow(w * .7, h * .3, mn * .24, "rgba(255,240,226,.8)"); g.fillStyle = "#FFF7EA"; g.beginPath(); g.arc(w * .7, h * .3, mn * .09, 0, 6.283); g.fill();
     ridge(t * X(1.2), .56, .09, 10, 19, "#86A8D0");
     ridge(t * X(2.5), .7, .05, 6, 11, "#E2ECF7");
     const off = t * X(5); ridge(off, .8, .05, 8, 14, "#FFFFFF");
     const sp = w * .38, i0 = Math.floor(off / sp); for (let i = -1; i < 4; i++) { const tx = i * sp - (off % sp) + ((((i + i0) * 29) % 5) - 2) * X(1), u = (tx + off) / w, ty = h * (.8 + .05 * (.6 * Math.sin(u * 8) + .4 * Math.sin(u * 14 + 1.3)));
       for (let k2 = 0; k2 < 3; k2++) { const yb = ty - X(1) - k2 * X(2.6), wd = X(3.4 - k2 * .8), ht = X(4.2); g.fillStyle = "#2F5C50"; g.beginPath(); g.moveTo(tx - wd, yb); g.lineTo(tx, yb - ht); g.lineTo(tx + wd, yb); g.fill();
         g.fillStyle = "#FFFFFF"; g.beginPath(); g.moveTo(tx - wd * .55, yb - ht * .45); g.lineTo(tx, yb - ht); g.lineTo(tx + wd * .55, yb - ht * .45); g.fill(); } }
-    if (!st.sn) st.sn = Array.from({ length: 22 }, () => ({ x: Math.random(), y: Math.random(), s: .5 + Math.random() * .9, ph: Math.random() * 6.28 }));
+    if (!st.sn) st.sn = Array.from({ length: Math.round(22 * Math.max(1, w / h)) }, () => ({ x: Math.random(), y: Math.random(), s: .5 + Math.random() * .9, ph: Math.random() * 6.28 }));
     st.sn.forEach(f => { f.y += dt * .07 * f.s; f.x += dt * .015; if (f.y > 1.05) { f.y = -.05; f.x = Math.random(); } if (f.x > 1.05) f.x -= 1.1;
-      g.fillStyle = "rgba(90,125,175,.28)"; g.beginPath(); g.arc(f.x * w + Math.sin(t * 1.4 + f.ph) * X(1.5), f.y * h + X(.25), X(.75 * f.s), 0, 6.283); g.fill();
-      g.fillStyle = "#FFFFFF"; g.beginPath(); g.arc(f.x * w + Math.sin(t * 1.4 + f.ph) * X(1.5), f.y * h, X(.7 * f.s), 0, 6.283); g.fill(); });
+      const fr = mn / 58; g.fillStyle = "rgba(90,125,175,.28)"; g.beginPath(); g.arc(f.x * w + Math.sin(t * 1.4 + f.ph) * X(1.5), f.y * h + fr * .25, fr * .75 * f.s, 0, 6.283); g.fill();
+      g.fillStyle = "#FFFFFF"; g.beginPath(); g.arc(f.x * w + Math.sin(t * 1.4 + f.ph) * X(1.5), f.y * h, fr * .7 * f.s, 0, 6.283); g.fill(); });
   } else if (kind === "d-beach") {
     g.fillStyle = lin([[0, "#3DB8F2"], [.42, "#9EDDF6"]], 0, h * .42); g.fillRect(0, 0, w, h * .43);
     glow(w * .74, h * .22, w * .2, "rgba(255,240,170,.7)"); g.fillStyle = "#FFE48A"; g.beginPath(); g.arc(w * .74, h * .22, w * .1, 0, 6.283); g.fill();
