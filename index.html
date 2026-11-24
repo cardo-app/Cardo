@@ -336,6 +336,20 @@ body[data-glass="2"] .cvw>:is(.tile-body,.banner-body){background:var(--surface)
 .bk-acts{display:flex;gap:6px;margin-left:auto}.bk-acts .btn{padding:7px 12px;font-size:14px}.bk-acts .btn.armed{background:var(--danger,#d33);color:#fff;border-color:transparent}
 .xbtn svg{width:20px;height:20px;display:block;margin:auto}
 .xbtn{width:40px;height:40px;border-radius:12px;background:var(--surface);border:1px solid var(--line);font-size:20px;flex:none}
+:root{--star:#FFC107}
+.fl-star{margin:-10px -12px -10px auto;width:44px;height:44px;flex:none;display:grid;place-items:center;background:none;border:0;padding:0;color:color-mix(in oklab,var(--ink) 38%,var(--surface));-webkit-tap-highlight-color:transparent}
+.fl-star svg{width:24px;height:24px;transition:transform .15s ease-out}
+.fl-star:active svg{transform:scale(.85)}
+.fl-star.on{color:var(--star)}.fl-star.on svg{fill:var(--star)}
+/* Markieren: Stern federt kurz auf (läuft über --sd nach dem Neuzeichnen weiter) */
+.fl-star.pop svg{animation:starPop .35s cubic-bezier(.3,1.6,.5,1) var(--sd,0s) both}
+@keyframes starPop{0%{transform:scale(.6)}100%{transform:none}}
+@media (prefers-reduced-motion:reduce){.fl-star.pop svg{animation:none}}
+
+.seg button[data-v="star"]{white-space:nowrap}
+.st .s-star{color:var(--star);margin-right:3px}
+.star-tog{display:inline-flex;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:7px 13px 7px 11px;font-size:14.5px;font-weight:600;color:var(--ink-2);margin-bottom:14px}
+.star-tog svg{width:17px;height:17px}.star-tog.on{border-color:color-mix(in oklab,var(--star) 60%,transparent)}.star-tog.on svg{fill:var(--star);color:var(--star)}
 .bar{flex:1;height:8px;border-radius:99px;background:var(--line);overflow:hidden}
 .bar i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .25s ease}
 .study-count{font-size:14.5px;font-weight:700;color:var(--muted);min-width:64px;text-align:right}
@@ -2628,6 +2642,10 @@ const I18N = {
   "QR-Code zum Link": ["QR code for the link", "Codice QR del link"],
   "Runde beendet": ["Round finished", "Giro terminato"],
   "Schwierige": ["Difficult ones", "Difficili"],
+  "★ Markierte": ["★ Starred", "★ Segnate"],
+  "Markiert": ["Starred", "Contrassegnata"],
+  "Karte markieren": ["Star card", "Contrassegna scheda"],
+  "Markierung entfernen": ["Remove star", "Rimuovi contrassegno"],
   "Sehr entspannt": ["Very relaxed", "Molto rilassato"],
   "Sortieren nach": ["Sort by", "Ordina per"],
   "Unterordner sortieren nach": ["Sort subfolders by", "Ordina sottocartelle per"],
@@ -3788,6 +3806,7 @@ const IC = {
   close:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
   undo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>',
   edit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>',
+  star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg>',
   invite:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 19.5c.6-3.3 3.2-5.5 6.5-5.5s5.9 2.2 6.5 5.5"/><path d="M19 7.5v6M16 10.5h6"/></svg>',
   people:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 19.5c.6-3.3 3.2-5.5 6.5-5.5s5.9 2.2 6.5 5.5"/><path d="M15.5 5.2a3.4 3.4 0 0 1 0 6.6M18 14.3c1.9.8 3.1 2.6 3.5 5.2"/></svg>',
   pen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>'
@@ -5552,7 +5571,7 @@ function krSyncDeck(fid){
       else if (c.f === sv.front && c.b === sv.back) delete rec.o;
       else rec.o = { f: c.f, b: c.b, at: krTime(sv.updated_at) };
     }
-    if (!rec.reps && !rec.o && !P.cards[c.id]) return; /* noch nie gelernt und nicht geändert → nichts speichern */
+    if (!rec.reps && !rec.o && !rec.star && !P.cards[c.id]) return; /* noch nie gelernt und nicht geändert → nichts speichern */
     if (JSON.stringify(rec) !== JSON.stringify(old)) { P.cards[c.id] = rec; dirty = true; }
   });
   Object.values(KR.cards).forEach(sv => {
@@ -6744,7 +6763,7 @@ function cardListHTML(fid){
   return `<div class="cards">${list.map(c => {
     const st = cardState(c), due = isDue(c, now) && st !== "new";
     const label = st === "new" ? "Neu" : due ? "Fällig" : st === "mature" ? "Gefestigt" : (LANG === "it" ? "tra " : "in ") + fmtIvl((c.due||0) - now).replace("< ", "");
-    return `<div class="card-row"><button class="card-main" data-act="editCard" data-f="${fid}" data-id="${c.id}"><span class="cf">${richLine(c.f)}</span><span class="cb">${richLine(c.b)}</span>${c.comm ? `<span class="c-by${c.ov ? ' own' : ''}">${c.ov ? (c.oc ? 'deine Version · Original wurde geändert' : 'deine Version') : c.by === USER.id ? 'von dir' : `von <span translate="no">${esc(krName(c.by))}</span>`}</span>` : ''}</button><span class="st ${st === 'new' ? 'new' : due ? 'due' : st === 'mature' ? 'mature' : ''}">${label}</span></div>`;
+    return `<div class="card-row"><button class="card-main" data-act="editCard" data-f="${fid}" data-id="${c.id}"><span class="cf">${richLine(c.f)}</span><span class="cb">${richLine(c.b)}</span>${c.comm ? `<span class="c-by${c.ov ? ' own' : ''}">${c.ov ? (c.oc ? 'deine Version · Original wurde geändert' : 'deine Version') : c.by === USER.id ? 'von dir' : `von <span translate="no">${esc(krName(c.by))}</span>`}</span>` : ''}</button><span class="st ${st === 'new' ? 'new' : due ? 'due' : st === 'mature' ? 'mature' : ''}">${c.star ? '<span class="s-star" aria-label="markiert">★</span>' : ''}${label}</span></div>`;
   }).join("")}</div>`;
 }
 function visibleIds(){ const q = S.q.trim().toLowerCase(); return Object.values(S.decks[S.fid] || {}).filter(c => !q || (c.f + " " + c.b).toLowerCase().includes(q)).map(c => c.id); }
@@ -7638,6 +7657,13 @@ function startStudy(fid){
   S.study = { fid: fid || null, queue: list.map(x => ({ fid: x.fid, id: x.c.id, rev: pickSide(x.fid) })), done: 0, flipped: false, back: S.view === "stats" ? "stats" : "lib", backFid: S.fid };
   S.view = "study"; S.anim = null; render(); toTop();
 }
+/* Karte markieren (★): Feld star an der Karte; bei Kurs-Karten privat (landet im eigenen Lernstand) */
+function toggleStar(){
+  const c = curCard(); if (!c || (S.study && S.study.busy)) return;
+  const on = !c.c.star, card = { ...c.c }; if (on) card.star = 1; else delete card.star;
+  S.study.starFx = { id: c.id, on, t: Date.now() }; /* Animation übersteht das Neuzeichnen (läuft über --sd weiter) */
+  putCard(c.fid, card);
+}
 function curCard(){ const st = S.study; while (st && st.queue.length) { const q = st.queue[0]; const c = S.decks[q.fid] && S.decks[q.fid][q.id]; if (c) return { ...q, c }; st.queue.shift(); } return null; }
 function studyHTML(){
   const st = S.study; if (!st) return libHTML();
@@ -7662,7 +7688,7 @@ function studyHTML(){
       if (near && ty.best === tyPlain(cur.rev ? cur.c.f : cur.c.b)) back = `<span translate="no">${sol}</span>`; }
   }
   return top + `<div class="flash ${fresh ? 'card-in' : ''} ${jf ? 'flipped-in' : ''} ${st.flipped ? 'flipped' : ''} ${typing && !st.flipped ? 'typing' : ''}"${typing && !st.flipped ? '' : ' data-act="flip"'}>
-    <div class="flash-src">${emo(f) ? esc(emo(f)) + ' ' : ''}${pathOf(cur.fid).map(x => escN(x.name)).join(" › ")}${cur.rev ? '<span class="rev-tag">⇄ Rückseite zuerst</span>' : ''}</div>
+    <div class="flash-src">${emo(f) ? esc(emo(f)) + ' ' : ''}${pathOf(cur.fid).map(x => escN(x.name)).join(" › ")}${cur.rev ? '<span class="rev-tag">⇄ Rückseite zuerst</span>' : ''}<button class="fl-star${cur.c.star ? ' on' : ''}${(() => { const fx = st.starFx, el = fx && fx.id === cur.id && fx.on === !!cur.c.star ? Date.now() - fx.t : 1e9; return fx && fx.on && el < 400 ? ` pop" style="--sd:-${el}ms` : ''; })()}" data-act="studyStar" aria-pressed="${!!cur.c.star}" aria-label="${cur.c.star ? 'Markierung entfernen' : 'Karte markieren'}" title="${cur.c.star ? 'Markierung entfernen' : 'Karte markieren'} (S)">${IC.star}</button></div>
     <div class="flash-face">${rich(cur.rev ? cur.c.b : cur.c.f)}</div>
     ${st.flipped ? `${res}<div class="flash-face flash-back">${back}</div>` : ''}</div>
   ${typing && !st.flipped ? `<form class="ty" id="tyForm" autocomplete="off"><input id="tyIn" type="text" value="${esc(st.tyVal || "")}" placeholder="Antwort eintippen" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" translate="no"><button type="submit" class="ty-go" aria-label="Prüfen">→</button></form><button class="ty-skip" data-act="tySkip">Weiß ich nicht</button>` : ''}
@@ -7785,6 +7811,7 @@ const saveExPref = () => { try { localStorage.setItem("cardo-exam", JSON.stringi
 const exKey = (fid, id) => fid + "/" + id;
 function exMatch(c){
   if (EX.which === "new") return !c.reps;
+  if (EX.which === "star") return !!c.star;
   if (EX.which === "hard") return (c.lapses || 0) > 0 || (c.d > 0 ? c.d >= 7 : (c.ease || 2.5) < 2.5) || (!!c.reps && !c.ivl);
   return true;
 }
@@ -7804,7 +7831,7 @@ function examPool(){
 function examBodyHTML(){
   const rows = exRows(), pool = examPool();
   const seg = (act, cur, opts) => `<div class="seg" style="grid-template-columns:repeat(${opts.length},1fr)" role="radiogroup">${opts.map(([k, l]) => `<button class="${cur === k ? 'on' : ''}" data-act="${act}" data-v="${k}" role="radio" aria-checked="${cur === k}">${l}</button>`).join("")}</div>`;
-  return `<div class="field"><span class="lbl">Welche Karten</span>${seg("exWhich", EX.which, [["all", "Alle"], ["hard", "Schwierige"], ["new", "Neue"]])}</div>
+  return `<div class="field"><span class="lbl">Welche Karten</span>${seg("exWhich", EX.which, [["all", "Alle"], ["hard", "Schwierige"], ["new", "Neue"], ["star", "★ Markierte"]])}</div>
     <div class="field"><span class="lbl">Reihenfolge</span>${seg("exOrder", EX.order, [["mix", "Gemischt"], ["seq", "Der Reihe nach"]])}</div>
     ${rows.length > 1 ? `<div class="field"><span class="lbl">Unterordner</span><div class="set-list ex-list">${rows.map(r => `<button class="ex-row ${EX.sel.has(r.id) ? 'on' : ''}" data-act="exSel" data-id="${r.id}" ${r.self ? 'data-self="1"' : ''} role="checkbox" aria-checked="${EX.sel.has(r.id)}" style="padding-left:${14 + r.d * 22}px"><span class="ex-box" aria-hidden="true">✓</span><span class="ex-name">${r.emoji ? esc(r.emoji) + ' ' : ''}${escN(r.name)}</span><span class="ex-n num">${r.n}</span></button>`).join("")}</div></div>` : ''}
     <div class="set-list" style="margin-bottom:18px"><button class="set-item ex-sw" data-act="exResched" role="switch" aria-checked="${EX.resched}"><span class="si-t">Nicht gewusste früher wiederholen<small>Gelernte Karten, die du hier nicht weißt, kommen im normalen Lernplan gleich wieder dran.</small></span><span class="switch ${EX.resched ? 'on' : ''}" aria-hidden="true"><i></i></span></button></div>
@@ -7812,7 +7839,7 @@ function examBodyHTML(){
 }
 function examSheet(fid, prac){
   if (!S.folders[fid]) return;
-  EX = { fid, which: ["all", "hard", "new"].includes(EX_PREF.which) ? EX_PREF.which : "all", order: EX_PREF.order === "seq" ? "seq" : "mix", resched: !!EX_PREF.resched, sel: new Set([fid, ...descendants(fid)]), prac: !!prac };
+  EX = { fid, which: ["all", "hard", "new", "star"].includes(EX_PREF.which) ? EX_PREF.which : "all", order: EX_PREF.order === "seq" ? "seq" : "mix", resched: !!EX_PREF.resched, sel: new Set([fid, ...descendants(fid)]), prac: !!prac };
   openSheet(`${head(prac ? "Nochmal üben" : "Prüfen")}<p class="muted" style="margin:0 0 16px;font-size:15.5px">Geh Karten nochmal durch, ohne deinen Lernplan zu verändern. Nicht gewusste Karten kommen am Ende der Runde noch einmal.</p><div id="exBody">${examBodyHTML()}</div>`);
 }
 const exRefresh = () => { const b = $("#exBody"); if (b) b.innerHTML = examBodyHTML(); };
@@ -8153,22 +8180,27 @@ function cardSheet(fid, id){
     ${kc ? (!ex ? `<p class="muted kr-note">Alle Mitglieder sehen diese Karte. Du kannst sie später für alle ändern.</p>`
       : `<div class="kr-who"><span class="kr-av" aria-hidden="true" translate="no">${esc(((ex.by === USER.id ? KR.me : krName(ex.by)) || "?")[0].toUpperCase())}</span><span class="kr-by">${ex.by === USER.id ? "Von dir" : `<b translate="no">${esc(krName(ex.by))}</b>`}</span><span class="kr-scope${kEd ? "" : " me"}">${kEd ? "Änderungen für alle" : "Änderungen nur für dich"}</span></div>
       ${ex.ov ? `<button type="button" class="kr-orig" id="kOrig">${ex.oc ? "Original wurde geändert – übernehmen" : "Original wiederherstellen"}</button>` : ''}`) : ''}
+    <button type="button" class="star-tog${ex && ex.star ? ' on' : ''}" id="cstar" aria-pressed="${!!(ex && ex.star)}">${IC.star}<span>${ex && ex.star ? 'Markiert' : 'Karte markieren'}</span></button>
     ${ex ? `<div class="muted" style="font-size:14.5px;margin-bottom:14px">${ex.reps ? `${plural(ex.reps, 'Wiederholung', 'Wiederholungen')} · nächste ${isDue(ex) ? 'jetzt' : 'in ' + fmtIvl(ex.due - Date.now()).replace('< ','')}` : 'Noch nicht gelernt'}</div>` : ''}
     ${ex ? `<div class="sheet-foot"><button class="btn danger" id="cdel">${kEd ? "Löschen" : "Ausblenden"}</button><div class="r"><button class="btn" data-act="close">Abbrechen</button><button class="btn primary" id="csave">Speichern</button></div></div>`
       : `<div class="sheet-foot new-card-foot"><button class="btn-quiet" id="csave">Speichern &amp; schließen</button><button class="btn primary" id="cnext">Nächste Karte →</button></div>`}`,
   root => {
     mountRichEditor(root, $("#cf", root), ex ? ex.f : ""); mountRichEditor(root, $("#cb", root), ex ? ex.b : "");
+    let star = !!(ex && ex.star); const sb = $("#cstar", root);
+    const setStar = v => { star = v; sb.classList.toggle("on", v); sb.setAttribute("aria-pressed", v); sb.lastChild.textContent = v ? "Markiert" : "Karte markieren"; };
+    sb.addEventListener("click", () => setStar(!star));
+    const withStar = c => { if (star) c.star = 1; else delete c.star; return c; };
     const save = () => {
       const f = $("#cf", root).value.trim(), b = $("#cb", root).value.trim(), to = $("#cfo", root).value;
       if (!f || !b) { toast("Fülle Vorder- und Rückseite aus."); return false; }
-      if (ex) { const c = { ...ex, f, b }; if (to !== fid) { const st = S.study; if (st) [...st.queue, ...(st.hist || [])].forEach(q => { if ((q.id || (q.card && q.card.id)) === ex.id && q.fid === fid) q.fid = to; }); putCard(to, c); delCard(fid, ex.id); } else putCard(fid, c); if (S.study) S.study.justFlipped = false; }
-      else putCard(to, { id: uid(), f, b, due: Date.now(), ivl: 0, ease: 2.5, reps: 0, lapses: 0, created: Date.now() });
+      if (ex) { const c = withStar({ ...ex, f, b }); if (to !== fid) { const st = S.study; if (st) [...st.queue, ...(st.hist || [])].forEach(q => { if ((q.id || (q.card && q.card.id)) === ex.id && q.fid === fid) q.fid = to; }); putCard(to, c); delCard(fid, ex.id); } else putCard(fid, c); if (S.study) S.study.justFlipped = false; }
+      else putCard(to, withStar({ id: uid(), f, b, due: Date.now(), ivl: 0, ease: 2.5, reps: 0, lapses: 0, created: Date.now() }));
       return true;
     };
     $("#csave", root).addEventListener("click", () => {
       if (!ex && !$("#cf", root).value.trim() && !$("#cb", root).value.trim()) { closeSheet(); return; } // leere neue Karte: einfach schließen
       if (save()) { closeSheet(); toast(ex ? "Gespeichert" : "Karte angelegt"); } });
-    const nx = $("#cnext", root); if (nx) nx.addEventListener("click", () => { if (save()) { ["#cf", "#cb"].forEach(q => { $(q, root).value = ""; }); $("#cf", root).focus(); toast("Karte angelegt"); } });
+    const nx = $("#cnext", root); if (nx) nx.addEventListener("click", () => { if (save()) { ["#cf", "#cb"].forEach(q => { $(q, root).value = ""; }); setStar(false); $("#cf", root).focus(); toast("Karte angelegt"); } });
     const del = $("#cdel", root); if (del) del.addEventListener("click", () => kEd ? armDelete(del, () => { delCard(fid, ex.id); closeSheet(); toast("Karte gelöscht"); }) : (delCard(fid, ex.id), closeSheet(), toast("Karte ausgeblendet"))); /* fremde Karte: nur für mich ausblenden, ohne Rückfrage (lässt sich wieder einblenden) */
     const ko = $("#kOrig", root); if (ko) ko.addEventListener("click", () => { const P = krProg(fid), r = { ...(P.cards[ex.id] || {}) }; delete r.o; P.cards[ex.id] = r; krSaveProg(fid, P); krInject(); render(); closeSheet(); toast("Original wiederhergestellt"); });
     const cp = $("#ccopy", root); if (cp) cp.addEventListener("click", () => {
@@ -8596,6 +8628,7 @@ document.addEventListener("click", e => {
   if (a === "newLimitSheet") { newLimitSheet(); return; }
   if (a === "setNewLimit") { saveSettings({ newPerDay: +b.dataset.v }); const np = $("#nlPick"); if (np) np.innerHTML = newLimitPickerHTML(); return; }
   if (a === "undoGrade") { undoGrade(); return; }
+  if (a === "studyStar") { toggleStar(); return; }
   if (a === "studyEdit") { const c = curCard(); if (c && !(S.study && S.study.busy)) cardSheet(c.fid, c.id); return; }
   if (a === "studyAgain") { const bk = S.study; if (bk) { S.study = null; S.view = bk.back; S.fid = bk.backFid; } startStudy(id); return; }
   if (a === "moreNew") { const bk = S.study; addExtraNew(id, 10); if (bk) { S.study = null; S.view = bk.back; S.fid = bk.backFid; } startStudy(id); return; }
@@ -9266,6 +9299,7 @@ document.addEventListener("keydown", e => {
   if ((e.key === " " || e.key === "Enter") && S.study && !S.study.flipped) { e.preventDefault(); S.study.flipped = true; S.study.justFlipped = true; render(); }
   else if (e.key === "Enter" && S.study && S.study.flipped && S.study.ty && S.study.ty.key === tyKey() && S.study.ty.sugg >= 0) { e.preventDefault(); grade(S.study.ty.sugg); }
   else if (/^[1-4]$/.test(e.key) && S.study && S.study.flipped && +e.key <= curGrades().length) { e.preventDefault(); grade(+e.key - 1); }
+  else if ((e.key === "s" || e.key === "S") && !e.metaKey && !e.ctrlKey && curCard()) { e.preventDefault(); toggleStar(); }
   else if ((e.key === "e" || e.key === "E") && !e.metaKey && !e.ctrlKey) { const c = curCard(); if (c && !S.study.busy) { e.preventDefault(); cardSheet(c.fid, c.id); } }
   else if ((e.key === "z" || e.key === "Z" || e.key === "Backspace") && !e.altKey) { e.preventDefault(); undoGrade(); }
   else if (e.key === "Escape") endStudy();
